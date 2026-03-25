@@ -1,0 +1,179 @@
+@mixin mono-sm ($color, $weight, $line-height: 1.5, $spacing: 0, $align: left) {
+    font-family: 'Consolas', monospace;
+    font-size: 12px;
+    line-height: $line-height;
+    color: $color;
+    font-weight: $weight;
+    letter-spacing: $spacing;
+    text-align: $align;
+}
+
+@mixin mono-md ($color, $weight, $line-height: 1.5, $spacing: 0, $align: left) {
+    font-family: 'Consolas', monospace;
+    font-size: 14px;
+    line-height: $line-height;
+    color: $color;
+    font-weight: $weight;
+    letter-spacing: $spacing;
+    text-align: $align;
+}
+
+@mixin mono-lg ($color, $weight, $line-height: 1.5, $spacing: 0, $align: left) {
+    font-family: 'Consolas', monospace;
+    font-size: 16px;
+    line-height: $line-height;
+    color: $color;
+    font-weight: $weight;
+    letter-spacing: $spacing;
+    text-align: $align;
+}
+
+@mixin mono-xl ($color, $weight, $line-height: 1.5, $spacing: 0, $align: left) {
+    font-family: 'Consolas', monospace;
+    font-size: 18px;
+    line-height: $line-height;
+    color: $color;
+    font-weight: $weight;
+    letter-spacing: $spacing;
+    text-align: $align;
+}
+
+@mixin mono-2xl ($color, $weight, $line-height: 1.5, $spacing: 0, $align: left) {
+    font-family: 'Consolas', monospace;
+    font-size: 20px;
+    line-height: $line-height;
+    color: $color;
+    font-weight: $weight;
+    letter-spacing: $spacing;
+    text-align: $align;
+}
+
+@mixin mono-3xl ($color, $weight, $line-height: 1.5, $spacing: 0, $align: left) {
+    font-family: 'Consolas', monospace;
+    font-size: 24px;
+    line-height: $line-height;
+    color: $color;
+    font-weight: $weight;
+    letter-spacing: $spacing;
+    text-align: $align;
+}
+
+@mixin cinzel-sm ($color, $weight, $line-height: 1.5, $spacing: 0, $align: left) {
+    font-family: 'Cinzel', serif;
+    font-size: 12px;
+    line-height: $line-height;
+    color: $color;
+    font-weight: $weight;
+    letter-spacing: $spacing;
+    text-align: $align;
+}
+
+@mixin cinzel-md ($color, $weight, $line-height: 1.5, $spacing: 0, $align: left) {
+    font-family: 'Cinzel', serif;
+    font-size: 14px;
+    line-height: $line-height;
+    color: $color;
+    font-weight: $weight;
+    letter-spacing: $spacing;
+    text-align: $align;
+}
+
+@mixin cinzel-lg ($color, $weight, $line-height: 1.5, $spacing: 0, $align: left) {
+    font-family: 'Cinzel', serif;
+    font-size: 16px;
+    line-height: $line-height;
+    color: $color;
+    font-weight: $weight;
+    letter-spacing: $spacing;
+    text-align: $align;
+}
+
+@mixin cinzel-xl ($color, $weight, $line-height: 1.5, $spacing: 0, $align: left) {
+    font-family: 'Cinzel', serif;
+    font-size: 18px;
+    line-height: $line-height;
+    color: $color;
+    font-weight: $weight;
+    letter-spacing: $spacing;
+    text-align: $align;
+}
+
+@mixin cinzel-2xl ($color, $weight, $line-height: 1.5, $spacing: 0, $align: left) {
+    font-family: 'Cinzel', serif;
+    font-size: 20px;
+    line-height: $line-height;
+    color: $color;
+    font-weight: $weight;
+    letter-spacing: $spacing;
+    text-align: $align;
+}
+
+@mixin cinzel-3xl ($color, $weight, $line-height: 1.5, $spacing: 0, $align: left) {
+    font-family: 'Cinzel', serif;
+    font-size: 24px;
+    line-height: $line-height;
+    color: $color;
+    font-weight: $weight;
+    letter-spacing: $spacing;
+    text-align: $align;
+}
+
+@mixin main-sm ($color, $weight, $line-height: 1.5, $spacing: 0, $align: left) {
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-size: 12px;
+    line-height: $line-height;
+    color: $color;
+    font-weight: $weight;
+    letter-spacing: $spacing;
+    text-align: $align;
+}
+
+@mixin main-md ($color, $weight, $line-height: 1.5, $spacing: 0, $align: left) {
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    line-height: $line-height;
+    color: $color;
+    font-weight: $weight;
+    letter-spacing: $spacing;
+    text-align: $align;
+}
+
+@mixin main-lg ($color, $weight, $line-height: 1.5, $spacing: 0, $align: left) {
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-size: 16px;
+    line-height: $line-height;
+    color: $color;
+    font-weight: $weight;
+    letter-spacing: $spacing;
+    text-align: $align;
+}
+
+@mixin main-xl ($color, $weight, $line-height: 1.5, $spacing: 0, $align: left) {
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-size: 18px;
+    line-height: $line-height;
+    color: $color;
+    font-weight: $weight;
+    letter-spacing: $spacing;
+    text-align: $align;
+}
+
+@mixin main-2xl ($color, $weight, $line-height: 1.5, $spacing: 0, $align: left) {
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-size: 20px;
+    line-height: $line-height;
+    color: $color;
+    font-weight: $weight;
+    letter-spacing: $spacing;
+    text-align: $align;
+}
+
+@mixin main-3xl ($color, $weight, $line-height: 1.5, $spacing: 0, $align: left) {
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-size: 24px;
+    line-height: $line-height;
+    color: $color;
+    font-weight: $weight;
+    letter-spacing: $spacing;
+    text-align: $align;
+}
