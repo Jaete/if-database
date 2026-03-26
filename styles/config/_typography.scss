@@ -118,7 +118,7 @@
     text-align: $align;
 }
 
-@mixin main-sm ($color, $weight, $line-height: 1.5, $spacing: 0, $align: left) {
+@mixin main-xs ($color, $weight, $line-height: 1.5, $spacing: 0, $align: left) {
     font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     font-size: 12px;
     line-height: $line-height;
@@ -128,9 +128,19 @@
     text-align: $align;
 }
 
-@mixin main-md ($color, $weight, $line-height: 1.5, $spacing: 0, $align: left) {
+@mixin main-sm ($color, $weight, $line-height: 1.5, $spacing: 0, $align: left) {
     font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     font-size: 14px;
+    line-height: $line-height;
+    color: $color;
+    font-weight: $weight;
+    letter-spacing: $spacing;
+    text-align: $align;
+}
+
+@mixin main-md ($color, $weight, $line-height: 1.5, $spacing: 0, $align: left) {
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-size: 16px;
     line-height: $line-height;
     color: $color;
     font-weight: $weight;

@@ -1,0 +1,43 @@
+@use '@/styles/globals' as *;
+
+.monsterData {
+  @include flex-col-start();
+  width: 100%;
+  color: #e0e0e0;
+}
+
+.monsterHeader {
+  width: 100%;
+  margin-bottom: $spacing-5;
+
+  .monsterName {
+    margin: 0;
+    @include main-xl(#ffffff, bold, 1.2);
+  }
+}
+
+.monsterImageContainer {
+  width: 100%;
+  margin-bottom: $spacing-5;
+  border: 1px solid $neutral-400;
+
+  .monsterImage {
+    width: 100%;
+    display: block;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+  }
+}
+
+.monsterDescription {
+  @include main-md(#ffffff, normal, 1.6);
+  margin: $spacing-5 0;
+  word-wrap: break-word;
+  border-bottom: 1px solid $neutral-400;
+  padding-bottom: $spacing-5;
+  width: 100%;
+
+  @include mobile {
+    font-size: 13px;
+  }
+}

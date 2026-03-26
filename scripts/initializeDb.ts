@@ -6,11 +6,11 @@ import path from 'path';
 dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
 
 // OU carrega múltiplos arquivos (ordem de prioridade)
-dotenv.config({ 
+dotenv.config({
   path: [
     path.resolve(process.cwd(), '.env.local'),
     path.resolve(process.cwd(), '.env'),
-  ] 
+  ],
 });
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -50,7 +50,9 @@ const cleanUrl = (url?: string): string | undefined => url?.trim();
 /**
  * Transforma stats do formato PT-BR para EN
  */
-const transformStats = (rawStats?: Record<string, string>): IStats | undefined => {
+const transformStats = (
+  rawStats?: Record<string, string>
+): IStats | undefined => {
   if (!rawStats) return undefined;
 
   const stats: Partial<IStats> = {};
@@ -69,7 +71,7 @@ const transformStats = (rawStats?: Record<string, string>): IStats | undefined =
  * Transforma array de habilidades/acoes para o schema
  */
 const transformAbilities = (
-  rawAbilities?: Array<{ nome?: string; desc?: string }>,
+  rawAbilities?: Array<{ nome?: string; desc?: string }>
 ): Array<IAbilities> | undefined => {
   if (!rawAbilities) return undefined;
 
@@ -83,7 +85,7 @@ const transformAbilities = (
  * Transforma sentidos para o schema
  */
 const transformSenses = (
-  rawSenses?: Record<string, string>,
+  rawSenses?: Record<string, string>
 ): ISenses | undefined => {
   if (!rawSenses) return undefined;
 
@@ -103,7 +105,7 @@ const transformSenses = (
  * Transforma drops mantendo estrutura
  */
 const transformDrops = (
-  rawDrops?: Array<{ range?: string; item?: string }>,
+  rawDrops?: Array<{ range?: string; item?: string }>
 ): Array<IDrops> | undefined => {
   if (!rawDrops) return undefined;
 
@@ -116,12 +118,21 @@ const transformDrops = (
 /**
  * Transforma um monstro do formato original para o schema IMonster
  */
-const transformMonster = (slug: string, raw: Record<string, unknown>): Partial<IMonster> => {
+const transformMonster = (
+  slug: string,
+  raw: Record<string, unknown>
+): Partial<IMonster> => {
   const stats = transformStats(raw.stats as Record<string, string>);
-  const habilidades = transformAbilities(raw.habilidades as Array<{ nome?: string; desc?: string }>);
-  const acoes = transformAbilities(raw.acoes as Array<{ nome?: string; desc?: string }>);
+  const habilidades = transformAbilities(
+    raw.habilidades as Array<{ nome?: string; desc?: string }>
+  );
+  const acoes = transformAbilities(
+    raw.acoes as Array<{ nome?: string; desc?: string }>
+  );
   const sentidos = transformSenses(raw.sentidos as Record<string, string>);
-  const drops = transformDrops(raw.drops as Array<{ range?: string; item?: string }>);
+  const drops = transformDrops(
+    raw.drops as Array<{ range?: string; item?: string }>
+  );
 
   return {
     slug,
@@ -131,10 +142,12 @@ const transformMonster = (slug: string, raw: Record<string, unknown>): Partial<I
     image: cleanUrl(raw.image as string),
     subtitle: raw.subtitle as string | undefined,
     description: raw.description as string | undefined,
-    type: raw.type as string | undefined,
-    ac: raw.ac as string | undefined,
-    hp: raw.hp as string | undefined,
-    speed: raw.speed as string | undefined,
+    combat: {
+      type: raw.type as string | undefined,
+      ac: raw.ac as string | undefined,
+      hp: raw.hp as string | undefined,
+      speed: raw.speed as string | undefined,
+    },
     stats,
     abilities: habilidades,
     actions: acoes,
@@ -151,10 +164,12 @@ const seedMonsters = async (): Promise<void> => {
     console.log('🔄 Conectando ao MongoDB...');
     await connectDB();
 
-    console.log(`📦 Transformando ${Object.keys(MonsterDB).length} monstros...`);
+    console.log(
+      `📦 Transformando ${Object.keys(MonsterDB).length} monstros...`
+    );
 
     const monstersToInsert = Object.entries(MonsterDB).map(([slug, data]) =>
-      transformMonster(slug, data),
+      transformMonster(slug, data)
     );
 
     console.log('🧹 Limpando coleção "monsters"...');
@@ -173,7 +188,8 @@ const seedMonsters = async (): Promise<void> => {
       console.log(`  ${index + 1}. ${monster.slug}`);
     });
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+    const errorMessage =
+      error instanceof Error ? error.message : 'Erro desconhecido';
 
     console.error('❌ Erro no seed:', errorMessage);
 

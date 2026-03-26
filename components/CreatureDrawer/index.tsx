@@ -1,6 +1,7 @@
-import { ReactNode } from "react";
-import { useCssHandles } from "@/hooks/useCssHandles";
-import CreatureDrawerHandles from "./handles";
+import { ReactNode } from 'react';
+import { useCssHandles } from '@/hooks/useCssHandles';
+import CreatureDrawerHandles from './handles';
+import './CreatureDrawer.scss';
 
 const CreatureDrawer = ({ children }: { children: ReactNode }) => {
   const handles = useCssHandles(CreatureDrawerHandles);
@@ -12,4 +13,4 @@ const CreatureDrawer = ({ children }: { children: ReactNode }) => {
   );
 };
 
-export default CreatureDrawer
+export default CreatureDrawer;

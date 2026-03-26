@@ -1,0 +1,36 @@
+@use '@/styles/globals' as *;
+
+.statSection {
+  margin-top: $spacing-6;
+  width: 100%;
+
+  h4 {
+    color: $primary-100;
+    border-bottom: 1px solid $neutral-400;
+    padding-bottom: $spacing-2;
+    margin-bottom: $spacing-3;
+    @include cinzel-sm($primary-100, bold, 1.5, 1px);
+    text-transform: uppercase;
+  }
+}
+
+.dropsTable {
+  width: 100%;
+  border-collapse: collapse;
+
+  td {
+    padding: $spacing-2;
+    border-bottom: 1px solid $neutral-400;
+    @include main-sm(#e0e0e0, normal);
+  }
+}
+
+.dropRange {
+  color: $primary-100;
+  font-weight: bold;
+  width: 80px;
+}
+
+.dropItem {
+  color: #e0e0e0;
+}

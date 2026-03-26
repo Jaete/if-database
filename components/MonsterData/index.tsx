@@ -1,10 +1,15 @@
-import type IMonster from "@/db/monsters/monsters.d";
-import Image from "next/image";
-import MonsterInfo from "../MonsterInfo";
-import StatBlock from "@/components/StatsBlock";
-import { useCssHandles } from "@/hooks/useCssHandles";
-import MonsterDataHandles from "./handles";
-import AbilitiesBlock from "../AbilitiesBlock";
+import Image from 'next/image';
+
+import type IMonster from '@/db/monsters/monsters.d';
+import { useCssHandles } from '@/hooks/useCssHandles';
+
+import CombatInfo from '@/components/CombatInfo';
+import StatBlock from '@/components/StatsBlock';
+import AbilitiesBlock from '@/components/AbilitiesBlock';
+import SensesBlock from '@/components/SensesBlock';
+import DropsBlock from '@/components/DropsBlock';
+import MonsterDataHandles from './handles';
+import './MonsterData.scss';
 
 interface IProps {
   monster: IMonster;
@@ -21,7 +26,7 @@ const MonsterData = ({ monster }: IProps) => {
       <div className={handles.monsterImageContainer}>
         <Image
           className={handles.monsterImage}
-          src={monster.image ?? ""}
+          src={monster.image ?? ''}
           alt="Monster Image"
           width={500}
           height={500}
@@ -29,32 +34,12 @@ const MonsterData = ({ monster }: IProps) => {
         />
       </div>
       <p className={handles.monsterDescription}>{monster.description}</p>
-      <MonsterInfo monster={monster} />
-      <StatBlock monster={monster} />
-      <AbilitiesBlock monster={monster} />
-      <div className="stat-section">
-        <h4>Ações</h4>
-        <div id="creature-actions"></div>
-      </div>
-      <div className="stat-section">
-        <h4>Sentidos</h4>
-        <div className="senses-list">
-          <div className="info-row">
-            <span className="info-label">Percepção passiva:</span>{" "}
-            <span id="sense-perception">---</span>
-          </div>
-          <div className="info-row">
-            <span className="info-label">Visão no escuro:</span>{" "}
-            <span id="sense-darkvision">---</span>
-          </div>
-        </div>
-      </div>
-      <div className="stat-section">
-        <h4>Itens de Drop</h4>
-        <table className="drops-table">
-          <tbody id="creature-drops"></tbody>
-        </table>
-      </div>
+      <StatBlock stats={monster.stats ?? {}} />
+      <CombatInfo combat={monster.combat ?? {}} />
+      <AbilitiesBlock abilities={monster.abilities ?? []} />
+      <AbilitiesBlock abilities={monster.actions ?? []} />
+      <SensesBlock senses={monster.senses ?? {}} />
+      <DropsBlock drops={monster.drops ?? []} />
     </div>
   );
 };

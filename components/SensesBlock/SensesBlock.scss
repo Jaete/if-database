@@ -1,0 +1,38 @@
+@use '@/styles/globals' as *;
+
+.statSection {
+  margin-top: $spacing-6;
+  width: 100%;
+
+  h4 {
+    color: $primary-100;
+    border-bottom: 1px solid $neutral-400;
+    padding-bottom: $spacing-2;
+    margin-bottom: $spacing-3;
+    @include cinzel-sm($primary-100, bold, 1.5, 1px);
+    text-transform: uppercase;
+  }
+}
+
+.sensesList {
+  @include flex-col-start();
+  gap: $spacing-2;
+  width: 100%;
+}
+
+.infoRow {
+  @include main-md(#e0e0e0, normal, 1.5);
+
+  @include mobile {
+    font-size: 13px;
+  }
+}
+
+.infoLabel {
+  font-weight: bold;
+  color: #ffffff;
+}
+
+.infoValue {
+  color: #e0e0e0;
+}

@@ -1,0 +1,54 @@
+@use '@/styles/globals' as *;
+
+.statSection {
+  margin-top: $spacing-6;
+  width: 100%;
+
+  h3 {
+    color: $primary-100;
+    border-bottom: 1px solid $neutral-400;
+    padding-bottom: $spacing-2;
+    margin-bottom: $spacing-3;
+    @include cinzel-sm($primary-100, bold, 1.5, 1px);
+    text-transform: uppercase;
+  }
+}
+
+.attributesGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: $spacing-4;
+
+  @include mobile {
+    gap: $spacing-3;
+  }
+}
+
+.attrItem {
+  background: $neutral-300;
+  padding: $spacing-3;
+  border: 1px solid $neutral-400;
+  text-align: center;
+
+  @include mobile {
+    padding: $spacing-2 $spacing-1;
+  }
+}
+
+.attrLabel {
+  display: block;
+  @include cinzel-sm($primary-100, bold, 1.5, 0, center);
+  margin-bottom: $spacing-1;
+
+  @include mobile {
+    font-size: 10px;
+  }
+}
+
+.attrValue {
+  @include main-lg(#ffffff, bold, 1.2, 0, center);
+
+  @include mobile {
+    font-size: 13px;
+  }
+}

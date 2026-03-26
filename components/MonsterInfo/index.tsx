@@ -1,34 +1,35 @@
-import type IMonster from "@/db/monsters/monsters.d";
-import { useCssHandles } from "@/hooks/useCssHandles";
-import MonsterInfoHandles from "./handles";
+import { useCssHandles } from '@/hooks/useCssHandles';
+import MonsterInfoHandles from './handles';
+import { ICombat } from '@/db/monsters/monsters.d';
+import './MonsterInfo.scss';
 
 interface IProps {
-  monster: IMonster;
+  stats: ICombat;
 }
 
-const MonsterInfo = ({ monster }: IProps) => {
+const CombatInfo = ({ stats }: IProps) => {
   const handles = useCssHandles(MonsterInfoHandles);
 
   return (
     <div className={handles.monsterInfoList}>
       <div className={handles.infoRow}>
         <span className={handles.infoLabel}>Tipo: </span>
-        <span className={handles.infoValue}>{monster.type ?? "---"}</span>
+        <span className={handles.infoValue}>{stats.type ?? '---'}</span>
       </div>
       <div className={handles.infoRow}>
         <span className={handles.infoLabel}>Classe de Armadura (CA): </span>
-        <span className={handles.infoValue}>{monster.ac ?? "---"}</span>
+        <span className={handles.infoValue}>{stats.ac ?? '---'}</span>
       </div>
       <div className={handles.infoRow}>
         <span className={handles.infoLabel}>Pontos de Vida (PV): </span>
-        <span className={handles.infoValue}>{monster.hp ?? "---"}</span>
+        <span className={handles.infoValue}>{stats.hp ?? '---'}</span>
       </div>
       <div className={handles.infoRow}>
         <span className={handles.infoLabel}>Velocidade: </span>
-        <span className={handles.infoValue}>{monster.speed ?? "---"}</span>
+        <span className={handles.infoValue}>{stats.speed ?? '---'}</span>
       </div>
     </div>
   );
 };
 
-export default MonsterInfo;
+export default CombatInfo;

@@ -1,5 +1,5 @@
-import { Schema } from "mongoose";
-import IMonster from "./monsters.d";
+import { Schema } from 'mongoose';
+import IMonster from './monsters.d';
 
 const MonsterSchema = new Schema<IMonster>(
   {
@@ -10,10 +10,7 @@ const MonsterSchema = new Schema<IMonster>(
     image: { type: String },
     subtitle: { type: String },
     description: { type: String },
-    type: { type: String },
-    ac: { type: String },
-    hp: { type: String },
-    speed: { type: String },
+    combat: { type: Schema.Types.Mixed },
     stats: { type: Schema.Types.Mixed },
     abilities: [
       {
@@ -32,7 +29,7 @@ const MonsterSchema = new Schema<IMonster>(
   },
   {
     timestamps: true,
-    collection: "monsters",
+    collection: 'monsters',
   }
 );
 

@@ -1,33 +1,40 @@
 interface IStats {
-  str?: string,
-  dex?: string,
-  con?: string,
-  int?: string,
-  wis?: string,
-  cha?: string,
+  str?: string;
+  dex?: string;
+  con?: string;
+  int?: string;
+  wis?: string;
+  cha?: string;
 }
 
 interface IAbilities {
-  name?: string,
-  description?: string,
+  name?: string;
+  description?: string;
 }
 
 interface IActions {
-  name?: string,
-  description?: string,
+  name?: string;
+  description?: string;
 }
 
 interface ISenses {
-  passivePerception?: string,
-  darkvision?: string,
-  blindsight?: string,
-  tremorsense?: string,
-  truesight?: string,
+  passivePerception?: string;
+  darkvision?: string;
+  blindsight?: string;
+  tremorsense?: string;
+  truesight?: string;
 }
 
 interface IDrops {
-  range?: string,
-  item?: string,
+  range?: string;
+  item?: string;
+}
+
+interface ICombat {
+  type?: string;
+  ac?: string;
+  hp?: string;
+  speed?: string;
 }
 
 export default interface IMonster extends Document {
@@ -38,10 +45,7 @@ export default interface IMonster extends Document {
   image?: string;
   subtitle?: string;
   description?: string;
-  type?: string;
-  ac?: string;
-  hp?: string;
-  speed?: string;
+  combat?: ICombat;
   stats?: IStats;
   abilities?: Array<IAbilities>;
   actions?: Array<IActions>;
