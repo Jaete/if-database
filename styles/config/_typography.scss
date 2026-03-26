@@ -1,6 +1,16 @@
-@mixin mono-sm ($color, $weight, $line-height: 1.5, $spacing: 0, $align: left) {
+@mixin mono-xs ($color, $weight, $line-height: 1.5, $spacing: 0, $align: left) {
     font-family: 'Consolas', monospace;
     font-size: 12px;
+    line-height: $line-height;
+    color: $color;
+    font-weight: $weight;
+    letter-spacing: $spacing;
+    text-align: $align;
+}
+
+@mixin mono-sm ($color, $weight, $line-height: 1.5, $spacing: 0, $align: left) {
+    font-family: 'Consolas', monospace;
+    font-size: 14px;
     line-height: $line-height;
     color: $color;
     font-weight: $weight;
@@ -10,7 +20,7 @@
 
 @mixin mono-md ($color, $weight, $line-height: 1.5, $spacing: 0, $align: left) {
     font-family: 'Consolas', monospace;
-    font-size: 14px;
+    font-size: 16px;
     line-height: $line-height;
     color: $color;
     font-weight: $weight;
@@ -20,7 +30,7 @@
 
 @mixin mono-lg ($color, $weight, $line-height: 1.5, $spacing: 0, $align: left) {
     font-family: 'Consolas', monospace;
-    font-size: 16px;
+    font-size: 18px;
     line-height: $line-height;
     color: $color;
     font-weight: $weight;
@@ -30,7 +40,7 @@
 
 @mixin mono-xl ($color, $weight, $line-height: 1.5, $spacing: 0, $align: left) {
     font-family: 'Consolas', monospace;
-    font-size: 18px;
+    font-size: 20px;
     line-height: $line-height;
     color: $color;
     font-weight: $weight;
@@ -40,7 +50,7 @@
 
 @mixin mono-2xl ($color, $weight, $line-height: 1.5, $spacing: 0, $align: left) {
     font-family: 'Consolas', monospace;
-    font-size: 20px;
+    font-size: 24px;
     line-height: $line-height;
     color: $color;
     font-weight: $weight;
@@ -50,7 +60,7 @@
 
 @mixin mono-3xl ($color, $weight, $line-height: 1.5, $spacing: 0, $align: left) {
     font-family: 'Consolas', monospace;
-    font-size: 24px;
+    font-size: 32px;
     line-height: $line-height;
     color: $color;
     font-weight: $weight;
@@ -58,7 +68,7 @@
     text-align: $align;
 }
 
-@mixin cinzel-sm ($color, $weight, $line-height: 1.5, $spacing: 0, $align: left) {
+@mixin cinzel-xs ($color, $weight, $line-height: 1.5, $spacing: 0, $align: left) {
     font-family: 'Cinzel', serif;
     font-size: 12px;
     line-height: $line-height;
@@ -68,7 +78,7 @@
     text-align: $align;
 }
 
-@mixin cinzel-md ($color, $weight, $line-height: 1.5, $spacing: 0, $align: left) {
+@mixin cinzel-sm ($color, $weight, $line-height: 1.5, $spacing: 0, $align: left) {
     font-family: 'Cinzel', serif;
     font-size: 14px;
     line-height: $line-height;
@@ -78,7 +88,7 @@
     text-align: $align;
 }
 
-@mixin cinzel-lg ($color, $weight, $line-height: 1.5, $spacing: 0, $align: left) {
+@mixin cinzel-md ($color, $weight, $line-height: 1.5, $spacing: 0, $align: left) {
     font-family: 'Cinzel', serif;
     font-size: 16px;
     line-height: $line-height;
@@ -88,7 +98,7 @@
     text-align: $align;
 }
 
-@mixin cinzel-xl ($color, $weight, $line-height: 1.5, $spacing: 0, $align: left) {
+@mixin cinzel-lg ($color, $weight, $line-height: 1.5, $spacing: 0, $align: left) {
     font-family: 'Cinzel', serif;
     font-size: 18px;
     line-height: $line-height;
@@ -98,7 +108,7 @@
     text-align: $align;
 }
 
-@mixin cinzel-2xl ($color, $weight, $line-height: 1.5, $spacing: 0, $align: left) {
+@mixin cinzel-xl ($color, $weight, $line-height: 1.5, $spacing: 0, $align: left) {
     font-family: 'Cinzel', serif;
     font-size: 20px;
     line-height: $line-height;
@@ -108,9 +118,19 @@
     text-align: $align;
 }
 
-@mixin cinzel-3xl ($color, $weight, $line-height: 1.5, $spacing: 0, $align: left) {
+@mixin cinzel-2xl ($color, $weight, $line-height: 1.5, $spacing: 0, $align: left) {
     font-family: 'Cinzel', serif;
     font-size: 24px;
+    line-height: $line-height;
+    color: $color;
+    font-weight: $weight;
+    letter-spacing: $spacing;
+    text-align: $align;
+}
+
+@mixin cinzel-3xl ($color, $weight, $line-height: 1.5, $spacing: 0, $align: left) {
+    font-family: 'Cinzel', serif;
+    font-size: 32px;
     line-height: $line-height;
     color: $color;
     font-weight: $weight;
@@ -150,7 +170,7 @@
 
 @mixin main-lg ($color, $weight, $line-height: 1.5, $spacing: 0, $align: left) {
     font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    font-size: 16px;
+    font-size: 18px;
     line-height: $line-height;
     color: $color;
     font-weight: $weight;
@@ -160,7 +180,7 @@
 
 @mixin main-xl ($color, $weight, $line-height: 1.5, $spacing: 0, $align: left) {
     font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    font-size: 18px;
+    font-size: 20px;
     line-height: $line-height;
     color: $color;
     font-weight: $weight;
@@ -170,7 +190,7 @@
 
 @mixin main-2xl ($color, $weight, $line-height: 1.5, $spacing: 0, $align: left) {
     font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    font-size: 20px;
+    font-size: 24px;
     line-height: $line-height;
     color: $color;
     font-weight: $weight;
@@ -180,7 +200,7 @@
 
 @mixin main-3xl ($color, $weight, $line-height: 1.5, $spacing: 0, $align: left) {
     font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    font-size: 24px;
+    font-size: 32px;
     line-height: $line-height;
     color: $color;
     font-weight: $weight;

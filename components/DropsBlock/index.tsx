@@ -1,7 +1,6 @@
 import { useCssHandles } from '@/hooks/useCssHandles';
 import DropsBlockHandles from './handles';
 import { IDrops } from '@/db/monsters/monsters.d';
-import './DropsBlock.scss';
 
 interface IProps {
   drops: IDrops[];
@@ -12,7 +11,7 @@ const DropsBlock = ({ drops }: IProps) => {
 
   return (
     <div className={handles.statSection}>
-      <h4>Itens de Drop</h4>
+      <h3>Itens de Drop</h3>
       <table className={handles.dropsTable}>
         <tbody id="creature-drops">
           {drops?.map((drop) => (

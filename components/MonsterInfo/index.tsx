@@ -1,7 +1,6 @@
 import { useCssHandles } from '@/hooks/useCssHandles';
 import MonsterInfoHandles from './handles';
 import { ICombat } from '@/db/monsters/monsters.d';
-import './MonsterInfo.scss';
 
 interface IProps {
   stats: ICombat;

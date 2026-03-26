@@ -1,7 +1,6 @@
 import { useCssHandles } from '@/hooks/useCssHandles';
 import SensesBlockHandles from './handles';
 import { ISenses } from '@/db/monsters/monsters.d';
-import './SensesBlock.scss';
 
 interface IProps {
   senses: ISenses;
@@ -12,7 +11,7 @@ const SensesBlock = ({ senses }: IProps) => {
 
   return (
     <div className={handles.statSection}>
-      <h4>Sentidos</h4>
+      <h3>Sentidos</h3>
       <div className={handles.sensesList}>
         <div className={handles.infoRow}>
           <span className={handles.infoLabel}>Percepção passiva:</span>{' '}

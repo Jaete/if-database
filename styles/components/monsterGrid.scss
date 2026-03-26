@@ -1,0 +1,124 @@
+@use '../../styles/globals' as *;
+
+.container {
+  min-height: 100vh;
+  padding: $spacing-10 $spacing-5;
+  @include flex-col-start();
+  align-items: center;
+  background-color: $neutral-300;
+
+  @include light {
+    background-color: $neutral-2100;
+  }
+}
+
+.header {
+  text-align: center;
+  margin-bottom: $spacing-8;
+  @include flex-col-start();
+  align-items: center;
+  gap: $spacing-3;
+}
+
+.title {
+  @include cinzel-3xl($primary-100, bold, 1.2, 2px);
+  margin: 0;
+}
+
+.subtitle {
+  @include main-sm($neutral-2100, normal);
+  max-width: 600px;
+  margin: 0;
+
+  @include light {
+    color: $neutral-2300;
+  }
+}
+
+.navButtons {
+  margin-top: $spacing-5;
+  @include flex-row-center();
+  gap: $spacing-4;
+
+  @include mobile {
+    flex-direction: column;
+    width: 100%;
+  }
+}
+
+.navButton {
+  @include main-xs(#ffffff, bold);
+  background-color: $primary-100;
+  border: none;
+  padding: $spacing-3 $spacing-6;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+
+  &:hover {
+    background-color: $primary-200;
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  @include mobile {
+    width: 100%;
+  }
+}
+
+.searchContainer {
+  width: 100%;
+  max-width: 600px;
+  margin-bottom: $spacing-10;
+}
+
+.searchInput {
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.2);
+  border: 1px solid $neutral-400;
+  border-radius: 20px;
+  padding: $spacing-3 $spacing-6;
+  color: #ffffff;
+  @include main-md(#ffffff, normal);
+  outline: none;
+  transition: border-color 0.2s;
+
+  &::placeholder {
+    color: $neutral-400;
+  }
+
+  &:focus {
+    border-color: $primary-100;
+  }
+
+  @include light {
+    background-color: #ffffff;
+    color: $neutral-200;
+    border-color: $neutral-2700;
+
+    &::placeholder {
+      color: $neutral-2300;
+    }
+  }
+}
+
+.grid {
+  width: 100%;
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: $spacing-6;
+
+  @include mobile {
+    grid-template-columns: 1fr;
+  }
+}
+
+.emptyState {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: $spacing-10;
+  @include main-md($neutral-400, normal);
+}

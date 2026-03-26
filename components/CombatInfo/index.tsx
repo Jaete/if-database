@@ -1,7 +1,6 @@
 import { useCssHandles } from '@/hooks/useCssHandles';
 import CombatInfoHandles from './handles';
 import { ICombat } from '@/db/monsters/monsters.d';
-import './CombatInfo.scss';
 
 interface IProps {
   combat: ICombat;
@@ -12,7 +11,7 @@ const CombatInfo = ({ combat }: IProps) => {
 
   return (
     <div className={handles.statSection}>
-      <h4>Informações de Combate</h4>
+      <h3>Informações de Combate</h3>
       <div className={handles.combatInfo}>
         <div className={handles.infoRow}>
           <span className={handles.infoLabel}>Tipo:</span>{' '}
