@@ -21,9 +21,11 @@
     @include cinzel-md($primary-100, bold, 1.5, 1px);
   }
 
-
   @include light {
-    h1, h2, h3, h4 {
+    h1,
+    h2,
+    h3,
+    h4 {
       color: $primary-100;
       border-bottom-color: $neutral-2700;
     }
@@ -184,6 +186,7 @@
 }
 
 .monsterImageContainer {
+  position: relative;
   width: 100%;
   margin-bottom: $spacing-5;
   border: 1px solid $neutral-400;
@@ -192,11 +195,42 @@
     border-color: $neutral-2700;
   }
 
+  .monsterImageLoader {
+    position: absolute;
+    inset: 0;
+    opacity: 0.3;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 75%, #f0f0f0 100%);
+    background-size: 200% 100%;
+    animation: pulse 1.5s infinite;
+
+    @keyframes pulse {
+      0% {
+        background-position: 200% 0;
+      }
+      100% {
+        background-position: -200% 0;
+      }
+    }
+  }
+
   .monsterImage {
+    position: relative;
+    z-index: 5;
     width: 100%;
+    height: auto;
     display: block;
     aspect-ratio: 1 / 1;
     object-fit: cover;
+
+    &.loaded + .skeleton {
+      display: none;
+    }
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
   }
 }
 

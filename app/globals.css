@@ -4,7 +4,8 @@
   padding: 0;
 }
 
-html, body {
+html,
+body {
   width: 100dvw;
   height: 100dvh;
   background-color: var(--neutral-100);
@@ -12,4 +13,3 @@ html, body {
   -moz-osx-font-smoothing: grayscale;
   overflow: hidden;
 }
-

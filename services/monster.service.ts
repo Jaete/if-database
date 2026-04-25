@@ -1,5 +1,5 @@
-import MonsterModel from "../db/monsters/monsters";
-import IMonster from "../db/monsters/monsters.d";
+import MonsterModel from '../db/monsters/monsters';
+import IMonster from '../db/monsters/monsters.d';
 
 export async function createMonster(data: IMonster) {
   const monster = await MonsterModel.create(data);
@@ -7,7 +7,7 @@ export async function createMonster(data: IMonster) {
 }
 
 export async function getAllMonsters() {
-  const monsters = await MonsterModel.find().select("-__v");
+  const monsters = await MonsterModel.find().select('-__v');
   return monsters;
 }
 export async function getMonsterBySlug(slug: string) {
@@ -15,12 +15,14 @@ export async function getMonsterBySlug(slug: string) {
   return monster;
 }
 
-export async function updateMonster(slug: string, updateData: Partial<IMonster>) {
-  const monster = await MonsterModel.findOneAndUpdate(
-    { slug }, 
-    updateData, 
-    { new: true, runValidators: true }
-  );
+export async function updateMonster(
+  slug: string,
+  updateData: Partial<IMonster>
+) {
+  const monster = await MonsterModel.findOneAndUpdate({ slug }, updateData, {
+    new: true,
+    runValidators: true,
+  });
   return monster;
 }
 

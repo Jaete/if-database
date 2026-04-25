@@ -5,6 +5,8 @@ const MonsterDataHandles = [
   'monsterImageContainer',
   'monsterImage',
   'monsterDescription',
+  'monsterImageLoader',
+  'monsterImageSpinner',
 ] as const;
 
 export default MonsterDataHandles;

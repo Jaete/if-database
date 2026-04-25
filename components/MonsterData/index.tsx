@@ -9,7 +9,6 @@ import AbilitiesBlock from '@/components/AbilitiesBlock';
 import SensesBlock from '@/components/SensesBlock';
 import DropsBlock from '@/components/DropsBlock';
 import MonsterDataHandles from './handles';
-import '@/styles/components/creatureDrawer.scss';
 
 interface IProps {
   monster: IMonster;
@@ -19,18 +18,19 @@ const MonsterData = ({ monster }: IProps) => {
   const handles = useCssHandles(MonsterDataHandles);
 
   return (
-    <div className={handles.monsterData}>
+    <div key={monster.slug} className={handles.monsterData}>
       <div className={handles.monsterHeader}>
         <h2 className={handles.monsterName}>{monster.name}</h2>
       </div>
       <div className={handles.monsterImageContainer}>
+        <div className={handles.monsterImageLoader} />
         <Image
-          className={handles.monsterImage}
           src={monster.image ?? ''}
-          alt="Monster Image"
+          alt={monster.name}
           width={500}
           height={500}
-          loading="lazy"
+          onLoad={(e) => e.currentTarget.classList.add('loaded')}
+          className={handles.monsterImage}
         />
       </div>
       <p className={handles.monsterDescription}>{monster.description}</p>

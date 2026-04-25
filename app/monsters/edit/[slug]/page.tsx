@@ -3,7 +3,6 @@ import { getMonsterBySlug } from '@/services/monster.service';
 import { notFound } from 'next/navigation';
 import DrawerController from '@/components/CreatureDrawer/sections/DrawerController';
 import MonsterData from '@/components/MonsterData';
-import '@/styles/components/creatureDrawer.scss';
 import CreatureDrawer from '@/components/CreatureDrawer';
 import DrawerContent from '@/components/CreatureDrawer/sections/DrawerContent';
 import DrawerHeader from '@/components/CreatureDrawer/sections/DrawerHeader';

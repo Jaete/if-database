@@ -12,7 +12,6 @@ interface IProps {
 const CreatureDrawer = ({ children }: IProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const handles = useCssHandles(CreatureDrawerHandles);
-
   useEffect(() => {
     const handleOpen = () => setIsOpen(true);
     const handleClose = () => setIsOpen(false);

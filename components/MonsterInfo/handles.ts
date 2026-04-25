@@ -2,7 +2,7 @@ const MonsterInfoHandles = [
   'monsterInfoList',
   'infoRow',
   'infoLabel',
-  'infoValue'
+  'infoValue',
 ] as const;
 
 export default MonsterInfoHandles;
