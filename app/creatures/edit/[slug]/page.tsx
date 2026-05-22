@@ -22,6 +22,8 @@ export default async function CreaturePage({ params }: IProps) {
     notFound();
   }
 
+  const monster = result.data;
+
   return (
     <main>
       <h1>Bestiário - {creature.name}</h1>
