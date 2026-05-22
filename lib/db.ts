@@ -1,7 +1,11 @@
 // src/lib/db.ts
 import mongoose from 'mongoose';
 
-const MONGODB_URI = process.env.MONGODB_CONNECTION!;
+const MONGODB_URI =
+  `${process.env.MONGODB_CONNECTION!}` +
+  `//${process.env.MONGODB_USER}:${process.env.MONGODB_PASSWORD}` +
+  `@${process.env.MONGODB_HOST}` +
+  `/?appName=${process.env.MONGODB_APPNAME}`;
 
 if (!MONGODB_URI) {
   throw new Error('Defina a variável MONGODB_CONNECTION no .env.local');
