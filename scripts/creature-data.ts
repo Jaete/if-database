@@ -1,4 +1,4 @@
-const MonsterDB = {
+const CreatureDB = {
   slimeAcido: {
     name: 'Slime Ácido',
     rarity: 'Comum',
@@ -7,7 +7,7 @@ const MonsterDB = {
     subtitle: 'CR 1/6',
     description:
       'Os Slimes são criaturas básicas e instintivas, movidas apenas pela necessidade de se alimentar e sobreviver. Não possuem inteligência real e reagem de forma automática ao ambiente. Costumam ser lentos e inofensivos se não forem provocados, mas atacarão qualquer coisa que percebam como alimento. Sua agressividade é mínima, e geralmente só atacam quando se deparam com algo metálico ou que toque diretamente sua substância gelatinosa. Por serem resilientes e adaptáveis, podem ser encontrados em diversos ambientes, desde florestas úmidas até cavernas escuras.',
-    type: 'Monstro Médio, Gosma',
+    type: 'Criatura Médio, Gosma',
     ac: '9 (Pele Maleável)',
     hp: '9 (2d6 + 2)',
     speed: '6m',
@@ -74,7 +74,7 @@ const MonsterDB = {
     subtitle: 'CR 1/6',
     description:
       'Os Slimes de Fogo são criaturas instintivamente agressivas, movidas por um desejo irracional de queimar tudo ao seu redor. Diferente dos Slimes comuns, eles tendem a se mover de forma errática e inquieta, sendo atraídos por calor e materiais inflamáveis. São imprevisíveis e podem atacar qualquer coisa que se aproxime, seja por instinto de defesa ou simplesmente por contato. Apesar de sua natureza destrutiva, não possuem verdadeira malícia, apenas um comportamento caótico e impulsivo. Evitam corpos d’água e recuam instintivamente diante de ameaças aquáticas.',
-    type: 'Monstro médio, gosma',
+    type: 'Criatura médio, gosma',
     ac: '9',
     hp: '9 (2d6 + 2)',
     speed: '6m',
@@ -149,7 +149,7 @@ const MonsterDB = {
     subtitle: 'Bestiário de Salazar',
     description:
       'Os Slimes de Água são criaturas passivas e fluídas, geralmente evitando conflitos diretos, a menos que se sintam ameaçados. Sua natureza os torna mais adaptáveis ao ambiente, muitas vezes se camuflando em corpos d’água como lagos, rios ou até mesmo poças. São curiosos e podem seguir viajantes sem intenção hostil, movidos por estímulos externos como vibrações ou presença de umidade. No entanto, quando atacados, respondem com jatos de água, tentando desestabilizar seus oponentes em vez de causar dano letal. Apesar de sua aparência tranquila, são vulneráveis a eletricidade, recuando instintivamente diante de ameaças desse tipo.',
-    type: 'Monstro médio, gosma',
+    type: 'Criatura médio, gosma',
     ac: '10',
     hp: '9 (2d6 + 2)',
     speed: '6m',
@@ -224,7 +224,7 @@ const MonsterDB = {
     subtitle: 'Bestiário de Salazar',
     description:
       'Os Slimes de Gelo são criaturas silenciosas e metódicas, movendo-se de maneira lenta, porém constante. Diferente de seus primos elementais mais agitados, eles tendem a permanecer imóveis por longos períodos, quase como se estivessem hibernando, e só reagem quando algo entra em seu território. Sua defesa natural os torna difíceis de enfrentar em combates corpo a corpo, pois qualquer toque prolongado pode resultar em congelamento. Apesar de não serem naturalmente agressivos, eles atacam qualquer fonte de calor que percebam como uma ameaça, tentando extinguir o que poderia derretê-los. Em ambientes frios, podem se esconder entre o gelo e a neve, esperando pacientemente por presas desavisadas.',
-    type: 'Monstro médio, Gosma',
+    type: 'Criatura médio, Gosma',
     ac: '11',
     hp: '10 (2d6 + 4)',
     speed: '6m (9m se estiver sobre gelo ou neve)',
@@ -299,7 +299,7 @@ const MonsterDB = {
     subtitle: 'Bestiário de Salazar',
     description:
       'Os Slimes de Terra são criaturas pacientes e resilientes, movendo-se de forma lenta, mas implacável. Diferente de outros Slimes, eles possuem um instinto territorial mais desenvolvido, muitas vezes se enterrando no solo ou se fundindo com rochas para emboscar invasores. Não costumam atacar sem motivo, mas reagem de maneira agressiva a qualquer ameaça percebida, utilizando sua força bruta para afastar o perigo. Apesar de sua aparência pesada, podem se mover de maneira surpreendentemente furtiva ao se misturarem com o terreno. São criaturas de hábitos simples, preferindo permanecer em cavernas, montanhas ou regiões áridas onde possam se camuflar facilmente.',
-    type: 'Monstro Médio, Gosma',
+    type: 'Criatura Médio, Gosma',
     ac: '11',
     hp: '11 (2d6 + 4)',
     speed: '5m',
@@ -374,7 +374,7 @@ const MonsterDB = {
     subtitle: 'CR 1',
     description:
       'Os Slimes Elétricos são criaturas hiperativas e imprevisíveis, movendo-se com agilidade e emitindo pequenos estalos de eletricidade a todo momento. Frequentemente encontrados em áreas de tempestades, ruínas com resquícios de energia mágica ou perto de fontes naturais de eletricidade, esses Slimes são altamente instáveis e podem descarregar energia de forma espontânea. Seu corpo constantemente gera faíscas, tornando-os perigosos para quem se aproxima sem proteção adequada. Apesar de sua aparência instável, eles tendem a ser curiosos e podem perseguir alvos sem necessariamente atacá-los, como se fossem atraídos pela energia vital de outros seres.',
-    type: 'Monstro médio, gosma',
+    type: 'Criatura médio, gosma',
     ac: '12',
     hp: '22 (5d6 + 5)',
     speed: '9m',
@@ -445,7 +445,7 @@ const MonsterDB = {
     subtitle: 'CR 1',
     description:
       'Os Slimes Metálicos são considerados uma das variantes mais resistentes e perigosas da família dos Slimes elementais. Seu corpo possui uma estrutura altamente densa e maleável, capaz de endurecer instantaneamente para repelir ataques ou se transformar em lâminas afiadas para atacar. Esses Slimes são frequentemente encontrados em minas antigas, forjas abandonadas ou locais com alta concentração de metais naturais. Seu comportamento é mais defensivo do que ofensivo, atacando apenas quando ameaçados. No entanto, sua resistência excepcional e capacidade de refletir golpes os tornam adversários formidáveis, especialmente para guerreiros que dependem de armas físicas.',
-    type: 'Monstro médio, Gosma',
+    type: 'Criatura médio, Gosma',
     ac: '15',
     hp: '18 (4d6 + 4)',
     speed: '4m',
@@ -516,7 +516,7 @@ const MonsterDB = {
     subtitle: 'CR 1/6',
     description:
       'Os Slimes Necróticos são manifestações corrompidas de gosmas elementais, imbuídas com a essência da morte e da decomposição. Encontrados em cemitérios profanados, criptas abandonadas e locais onde a energia sombria se acumula, esses Slimes parecem pulsar com uma energia negativa incessante. Seu corpo translúcido exala uma névoa escura, drenando a vitalidade de qualquer ser vivo próximo. Criaturas que enfrentam um Slime Necrótico podem sentir sua força vital sendo lentamente drenada, e seus ataques necróticos podem enfraquecer até os guerreiros mais robustos. Por sua conexão com forças profanas, esses Slimes são especialmente vulneráveis à luz radiante e feitiços sagrados.',
-    type: 'Monstro médio, gosma',
+    type: 'Criatura médio, gosma',
     ac: '10',
     hp: '27 (5d6 + 10)',
     speed: '6m',
@@ -591,7 +591,7 @@ const MonsterDB = {
     subtitle: 'CR 3',
     description:
       'Os Slimes Vorazes são o ápice da evolução instintiva, onde a simples necessidade de se alimentar transformou-se em uma fúria predatória incontrolável. Ao contrário de suas formas juvenis, o Slime Voraz não flutua calmamente; ele se move com uma massa pesada e deliberada, impulsionado por uma musculatura gelatinosa que se assemelha a tendões vivos. Sua substância, agora densa e turva, exala um vapor acre que queima os pulmões e dissolve o metal antes mesmo do contato.',
-    type: 'Monstro médio, gosma',
+    type: 'Criatura médio, gosma',
     ac: '13',
     hp: '+68 (8d8 + 32)',
     speed: '9m escalar 9m',
@@ -662,7 +662,7 @@ const MonsterDB = {
     subtitle: 'CR 3',
     description:
       'Se o Slime de Fogo é uma chama que busca combustível, o Slime Explosivo é um incêndio que aprendeu a odiar. Ao trilhar o Caminho Bestial, essa criatura deixa de apenas exalar calor para se tornar uma caldeira biológica de alta pressão. Seu instinto de sobrevivência foi substituído por uma agressividade reativa: cada golpe que recebe não o intimida, mas sim acelera a vibração de seu núcleo, transformando a dor em detonação.',
-    type: 'Monstro médio, gosma',
+    type: 'Criatura médio, gosma',
     ac: '12',
     hp: '+60 (8d8 + 24)',
     speed: '9m',
@@ -737,7 +737,7 @@ const MonsterDB = {
     subtitle: 'CR 3',
     description:
       'O Slime de Correnteza é a prova de que a água, em sua forma mais pura e selvagem, pode ser tão devastadora quanto o aço. Ao evoluir pelo Caminho Bestial, ele deixa de ser uma massa informe para se tornar um sistema de propulsão biológica. Ele não apenas flui sobre o solo; ele ruge como uma inundação confinada em um corpo físico.',
-    type: 'Monstro médio, gosma',
+    type: 'Criatura médio, gosma',
     ac: '14',
     hp: '+64 (8d8 + 28)',
     speed: '9m, 15m natação',
@@ -812,7 +812,7 @@ const MonsterDB = {
     subtitle: 'CR 3',
     description:
       'O Slime de Estalactite é uma visão aterrorizante de beleza letal. Diferente das gosmas comuns, ele possui uma estrutura semi-rígida que brilha com um azul neon intenso vindo de seu núcleo profundo. Ele se move com estalos de gelo quebrando e se reformando instantaneamente.',
-    type: 'Monstro médio, gosma',
+    type: 'Criatura médio, gosma',
     ac: '15',
     hp: '+72 (9d8 + 31)',
     speed: '9m, escalar 9m',
@@ -888,7 +888,7 @@ const MonsterDB = {
     description: `Relatos de viajantes e mineiros frequentemente mencionam 'encostas que se movem'. O Slime de Cascalho é a prova viva de que a terra não é apenas um palco para a vida, mas pode se tornar o próprio predador. Evoluídos de simples poças de barro, essas criaturas consomem minerais preciosos para construir uma carapaça de rocha quase impenetrável.
 
 Diferente de outros Slimes que tentam dissolver a presa, o de Cascalho prefere o método da força bruta: ele soterra seus oponentes sob centenas de quilos de brita e granito, esperando que o fôlego acabe para então absorver os nutrientes dos restos esmagados. Sua paciência é geológica; ele pode permanecer imóvel por décadas, parecendo apenas um amontoado de detritos em uma caverna, até que o som de passos humanos ative seu núcleo de mana. Atacar um Slime de Cascalho com aço comum é como tentar derrubar uma montanha com um talher: inútil e perigoso para a integridade da sua lâmina.`,
-    type: 'Monstro médio, gosma',
+    type: 'Criatura médio, gosma',
     ac: '16',
     hp: '+85 (10d8 + 40)',
     speed: '6m, escavação 6m',
@@ -965,8 +965,8 @@ Diferente de outros Slimes que tentam dissolver a presa, o de Cascalho prefere o
 
 Diferente de seus parentes mais lentos, o Centelha possui um sistema nervoso hiper-estimulado que o mantém em um estado de vibração perpétua. No campo de batalha, ele ignora as leis da fricção, deslizando por paredes e tetos como um raio vivo. O maior perigo não é apenas o seu toque letal, mas a sua capacidade de paralisar o sistema nervoso de suas vítimas com um simples pulso de sua aura.
 
-Relatos de sobreviventes descrevem a luta contra um bando desses monstros como 'tentar golpear o relâmpago'. Aqueles que usam armaduras de metal tornam-se para-raios vivos, servindo como condutores para a fome elétrica da criatura. Para derrotá-lo, é necessário mais do que força; é preciso prever onde a luz atingirá antes mesmo de ela brilhar.`,
-    type: 'Monstro médio, gosma',
+Relatos de sobreviventes descrevem a luta contra um bando desses criaturas como 'tentar golpear o relâmpago'. Aqueles que usam armaduras de metal tornam-se para-raios vivos, servindo como condutores para a fome elétrica da criatura. Para derrotá-lo, é necessário mais do que força; é preciso prever onde a luz atingirá antes mesmo de ela brilhar.`,
+    type: 'Criatura médio, gosma',
     ac: '15',
     hp: '60 (10d8 + 15)',
     speed: '15m (pode andar por paredes e tetos)',
@@ -1044,7 +1044,7 @@ Relatos de sobreviventes descrevem a luta contra um bando desses monstros como '
 Diferente de outros slimes que tentam engolfar suas presas, o de Estilhaços as retalha. Ele utiliza magnetismo interno para converter seu corpo em uma centrífuga de estilhaços ultra-afiados que podem rasgar couro, cota de malha e até placas de aço temperado em segundos. É uma criatura de pura agressão mecânica; não há diplomacia ou fuga fácil quando os chicotes de lâminas começam a girar.
 
 Estrategistas recomendam o uso de magias de calor intenso para fundir suas articulações ou ataques de impacto pesado para desestabilizar sua coesão. No entanto, o maior erro que um guerreiro pode cometer é acreditar que sua armadura o protegerá, pois, para o Slime de Estilhaços, sua armadura é apenas mais matéria-prima para ser mastigada e cuspida de volta contra seus aliados.`,
-    type: 'Monstro médio, gosma',
+    type: 'Criatura médio, gosma',
     ac: '17',
     hp: '75 (10d8 + 30)',
     speed: '9m',
@@ -1118,8 +1118,8 @@ Estrategistas recomendam o uso de magias de calor intenso para fundir suas artic
     image: 'https://i.imgur.com/9SqH0fp.jpeg',
     subtitle: 'CR 3',
     description:
-      'O Slime de Carniça não é apenas um monstro, é uma tumba ambulante. Ele nasce onde a morte foi esquecida e o sagrado foi profanado. Dizem os guias de aventureiros que o primeiro sinal de sua presença não é visual, mas o cheiro: um fedor tão insuportável que pode desorientar o guerreiro mais veterano. Ele não busca apenas se alimentar, ele busca converter toda a vida em decomposição, aumentando sua massa com cada cadáver que consome. Lutar contra um Slime de Carniça é uma corrida contra a exaustão, pois cada ferida que ele inflige drena não apenas o sangue, mas a própria vontade de continuar vivo.',
-    type: 'Monstro médio, gosma',
+      'O Slime de Carniça não é apenas um criatura, é uma tumba ambulante. Ele nasce onde a morte foi esquecida e o sagrado foi profanado. Dizem os guias de aventureiros que o primeiro sinal de sua presença não é visual, mas o cheiro: um fedor tão insuportável que pode desorientar o guerreiro mais veterano. Ele não busca apenas se alimentar, ele busca converter toda a vida em decomposição, aumentando sua massa com cada cadáver que consome. Lutar contra um Slime de Carniça é uma corrida contra a exaustão, pois cada ferida que ele inflige drena não apenas o sangue, mas a própria vontade de continuar vivo.',
+    type: 'Criatura médio, gosma',
     ac: '11',
     hp: '80 (10d8 + 35)',
     speed: '6 metros, escalar 6 metros.',
@@ -1201,7 +1201,7 @@ Estrategistas recomendam o uso de magias de calor intenso para fundir suas artic
 Relatos de sobreviventes descrevem o encontro com essa criatura como lutar contra uma inundação senciante. Sua densidade é tamanha que flechas e feitiços de baixo nível são simplesmente engolidos e neutralizados por suas enzimas gástricas antes de atingirem qualquer ponto vital. O maior perigo reside em sua capacidade de 'Engolfar Total'; uma vez dentro da criatura, a morte não vem pelo esmagamento, mas pela desintegração molecular acelerada.
 
 Em termos estratégicos, o Ooze Gigante é considerado um cerco vivo. Ele não para diante de muralhas ou portões de ferro; ele os consome. A única esperança contra tal abominação é a destruição total e simultânea de seu núcleo de mana, pois qualquer fragmento que escape da erradicação pode, com tempo e alimento suficiente, reiniciar o ciclo de crescimento e retornar como uma nova calamidade.`,
-    type: 'Monstro enorme, gosma',
+    type: 'Criatura enorme, gosma',
     ac: '15',
     hp: '161 (14d12 + 70)',
     speed: '12m, escalar 12m',
@@ -1287,7 +1287,7 @@ Em termos estratégicos, o Ooze Gigante é considerado um cerco vivo. Ele não p
 Diferente das evoluções anteriores, o Lodo de Magma possui uma densidade absurda; sua massa não é composta apenas de lodo, mas de minerais fundidos e energia elemental comprimida. Ele não consome presas para saciar a fome, mas sim para aumentar sua massa mineral, assimilando metais e rochas raras em sua carapaça de obsidiana.
 
 O ar em sua presença é descrito como 'fogo líquido', onde um único suspiro pode incinerar os pulmões de um aventureiro desprotegido. Ele é o senhor absoluto dos domínios ígneos, e sua mera presença transforma ecossistemas inteiros em desertos de lava em questão de dias. Enfrentá-lo é entrar em um combate contra a própria natureza; um esforço que geralmente termina com os heróis e suas lendas sendo reduzidos a cinzas e silêncio.`,
-    type: 'Monstro enorme, gosma',
+    type: 'Criatura enorme, gosma',
     ac: '17',
     hp: ' 175 (14d12 + 84)',
     speed: '6m, natação (magma) 18m',
@@ -1377,7 +1377,7 @@ O ar em sua presença é descrito como 'fogo líquido', onde um único suspiro p
 Diferente de suas evoluções anteriores, o Ooze das Profundezas possui uma densidade molecular que desafia a compreensão. Sua massa é tão compacta que pode repelir lâminas e feitiços como se fosse aço temperado, mantendo a fluidez necessária para engolfar e triturar suas vítimas. Ele manipula a gravidade hidrostática ao seu redor, criando zonas onde o ar se torna tão pesado quanto chumbo, imitando a pressão implacável de uma fossa oceânica.
 
 Relatos de sobreviventes (raros e geralmente traumatizados) descrevem o encontro com esta criatura como 'ser abraçado pelo vazio'. Ele não caça por fome física, mas para assimilar o mana e o conhecimento de seres complexos, adicionando suas essências ao vasto e silencioso arquivo de morte que reside em seu núcleo. Enfrentá-lo sem preparação para combate subaquático ou resistência à escuridão mágica é aceitar o afogamento não apenas físico, mas existencial, nas profundezas impiedosas de seu corpo.`,
-    type: 'Monstro enorme, gosma',
+    type: 'Criatura enorme, gosma',
     ac: '16',
     hp: '168 (16d12 + 64)',
     speed: '9m, natação 24m',
@@ -1400,7 +1400,7 @@ Relatos de sobreviventes (raros e geralmente traumatizados) descrevem o encontro
       },
       {
         nome: 'Vulnerabilidade',
-        desc: 'Raio (A água abissal é um supercondutor, o dano é dobrado e o monstro fica Atordoado por 1 rodada).',
+        desc: 'Raio (A água abissal é um supercondutor, o dano é dobrado e o criatura fica Atordoado por 1 rodada).',
       },
       {
         nome: 'Pressão Hidrostática',
@@ -1467,7 +1467,7 @@ Relatos de sobreviventes (raros e geralmente traumatizados) descrevem o encontro
 Diferente de suas formas anteriores, o Colosso de Neve possui uma estrutura híbrida única. Sua massa é composta por gelo permafrost, que absorveu tanto mana que sua dureza supera o aço temperado, e neve compactada, que lhe confere uma resiliência surpreendente contra impactos. Ele não apenas habita regiões geladas; ele cria o inverno eterno por onde passa, congelando o próprio ar ao redor com sua mera presença.
 
 Relatos de batalhas descrevem o encontro com esta criatura como 'lutar contra uma avalanche com uma espada'. Ele pode remodelar seus membros instantaneamente para criar armas de cerco ou escudos impenetráveis. O maior perigo, no entanto, é seu 'Caixão de Diamante', uma habilidade capaz de congelar campeões instantaneamente em estátuas de gelo eterno. Enfrentá-lo sem magias de fogo de Rank S ou armas lendárias é aceitar uma morte rápida e silenciosa, tornando-se apenas mais um ornamento congelado em seu domínio de gelo`,
-    type: 'Monstro enorme, Gosma',
+    type: 'Criatura enorme, Gosma',
     ac: '18',
     hp: '184 (16d12 + 80)',
     speed: '9 metros, escalar 9 metros.',
@@ -1552,12 +1552,12 @@ Relatos de batalhas descrevem o encontro com esta criatura como 'lutar contra um
     icon: 'https://i.imgur.com/1JM3iSR.png',
     image: 'https://i.imgur.com/BNNZXWM.jpeg',
     subtitle: 'CR 8',
-    description: `O Ooze de Rocha é conhecido entre os mineradores e aventureiros veteranos como o Guardião do Centro da Terra. Classificado como uma Calamidade de Classe Terrestre, esta criatura é o resultado final de séculos de compressão de mana em camadas profundas de sedimentos e minerais raros. Ele não é apenas um monstro; é uma peça do próprio planeta que decidiu se defender.
+    description: `O Ooze de Rocha é conhecido entre os mineradores e aventureiros veteranos como o Guardião do Centro da Terra. Classificado como uma Calamidade de Classe Terrestre, esta criatura é o resultado final de séculos de compressão de mana em camadas profundas de sedimentos e minerais raros. Ele não é apenas um criatura; é uma peça do próprio planeta que decidiu se defender.
 
 Diferente de suas formas anteriores, o Ooze de Rocha não depende apenas de sua massa física para lutar. Ele desenvolveu um controle primitivo, porém devastador, sobre a gravidade. O ar ao seu redor é tão denso que os pulmões de um humano comum podem entrar em colapso apenas por estarem por perto. Sua paciência é lendária; ele pode permanecer imóvel por décadas, sendo confundido com uma formação rochosa natural, até que o primeiro passo de um invasor desperte seu núcleo gravitacional.
 
-Relatos de sobreviventes indicam que armas comuns são totalmente inúteis contra sua couraça de granito temperado. Golpear o Ooze de Rocha é como tentar cortar uma montanha com uma faca de cozinha. A única estratégia viável é o uso de vibrações de alta frequência ou magias de som poderosas que possam rachar sua estrutura molecular antes que o monstro use sua força tectônica para reduzir o grupo de aventureiros a pó e fragmentos ósseos.`,
-    type: 'Monstro enorme, gosma',
+Relatos de sobreviventes indicam que armas comuns são totalmente inúteis contra sua couraça de granito temperado. Golpear o Ooze de Rocha é como tentar cortar uma montanha com uma faca de cozinha. A única estratégia viável é o uso de vibrações de alta frequência ou magias de som poderosas que possam rachar sua estrutura molecular antes que o criatura use sua força tectônica para reduzir o grupo de aventureiros a pó e fragmentos ósseos.`,
+    type: 'Criatura enorme, gosma',
     ac: '19',
     hp: '195 (17d12 + 85)',
     speed: '6 metros, escavação 9 metros.',
@@ -1647,7 +1647,7 @@ Relatos de sobreviventes indicam que armas comuns são totalmente inúteis contr
 Diferente de suas formas inferiores que dependiam de contato físico para eletrocutar, a Enguia de Plasma ioniza o próprio ar ao seu redor, transformando o ambiente em um condutor mortal. Sua mera presença altera a pressão atmosférica e faz com que o cabelo dos seres próximos se erice antes de serem atingidos por um ataque que se move à velocidade da luz. Ela não possui predadores naturais, pois qualquer criatura que tente mordê-la é instantaneamente vaporizada pelo calor de milhares de graus Celsius que emana de seu corpo de quarta matéria.
 
 Relatos de heróis lendários afirmam que lutar contra uma Enguia de Plasma não é um teste de força, mas um teste de reflexos e resistência mágica. Ela não ataca com estratégia convencional; ela flui pelo campo de batalha como um pensamento, atingindo múltiplos alvos simultaneamente através de arcos de corrente contínua. Para os estudiosos do sistema, ela é o lembrete de que a energia, quando atinge um nível crítico de concentração, desenvolve uma vontade própria e faminta.`,
-    type: 'Monstro enorme, gosma',
+    type: 'Criatura enorme, gosma',
     ac: '18',
     hp: '152 (16d12 + 48)',
     speed: '15 metros, voo 18 metros (flutuar).',
@@ -1737,7 +1737,7 @@ Relatos de heróis lendários afirmam que lutar contra uma Enguia de Plasma não
 Diferente de suas formas anteriores, o Ooze de Ferro não é apenas uma massa de metal; ele é uma inteligência coloidal que manipula o magnetismo e a física molecular. Ele não habita apenas cavernas ou masmorras; ele remodela o próprio ambiente, transformando rochas em sucata metálica e metais raros em parte de sua carapaça impenetrável. Sua mera presença altera os campos magnéticos locais, fazendo com que as bússolas falhem e as armaduras de metal dos oponentes se tornem pesadas e restritivas.
 
 Relatos de batalhas lendárias descrevem o encontro com esta criatura como 'lutar contra uma fábrica de guerra viva'. Ele pode moldar seus membros instantaneamente para criar armas de cerco complexas, escudos impenetráveis ou milhares de agulhas metálicas que ele dispara como uma tempestade. O maior perigo, no entanto, é seu 'Magnetismo Inverso', uma habilidade capaz de arrancar as armas e armaduras dos campeões instantaneamente. Enfrentá-lo sem magias de calor intenso de Rank S, armas de adamante ou habilidades que ignorem a densidade física é aceitar uma morte rápida e esmagadora, tornando-se apenas mais uma matéria-prima para ser mastigada e integrada à sua massa metálica.`,
-    type: 'Monstro enorme, gosma',
+    type: 'Criatura enorme, gosma',
     ac: '20',
     hp: '170 (15d12 + 75)',
     speed: '9 metros, escalar 9 metros.',
@@ -1768,7 +1768,7 @@ Relatos de batalhas lendárias descrevem o encontro com esta criatura como 'luta
       },
       {
         nome: 'Corpo de lâminas reativas',
-        desc: 'Qualquer criatura que atinja o Ooze com um ataque corpo a corpo a menos de 1 metro sofre 9 (2d8) de dano cortante, conforme espinhos de metal saltam da superfície do monstro.',
+        desc: 'Qualquer criatura que atinja o Ooze com um ataque corpo a corpo a menos de 1 metro sofre 9 (2d8) de dano cortante, conforme espinhos de metal saltam da superfície do criatura.',
       },
       {
         nome: 'Devorador de aço',
@@ -1827,7 +1827,7 @@ Relatos de batalhas lendárias descrevem o encontro com esta criatura como 'luta
 Diferente de suas formas anteriores, o Ooze da Peste não depende apenas de sua massa física para lutar. Ele desenvolveu um controle primitivo, porém devastador, sobre patógenos mágicos e gases necrosantes. O ar ao seu redor é tão denso que os pulmões de um humano comum podem entrar em colapso apenas por estarem por perto. Sua paciência é lendária; ele pode permanecer imóvel por décadas, sendo confundido com um pântano natural, até que o primeiro passo de um invasor desperte seu núcleo de peste.
 
 Relatos de batalhas lendárias descrevem o encontro com esta criatura como 'lutar contra uma pandemia senciante'. Ele não ataca com estratégia convencional; ele flui pelo campo de batalha como um gás tóxico, atingindo múltiplos alvos simultaneamente através de seu miasma. O maior perigo, no entanto, é sua 'Pandemia Final', uma habilidade capaz de liquefazer e explodir em uma névoa negra que cobre um raio de 30 metros, espalhando morte instantânea. Enfrentá-lo sem magias de cura mágica de Rank S, armas radiantes ou habilidades que ignorem a densidade física é aceitar uma morte rápida e silenciosa, tornando-se apenas mais uma matéria-prima para ser mastigada e integrada à sua massa necrótica.`,
-    type: 'Monstro enorme, gosma',
+    type: 'Criatura enorme, gosma',
     ac: '14',
     hp: '+190 (20d12 + 60)',
     speed: '9m, escalar 9m',
@@ -1914,12 +1914,12 @@ Relatos de batalhas lendárias descrevem o encontro com esta criatura como 'luta
     subtitle: 'CR 14',
     description: `Nos anais das Grandes Calamidades, poucos nomes evocam tanto terror quanto a Abominação Viscosa. Classificada como uma Entidade de Erradicação Global de Rank SS, ela representa o ápice bizarro e aterrorizante da evolução das gosmas. Seus registros datam de eras onde biomas inteiros simplesmente desapareceram do mapa, restando apenas planícies de rocha derretida e silêncio.
 
-A Abominação não é apenas um monstro; ela é um ecossistema digestivo senciante de escala Gargantua. Relatos de heróis lendários que sobreviveram ao encontro descrevem sua massa como uma 'montanha translúcida de ódio e ácido'. Sua biologia desafia a lógica mágica: ela desenvolveu a capacidade de Absorver Ácido, o que significa que tentativas de combatê-la com feitiços corrosivos apenas a tornam maior, mais forte e regeneram seu núcleo vital instantaneamente.
+A Abominação não é apenas um criatura; ela é um ecossistema digestivo senciante de escala Gargantua. Relatos de heróis lendários que sobreviveram ao encontro descrevem sua massa como uma 'montanha translúcida de ódio e ácido'. Sua biologia desafia a lógica mágica: ela desenvolveu a capacidade de Absorver Ácido, o que significa que tentativas de combatê-la com feitiços corrosivos apenas a tornam maior, mais forte e regeneram seu núcleo vital instantaneamente.
 
 O ar ao seu redor é uma sentença de morte, saturado por um Miasma Corrosivo que derrete carne e aço antes mesmo do combate físico começar. Sua tática mais aterrorizante é o 'Engolfar', onde ela simplesmente avança e assimila exércitos inteiros para dentro de seu corpo, onde a morte não vem pelo esmagamento, mas por uma desintegração molecular lenta e dolorosa à vista de todos, através de sua pele translúcida.
 
 Enfrentar uma Abominação Viscosa requer poder de fogo de Rank Épico (Nível 15+) e, acima de tudo, a compreensão de que cada golpe desferido contra ela pode causar uma Divisão Celular, criando novos Slimes Ácidos menores para proteger o núcleo principal. Ela é a prova viva de que a forma de vida mais simples, quando alimentada por mana infinito e gula insaciável, pode se tornar o predador supremo de um mundo.`,
-    type: 'Monstro imenso (gargantua), gosma',
+    type: 'Criatura imenso (gargantua), gosma',
     ac: '16',
     hp: '+290 (20d20 + 80)',
     speed: '12m, escalar 12m, natação 12m',
@@ -2021,7 +2021,7 @@ Enfrentar uma Abominação Viscosa requer poder de fogo de Rank Épico (Nível 1
 A anatomia da Hidra de Lava é um milagre de horror geológico. Suas cinco cabeças não são membros fixos, mas extensões fluidas de um núcleo de mana superaquecido. Isso permite que ela regenere cabeças perdidas em questão de segundos, utilizando a fusão térmica para selar feridas e criar novos apêndices. Sua habilidade de Absorção de Fogo torna qualquer tentativa de ataque piromântico um erro fatal, pois a criatura consome a energia do feitiço para aumentar sua própria massa e temperatura, atingindo estados de calor que podem derreter o aço lendário em segundos.
 
 O perigo da Hidra de Lava não reside apenas em suas mordidas ou em seu sopro piroclástico, mas em sua influência no ecossistema. Por onde ela passa, a crosta terrestre se rompe e o ar se torna uma sopa tóxica de cinzas e enxofre. Ela é uma força da natureza que não possui predadores, pois qualquer criatura que tente tocá-la é instantaneamente consumida pelo seu Corpo de Convecção. Enfrentá-la exige não apenas força bruta, mas o uso estratégico de magias de congelamento absoluto de Rank Épico para desacelerar sua regeneração molecular, antes que ela transforme o continente inteiro em um deserto de vidro e cinzas.`,
-    type: 'Monstro imenso, gosma',
+    type: 'Criatura imenso, gosma',
     ac: '18',
     hp: '275 (19d20 + 76)',
     speed: '9m, natação (lava) 18m',
@@ -2114,12 +2114,12 @@ O perigo da Hidra de Lava não reside apenas em suas mordidas ou em seu sopro pi
     icon: 'https://i.imgur.com/aDkmVEK.png',
     image: 'https://i.imgur.com/nmH3SNG.jpeg',
     subtitle: 'CR 14',
-    description: `Nos registros das Grandes Calamidades Marítimas, o Kraken Hidrológico é listado não como um monstro, mas como um evento teocrático senciante. Classificada como uma Entidade de Erradicação Naval de Rank SS, ela representa o estágio onde o Caminho Bestial da Água atinge a Singularidade Hidrostática. Ela não é uma criatura que vive no oceano; ela é a própria fúria das profundezas abissais manifestada em uma forma coloidal.
+    description: `Nos registros das Grandes Calamidades Marítimas, o Kraken Hidrológico é listado não como um criatura, mas como um evento teocrático senciante. Classificada como uma Entidade de Erradicação Naval de Rank SS, ela representa o estágio onde o Caminho Bestial da Água atinge a Singularidade Hidrostática. Ela não é uma criatura que vive no oceano; ela é a própria fúria das profundezas abissais manifestada em uma forma coloidal.
 
 A anatomia do Kraken Hidrológico desafia as leis físicas do mundo de superfície. Composta inteiramente de água super-pressionada e mana criogênico, ela não possui órgãos ou estrutura óssea. Seus oito tentáculos são, na verdade, correntes marítimas independentes, moldadas pela sua vontade molecular para possuírem a densidade do aço e a flexibilidade da seda. Sua habilidade de Absorção de Água e Frio torna-a praticamente imortal em seu bioma nativo, pois qualquer tentativa de combatê-la com seu próprio elemento ou magias de congelamento apenas a torna mais densa, maior e regenera seu núcleo vital instantaneamente.
 
 O maior perigo da Hidra de Lava não reside apenas em seus ataques físicos, mas na sua influência no ecossistema. A mera presença da criatura distorce o ambiente ao seu redor, criando uma Aura de Pressão Abissal que esmaga os pulmões e os cascos dos navios muito antes do combate começar. Enfrentar um Kraken Hidrológico sem magias de eletricidade de Rank Épico ou habilidades que possam desestabilizar a coesão molecular da água é aceitar uma morte por afogamento ou esmagamento, tornando-se apenas mais uma gota em sua massa líquida infinita.`,
-    type: 'Monstro imenso, gosma',
+    type: 'Criatura imenso, gosma',
     ac: '17',
     hp: '285 (19d20 + 86)',
     speed: '6m, natação 24m',
@@ -2221,7 +2221,7 @@ O maior perigo da Hidra de Lava não reside apenas em seus ataques físicos, mas
 A anatomia do Devorador de Neve é um milagre de horror criogênico. Composta inteiramente de neve compactada e gelo glacial senciante, ela possui uma densidade que rivaliza com o aço mítico. Sua habilidade de Absorção de Frio torna-a praticamente invulnerável em seu bioma nativo, pois qualquer tentativa de combatê-la com seu próprio elemento apenas a torna maior, mais forte e regenera seu núcleo vital instantaneamente. Ela não consome matéria orgânica; ela consome entropia, drenando a energia térmica de tudo ao seu redor, incluindo a força vital de seres vivos.
 
 O maior perigo do Devorador de Neve não reside apenas em seus ataques físicos devastadores, mas na sua influência no ambiente. A mera presença da criatura distorce as leis da física, criando um Campo de Zero Absoluto onde o movimento torna-se lento e o próprio ar torna-se uma lâmina mortal de gelo. Enfrentar um Devorador de Neve sem magias de fogo de Rank Épico ou habilidades que possam desestabilizar a coesão molecular do gelo é aceitar uma morte por congelamento instantâneo, tornando-se apenas mais uma estátua de gelo em seu domínio eterno.`,
-    type: 'Monstro enorme, gosma',
+    type: 'Criatura enorme, gosma',
     ac: '19',
     hp: '280 (18d20 + 90)',
     speed: '12m, escalar 12m',
@@ -2327,7 +2327,7 @@ O maior perigo do Devorador de Neve não reside apenas em seus ataques físicos 
 A anatomia da Serpente Tectônica é uma maravilha de horror geológico. Composta por segmentos independentes de diamantes negros e granito arcaico, sua densidade é tão absurda que ela gera seu próprio Campo Gravitacional Intenso. Essa aura distorce o espaço ao seu redor, impedindo que inimigos fujam enquanto o solo ao redor é puxado e compactado em sua massa. Sua habilidade de Absorção de Terra torna-a praticamente invulnerável em seu bioma nativo, pois tentativas de atacá-la com pedras ou magias terrestres apenas preenchem as rachaduras em sua armadura, regenerando seu núcleo vital instantaneamente.
 
 O maior perigo da Serpente Tectônica reside em sua fome por estruturas compactas. Para ela, fortalezas de Rank Lendário são apenas concentrações de minerais prontos para serem mastigados e assimilados. Enfrentá-la exige poder de fogo de Rank Épico e, acima de tudo, o uso estratégico de magias de som (dano trovejante) para tentar rachar sua estrutura interna de diamante, antes que ela desencadeie um Pulso Tectônico e soterre o continente inteiro em um deserto de escombros e cinzas.`,
-    type: 'Monstro imenso, gosma',
+    type: 'Criatura imenso, gosma',
     ac: '21',
     hp: '310 (20d20 + 100)',
     speed: '12m, escavação 18m',
@@ -2433,7 +2433,7 @@ O maior perigo da Serpente Tectônica reside em sua fome por estruturas compacta
 A anatomia da Besta de Raios desafia a lógica biológica do mundo de superfície. Composta inteiramente por plasma de quarta matéria e campos magnéticos instáveis, ela possui uma densidade de energia que a torna praticamente intocável. Sua habilidade de Absorção de Eletricidade torna-a imortal em qualquer ambiente eletrificado ou contra magias de seu elemento, pois qualquer energia elétrica desferida contra ela apenas alimenta seu núcleo vital, regenerando-a instantaneamente e potencializando seus ataques futuros. Ela não consome matéria orgânica; ela consome voltagem, drenando a energia estática do ambiente e a força vital de seres vivos.
 
 O maior perigo da Besta de Raios não reside apenas em seus ataques físicos de plasma devastadores ou em suas descargas em arco que saltam entre exércitos, mas em sua influência passiva no ambiente. A mera presença da criatura distorce os campos magnéticos através de sua Atração Magnética Devastadora, tornando armaduras e armas de metal armadilhas mortais para seus portadores. Enfrentar uma Besta de Raios sem proteção isolante mágica de Rank Épico ou habilidades que possam aterrar sua energia é aceitar a aniquilação instantânea, onde o próprio sistema nervoso do oponente é usado como um condutor para a sobrecarga final da besta.`,
-    type: 'Monstro imenso, gosma',
+    type: 'Criatura imenso, gosma',
     ac: '18',
     hp: '260 (20d20 + 50)',
     speed: '18m, flutuar 18m',
@@ -2530,12 +2530,12 @@ O maior perigo da Besta de Raios não reside apenas em seus ataques físicos de 
     icon: 'https://i.imgur.com/NnHp0yf.png',
     image: 'https://i.imgur.com/D8PwRiv.jpeg',
     subtitle: 'CR 14',
-    description: `A Quimera de Lâminas é classificada nos anais de guerra como uma Calamidade Mecânica de Rank SS. Ela representa o ponto em que o Caminho Bestial do Metal abandona a forma de lodo inerte para abraçar uma complexidade geométrica predatória. Ela não é um monstro biológico, mas uma simulação perfeita de um predador alfa, construída inteiramente com as armas e armaduras de todos os guerreiros que ousaram enfrentá-la.
+    description: `A Quimera de Lâminas é classificada nos anais de guerra como uma Calamidade Mecânica de Rank SS. Ela representa o ponto em que o Caminho Bestial do Metal abandona a forma de lodo inerte para abraçar uma complexidade geométrica predatória. Ela não é um criatura biológico, mas uma simulação perfeita de um predador alfa, construída inteiramente com as armas e armaduras de todos os guerreiros que ousaram enfrentá-la.
 
 A biologia desta criatura é um paradoxo de engenharia mística. Seu corpo alterna constantemente entre o estado sólido do aço temperado e a fluidez do mercúrio senciante, permitindo que ela mimetize qualquer arma consumida. Sua habilidade de Absorção Metálica e de Força faz dela o pesadelo de qualquer paladino ou cavaleiro, pois cada golpe desferido contra ela não apenas falha em causar dano, como também é assimilado, servindo como material para que a criatura se reconstrua e aumente sua própria letalidade.
 
 O maior perigo da Quimera não é sua força bruta, mas sua Tormenta de Fragmentos. Ela emite um zumbido ensurdecedor de metal moendo metal, enquanto uma nuvem de micro-lâminas orbita seu corpo, retalhando tudo o que se aproxima em nível celular. Enfrentar uma Quimera de Lâminas sem magias que possam corroer o metal ou ataques que desestabilizem seu Núcleo Magnético é uma sentença de morte certa. Ela não busca território ou comida; ela busca o refinamento, caçando ativamente metais raros e itens lendários para atingir a perfeição de sua forma final.`,
-    type: 'Monstro imenso, gosma',
+    type: 'Criatura imenso, gosma',
     ac: '22',
     hp: '300 (20d20 + 90)',
     speed: '15m, escalar 12m',
@@ -2637,7 +2637,7 @@ O maior perigo da Quimera não é sua força bruta, mas sua Tormenta de Fragment
 A anatomia do Colosso é um paradoxo de engenharia macabra. Sua "pele" externa é uma armadura impenetrável composta por milhares de ossos fundidos de suas vítimas, possuindo a densidade do aço místico. Internamente, ele é preenchido pelo ooze necrótico original, que atua como medula e sistema nervoso, mantendo a coesão da estrutura através de pura magia negra. Sua habilidade de Absorção Necrótica faz dele o predador final em campos de batalha, pois qualquer magia de morte desferida contra ele, ou qualquer criatura que morra em sua presença, apenas serve para regenerar sua massa e aumentar seu poder.
 
 O maior perigo do Colosso não reside apenas em sua força titânica capaz de esmagar muralhas, mas em sua influência passiva. Ele emana um Miasma de Putrefação que derrete a carne e impede a cura, enquanto sua Aura de Desesperança quebra o espírito dos guerreiros mais corajosos antes mesmo do combate começar. Enfrentar um Colosso de Ossos sem magias radiantes de Rank Épico (sua única vulnerabilidade) é aceitar a aniquilação instantânea, onde sua alma será absorvida para alimentar a medula eterna da criatura, e seus ossos se tornarão apenas mais uma placa em sua armadura infinita.`,
-    type: 'Monstro imenso, gosma',
+    type: 'Criatura imenso, gosma',
     ac: '20',
     hp: '320 (20d20 + 110)',
     speed: '9m',
@@ -2738,12 +2738,12 @@ O maior perigo do Colosso não reside apenas em sua força titânica capaz de es
     icon: 'https://i.imgur.com/wmTt8hS.png',
     image: 'https://i.imgur.com/mog32MC.jpeg',
     subtitle: 'CR 20',
-    description: `Nos registros divinos e anais de calamidades mundiais, o Glutão é listado não como um monstro, mas como um evento de extinção existencial de Nível 20+. Classificado como uma Calamidade de Rank X (Deidade Menor), ele representa o ponto onde a biologia dos slimes cessa e se torna um paradoxo físico senciante. Ele não é mais uma criatura que consome para sobreviver; ele é o consumo tornado carne, um estômago dimensional que existe apenas para converter o universo em sua própria massa visceral.
+    description: `Nos registros divinos e anais de calamidades mundiais, o Glutão é listado não como um criatura, mas como um evento de extinção existencial de Nível 20+. Classificado como uma Calamidade de Rank X (Deidade Menor), ele representa o ponto onde a biologia dos slimes cessa e se torna um paradoxo físico senciante. Ele não é mais uma criatura que consome para sobreviver; ele é o consumo tornado carne, um estômago dimensional que existe apenas para converter o universo em sua própria massa visceral.
 
 A anatomia do Glutão desafia todas as leis da física e da magia. Composta inteiramente por slime super-pressionado e energia dimensional, ele é praticamente imune a danos físicos e de força. Internamente, ele abriga um Estômago Dimensional, uma dimensão de bolso de ácido puro que atua como um buraco negro existencial. Sua característica mais aterrorizante é o Mimetismo de Habilidade (Blue Magic), permitindo que ele aprenda instantaneamente e replique qualquer habilidade, feitiço ou ação das criaturas que ele engole, usando o poder de seus inimigos contra eles mesmos.
 
 O maior perigo do Glutão não reside apenas em seu tamanho colossal ou em seu ácido que dissolve metais lendários, mas em sua natureza predatória irracional. Ele gera uma Atração Magnética Devastadora que suga matéria e energia em sua direção, degradando o equipamento dos guerreiros antes mesmo de atacá-los. Enfrentar um Glutão sem magias de Rank Divino (como Desejo ou Milagre) ou habilidades que ignorem a densidade física é aceitar a aniquilação total, onde sua existência, alma e memórias serão mastigadas, digeridas e apagadas de todas as realidades.`,
-    type: 'Monstro colossal',
+    type: 'Criatura colossal',
     ac: '20',
     hp: '520 (20d20 + 310)',
     speed: '15m, escalar 15m, natação 15m',
@@ -2841,7 +2841,7 @@ O maior perigo do Glutão não reside apenas em seu tamanho colossal ou em seu �
 A anatomia do Ifrit-Magma é um paradoxo físico mantido por mana de Rank Divino. Seu corpo é um amálgama hiper-pressionado de magma superaquecido, revestido por uma couraça de obsidiana ancestral que se quebra e regenera constantemente para conter a pressão interna. Sua habilidade de Absorção de Fogo torna qualquer ataque piromântico contra ele um erro fatal, pois ele consome a energia do feitiço para aumentar sua própria massa e temperatura, regenerando feridas em segundos. Ele não consome matéria orgânica; ele consome entropia, drenando o calor do ambiente e a força vital de seres vivos através do seu Campo de Calor Absoluto.
 
 O perigo do Ifrit-Magma não reside apenas em seus tentáculos de lava ou em seu sopro piroclástico, mas em sua natureza predatória geopolítica. Por onde ele passa, o solo se torna lava permanente, remodelando o mapa e tornando continentes inteiros inabitáveis em dias. Sua habilidade máxima, a Giga-Labareda, libera o clarão branco do núcleo estelar, incinerando a carne e cegando os sobreviventes em um raio de quilômetros. Enfrentar um Ifrit-Magma exige o ápice da força militar, magias deRank SSS de congelamento absoluto ou a intervenção direta de divindades, pois ele é, em essência, o fim de todas as coisas.`,
-    type: 'Monstro colossal, gosma',
+    type: 'Criatura colossal, gosma',
     ac: '22',
     hp: '480 (20d20 + 280)',
     speed: '12m, natação (magma) 24m',
@@ -2898,7 +2898,7 @@ O perigo do Ifrit-Magma não reside apenas em seus tentáculos de lava ou em seu
       },
       {
         nome: 'Giga-labareda (Recarga 6t)',
-        desc: 'O núcleo do monstro brilha com luz branca. Todas as criaturas em um raio de 30 metros devem passar em uma RES de Constituição (CD 24).Falha: Sofre 100 de dano de fogo e fica Cego permanentemente por causa do clarão.Sucesso: Metade do dano e não fica cego.',
+        desc: 'O núcleo do criatura brilha com luz branca. Todas as criaturas em um raio de 30 metros devem passar em uma RES de Constituição (CD 24).Falha: Sofre 100 de dano de fogo e fica Cego permanentemente por causa do clarão.Sucesso: Metade do dano e não fica cego.',
       },
       {
         nome: 'Erupção geotérmica',
@@ -2947,7 +2947,7 @@ O perigo do Ifrit-Magma não reside apenas em seus tentáculos de lava ou em seu
 A anatomia do Leviatã da Maré é um paradoxo físico mantido por mana de Rank Divino. Seu corpo é composto inteiramente por água abissal super-pressionada, revestida por uma tensão superficial tão absoluta que repele ataques como a armadura mais lendária. Sua habilidade de Absorção de Água torna qualquer ataque hidromântico ou criomântico contra ele um erro fatal, pois ele consome a energia do feitiço para aumentar sua própria massa e densidade, regenerando feridas em segundos. Ele não consome matéria orgânica; ele consome hidro-estabilidade, drenando a coesão de qualquer líquido no ambiente e a força vital de seres vivos através do seu Domínio de Alta Pressão.
 
 O perigo do Leviatã da Maré não reside apenas em seus tentáculos de água diamondinos ou em seu esmagamento abissal, mas em sua natureza predatória irracional de remodelagem planetária. Por onde ele passa, o nível do mar sobe permanentemente e as correntes marítimas são alteradas, tornando continentes inteiros inabitáveis através de inundações constantes. Sua habilidade máxima, o Tsunami Diluvial, libera a pressão de quilômetros de profundidade em uma única explosão, incinerando a carne e destruindo fortalezas em um raio de quilômetros. Enfrentar um Leviatã da Maré exige o ápice da força militar, magias de Rank SSS de isolamento ou a intervenção direta de divindades, pois ele é, em essência, o dilúvio final de todas as coisas.`,
-    type: 'Monstro colossal, gosma',
+    type: 'Criatura colossal, gosma',
     ac: '20',
     hp: '550 (20d20 + 350)',
     speed: '12m, natação 36m',
@@ -3053,7 +3053,7 @@ O perigo do Leviatã da Maré não reside apenas em seus tentáculos de água di
 A anatomia do Inverno Eterno é um paradoxo físico mantido por mana de Rank Divino. Seu corpo é composto inteiramente por gelo adamantino super-pressionado, revestido por uma tensão superficial tão absoluta que repele ataques físicos como a armadura mais lendária. Sua habilidade de Absorção de Frio torna qualquer ataque criomântico contra ele um erro fatal, pois ele consome a energia do feitiço para aumentar sua própria massa e densidade, regenerando feridas em segundos. Ele não consome matéria orgânica; ele consome energia cinética, drenando a coesão de qualquer material e a força vital de seres vivos através de sua Aura de Zero Absoluto.
 
 O perigo do Inverno Eterno não reside apenas em suas pancadas glaciais ou em suas prisões criogênicas, mas em sua natureza predatória irracional de remodelagem planetária. Por onde ele passa, a temperatura cai permanentemente abaixo do ponto onde a vida é possível, e a própria atmosfera se condensa, tornando continentes inteiros inabitáveis em dias. Sua habilidade máxima, a Expiração de Gelo Estelar, libera poeira estelar congelada que impõe o estado de Parar (stop), congelando o tempo e o movimento de qualquer criatura atingida. Enfrentar um Inverno Eterno exige o ápice da força militar, magias de Rank SSS de calor estelar ou a intervenção direta de divindades, pois ele é, em essência, o silêncio final de todas as coisas.`,
-    type: 'Monstro colossal, gosma',
+    type: 'Criatura colossal, gosma',
     ac: '22',
     hp: '530 (20d20 + 330)',
     speed: '12m, escalar 12m',
@@ -3154,12 +3154,12 @@ O perigo do Inverno Eterno não reside apenas em suas pancadas glaciais ou em su
     icon: 'https://i.imgur.com/gC1qYk0.png',
     image: 'https://i.imgur.com/ZXd9Uem.jpeg',
     subtitle: 'CR 20',
-    description: `O Geo-Monólito transcende a definição de monstro para se tornar um fenômeno físico senciante. Classificado como uma Calamidade de Rank X (Ponto de Ruptura Gravitacional), ele é o estágio onde o slime de terra atinge tamanha densidade que começa a colapsar o espaço ao seu redor. Ele não caminha sobre o mundo; ele flutua acima dele, agindo como um novo centro de gravidade que despedaça a crosta terrestre por onde passa.
+    description: `O Geo-Monólito transcende a definição de criatura para se tornar um fenômeno físico senciante. Classificado como uma Calamidade de Rank X (Ponto de Ruptura Gravitacional), ele é o estágio onde o slime de terra atinge tamanha densidade que começa a colapsar o espaço ao seu redor. Ele não caminha sobre o mundo; ele flutua acima dele, agindo como um novo centro de gravidade que despedaça a crosta terrestre por onde passa.
 
 Sua forma é uma estrutura geométrica perfeita de minerais ancestrais, mantida coesa por um núcleo de lodo metálico de densidade infinita. A habilidade de Absorção de Terra e Impacto aqui atinge um nível celular: qualquer objeto sólido que tente atingi-lo é instantaneamente atraído para sua órbita e assimilado à sua massa, tornando o Geo-Monólito maior e mais pesado a cada ataque recebido. Ele não caça presas; ele simplesmente atrai toda a matéria em um raio de quilômetros para o seu centro, processando minerais e energia em um ciclo eterno de auto-reconstrução.
 
 Enfrentar o Pilar Absoluto é lutar contra a própria física. Sua Aura de Gravidade Esmagadora pode achatar exércitos inteiros contra o chão em segundos, enquanto seu Pulso Geodésico envia ondas de choque que não apenas quebram ossos, mas desintegram a estrutura molecular de materiais não-mágicos. Ele é o guardião silencioso das profundezas, uma entidade que acredita que o mundo deve ser reconduzido ao seu estado original de rocha e silêncio.`,
-    type: 'Monstro colossal, gosma',
+    type: 'Criatura colossal, gosma',
     ac: '24',
     hp: '580 (20d20 + 380)',
     speed: '12m, escavação 24m',
@@ -3265,7 +3265,7 @@ Enfrentar o Pilar Absoluto é lutar contra a própria física. Sua Aura de Gravi
 A anatomia da Tempestade Viva é um paradoxo físico mantido por mana de Rank Divino. Seu corpo é composto inteiramente por plasma superaquecido e nuvens jônicas pressurizadas, revestido por um campo eletromagnético tão absoluto que repele ataques físicos e desvia projéteis mágicos como se fossem nada. Sua habilidade de Absorção Elétrica torna qualquer ataque piromântico ou eletromântico contra ela um erro fatal, pois ela consome a energia do feitiço para aumentar sua própria massa, temperatura e velocidade, regenerando feridas em segundos e acelerando seu metabolismo a níveis superluminais. Ela não consome matéria orgânica; ela consome coerência, drenando a estabilidade molecular de qualquer material e os impulsos nervosos de seres vivos através de sua Atmosfera Ionizada.
 
 O perigo da Tempestade Viva não reside apenas em seus chicotes de plasma ou em suas trovoadas, mas em sua natureza predatória de remodelagem atmosférica. Por onde ela passa, o céu se torna uma zona de guerra permanente de raios, e a composição do ar é alterada, tornando continentes inteiros inabitáveis em dias. Sua habilidade máxima, a Trovoada Final, libera a voltagem de um sistema de tempestades inteiro em uma única explosão, incinerando a carne e ensurdecendo os sobreviventes em um raio de quilômetros. Enfrentar uma Tempestade Viva exige o ápice da força militar, magias de Rank SSS de isolamento ou terraformação, ou a intervenção direta de divindades, pois ela é, em essência, o curto-circuito final de todas as coisas.`,
-    type: 'Monstro colossal, gosma',
+    type: 'Criatura colossal, gosma',
     ac: '22',
     hp: '460 (20d20 + 260)',
     speed: '36m (voo)',
@@ -3330,7 +3330,7 @@ O perigo da Tempestade Viva não reside apenas em seus chicotes de plasma ou em 
       },
       {
         nome: 'Sobrecarga sináptica',
-        desc: 'O monstro força o sistema nervoso de uma criatura que ele possa ver a até 18 metros. O alvo deve passar em uma RES de Sabedoria (CD 24) ou usará sua reação para realizar um ataque contra a criatura mais próxima.',
+        desc: 'O criatura força o sistema nervoso de uma criatura que ele possa ver a até 18 metros. O alvo deve passar em uma RES de Sabedoria (CD 24) ou usará sua reação para realizar um ataque contra a criatura mais próxima.',
       },
       {
         nome: 'Reenergizar (custa 2 ações)',
@@ -3371,7 +3371,7 @@ O perigo da Tempestade Viva não reside apenas em seus chicotes de plasma ou em 
 A anatomia do Omni-Arsenal é um paradoxo físico mantido por mana de Rank Divino e mecânica teórica. Seu corpo é composto inteiramente por mercúrio denso e ligas metálicas desconhecidas que flutuam sob pressão magnética severa. Sua habilidade de Absorção de Metal e Aço torna qualquer ataque de lâmina ou projétil físico contra ele um erro fatal, pois ele consome o material do ataque para aumentar sua própria massa, densidade e complexidade, regenerando feridas em segundos e analisando a estrutura do ataque inimigo. Ele não consome matéria orgânica; ele consome conflito, drenando a energia cinética e a intenção de matar do ambiente para alimentar sua Singularidade Magnética.
 
 O perigo do Omni-Arsenal não reside apenas em suas mil lâminas ou em sua reconfiguração, mas em sua natureza predatória irracional de desarmamento geopolítico. Por onde ele passa, todo o metal refinado em um raio de quilômetros é extraído do solo e das construções, tornando continentes inteiros inabitáveis em dias devido ao colapso estrutural e tecnológico. Sua habilidade máxima, o Arsenal de Blue Magic, analisa e replica permanentemente as propriedades de armas lendárias que o atingem, tornando-o cada vez mais poderoso à medida que sobrevive a heróis. Enfrentar o Omni-Arsenal exige o ápice da força militar, magias de Rank SSS de desintegração ou calor estelar, ou a intervenção direta de divindades, pois ele é, em essência, o curto-circuito final de todas as forjas.`,
-    type: 'Monstro colossal, gosma',
+    type: 'Criatura colossal, gosma',
     ac: '25',
     hp: '500 (20d20 + 300)',
     speed: '15m, voo 15m',
@@ -3477,7 +3477,7 @@ O perigo do Omni-Arsenal não reside apenas em suas mil lâminas ou em sua recon
 A anatomia do Necro-Monarca é mantida por uma vontade maligna e mana de Rank Divino. Seu corpo é uma malha hiper-densa de ossos de heróis e feras de eras passadas, fundidos por um lodo necrótico que atua como o tecido conjuntivo mais forte do mundo. Sua habilidade de Absorção Necrótica torna qualquer tentativa de usar magia de morte ou trevas contra ele um ato de fortalecimento, pois ele assimila a energia negativa para reconstruir sua couraça de ossos instantaneamente. Ele não consome carne; ele consome a existência, drenando a força vital e as memórias de seres vivos através de sua Aura de Expurgo da Vida.
 
 O perigo do Necro-Monarca reside na sua capacidade de anular a esperança. Por onde ele passa, a terra se torna estéril e o ciclo da reencarnação é interrompido, pois as almas são presas dentro de sua massa de lodo para servirem de combustível eterno. Sua habilidade máxima, o Rugido das Almas Perdidas, libera um grito que não é ouvido pelos ouvidos, mas pelas almas, capaz de desintegrar o sistema nervoso e transformar exércitos inteiros em estátuas de cinzas em segundos. Enfrentar o Ossuário Infinito exige magias de Rank SSS de luz purificadora ou o sacrifício de artefatos divinos, pois ele é, em essência, o fim silencioso de todos os legados.`,
-    type: 'Monstro colossal, gosma',
+    type: 'Criatura colossal, gosma',
     ac: '23',
     hp: '560 (20d20 + 360)',
     speed: '12m, 12m (levitação)',
@@ -3504,7 +3504,7 @@ O perigo do Necro-Monarca reside na sua capacidade de anular a esperança. Por o
       },
       {
         nome: 'Aura de expurgo da vida',
-        desc: 'Uma névoa cinzenta emana do monstro em um raio de 18 metros. Qualquer criatura viva que comece o turno na área sofre 21 (6d6) de dano necrótico e seu valor de Pontos de Vida Máximos é reduzido em um valor igual ao dano sofrido. Essa redução dura até um descanso longo.',
+        desc: 'Uma névoa cinzenta emana do criatura em um raio de 18 metros. Qualquer criatura viva que comece o turno na área sofre 21 (6d6) de dano necrótico e seu valor de Pontos de Vida Máximos é reduzido em um valor igual ao dano sofrido. Essa redução dura até um descanso longo.',
       },
       {
         nome: 'Comandante do vazio',
@@ -3534,7 +3534,7 @@ O perigo do Necro-Monarca reside na sua capacidade de anular a esperança. Por o
       },
       {
         nome: 'Rugido das almas perdidas (Recarga 5t)',
-        desc: 'O monstro abre suas múltiplas mandíbulas em um grito excruciante. Todas as criaturas em um raio de 27 metros devem fazer uma RES de Constituição (CD 24). Falha: Sofre 88 (16d10) de dano necrótico e fica Amedrontado por 1 minuto. Sucesso: Metade do dano e não fica amedrontado.',
+        desc: 'O criatura abre suas múltiplas mandíbulas em um grito excruciante. Todas as criaturas em um raio de 27 metros devem fazer uma RES de Constituição (CD 24). Falha: Sofre 88 (16d10) de dano necrótico e fica Amedrontado por 1 minuto. Sucesso: Metade do dano e não fica amedrontado.',
       },
       {
         nome: 'Erguimento instantâneo',
@@ -3542,7 +3542,7 @@ O perigo do Necro-Monarca reside na sua capacidade de anular a esperança. Por o
       },
       {
         nome: 'Passo sombrio',
-        desc: 'O monstro se dissolve em fumaça e reaparece em um ponto vazio que ele possa ver a até 24 metros.',
+        desc: 'O criatura se dissolve em fumaça e reaparece em um ponto vazio que ele possa ver a até 24 metros.',
       },
       {
         nome: 'Drenar vitalidade (custa 2 ações)',
@@ -3582,8 +3582,8 @@ O perigo do Necro-Monarca reside na sua capacidade de anular a esperança. Por o
 
 A anatomia nesta fase é fascinante e grotesca. O slime desenvolveu um núcleo central mais denso que funciona como um cérebro primitivo, permitindo que ele processe linguagens e tente mimetizar sons, embora sua voz ainda soe como bolhas estourando em um pântano. Sua habilidade de Mimetismo de Forma é limitada: ele consegue copiar o tamanho e a silhueta geral, mas detalhes como cabelo, dentes ou textura de pele real ainda estão além de sua capacidade. Ele frequentemente usa roupas e equipamentos roubados de aventureiros caídos para esconder sua natureza translúcida e as partes de seu corpo que insistem em derreter.
 
-Em combate, o Mímico demonstra uma crueldade tática que seus primos bestiais não possuem. Ele usa o ambiente a seu favor, fingindo ser uma poça de lodo ou um cadáver coberto por uma capa antes de desferir o ataque. Ele entende o valor das ferramentas humanas, frequentemente incorporando armas de metal diretamente em sua massa ácida para ganhar alcance e letalidade. O maior perigo do Slime Mímico não é sua força, mas sua Toxina Social — um gás feromonal que confunde os sentidos, fazendo com que as vítimas hesitem ao verem aquela forma quase humana, permitindo que o monstro aproveite esse segundo de dúvida para atacar.`,
-    type: 'Monstro médio, gosma',
+Em combate, o Mímico demonstra uma crueldade tática que seus primos bestiais não possuem. Ele usa o ambiente a seu favor, fingindo ser uma poça de lodo ou um cadáver coberto por uma capa antes de desferir o ataque. Ele entende o valor das ferramentas humanas, frequentemente incorporando armas de metal diretamente em sua massa ácida para ganhar alcance e letalidade. O maior perigo do Slime Mímico não é sua força, mas sua Toxina Social — um gás feromonal que confunde os sentidos, fazendo com que as vítimas hesitem ao verem aquela forma quase humana, permitindo que o criatura aproveite esse segundo de dúvida para atacar.`,
+    type: 'Criatura médio, gosma',
     ac: '14',
     hp: '52 (8d8 + 16)',
     speed: '9m',
@@ -3673,7 +3673,7 @@ Em combate, o Mímico demonstra uma crueldade tática que seus primos bestiais n
 Sua anatomia é única: ele secreta um mineral translúcido que endurece rapidamente, criando uma carapaça protetora que canaliza seu calor interno. Isso permite que ele manipule a temperatura do ar com precisão, criando ilusões auditivas ou térmicas. No Nível 5, ele demonstra uma personalidade neutra, porém curiosa; alguns Slimes Lanterna foram relatados "guiando" viajantes perdidos em troca de pedras raras ou fontes de mana, enquanto outros levam exércitos inteiros à perdição por puro divertimento intelectual.
 
 Em combate, ele não é um guerreiro de linha de frente, mas um controlador. Ele usa seu Calor Hipnótico para paralisar oponentes com a beleza de suas chamas antes de desferir ataques de chicote à distância. Seus estalos rítmicos são, na verdade, uma forma de linguagem complexa, e acredita-se que Slimes Lanterna em diferentes partes do mundo estejam em constante comunicação através de flashes de luz que viajam pelas montanhas à noite.`,
-    type: 'Monstro médio, gosma',
+    type: 'Criatura médio, gosma',
     ac: '15',
     hp: '52 (8d8 + 16)',
     speed: '9m',
@@ -3761,7 +3761,7 @@ Em combate, ele não é um guerreiro de linha de frente, mas um controlador. Ele
     description: `O Slime Espelhado é o ápice da sofisticação cognitiva na fase incipiente do Caminho Intelectual. Classificado como uma Ameaça de Infiltração e Mimetismo Arcano de Rank B, esta criatura marca a transição onde o lodo deixa de ser uma criatura instintiva para se tornar um observador calculista e manipulador. Ele é frequentemente confundido com uma poça de mercúrio puro ou uma escultura de prata antiga, até o momento em que se ergue e molda sua massa para imitar a forma de seus observadores.
 
 A anatomia do Slime Espelhado é composta por uma liga complexa de água de alta pressão e mercúrio senciante, mantida coesa por um núcleo de mana prismático. No Nível 5, sua inteligência é comparável à de um humano adulto experiente, embora ele tenha dificuldades em replicar emoções ou a anatomia orgânica perfeita (diferente do Slime Mímico). Sua principal característica é a Análise de Fluxo (Magia Azul); ele não devora para crescer em tamanho, mas "consome" conhecimento visual, gravando e replicando instantaneamente habilidades de combate e magias que observa em campo. Ele comunica-se por telepatia visual, projetando imagens simbólicas ou previsões de eventos futuros diretamente em sua pele espelhada.`,
-    type: 'Monstro médio, gosma',
+    type: 'Criatura médio, gosma',
     ac: '17',
     hp: '37 (5d8 + 15)',
     speed: '9m, natação 12m',
@@ -3849,7 +3849,7 @@ A anatomia do Slime Espelhado é composta por uma liga complexa de água de alta
     description: `O Slime de Prisma representa uma evolução sofisticada e intelectual na linhagem do gelo, abandonando a força bruta em favor da geometria arcana e da óptica arcana. Classificado como uma Ameaça de Infiltração e Manipulação de Rank B, esta criatura marca o estágio onde o lodo de água de alta pressão deixa de ser uma criatura instintiva para se tornar um observador calculista e manipulador. Ele é frequentemente confundido com uma poça de mercúrio puro ou uma escultura de prata antiga, até o momento em que se ergue e molda sua massa para imitar a forma de seus observadores.
 
 A anatomia do Slime de Prisma é composta por uma liga complexa de água de alta pressão e mercúrio senciante, mantida coesa por um núcleo de mana prismático. No Nível 5, sua inteligência é comparável à de um humano adulto experiente, embora ele tenha dificuldades em replicar emoções ou a anatomia orgânica perfeita. Sua principal característica é a Análise de Fluxo (Magia Azul); ele não devora para crescer em tamanho, mas "consome" conhecimento visual, gravando e replicando instantaneamente habilidades de combate e magias que observa em campo. Ele comunica-se por telepatia visual simbólica e rudimentar, projetando imagens de conflitos passados ou previsões fragmentadas em sua pele espelhada.`,
-    type: 'Monstro médio, gosma',
+    type: 'Criatura médio, gosma',
     ac: '17',
     hp: '45 (5d8 + 20)',
     speed: '9m',
@@ -3880,7 +3880,7 @@ A anatomia do Slime de Prisma é composta por uma liga complexa de água de alta
       },
       {
         nome: 'Aura de refração',
-        desc: 'O corpo do slime desvia a luz ao redor. Ataques à distância contra ele têm Desvantagem. Se um ataque de luz ou laser atingir o Slime, ele é automaticamente refletido para uma criatura à escolha do monstro dentro de 9 metros.',
+        desc: 'O corpo do slime desvia a luz ao redor. Ataques à distância contra ele têm Desvantagem. Se um ataque de luz ou laser atingir o Slime, ele é automaticamente refletido para uma criatura à escolha do criatura dentro de 9 metros.',
       },
       {
         nome: 'Lógica de cristal',
@@ -3939,7 +3939,7 @@ A anatomia do Slime de Prisma é composta por uma liga complexa de água de alta
 A anatomia desta criatura é um prodígio de bio-geologia. Seu núcleo não é líquido, mas um aglomerado de Quartzo Cognitivo que pulsa em frequências subsônicas, permitindo que ele "pense" através de ressonâncias minerais. Sua camada externa é composta por basalto denso e placas de granito que ele molda para imitar, de forma rústica e pesada, a silhueta de um antigo sentinela ou um monge encapuzado. O Slime de Geodo não respira; ele absorve os minerais do solo para reconstruir sua carapaça em tempo real, tornando-o quase indestrutível em terrenos rochosos. Sua comunicação é feita através da Mente Tectônica, enviando mensagens diretamente para os ossos de quem pisa em seu domínio, o que causa uma sensação de pavor ancestral nos viajantes.
 
 Em combate, o Slime de Geodo é o mestre do Pulso Gravitacional. Ele manipula a densidade do ar e do solo ao seu redor, tornando cada passo dos inimigos uma tarefa hercúlea. Ele não usa espadas comuns; ele projeta lâminas de cristal de pressão que vibram de tal forma que podem estilhaçar aço por fadiga de metal antes mesmo do toque. O maior perigo ao enfrentar um Geodo não é o seu soco esmagador, mas sua Ressonância de Cristal, que interfere nas ondas cerebrais dos magos, desfazendo feitiços complexos apenas com sua presença vibratória. Ele é o arquiteto que molda a morte sob os pés daqueles que profanam suas cavernas.`,
-    type: 'Monstro médio, gosma',
+    type: 'Criatura médio, gosma',
     ac: '18',
     hp: '52 (7d8 + 21)',
     speed: '6m, escavar 6m',
@@ -4029,7 +4029,7 @@ Em combate, o Slime de Geodo é o mestre do Pulso Gravitacional. Ele manipula a 
 A anatomia desta criatura é uma maravilha da engenharia orgânica. Seu corpo é composto por um Ferrofluido Senciante de cor índigo profundo, que reage instantaneamente a campos magnéticos. Seu núcleo não é uma gema, mas um Célula de Processamento Sináptico que brilha em um azul neon intenso. No Nível 5, ele desenvolveu a capacidade de "vestir" o ambiente: ele atrai fragmentos de metal, engrenagens e fios, moldando-os ao redor de sua massa líquida para criar uma carapaça que imita a silhueta de um humano encapuzado. Ele não se comunica por sons, mas por Estática Modulada; quem chega perto ouve um zumbido de rádio antigo, e magos relatam que seus pensamentos parecem "pixelados" na presença da criatura.
 
 Em combate, o Slime Magnético é um pesadelo para guerreiros de armadura. Ele utiliza sua Singularidade Metálica para transformar o equipamento do adversário em uma prisão, puxando-os para o seu centro gravitacional. Ele não desfere golpes físicos comuns, mas usa Aceleração de Lorentz para disparar estilhaços de metal em velocidades supersônicas, como um canhão elétrico orgânico. O maior perigo ao enfrentá-lo é o Feedback Sináptico: ao ser tocado, ele envia uma descarga diretamente para o sistema nervoso do atacante, fritando sinapses e causando desorientação mental severa. Ele é o fantasma na máquina, a inteligência fria que reina sobre o metal e o raio.`,
-    type: 'Monstro médio, gosma',
+    type: 'Criatura médio, gosma',
     ac: '16',
     hp: '37 (5d8 + 15)',
     speed: '9m, voo 6m',
@@ -4119,7 +4119,7 @@ Em combate, o Slime Magnético é um pesadelo para guerreiros de armadura. Ele u
 A anatomia do Slime de Latão é composta por uma liga complexa de água de alta pressão e mercúrio senciante, mantida coesa por um núcleo de mana prismático. No Nível 5, sua inteligência é comparável à de um humano adulto experiente, embora ele tenha dificuldades em replicar emoções ou a anatomia orgânica perfeita. Sua principal característica é a Análise de Fluxo (Magia Azul); ele não devora para crescer em tamanho, mas "consome" conhecimento visual, gravando e replicando instantaneamente habilidades de combate e magias que observa em campo. Ele comunica-se por telepatia visual simbólica e rudimentar, projetando imagens de conflitos passados ou previsões fragmentadas em sua pele espelhada.
 
 O perigo do Slime de Latão reside em sua natureza reativa e imprevisível. Em combate, ele usa sua Superfície de Contra-Ataque (Reflect) para devolver projéteis mágicos aos atacantes, enquanto sua Lâmina de Mercúrio corta com a precisão de um mestre espadachim. Se encurralado, ele usa sua Duplicata Refletida (Recarga 5-6), criando cópias de água para confundir oponentes enquanto o núcleo original se teletransporta através de reflexos em superfícies molhadas. Ele é o guardião silencioso das verdades ocultas, uma entidade que acredita que o mundo é apenas um reflexo de uma realidade mais profunda e perigosa.`,
-    type: 'Monstro médio, gosma',
+    type: 'Criatura médio, gosma',
     ac: '18',
     hp: '42 (5d8 + 20)',
     speed: '6m',
@@ -4204,8 +4204,8 @@ O perigo do Slime de Latão reside em sua natureza reativa e imprevisível. Em c
 
 A anatomia desta criatura é um paradoxo biológico. Seu corpo é feito de uma substância que os alquimistas chamam de Piche Abissal, um fluido que não reflete a luz, mas a devora. Seu núcleo não é físico, mas uma Singularidade Necrótica que pulsa com uma inteligência fria e calculista. No Nível 5, ele não tenta ser um humano perfeito; ele prefere ser uma silhueta aterrorizante, uma "falha" visual que causa desconforto imediato em seres vivos. Ele não emite sons orgânicos; ele utiliza a Lógica do Vazio para projetar sussurros diretamente no córtex auditivo de suas vítimas, repetindo seus piores medos com vozes de entes queridos falecidos.
 
-Em combate, enfrentar um Slime das Sombras é lutar contra a própria escuridão. Ele utiliza seu Mergulho na Escuridão para se fundir ao chão, tornando-se uma poça de vácuo que paralisa e cega quem pisar nele. Sua Garra de Evento Horizonte não corta apenas a carne; ela drena a própria força vital e a vontade de lutar, deixando o alvo debilitado e fraco. O maior perigo reside na sua natureza intangível: ele pode atravessar frestas e se esconder em sombras tão pequenas quanto a de uma moeda, esperando o momento exato para envolver sua presa em um abraço de frio absoluto. Ele não é apenas um monstro; ele é a sombra que olha de volta para você.`,
-    type: 'Monstro médio, gosma',
+Em combate, enfrentar um Slime das Sombras é lutar contra a própria escuridão. Ele utiliza seu Mergulho na Escuridão para se fundir ao chão, tornando-se uma poça de vácuo que paralisa e cega quem pisar nele. Sua Garra de Evento Horizonte não corta apenas a carne; ela drena a própria força vital e a vontade de lutar, deixando o alvo debilitado e fraco. O maior perigo reside na sua natureza intangível: ele pode atravessar frestas e se esconder em sombras tão pequenas quanto a de uma moeda, esperando o momento exato para envolver sua presa em um abraço de frio absoluto. Ele não é apenas um criatura; ele é a sombra que olha de volta para você.`,
+    type: 'Criatura médio, gosma',
     ac: '16',
     hp: '32 (5d8 + 10)',
     speed: '9m, escalada 9m',
@@ -4299,7 +4299,7 @@ Em combate, enfrentar um Slime das Sombras é lutar contra a própria escuridão
 Sua forma é uma tentativa deliberada de imitar a estrutura humanoide, o que lhe permite gesticular e até utilizar ferramentas alquímicas. O que mais impressiona (e aterroriza) os estudiosos é a sua capacidade de comando. Ele atua como uma unidade de processamento central para colônias de slimes, emitindo sinais químicos e vibratórios que coordenam ataques complexos que slimes selvagens seriam incapazes de executar sozinhos.
 
 Em combate, ele não se comporta como uma besta faminta. Ele observa, identifica o elo mais fraco do grupo de aventureiros e utiliza seu ácido altamente corrosivo para desarmar ou destruir equipamentos vitais antes de desferir o golpe final. Sua presença em uma masmorra indica que os slimes locais não são mais um problema ambiental, mas sim um exército organizado.`,
-    type: 'Monstro médio, gosma',
+    type: 'Criatura médio, gosma',
     ac: '17',
     hp: '126 (12d10 + 60)',
     speed: '9m, natação 9m',
@@ -4389,7 +4389,7 @@ Em combate, ele não se comporta como uma besta faminta. Ele observa, identifica
 Sua aparência é hipnotizante e perigosa. O corpo é uma carapaça de vidro resiliente que abriga um núcleo de magma em constante movimento, criando um efeito visual de luz e sombra que confunde os atacantes. O Artífice de Vidro raramente luta sozinho ou de forma desorganizada. Ele utiliza suas lentes flutuantes para focar raios de calor intenso e criar coberturas defensivas para seus aliados de nível inferior, geralmente slimes do caminho selvagem que ele trata como ferramentas.
 
 Encontrar um Artífice de Vidro em uma mina ou caverna vulcânica significa que o local foi transformado em uma oficina. Eles são conhecidos por decorar seus territórios com esculturas de vidro de suas vítimas, que servem tanto como troféus quanto como amplificadores para suas habilidades ópticas. Sua inteligência é fria e calculista, vendo o mundo não como algo a ser queimado, mas como matéria-prima a ser moldada em sua própria imagem cristalina.`,
-    type: 'Monstro médio, gosma',
+    type: 'Criatura médio, gosma',
     ac: '18',
     hp: '136 (16d8 + 64)',
     speed: '9m, escalada 9m',
@@ -4483,7 +4483,7 @@ Encontrar um Artífice de Vidro em uma mina ou caverna vulcânica significa que 
 Sua aparência é marcada por curvas fluidas e uma elegância sobrenatural, com cabelos que parecem nuvens de tempestade em constante movimento. No entanto, sua natureza permanece profundamente predatória. Como líder tática, ela comanda o campo de batalha com movimentos graciosos que ocultam ataques devastadores. O Místico das Brumas entende a vaidade e o desejo das raças humanas, usando sua forma para se infiltrar em lendas e contos como uma divindade das águas, quando na verdade é uma mente fria focada na expansão de seu domínio.
 
 Diferente de outras evoluções, ela possui uma vaidade intelectual única, decorando seu território com reflexos de si mesma. Aventureiros que entram em sua névoa frequentemente relatam ver uma figura feminina divina entre as árvores ou sob a superfície da água, apenas para serem atraídos para áreas onde o ar é rarefeito e a realidade é distorcida por sua vontade absoluta.`,
-    type: 'Monstro médio, gosma',
+    type: 'Criatura médio, gosma',
     ac: '16',
     hp: '112 (15d8 + 45)',
     speed: '9m, natação 12m',
@@ -4573,7 +4573,7 @@ Diferente de outras evoluções, ela possui uma vaidade intelectual única, deco
 Sua inteligência superior não é voltada apenas para a destruição, mas para a perfeição estética. A Escultora de Frio não vê seus inimigos como ameaças, mas como matéria-prima para sua arte mórbida. Ela utiliza suas habilidades táticas para encurralar e congelar oponentes em poses de angústia, transformando-os em estátuas eternas para decorar seu domínio glacial. Sua obsessão pela beleza fria é tão grande que ela comanda grupos de slimes selvagens para organizar o campo de batalha antes do confronto final, garantindo que o cenário seja digno de sua intervenção.
 
 Aqueles que encontram uma Escultora de Frio são frequentemente atraídos por sua forma magnífica e brilho prismático, apenas para serem vítimas de sua aura de zero absoluto. Elas são as governantes incontestáveis dos picos gelados e das masmorras de cristal, onde a beleza e a morte caminham de mãos dadas sob a luz refletida em seus corpos impecáveis.`,
-    type: 'Monstro médio, gosma',
+    type: 'Criatura médio, gosma',
     ac: '18',
     hp: '120 (16d8 + 48)',
     speed: '9m, escalada 9m',
@@ -4667,7 +4667,7 @@ Aqueles que encontram uma Escultora de Frio são frequentemente atraídos por su
 Sua mente funciona como a de um engenheiro militar. Ele não apenas ataca; ele fortifica. Em batalha, o Arquiteto de Barro molda o campo para garantir vantagem tática, erguendo barreiras e pilares que isolam os inimigos enquanto protege seus aliados menos inteligentes com armaduras de argila. Ele vê o campo de batalha como uma planta baixa que precisa ser corrigida, e os invasores como detritos que devem ser removidos ou soterrados.
 
 Extremamente territoriais, esses seres costumam construir verdadeiras cidadelas subterrâneas ou templos de barro em locais ricos em mana telúrica. Sua presença é frequentemente confundida com a de divindades da terra por tribos locais, devido à sua capacidade de erguer estruturas permanentes em questão de segundos. No entanto, sua natureza é puramente pragmática: ele constrói para dominar, e sua força física é tão avassaladora quanto a própria terra que ele comanda.`,
-    type: 'Monstro médio, gosma',
+    type: 'Criatura médio, gosma',
     ac: '19',
     hp: '142 (15d10 + 60)',
     speed: '9m, escavação 6m',
@@ -4709,7 +4709,7 @@ Extremamente territoriais, esses seres costumam construir verdadeiras cidadelas 
         desc: 'Sempre que o Arquiteto sofrer dano de Fogo, sua CA aumenta em +1 (máximo de +3) até o final do combate, conforme seu corpo de barro é cozido e endurecido.',
       },
       {
-        nome: 'Monstro de cerco',
+        nome: 'Criatura de cerco',
         desc: 'O Arquiteto causa o dobro de dano a objetos e estruturas.',
       },
     ],
@@ -4761,7 +4761,7 @@ Extremamente territoriais, esses seres costumam construir verdadeiras cidadelas 
 A inteligência de um Pulso de Silício é fria, lógica e extremamente rápida. Ele não apenas comanda grupos de slimes selvagens; ele os conecta em uma rede neural, agindo como o núcleo de processamento que coordena cada movimento com precisão de milissegundos. No campo de batalha, ele é capaz de ler os impulsos elétricos nos nervos de seus oponentes, antecipando golpes antes mesmo que o atacante os execute.
 
 Ele prefere locais com alta concentração de minerais condutores ou ruínas de civilizações antigas que possuam tecnologia esquecida. Onde um Pulso de Silício se estabelece, o ambiente se torna hostil para qualquer coisa metálica: armas são arrancadas das mãos, armaduras se tornam prisões magnéticas e a própria eletricidade estática no ar se torna uma arma mortal. Enfrentar um Pulso de Silício é como tentar lutar contra um sistema operacional que já calculou todas as suas chances de vitória e as reduziu a zero.`,
-    type: 'Monstro médio, gosma',
+    type: 'Criatura médio, gosma',
     ac: '17',
     hp: '110 (17d8 + 34)',
     speed: '9m, flutuar 12m',
@@ -4855,7 +4855,7 @@ Ele prefere locais com alta concentração de minerais condutores ou ruínas de 
 Como um líder nato do caminho intelectual, ele não luta por instinto, mas por pura eficiência tática. Ele é capaz de analisar o estilo de combate de um oponente em frações de segundo, moldando seus membros em lâminas perfeitamente equilibradas ou martelos de impacto pesado para explorar fraquezas específicas na armadura ou na guarda do inimigo. Sua presença em uma colônia de slimes metálicos transforma um grupo desorganizado em uma falange coordenada e impenetrável, onde ele atua como o oficial comandante.
 
 Aventureiros que sobrevivem a um encontro com um Autômato Fluído descrevem a sensação aterrorizante de lutar contra um oponente que não pode ser cortado ou quebrado, pois o metal líquido simplesmente flui ao redor das armas e se regenera instantaneamente. Ele não demonstra emoção, fúria ou cansaço, mantendo uma determinação fria e calculista até que o objetivo seja alcançado ou a ameaça seja totalmente eliminada.`,
-    type: 'Monstro médio, constructo',
+    type: 'Criatura médio, constructo',
     ac: '20',
     hp: '136 (16d8 + 64)',
     speed: '9m, natação 9m',
@@ -4949,7 +4949,7 @@ Aventureiros que sobrevivem a um encontro com um Autômato Fluído descrevem a s
 Sua inteligência é vasta, fria e focada na dominação tática através da necromancia e do terror. Ela atua como a Tecelã de Almas, coordenando vastas hordas de slimes selvagens e outros mortos-vivos menores como uma mente de colmeia. Onde ela flutua, a temperatura cai instantaneamente para níveis congelantes, e o próprio ar se torna pesado com os sussurros psíquicos de suas vítimas passadas, cujos rostos angunstiados podem ser vistos vagando dentro de sua forma translúcida.
 
 Em combate, ela é uma estrategista implacável que prefere manipular o campo de batalha de uma posição segura. Ela utiliza suas correntes etéreas para imobilizar e drenar a vida dos guerreiros mais fortes, enquanto sua presença desoladora quebra a moral dos conjuradores. Ela não deseja apenas a morte de seus oponentes, mas a erradicação de sua existência e a adição de suas almas à sua legião fantasma pessoal.`,
-    type: 'Monstro médio, espectro',
+    type: 'Criatura médio, espectro',
     ac: '16',
     hp: '110 (17d8 + 34)',
     speed: '0m, voo 12m',
@@ -5034,4 +5034,4 @@ Em combate, ela é uma estrategista implacável que prefere manipular o campo de
   },
 };
 
-export default MonsterDB;
+export default CreatureDB;

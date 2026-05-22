@@ -1,16 +1,16 @@
 import { useCssHandles } from '@/hooks/useCssHandles';
-import MonsterInfoHandles from './handles';
-import { ICombat } from '@/db/monsters/monsters.d';
+import CreatureInfoHandles from './handles';
+import { ICombat } from '@/db/creatures/creatures.d';
 
 interface IProps {
   stats: ICombat;
 }
 
 const CombatInfo = ({ stats }: IProps) => {
-  const handles = useCssHandles(MonsterInfoHandles);
+  const handles = useCssHandles(CreatureInfoHandles);
 
   return (
-    <div className={handles.monsterInfoList}>
+    <div className={handles.creatureInfoList}>
       <div className={handles.infoRow}>
         <span className={handles.infoLabel}>Tipo: </span>
         <span className={handles.infoValue}>{stats.type ?? '---'}</span>

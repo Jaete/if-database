@@ -1,4 +1,4 @@
-// src/scripts/seed-monsters.ts
+// src/scripts/seed-creatures.ts
 import 'dotenv/config';
 import dotenv from 'dotenv';
 import path from 'path';
@@ -17,14 +17,14 @@ dotenv.config({
 const fs = require('fs');
 
 import { connectDB } from '@/lib/db';
-import IMonster, {
+import ICreature, {
   IAbilities,
   IDrops,
   ISenses,
   IStats,
-} from '@/db/monsters/monsters.d';
-import Monster from '@/db/monsters/monsters';
-import MonsterDB from './monster-data';
+} from '@/db/creatures/creatures.d';
+import Creature from '@/db/creatures/creatures';
+import CreatureDB from './creature-data';
 
 // Mapeamento de tradução PT-BR → EN para stats
 const STATS_MAP: Record<string, keyof IStats> = {
@@ -116,12 +116,12 @@ const transformDrops = (
 };
 
 /**
- * Transforma um monstro do formato original para o schema IMonster
+ * Transforma um criatura do formato original para o schema ICreature
  */
-const transformMonster = (
+const transformCreature = (
   slug: string,
   raw: Record<string, unknown>
-): Partial<IMonster> => {
+): Partial<ICreature> => {
   const stats = transformStats(raw.stats as Record<string, string>);
   const habilidades = transformAbilities(
     raw.habilidades as Array<{ nome?: string; desc?: string }>
@@ -159,33 +159,33 @@ const transformMonster = (
 /**
  * Função principal de seed
  */
-const seedMonsters = async (): Promise<void> => {
+const seedCreatures = async (): Promise<void> => {
   try {
     console.log('🔄 Conectando ao MongoDB...');
     await connectDB();
 
     console.log(
-      `📦 Transformando ${Object.keys(MonsterDB).length} monstros...`
+      `📦 Transformando ${Object.keys(CreatureDB).length} criaturas...`
     );
 
-    const monstersToInsert = Object.entries(MonsterDB).map(([slug, data]) =>
-      transformMonster(slug, data)
+    const creaturesToInsert = Object.entries(CreatureDB).map(([slug, data]) =>
+      transformCreature(slug, data)
     );
 
-    console.log('🧹 Limpando coleção "monsters"...');
-    await Monster.deleteMany({});
+    console.log('🧹 Limpando coleção "creatures"...');
+    await Creature.deleteMany({});
 
     console.log('🚀 Inserindo no MongoDB...');
-    const result = await Monster.insertMany(monstersToInsert, {
+    const result = await Creature.insertMany(creaturesToInsert, {
       ordered: false,
       lean: true,
     });
 
-    console.log(`✅ Sucesso! ${result.length} monstros inseridos.`);
+    console.log(`✅ Sucesso! ${result.length} criaturas inseridos.`);
 
-    console.log('\n📋 Monstros inseridos:');
-    result.forEach((monster, index) => {
-      console.log(`  ${index + 1}. ${monster.slug}`);
+    console.log('\n📋 Criaturas inseridos:');
+    result.forEach((creature, index) => {
+      console.log(`  ${index + 1}. ${creature.slug}`);
     });
   } catch (error: unknown) {
     const errorMessage =
@@ -200,4 +200,4 @@ const seedMonsters = async (): Promise<void> => {
 };
 
 // Executa o seed
-void seedMonsters();
+void seedCreatures();

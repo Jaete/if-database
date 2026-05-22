@@ -2,34 +2,36 @@
 
 import { useState, useMemo, useEffect } from 'react';
 
-import type IMonster from '@/db/monsters/monsters.d';
+import type ICreature from '@/db/creatures/creatures.d';
 import { useCssHandles } from '@/hooks/useCssHandles';
-import MonsterCard from '../MonsterCard';
+import CreatureCard from '../CreatureCard';
 import CreatureDrawer from '../CreatureDrawer';
-import MonsterData from '../MonsterData';
-import MonsterGridHandles from './handles';
-import '@/styles/components/monsterGrid.scss';
+import CreatureData from '../CreatureData';
+import CreatureGridHandles from './handles';
+import '@/styles/components/creatureGrid.scss';
 import DrawerController from '../CreatureDrawer/sections/DrawerController';
 import DrawerHeader from '../CreatureDrawer/sections/DrawerHeader';
 import DrawerContent from '../CreatureDrawer/sections/DrawerContent';
 
 interface IProps {
-  monsters: IMonster[];
+  creatures: ICreature[];
 }
 
-const MonsterGrid = ({ monsters }: IProps) => {
-  const handles = useCssHandles(MonsterGridHandles);
+const CreatureGrid = ({ creatures }: IProps) => {
+  const handles = useCssHandles(CreatureGridHandles);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedMonster, setSelectedMonster] = useState<IMonster | null>(null);
+  const [selectedCreature, setSelectedCreature] = useState<ICreature | null>(
+    null
+  );
 
-  const filteredMonsters = useMemo(() => {
-    return monsters.filter((monster) =>
-      monster.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredCreatures = useMemo(() => {
+    return creatures.filter((creature) =>
+      creature.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [monsters, searchTerm]);
+  }, [creatures, searchTerm]);
 
   useEffect(() => {
-    const handleClose = () => setSelectedMonster(null);
+    const handleClose = () => setSelectedCreature(null);
     window.addEventListener('drawer:close', handleClose);
 
     return () => {
@@ -42,13 +44,13 @@ const MonsterGrid = ({ monsters }: IProps) => {
       <header className={handles.header}>
         <h1 className={handles.title}>BESTIÁRIO SALVO</h1>
         <p className={handles.subtitle}>
-          Seus monstros salvos no banco de dados e as alterações recentes do
+          Suas criaturas salvas no banco de dados e as alterações recentes do
           navegador.
         </p>
         <div className={handles.navButtons}>
-          <button className={handles.navButton}>+ CRIAR NOVO MONSTRO</button>
+          <button className={handles.navButton}>+ CRIAR NOVA CRIATURA</button>
           <button className={handles.navButton}>
-            GERAR ÁRVORE DE MONSTROS
+            GERAR ÁRVORE DE CRIATURAS
           </button>
         </div>
       </header>
@@ -57,35 +59,35 @@ const MonsterGrid = ({ monsters }: IProps) => {
         <input
           type="text"
           className={handles.searchInput}
-          placeholder="Buscar monstro pelo nome..."
+          placeholder="Buscar criatura pelo nome..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
 
       <div className={handles.grid}>
-        {filteredMonsters.map((monster) => (
-          <DrawerController key={monster.slug}>
-            <MonsterCard
-              key={monster.slug + '--card'}
-              monster={monster}
-              onClick={setSelectedMonster}
+        {filteredCreatures.map((creature) => (
+          <DrawerController key={creature.slug}>
+            <CreatureCard
+              key={creature.slug + '--card'}
+              creature={creature}
+              onClick={setSelectedCreature}
             />
           </DrawerController>
         ))}
-        {filteredMonsters.length === 0 && (
-          <div className={handles.emptyState}>Nenhum monstro encontrado.</div>
+        {filteredCreatures.length === 0 && (
+          <div className={handles.emptyState}>Nenhuma criatura encontrada.</div>
         )}
       </div>
 
       <CreatureDrawer>
         <DrawerHeader />
         <DrawerContent>
-          {selectedMonster && <MonsterData monster={selectedMonster} />}
+          {selectedCreature && <CreatureData creature={selectedCreature} />}
         </DrawerContent>
       </CreatureDrawer>
     </div>
   );
 };
 
-export default MonsterGrid;
+export default CreatureGrid;

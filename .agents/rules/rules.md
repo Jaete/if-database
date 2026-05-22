@@ -6,7 +6,7 @@ trigger: always_on
 
 ## Project Overview
 
-This is a **Next.js 16** (App Router) RPG monster bestiary/database application called **IF Database**. It uses **MongoDB** via **Mongoose**, **SCSS** for styling, and a custom **CSS Handles** pattern for class name management. The UI language is **Brazilian Portuguese (pt-BR)**.
+This is a **Next.js 16** (App Router) RPG creature bestiary/database application called **IF Database**. It uses **MongoDB** via **Mongoose**, **SCSS** for styling, and a custom **CSS Handles** pattern for class name management. The UI language is **Brazilian Portuguese (pt-BR)**.
 
 ---
 
@@ -30,9 +30,9 @@ app/                    → Next.js App Router pages and layouts
   globals.css           → Minimal global CSS reset
   layout.tsx            → Root layout (RootLayout)
   page.tsx              → Home page
-  monsters/             → Monsters feature route group
-    page.tsx            → Monsters list page (server component)
-    edit/[slug]/page.tsx → Monster edit page (server component)
+  creatures/             → Creatures feature route group
+    page.tsx            → Creatures list page (server component)
+    edit/[slug]/page.tsx → Creature edit page (server component)
 
 components/             → Reusable React components (PascalCase dirs)
   ComponentName/
@@ -54,20 +54,20 @@ styles/                 → SCSS design system
   components/           → Component-level SCSS files (camelCase filenames)
 
 db/                     → Database models and schemas
-  monsters/
-    monsters.d.ts       → TypeScript interfaces (IMonster, IStats, ICombat, etc.)
+  creatures/
+    creatures.d.ts       → TypeScript interfaces (ICreature, IStats, ICombat, etc.)
     schema.ts           → Mongoose Schema definition
-    monsters.ts         → Mongoose Model (singleton pattern)
+    creatures.ts         → Mongoose Model (singleton pattern)
 
 services/               → Business logic / data access layer
-  monster.service.ts    → CRUD functions for monsters
+  creature.service.ts    → CRUD functions for creatures
 
 lib/                    → Utility modules
   db.ts                 → MongoDB connection with global caching
 
 scripts/                → CLI scripts
   initializeDb.ts       → Database seeding script
-  monster-data.ts       → Seed data
+  creature-data.ts       → Seed data
 ```
 
 ---
@@ -82,11 +82,11 @@ We strictly separate our user interface elements into three distinct layers:
    - Always server-side components (no `'use client'`).
    - Establish database connection: `await connectDB()`.
    - Fetch raw data from Mongoose services and serialize it: `JSON.parse(JSON.stringify(data))`.
-   - Render and orchestrate **Features** (e.g., `<MonsterGrid initialData={monsters} />`).
+   - Render and orchestrate **Features** (e.g., `<CreatureGrid initialData={creatures} />`).
    - **Rule:** Pages do not define CSS layouts or render raw styled HTML. They act only as data providers and feature orchestrators.
 
 2. **Features (`components/FeatureName/`)**
-   - High-level interface blocks (e.g., `MonsterGrid`, `MonsterData`).
+   - High-level interface blocks (e.g., `CreatureGrid`, `CreatureData`).
    - Can be client components (`'use client'`) to manage interactive states, events, and UI logic.
    - Coordinate layout structure using SCSS handles.
    - **Rule:** They hold all UI/business logic and pass data down to simple child components.
@@ -161,8 +161,8 @@ This project uses a custom `useCssHandles` hook (inspired by VTEX IO) instead of
 
 - **Never use CSS Modules (`.module.scss`) for components** — use the CSS Handles pattern with global SCSS files in `styles/components/`
 - **Import the design system** in each component SCSS file with: `@use '../../styles/globals' as *;` (or appropriate relative path)
-- Component SCSS files in `styles/components/` use **camelCase** filenames (e.g., `monsterCard.scss`, `creatureDrawer.scss`)
-- Component TSX files import SCSS directly: `import '@/styles/components/monsterCard.scss';`
+- Component SCSS files in `styles/components/` use **camelCase** filenames (e.g., `creatureCard.scss`, `creatureDrawer.scss`)
+- Component TSX files import SCSS directly: `import '@/styles/components/creatureCard.scss';`
 
 ### Color Palette
 
@@ -189,11 +189,11 @@ The project uses a **dark-first** design with light mode overrides:
 
 Use the typography mixins from `_typography.scss`. Signature: `@mixin font-size($color, $weight, $line-height, $spacing, $align)`:
 
-| Family                 | Mixin prefix | Use case                                |
-| ---------------------- | ------------ | --------------------------------------- |
-| Cinzel (serif)         | `cinzel-*`   | Headings, monster names, section titles |
-| Consolas (monospace)   | `mono-*`     | Code, technical data                    |
-| Segoe UI/Roboto (sans) | `main-*`     | Body text, labels, descriptions         |
+| Family                 | Mixin prefix | Use case                                 |
+| ---------------------- | ------------ | ---------------------------------------- |
+| Cinzel (serif)         | `cinzel-*`   | Headings, creature names, section titles |
+| Consolas (monospace)   | `mono-*`     | Code, technical data                     |
+| Segoe UI/Roboto (sans) | `main-*`     | Body text, labels, descriptions          |
 
 Sizes: `xs` (12px), `sm` (14px), `md` (16px), `lg` (18px), `xl` (20px), `2xl` (24px), `3xl` (32px)
 
@@ -216,10 +216,10 @@ Use flex mixins from `_flex.scss`: `flex-center`, `flex-col-start`, `flex-col-ce
 
 ### Models
 
-- Mongoose models use the singleton pattern: `models.Monster || model<IMonster>('Monster', MonsterSchema)`
+- Mongoose models use the singleton pattern: `models.Creature || model<ICreature>('Creature', CreatureSchema)`
 - Type definitions in `.d.ts` files with `interface` declarations
 - All sub-interfaces are exported: `IStats`, `ICombat`, `IAbilities`, `IActions`, `ISenses`, `IDrops`
-- Main interface extends `Document`: `export default interface IMonster extends Document { ... }`
+- Main interface extends `Document`: `export default interface ICreature extends Document { ... }`
 
 ### Services
 
@@ -236,7 +236,7 @@ Use flex mixins from `_flex.scss`: `flex-center`, `flex-col-start`, `flex-col-ce
 
 ```tsx
 import { connectDB } from '@/lib/db';
-import { getAllMonsters } from '@/services/monster.service';
+import { getAllCreatures } from '@/services/creature.service';
 import { notFound } from 'next/navigation';
 
 export default async function PageName() {

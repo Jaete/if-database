@@ -1,6 +1,6 @@
 import { useCssHandles } from '@/hooks/useCssHandles';
 import AbilitiesBlockHandles from './handles';
-import { IAbilities } from '@/db/monsters/monsters.d';
+import { IAbilities } from '@/db/creatures/creatures.d';
 
 interface IProps {
   abilities: IAbilities[];

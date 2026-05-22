@@ -158,10 +158,10 @@
 }
 
 // ==========================================
-// MONSTER DATA & INFO
+// CREATURE DATA & INFO
 // ==========================================
 
-.monsterData {
+.creatureData {
   @include flex-col-start();
   width: 100%;
   color: $neutral-2100;
@@ -171,11 +171,11 @@
   }
 }
 
-.monsterHeader {
+.creatureHeader {
   width: 100%;
   margin-bottom: $spacing-5;
 
-  .monsterName {
+  .creatureName {
     margin: 0;
     @include cinzel-3xl($primary-100, bold, 1.2);
 
@@ -185,7 +185,7 @@
   }
 }
 
-.monsterImageContainer {
+.creatureImageContainer {
   position: relative;
   width: 100%;
   margin-bottom: $spacing-5;
@@ -195,7 +195,7 @@
     border-color: $neutral-2700;
   }
 
-  .monsterImageLoader {
+  .creatureImageLoader {
     position: absolute;
     inset: 0;
     opacity: 0.3;
@@ -213,7 +213,7 @@
     }
   }
 
-  .monsterImage {
+  .creatureImage {
     position: relative;
     z-index: 5;
     width: 100%;
@@ -234,7 +234,7 @@
   }
 }
 
-.monsterDescription {
+.creatureDescription {
   @include main-md($neutral-2000, normal, 1.6);
   margin: $spacing-5 0;
   word-wrap: break-word;
@@ -252,7 +252,7 @@
   }
 }
 
-.monsterInfoList {
+.creatureInfoList {
   margin-top: $spacing-5;
   border-top: 1px solid $neutral-400;
   padding-top: $spacing-4;

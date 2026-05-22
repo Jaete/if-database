@@ -1,4 +1,4 @@
-const MonsterGridHandles = [
+const CreatureGridHandles = [
   'container',
   'header',
   'title',
@@ -11,4 +11,4 @@ const MonsterGridHandles = [
   'emptyState',
 ] as const;
 
-export default MonsterGridHandles;
+export default CreatureGridHandles;

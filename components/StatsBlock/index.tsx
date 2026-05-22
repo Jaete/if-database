@@ -1,4 +1,4 @@
-import { type IStats } from '@/db/monsters/monsters.d';
+import { type IStats } from '@/db/creatures/creatures.d';
 import { useCssHandles } from '@/hooks/useCssHandles';
 import StatBlockHandles from './handles';
 

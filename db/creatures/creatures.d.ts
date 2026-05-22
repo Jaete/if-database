@@ -37,7 +37,7 @@ interface ICombat {
   speed?: string;
 }
 
-export default interface IMonster extends Document {
+export default interface ICreature extends Document {
   slug: string;
   name: string;
   rarity: string;

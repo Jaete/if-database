@@ -6,13 +6,13 @@ description: Step-by-step guide to create a new Feature component that orchestra
 
 # Creating a New Feature
 
-A **Feature** is a high-level orchestration component (e.g., `MonsterData`, `MonsterGrid`). It contains business logic, state management, event listeners/dispatchers, and coordinates multiple simple, presentational components to compose the interface.
+A **Feature** is a high-level orchestration component (e.g., `CreatureData`, `CreatureGrid`). It contains business logic, state management, event listeners/dispatchers, and coordinates multiple simple, presentational components to compose the interface.
 
 ## Prerequisites
 
 Before starting, identify:
 
-- **Feature Name** (PascalCase, e.g., `MonsterCatalog`, `CreatureEditor`)
+- **Feature Name** (PascalCase, e.g., `CreatureCatalog`, `CreatureEditor`)
 - **Data models/services** it needs to interact with
 - **Simple components** it will compose (e.g., `CombatInfo`, `StatBlock`)
 - **Shared states** or global event listeners it requires
@@ -61,7 +61,7 @@ Create `components/FeatureName/index.tsx`:
 
 import { useState, useEffect } from 'react';
 import { useCssHandles } from '@/hooks/useCssHandles';
-import type IMonster from '@/db/monsters/monsters.d';
+import type ICreature from '@/db/creatures/creatures.d';
 
 // Import child presentational components
 import StatBlock from '@/components/StatsBlock';
@@ -71,20 +71,20 @@ import FeatureNameHandles from './handles';
 import '@/styles/components/featureName.scss';
 
 interface IProps {
-  initialData: IMonster[];
+  initialData: ICreature[];
 }
 
 const FeatureName = ({ initialData }: IProps) => {
   const handles = useCssHandles(FeatureNameHandles);
-  const [data, setData] = useState<IMonster[]>(initialData);
+  const [data, setData] = useState<ICreature[]>(initialData);
 
   // Implement state, event dispatchers, or custom event listeners here
   useEffect(() => {
     const handleUpdate = (e: Event) => {
       // Logic for inter-component communication
     };
-    window.addEventListener('monster:update', handleUpdate);
-    return () => window.removeEventListener('monster:update', handleUpdate);
+    window.addEventListener('creature:update', handleUpdate);
+    return () => window.removeEventListener('creature:update', handleUpdate);
   }, []);
 
   return (

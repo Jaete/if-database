@@ -1,31 +1,31 @@
 import Image from 'next/image';
 
-import type IMonster from '@/db/monsters/monsters.d';
+import type ICreature from '@/db/creatures/creatures.d';
 import { useCssHandles } from '@/hooks/useCssHandles';
 
-import MonsterCardHandles from './handles';
-import '@/styles/components/monsterCard.scss';
+import CreatureCardHandles from './handles';
+import '@/styles/components/creatureCard.scss';
 
 interface IProps {
-  monster: IMonster;
-  onClick: (monster: IMonster) => void;
+  creature: ICreature;
+  onClick: (creature: ICreature) => void;
 }
 
-const MonsterCard = ({ monster, onClick }: IProps) => {
-  const handles = useCssHandles(MonsterCardHandles);
+const CreatureCard = ({ creature, onClick }: IProps) => {
+  const handles = useCssHandles(CreatureCardHandles);
 
-  const handleEditClick = (e: React.MouseEvent, monster: IMonster) => {
+  const handleEditClick = (e: React.MouseEvent, creature: ICreature) => {
     e.preventDefault();
     e.stopPropagation();
-    window.location.href = `/monsters/edit/${monster.slug}`;
+    window.location.href = `/creatures/edit/${creature.slug}`;
   };
 
   return (
-    <div className={handles.card} onClick={() => onClick(monster)}>
+    <div className={handles.card} onClick={() => onClick(creature)}>
       <div className={handles.cardImage}>
         <Image
-          src={monster.image ?? '/monster-placeholder.png'}
-          alt={monster.name}
+          src={creature.image ?? '/creature-placeholder.png'}
+          alt={creature.name}
           width={300}
           height={300}
           style={{ objectFit: 'cover', width: '100%', height: '100%' }}
@@ -33,11 +33,11 @@ const MonsterCard = ({ monster, onClick }: IProps) => {
         <div className={handles.cardImageOverlay} />
       </div>
       <div className={handles.cardInfo}>
-        <div className={handles.cardRarity}>{monster.rarity}</div>
-        <h3 className={handles.cardName}>{monster.name}</h3>
+        <div className={handles.cardRarity}>{creature.rarity}</div>
+        <h3 className={handles.cardName}>{creature.name}</h3>
         <button
           className={handles.cardButton}
-          onClick={(e) => handleEditClick(e, monster)}
+          onClick={(e) => handleEditClick(e, creature)}
         >
           <svg
             className={handles.cardButtonIcon}
@@ -59,4 +59,4 @@ const MonsterCard = ({ monster, onClick }: IProps) => {
   );
 };
 
-export default MonsterCard;
+export default CreatureCard;

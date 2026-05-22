@@ -1,4 +1,4 @@
-const MonsterCardHandles = [
+const CreatureCardHandles = [
   'card',
   'cardImage',
   'cardImageOverlay',
@@ -9,4 +9,4 @@ const MonsterCardHandles = [
   'cardButtonIcon',
 ] as const;
 
-export default MonsterCardHandles;
+export default CreatureCardHandles;

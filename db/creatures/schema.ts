@@ -1,7 +1,7 @@
 import { Schema } from 'mongoose';
-import IMonster from './monsters.d';
+import ICreature from './creatures.d';
 
-const MonsterSchema = new Schema<IMonster>(
+const CreatureSchema = new Schema<ICreature>(
   {
     slug: { type: String, required: true, unique: true },
     name: { type: String, required: true },
@@ -29,8 +29,8 @@ const MonsterSchema = new Schema<IMonster>(
   },
   {
     timestamps: true,
-    collection: 'monsters',
+    collection: 'creatures',
   }
 );
 
-export default MonsterSchema;
+export default CreatureSchema;

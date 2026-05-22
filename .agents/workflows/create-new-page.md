@@ -12,7 +12,7 @@ A **Page** is a Next.js route entry point. Its primary job is **data fetching, s
 
 Before starting, identify:
 
-- **Route URL** and path (e.g., `/monsters` -> `app/monsters/page.tsx`, `/monsters/edit/[slug]` -> `app/monsters/edit/[slug]/page.tsx`)
+- **Route URL** and path (e.g., `/creatures` -> `app/creatures/page.tsx`, `/creatures/edit/[slug]` -> `app/creatures/edit/[slug]/page.tsx`)
 - **Required parameters** (e.g., dynamic `slug`)
 - **Database queries** and the service methods required
 - **Feature components** to render on this page
@@ -21,7 +21,7 @@ Before starting, identify:
 
 ## Step 1: Create the Page file
 
-Create `page.tsx` in the target route directory (e.g., `app/monsters/page.tsx`):
+Create `page.tsx` in the target route directory (e.g., `app/creatures/page.tsx`):
 
 ```tsx
 import { connectDB } from '@/lib/db';
@@ -82,13 +82,13 @@ import type { Metadata } from 'next';
 export async function generateMetadata({ params }: IProps): Promise<Metadata> {
   const { slug } = await params;
   await connectDB();
-  const monster = await getMonsterBySlug(slug);
+  const creature = await getCreatureBySlug(slug);
 
-  if (!monster) return { title: 'Monstro não encontrado | IF Database' };
+  if (!creature) return { title: 'Criatura não encontrado | IF Database' };
 
   return {
-    title: `${monster.name} | IF Database`,
-    description: monster.description || `Ficha completa de ${monster.name}.`,
+    title: `${creature.name} | IF Database`,
+    description: creature.description || `Ficha completa de ${creature.name}.`,
   };
 }
 ```

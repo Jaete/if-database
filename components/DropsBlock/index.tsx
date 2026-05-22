@@ -1,6 +1,6 @@
 import { useCssHandles } from '@/hooks/useCssHandles';
 import DropsBlockHandles from './handles';
-import { IDrops } from '@/db/monsters/monsters.d';
+import { IDrops } from '@/db/creatures/creatures.d';
 
 interface IProps {
   drops: IDrops[];
