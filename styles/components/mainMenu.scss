@@ -1,0 +1,119 @@
+@use '../globals' as *;
+
+.container {
+  @include flex-col-center();
+  width: 100vw;
+  height: 100vh;
+  background-color: $neutral-100;
+  background-image: radial-gradient(circle at center, rgba($primary-100, 0.05) 0%, transparent 70%);
+  padding: $spacing-6;
+  position: relative;
+  overflow: hidden;
+}
+
+.titleContainer {
+  @include flex-col-center();
+  margin-bottom: $spacing-12;
+  text-align: center;
+  border-bottom: 2px solid $primary-100;
+  padding-bottom: $spacing-4;
+  position: relative;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 10px;
+    height: 10px;
+    background-color: $primary-100;
+    border: 2px solid $neutral-100;
+    rotate: 45deg;
+  }
+}
+
+.title {
+  @include cinzel-3xl($neutral-2000, bold, 1.2, 2px, center);
+  text-transform: uppercase;
+  margin: 0;
+  text-shadow: 0 0 10px rgba($primary-100, 0.3);
+  
+  @include light {
+    color: $neutral-100;
+    text-shadow: none;
+  }
+}
+
+.subtitle {
+  @include mono-md($primary-100, bold, 1.5, 4px, center);
+  text-transform: uppercase;
+  margin-top: $spacing-2;
+}
+
+.menuList {
+  @include flex-col-center();
+  gap: $spacing-4;
+  width: 100%;
+  max-width: 320px;
+}
+
+.menuItem {
+  width: 100%;
+}
+
+.menuLink {
+  @include cinzel-md($primary-100, bold, 1.2, 1px, center);
+  display: block;
+  width: 100%;
+  padding: $spacing-4 $spacing-6;
+  background-color: rgba($neutral-200, 0.8);
+  border: 1px solid $neutral-400;
+  border-radius: $radius-md;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  text-align: center;
+
+  &:hover {
+    color: $neutral-2000;
+    border-color: $primary-100;
+    background-color: rgba($primary-400, 0.4);
+    box-shadow: 0 0 15px rgba($primary-100, 0.2);
+    transform: translateY(-2px);
+  }
+
+  @include light {
+    background-color: $neutral-2100;
+    border-color: $neutral-2600;
+    color: $neutral-100;
+
+    &:hover {
+      background-color: $neutral-2900;
+      color: $primary-100;
+      border-color: $primary-100;
+    }
+  }
+}
+
+.menuLinkDisabled {
+  @include cinzel-md($neutral-800, bold, 1.2, 1px, center);
+  display: block;
+  width: 100%;
+  padding: $spacing-4 $spacing-6;
+  background-color: rgba($neutral-200, 0.4);
+  border: 1px solid rgba($neutral-400, 0.3);
+  border-radius: $radius-md;
+  text-transform: uppercase;
+  cursor: not-allowed;
+  text-align: center;
+  opacity: 0.6;
+  
+  @include light {
+    background-color: $neutral-2200;
+    border-color: $neutral-2400;
+    color: $neutral-1000;
+  }
+}
