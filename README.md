@@ -1,36 +1,155 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# IF Database - Monster Bestiary
 
-## Getting Started
+Um banco de dados de monstros para RPG, construído com Next.js e MongoDB.
 
-First, run the development server:
+## 📖 Sobre o Projeto
+
+Este projeto é um bestiário digital que permite visualizar, criar, editar e gerenciar informações de monstros para jogos de RPG. Cada monstro inclui detalhes completos como estatísticas, habilidades, sentidos e drops.
+
+## ✨ Funcionalidades
+
+- **Listagem de Monstros**: Visualize todos os monstros cadastrados em formato de grid
+- **Detalhes do Monstro**: Veja informações completas de cada monstro em um drawer lateral
+- **CRUD Completo**: Crie, edite e exclua monstros
+- **Dados Estruturados**: 
+  - Estatísticas (FOR, DES, CON, INT, SAB, CAR)
+  - Habilidades e ações especiais
+  - Sentidos e percepções
+  - Drops e recompensas
+
+## 🚀 Tecnologias
+
+- **Frontend**: Next.js 16, React 19, TypeScript
+- **Banco de Dados**: MongoDB com Mongoose
+- **Estilização**: Sass/SCSS
+- **Ferramentas de Qualidade**:
+  - ESLint para linting
+  - Prettier para formatação
+  - Commitlint para padronização de commits
+  - Husky + lint-staged para hooks de pré-commit
+
+## 📋 Pré-requisitos
+
+- Node.js (versão 18 ou superior)
+- MongoDB instalado localmente ou acesso a uma instância remota
+- npm ou yarn
+
+## 🔧 Instalação
+
+1. **Clone o repositório**
+   ```bash
+   git clone <url-do-repositorio>
+   cd if-database
+   ```
+
+2. **Instale as dependências**
+   ```bash
+   npm install
+   ```
+
+3. **Configure as variáveis de ambiente**
+   
+   Copie o arquivo `.env.example` para `.env.local`:
+   ```bash
+   cp .env.example .env.local
+   ```
+   
+   Edite o `.env.local` e adicione sua string de conexão com o MongoDB:
+   ```env
+   MONGODB_CONNECTION=mongodb://localhost:27017/monster-database
+   ```
+
+4. **Popule o banco de dados (opcional)**
+   
+   Para adicionar dados iniciais de exemplo:
+   ```bash
+   npm run seed
+   ```
+
+## 🎯 Uso
+
+### Desenvolvimento
+
+Inicie o servidor de desenvolvimento:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Acesse [http://localhost:3000](http://localhost:3000) no seu navegador.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Comandos Disponíveis
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Comando | Descrição |
+|---------|-----------|
+| `npm run dev` | Inicia o servidor de desenvolvimento |
+| `npm run build` | Compila o projeto para produção |
+| `npm run start` | Inicia o servidor em modo de produção |
+| `npm run lint` | Executa o linter no projeto |
+| `npm run format` | Formata o código com Prettier |
+| `npm run type-check` | Verifica tipos TypeScript sem compilar |
+| `npm run seed` | Popula o banco de dados com monstros de exemplo |
 
-## Learn More
+## 📁 Estrutura do Projeto
 
-To learn more about Next.js, take a look at the following resources:
+```
+if-database/
+├── app/                    # Rotas e páginas Next.js (App Router)
+│   ├── monsters/          # Páginas relacionadas a monstros
+│   │   └── edit/[slug]/   # Página de edição de monstro
+│   ├── layout.tsx         # Layout principal
+│   └── page.tsx           # Página inicial
+├── components/            # Componentes React
+│   ├── AbilitiesBlock/    # Bloco de habilidades
+│   ├── CombatInfo/        # Informações de combate
+│   ├── CreatureDrawer/    # Drawer lateral de criaturas
+│   ├── DropsBlock/        # Bloco de drops
+│   ├── MonsterCard/       # Card individual de monstro
+│   ├── MonsterData/       # Dados completos do monstro
+│   ├── MonsterGrid/       # Grid de cards de monstros
+│   ├── MonsterInfo/       # Informações básicas do monstro
+│   ├── SensesBlock/       # Bloco de sentidos
+│   └── StatsBlock/        # Bloco de estatísticas
+├── db/                    # Modelos e configurações do banco
+│   └── monsters/          # Modelo e schemas de monstros
+├── lib/                   # Utilitários e configurações
+│   └── db.ts              # Conexão com MongoDB
+├── scripts/               # Scripts utilitários
+│   ├── initializeDb.ts    # Script de inicialização do DB
+│   └── monster-data.ts    # Dados iniciais de monstros
+├── services/              # Camada de serviço/regras de negócio
+│   └── monster.service.ts # Operações CRUD de monstros
+├── styles/                # Arquivos de estilo SCSS
+├── .env.example           # Exemplo de variáveis de ambiente
+└── package.json           # Dependências e scripts
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🤝 Contribuindo
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Faça um fork do projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
+3. Faça commit das suas mudanças (`git commit -m 'feat: add some AmazingFeature'`)
+4. Faça push para a branch (`git push origin feature/AmazingFeature`)
+5. Abra um Pull Request
 
-## Deploy on Vercel
+### Padrões de Commit
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Este projeto utiliza [Conventional Commits](https://www.conventionalcommits.org/):
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `feat:` - Nova funcionalidade
+- `fix:` - Correção de bug
+- `docs:` - Mudanças na documentação
+- `style:` - Formatação, ponto e vírgula, etc.
+- `refactor:` - Refatoração de código
+- `test:` - Adição ou correção de testes
+- `chore:` - Tarefas de manutenção
+
+## 📄 Licença
+
+Este projeto está sob a licença MIT.
+
+## 🙏 Agradecimentos
+
+- Next.js Team
+- MongoDB Team
+- Comunidade React/TypeScript

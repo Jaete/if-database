@@ -1,6 +1,5 @@
 import { connectDB } from '@/lib/db';
 import { getMonsterBySlug } from '@/services/monster.service';
-import { notFound } from 'next/navigation';
 import DrawerController from '@/components/CreatureDrawer/sections/DrawerController';
 import MonsterData from '@/components/MonsterData';
 import CreatureDrawer from '@/components/CreatureDrawer';
@@ -16,11 +15,18 @@ export default async function MonsterPage({ params }: IProps) {
 
   await connectDB();
 
-  const monster = await getMonsterBySlug(slug);
+  const result = await getMonsterBySlug(slug);
 
-  if (!monster) {
-    notFound();
+  if (!result.success || !result.data) {
+    return (
+      <main>
+        <h1>Error</h1>
+        <p>{result.error}</p>
+      </main>
+    );
   }
+
+  const monster = result.data;
 
   return (
     <main>
