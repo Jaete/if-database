@@ -21,3 +21,17 @@ export function useCssHandles<T extends string>(
     return result;
   }, [handles]);
 }
+
+/**
+ * Applies a modifier to a given CSS handle.
+ *
+ * @param handle - The base CSS handle string (e.g., handles.container).
+ * @param modifier - The modifier string to append.
+ * @returns A new string in the format `handle--modifier`.
+ */
+export function applyModifiers<H extends string, M extends string>(
+  handle: H,
+  modifier: M
+): `${H}--${M}` {
+  return `${handle}--${modifier}`;
+}

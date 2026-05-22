@@ -4,7 +4,12 @@ import { notFound } from 'next/navigation';
 import MonsterGrid from '@/components/MonsterGrid';
 
 export default async function MonstersList() {
-  await connectDB();
+  const conn = await connectDB();
+
+  if (!conn) {
+    notFound();
+  }
+
   const monsters = await getAllMonsters();
 
   if (!monsters) {
