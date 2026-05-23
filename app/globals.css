@@ -11,5 +11,4 @@ body {
   background-color: var(--neutral-100);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overflow: hidden;
 }

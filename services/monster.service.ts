@@ -1,32 +1,49 @@
 import MonsterModel from '../db/monsters/monsters';
 import IMonster from '../db/monsters/monster';
 
-export async function createMonster(data: IMonster) {
-  const monster = await MonsterModel.create(data);
-  return monster;
+interface Result {
+  success: boolean;
+  data?: IMonster;
 }
 
-export async function getAllMonsters() {
+export async function createMonster(data: IMonster): Promise<Result> {
+  const monster = await MonsterModel.create(data);
+  if (!monster) {
+    return { success: false };
+  }
+  return { success: true, data: monster };
+}
+
+export async function getAllMonsters(): Promise<IMonster[]> {
   const monsters = await MonsterModel.find().select('-__v');
   return monsters;
 }
-export async function getMonsterBySlug(slug: string) {
+export async function getMonsterBySlug(slug: string): Promise<Result> {
   const monster = await MonsterModel.findOne({ slug });
-  return monster;
+  if (!monster) {
+    return { success: false };
+  }
+  return { success: true, data: monster };
 }
 
 export async function updateMonster(
   slug: string,
   updateData: Partial<IMonster>
-) {
+): Promise<Result> {
   const monster = await MonsterModel.findOneAndUpdate({ slug }, updateData, {
     new: true,
     runValidators: true,
   });
-  return monster;
+  if (!monster) {
+    return { success: false };
+  }
+  return { success: true };
 }
 
-export async function deleteMonster(slug: string) {
+export async function deleteMonster(slug: string): Promise<Result> {
   const monster = await MonsterModel.findOneAndDelete({ slug });
-  return monster;
+  if (!monster) {
+    return { success: false };
+  }
+  return { success: true };
 }

@@ -40,7 +40,12 @@ interface ICombat {
 export default interface ICreature extends Document {
   slug: string;
   name: string;
-  rarity: string;
+  race?: string;
+  alignment?: string;
+  level?: string;
+  rarity?: string;
+  size?: string;
+  class?: string;
   icon?: string;
   image?: string;
   subtitle?: string;

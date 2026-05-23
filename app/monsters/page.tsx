@@ -1,16 +1,16 @@
 import { connectDB } from '@/lib/db';
-import { getAllCreatures } from '@/services/monster.service';
+import { getAllMonsters } from '@/services/monster.service';
 import { notFound } from 'next/navigation';
 import CreatureGrid from '@/components/CreatureGrid';
 
-export default async function CreaturesList() {
+export default async function MonstersList() {
   const conn = await connectDB();
 
   if (!conn) {
     notFound();
   }
 
-  const creatures = await getAllCreatures();
+  const creatures = await getAllMonsters();
 
   if (!creatures) {
     notFound();

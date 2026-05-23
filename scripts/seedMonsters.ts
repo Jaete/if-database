@@ -170,30 +170,52 @@ const seedMonsters = async (): Promise<void> => {
       transformMonster(slug, data)
     );
 
-    console.log('🧹 Limpando coleção "monsters"...');
-    await Monster.deleteMany({});
+    // Debug: log dos dados transformados
+    console.log('\n🔍 Dados transformados (primeiro item):');
+    console.log(JSON.stringify(monstersToInsert[0], null, 2));
 
-    console.log('🚀 Inserindo no MongoDB...');
+    console.log('\n🧹 Limpando coleção "monsters"...');
+    const deleteResult = await Monster.deleteMany({});
+    console.log(`   Documentos removidos: ${deleteResult.deletedCount}`);
+
+    console.log('\n🚀 Inserindo no MongoDB...');
+    console.log(
+      `   Quantidade de documentos para inserir: ${monstersToInsert.length}`
+    );
+
     const result = await Monster.insertMany(monstersToInsert, {
       ordered: false,
       lean: true,
     });
 
-    console.log(`✅ Sucesso! ${result.length} criaturas inseridos.`);
+    console.log(`\n✅ Sucesso! ${result.length} criaturas inseridos.`);
 
     console.log('\n📋 Criaturas inseridos:');
     result.forEach((creature, index) => {
       console.log(`  ${index + 1}. ${creature.slug}`);
     });
+
+    // Verifica se os dados foram realmente inseridos
+    const count = await Monster.countDocuments({});
+    console.log(`\n📊 Total de documentos na coleção "monsters": ${count}`);
+
+    console.log('\n⏳ Aguardando sincronização com o Atlas...');
+    // Delay intencional para garantir que o driver flushou os dados na rede antes de fechar
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    console.log('✅ Script finalizado com sucesso.');
+
+    // Fecha a conexão graciosamente ao invés de matar o processo
+    const { disconnectDB } = await import('@/lib/db');
+    await disconnectDB();
+
+    process.exit(0);
   } catch (error: unknown) {
     const errorMessage =
       error instanceof Error ? error.message : 'Erro desconhecido';
 
     console.error('❌ Erro no seed:', errorMessage);
-
     process.exit(1);
-  } finally {
-    process.exit(0);
   }
 };
 

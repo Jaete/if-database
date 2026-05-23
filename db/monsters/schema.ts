@@ -52,8 +52,9 @@ const MonsterSchema = new Schema<IMonster>(
   },
   {
     timestamps: true,
-    collection: 'monsters',
   }
 );
+
+MonsterSchema.set('collection', 'monsters');
 
 export default MonsterSchema;

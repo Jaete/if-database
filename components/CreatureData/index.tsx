@@ -9,6 +9,7 @@ import AbilitiesBlock from '@/components/AbilitiesBlock';
 import SensesBlock from '@/components/SensesBlock';
 import DropsBlock from '@/components/DropsBlock';
 import CreatureDataHandles from './handles';
+import IMonster from '@/db/monsters/monster';
 
 interface IProps {
   creature: ICreature;
@@ -42,7 +43,9 @@ const CreatureData = ({ creature }: IProps) => {
       />
       <AbilitiesBlock abilities={creature.actions ?? []} title="Ações" />
       <SensesBlock senses={creature.senses ?? {}} />
-      <DropsBlock drops={creature.drops ?? []} />
+      {(creature as IMonster) && (
+        <DropsBlock drops={(creature as IMonster).drops ?? []} />
+      )}
     </div>
   );
 };
