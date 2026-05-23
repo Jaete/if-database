@@ -1,5 +1,5 @@
 import { connectDB } from '@/lib/db';
-import { getCreatureBySlug } from '@/services/creature.service';
+import { getCreatureBySlug } from '@/services/monster.service';
 import { notFound } from 'next/navigation';
 import DrawerController from '@/components/CreatureDrawer/sections/DrawerController';
 import CreatureData from '@/components/CreatureData';

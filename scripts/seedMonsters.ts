@@ -13,18 +13,16 @@ dotenv.config({
   ],
 });
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const fs = require('fs');
-
 import { connectDB } from '@/lib/db';
-import ICreature, {
+import {
   IAbilities,
   IDrops,
   ISenses,
   IStats,
 } from '@/db/creatures/creatures.d';
-import Creature from '@/db/creatures/creatures';
 import CreatureDB from './creature-data';
+import IMonster from '@/db/monsters/monster';
+import Monster from '@/db/monsters/monsters';
 
 // Mapeamento de tradução PT-BR → EN para stats
 const STATS_MAP: Record<string, keyof IStats> = {
@@ -116,12 +114,12 @@ const transformDrops = (
 };
 
 /**
- * Transforma um criatura do formato original para o schema ICreature
+ * Transforma um criatura do formato original para o schema IMonster
  */
-const transformCreature = (
+const transformMonster = (
   slug: string,
   raw: Record<string, unknown>
-): Partial<ICreature> => {
+): Partial<IMonster> => {
   const stats = transformStats(raw.stats as Record<string, string>);
   const habilidades = transformAbilities(
     raw.habilidades as Array<{ nome?: string; desc?: string }>
@@ -159,7 +157,7 @@ const transformCreature = (
 /**
  * Função principal de seed
  */
-const seedCreatures = async (): Promise<void> => {
+const seedMonsters = async (): Promise<void> => {
   try {
     console.log('🔄 Conectando ao MongoDB...');
     await connectDB();
@@ -168,15 +166,15 @@ const seedCreatures = async (): Promise<void> => {
       `📦 Transformando ${Object.keys(CreatureDB).length} criaturas...`
     );
 
-    const creaturesToInsert = Object.entries(CreatureDB).map(([slug, data]) =>
-      transformCreature(slug, data)
+    const monstersToInsert = Object.entries(CreatureDB).map(([slug, data]) =>
+      transformMonster(slug, data)
     );
 
-    console.log('🧹 Limpando coleção "creatures"...');
-    await Creature.deleteMany({});
+    console.log('🧹 Limpando coleção "monsters"...');
+    await Monster.deleteMany({});
 
     console.log('🚀 Inserindo no MongoDB...');
-    const result = await Creature.insertMany(creaturesToInsert, {
+    const result = await Monster.insertMany(monstersToInsert, {
       ordered: false,
       lean: true,
     });
@@ -200,4 +198,4 @@ const seedCreatures = async (): Promise<void> => {
 };
 
 // Executa o seed
-void seedCreatures();
+void seedMonsters();

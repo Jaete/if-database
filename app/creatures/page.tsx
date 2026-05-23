@@ -1,5 +1,5 @@
 import { connectDB } from '@/lib/db';
-import { getAllCreatures } from '@/services/creature.service';
+import { getAllCreatures } from '@/services/monster.service';
 import { notFound } from 'next/navigation';
 import CreatureGrid from '@/components/CreatureGrid';
 

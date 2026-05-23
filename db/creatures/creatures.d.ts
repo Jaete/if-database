@@ -50,7 +50,6 @@ export default interface ICreature extends Document {
   abilities?: Array<IAbilities>;
   actions?: Array<IActions>;
   senses?: ISenses;
-  drops?: Array<IDrops>;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -10,7 +10,7 @@
     "lint:staged": "lint-staged",
     "format": "prettier --write .",
     "type-check": "tsc --noEmit",
-    "seed": "npx tsx ./scripts/initializeDb.ts",
+    "seed:monsters": "npx tsx ./scripts/seedMonsters.ts",
     "prepare": "husky"
   },
   "dependencies": {
