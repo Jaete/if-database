@@ -1,5 +1,3 @@
-'use client';
-
 import { useCssHandles } from '@/hooks/useCssHandles';
 import CreatureDrawerHandles from '../handles';
 

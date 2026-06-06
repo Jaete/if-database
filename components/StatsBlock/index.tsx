@@ -15,6 +15,12 @@ const statLabels: Record<keyof IStats, string> = {
   cha: 'CAR',
 };
 
+const getModifierText = (value?: number) => {
+  if (value === undefined) return '';
+  const mod = Math.floor((value - 10) / 2);
+  return mod >= 0 ? `(+${mod})` : `(${mod})`;
+};
+
 const StatBlock = ({ stats }: IProps) => {
   const handles = useCssHandles(StatBlockHandles);
 
@@ -23,11 +29,13 @@ const StatBlock = ({ stats }: IProps) => {
       <h3>Atributos</h3>
       <div className={handles.attributesGrid}>
         {stats &&
-          (Object.keys(stats) as Array<keyof IStats>).map((key) => (
+          (Object.keys(statLabels) as Array<keyof IStats>).map((key) => (
             <div key={key} className={handles.attrItem}>
               <span className={handles.attrLabel}>{statLabels[key]}</span>
               <span id={`stat-${key}`} className={handles.attrValue}>
-                {stats?.[key] ?? '---'}
+                {stats?.[key] !== undefined
+                  ? `${stats[key]} ${getModifierText(stats[key])}`
+                  : '---'}
               </span>
             </div>
           ))}

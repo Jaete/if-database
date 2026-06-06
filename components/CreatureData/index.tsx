@@ -37,13 +37,16 @@ const CreatureData = ({ creature }: IProps) => {
       <p className={handles.creatureDescription}>{creature.description}</p>
       <StatBlock stats={creature.stats ?? {}} />
       <CombatInfo combat={creature.combat ?? {}} />
-      <AbilitiesBlock
-        abilities={creature.abilities ?? []}
-        title="Habilidades"
-      />
+      <AbilitiesBlock abilities={creature.traits ?? []} title="Habilidades" />
       <AbilitiesBlock abilities={creature.actions ?? []} title="Ações" />
+      {creature.legendaryActions && creature.legendaryActions.length > 0 && (
+        <AbilitiesBlock
+          abilities={creature.legendaryActions}
+          title="Ações Lendárias"
+        />
+      )}
       <SensesBlock senses={creature.senses ?? {}} />
-      {(creature as IMonster) && (
+      {'drops' in creature && (creature as IMonster).drops && (
         <DropsBlock drops={(creature as IMonster).drops ?? []} />
       )}
     </div>

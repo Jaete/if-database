@@ -5,7 +5,6 @@ import path from 'path';
 
 dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
 
-// OU carrega múltiplos arquivos (ordem de prioridade)
 dotenv.config({
   path: [
     path.resolve(process.cwd(), '.env.local'),
@@ -14,149 +13,275 @@ dotenv.config({
 });
 
 import { connectDB } from '@/lib/db';
-import {
-  IAbilities,
-  IDrops,
-  ISenses,
-  IStats,
-} from '@/db/creatures/creatures.d';
 import CreatureDB from './creature-data';
 import IMonster from '@/db/monsters/monster';
 import Monster from '@/db/monsters/monsters';
+import type { IStats, ISenses } from '@/db/creatures/creatures';
 
 // Mapeamento de tradução PT-BR → EN para stats
-const STATS_MAP: Record<string, keyof IStats> = {
+const STATS_MAP: Record<string, string> = {
   forca: 'str',
   destreza: 'dex',
   constituicao: 'con',
   inteligencia: 'int',
   sabedoria: 'wis',
   carisma: 'cha',
-} as const;
+};
 
-// Mapeamento de tradução para sentidos
-const SENSES_MAP: Record<string, keyof ISenses> = {
-  percepcaoPassiva: 'passivePerception',
-  visaoEscuro: 'darkvision',
-} as const;
+// Mapeamento de CR para XP D&D 5e
+const CR_XP_MAP: Record<string, number> = {
+  '0': 10,
+  '1/8': 25,
+  '1/4': 50,
+  '1/2': 100,
+  '1': 200,
+  '2': 450,
+  '3': 700,
+  '4': 1100,
+  '5': 1800,
+  '6': 2300,
+  '7': 2900,
+  '8': 3900,
+  '9': 5000,
+  '10': 5900,
+};
 
-/**
- * Limpa URLs removendo espaços extras
- */
+interface RawAbility {
+  nome?: string;
+  desc?: string;
+}
+
+interface RawDrop {
+  range?: string;
+  item?: string;
+}
+
+interface RawSentidos {
+  percepcaoPassiva?: string;
+  visaoEscuro?: string;
+}
+
+interface RawCreatureData {
+  name?: string;
+  subtitle?: string;
+  description?: string;
+  type?: string;
+  ac?: string;
+  hp?: string;
+  speed?: string;
+  stats?: Record<string, string>;
+  habilidades?: RawAbility[];
+  acoes?: RawAbility[];
+  sentidos?: RawSentidos;
+  drops?: RawDrop[];
+  alignment?: string;
+  rarity?: string;
+  icon?: string;
+  image?: string;
+}
+
 const cleanUrl = (url?: string): string | undefined => url?.trim();
 
-/**
- * Transforma stats do formato PT-BR para EN
- */
+const extractNumber = (val?: string): number => {
+  if (!val) return 0;
+  const match = val.match(/-?\d+/);
+  return match ? parseInt(match[0], 10) : 0;
+};
+
 const transformStats = (
   rawStats?: Record<string, string>
-): IStats | undefined => {
+): Partial<IStats> | undefined => {
   if (!rawStats) return undefined;
-
-  const stats: Partial<IStats> = {};
-
+  const stats: Record<string, number | undefined> = {};
   Object.entries(rawStats).forEach(([key, value]) => {
     const enKey = STATS_MAP[key];
     if (enKey) {
-      stats[enKey] = value;
+      stats[enKey] = extractNumber(value);
     }
   });
-
-  return stats as IStats;
+  return stats as Partial<IStats>;
 };
 
-/**
- * Transforma array de habilidades/acoes para o schema
- */
 const transformAbilities = (
   rawAbilities?: Array<{ nome?: string; desc?: string }>
-): Array<IAbilities> | undefined => {
-  if (!rawAbilities) return undefined;
-
+) => {
+  if (!rawAbilities) return [];
   return rawAbilities.map(({ nome, desc }) => ({
     name: nome,
     description: desc,
   }));
 };
 
-/**
- * Transforma sentidos para o schema
- */
-const transformSenses = (
-  rawSenses?: Record<string, string>
-): ISenses | undefined => {
-  if (!rawSenses) return undefined;
+const transformMonster = (
+  slug: string,
+  raw: RawCreatureData
+): Partial<IMonster> => {
+  const stats = transformStats(raw.stats);
+  const traits = transformAbilities(raw.habilidades);
+  const actions = transformAbilities(raw.acoes);
 
-  const senses: Partial<ISenses> = {};
+  // Extrair CR do subtitle (ex: "CR 1/6", "CR 3")
+  let cr = '0';
+  const subtitleStr = String(raw.subtitle ?? '');
+  const crMatch = subtitleStr.match(/CR\s*([^\s]+)/i);
+  if (crMatch) {
+    cr = crMatch[1];
+  } else if (subtitleStr.startsWith('CR')) {
+    cr = subtitleStr.replace('CR', '').trim();
+  }
 
-  Object.entries(rawSenses).forEach(([key, value]) => {
-    const enKey = SENSES_MAP[key];
-    if (enKey) {
-      senses[enKey] = value;
+  // Calcular XP com base no CR
+  const xp = CR_XP_MAP[cr] || 10;
+
+  // Extrair tamanho e tipo a partir de raw.type (ex: "Criatura Médio, Gosma")
+  let size = 'Médio';
+  let type = 'Gosma';
+  const rawType = String(raw.type || '');
+  const sizeMatch = rawType.match(
+    /(Miúdo|Pequeno|Médio|Grande|Enorme|Colossal)/i
+  );
+  if (sizeMatch) {
+    size = sizeMatch[1];
+  }
+  const typeParts = rawType.split(',');
+  if (typeParts.length > 1) {
+    type = typeParts[1].trim();
+  } else {
+    type =
+      rawType
+        .replace(/(Criatura|Miúdo|Pequeno|Médio|Grande|Enorme|Colossal)/gi, '')
+        .trim() || 'Gosma';
+  }
+
+  // Parse sentidos
+  const senses: ISenses = {};
+  if (raw.sentidos) {
+    if (raw.sentidos.percepcaoPassiva) {
+      senses.passivePerception = extractNumber(raw.sentidos.percepcaoPassiva);
+    }
+    if (raw.sentidos.visaoEscuro) {
+      senses.darkvision = extractNumber(raw.sentidos.visaoEscuro);
+    }
+  }
+
+  // Extrair resistências, imunidades e vulnerabilidades das habilidades passivas
+  const vulnerabilities: string[] = [];
+  const resistances: string[] = [];
+  const damageImmunities: string[] = [];
+  const conditionImmunities: string[] = [];
+
+  const rawAbilities =
+    (raw.habilidades as Array<{ nome?: string; desc?: string }>) || [];
+  rawAbilities.forEach(({ nome, desc }) => {
+    if (!nome || !desc) return;
+    const lowerNome = nome.toLowerCase();
+    const cleanDesc = desc
+      .split(/[,;e]/)
+      .map((d) => d.trim())
+      .filter(Boolean);
+
+    if (lowerNome.includes('vulnerabilidade')) {
+      vulnerabilities.push(...cleanDesc);
+    } else if (
+      lowerNome.includes('resistência') ||
+      lowerNome.includes('resistências')
+    ) {
+      resistances.push(...cleanDesc);
+    } else if (
+      lowerNome.includes('imunidade') ||
+      lowerNome.includes('imunidades')
+    ) {
+      if (lowerNome.includes('condição') || lowerNome.includes('condições')) {
+        conditionImmunities.push(...cleanDesc);
+      } else {
+        damageImmunities.push(...cleanDesc);
+      }
     }
   });
 
-  return senses as ISenses;
-};
+  // Parse velocidades (ex: "6m", "9m, 15m natação", "9m escalar 9m")
+  const speedStr = String(raw.speed || '6m');
+  const walkMatch = speedStr.match(/(\d+)m/);
+  const walkSpeed = walkMatch ? parseInt(walkMatch[1], 10) * 5 : 30; // convert to feet: 6m ~ 30 feet (1.5m = 5 feet)
 
-/**
- * Transforma drops mantendo estrutura
- */
-const transformDrops = (
-  rawDrops?: Array<{ range?: string; item?: string }>
-): Array<IDrops> | undefined => {
-  if (!rawDrops) return undefined;
+  const climbMatch = speedStr.match(/escalar\s*(\d+)m/i);
+  const climbSpeed = climbMatch ? parseInt(climbMatch[1], 10) * 5 : undefined;
 
-  return rawDrops.map(({ range, item }) => ({
-    range,
-    item,
-  }));
-};
+  const swimMatch = speedStr.match(/(\d+)m\s*natação/i);
+  const swimSpeed = swimMatch ? parseInt(swimMatch[1], 10) * 5 : undefined;
 
-/**
- * Transforma um criatura do formato original para o schema IMonster
- */
-const transformMonster = (
-  slug: string,
-  raw: Record<string, unknown>
-): Partial<IMonster> => {
-  const stats = transformStats(raw.stats as Record<string, string>);
-  const habilidades = transformAbilities(
-    raw.habilidades as Array<{ nome?: string; desc?: string }>
-  );
-  const acoes = transformAbilities(
-    raw.acoes as Array<{ nome?: string; desc?: string }>
-  );
-  const sentidos = transformSenses(raw.sentidos as Record<string, string>);
-  const drops = transformDrops(
-    raw.drops as Array<{ range?: string; item?: string }>
-  );
+  // Drops (item e chance)
+  const drops = ((raw.drops as Array<{ range?: string; item?: string }>) || [])
+    .filter(
+      (d) =>
+        d.item &&
+        d.item.toLowerCase() !== 'nada' &&
+        d.item.toLowerCase() !== 'nada.'
+    )
+    .map((d, index, arr) => {
+      // Distribui chances baseadas no tamanho da lista, ou chance padrão 25%
+      const chance = arr.length > 0 ? Math.round(100 / arr.length) : 25;
+      return {
+        item: d.item,
+        chance,
+      };
+    });
+
+  // AC e HP
+  const acVal = extractNumber(raw.ac);
+  const hpVal = extractNumber(raw.hp);
 
   return {
     slug,
     name: String(raw.name ?? ''),
-    rarity: String(raw.rarity ?? ''),
-    icon: cleanUrl(raw.icon as string),
-    image: cleanUrl(raw.image as string),
-    subtitle: raw.subtitle as string | undefined,
-    description: raw.description as string | undefined,
+    size,
+    type,
+    alignment: raw.alignment || 'Neutro',
+    rarity: String(raw.rarity ?? 'Comum'),
+    icon: cleanUrl(raw.icon),
+    image: cleanUrl(raw.image),
+    subtitle: raw.subtitle,
+    description: raw.description,
+    cr,
+    xp,
     combat: {
-      type: raw.type as string | undefined,
-      ac: raw.ac as string | undefined,
-      hp: raw.hp as string | undefined,
-      speed: raw.speed as string | undefined,
+      ac: {
+        value: acVal,
+        formula: raw.ac || `${acVal}`,
+      },
+      hp: {
+        value: hpVal,
+        formula: raw.hp || `${hpVal}`,
+      },
+      speed: {
+        walk: walkSpeed,
+        climb: climbSpeed,
+        swim: swimSpeed,
+        note: speedStr,
+      },
     },
     stats,
-    abilities: habilidades,
-    actions: acoes,
-    senses: sentidos,
+    proficiencies: {
+      savingThrows: [],
+      skills: [],
+    },
+    defenses: {
+      vulnerabilities,
+      resistances,
+      damageImmunities,
+      conditionImmunities,
+    },
+    senses,
+    languages: ['Comum'],
+    traits,
+    actions,
+    bonusActions: [],
+    reactions: [],
+    legendaryActions: [],
     drops,
   };
 };
 
-/**
- * Função principal de seed
- */
 const seedMonsters = async (): Promise<void> => {
   try {
     console.log('🔄 Conectando ao MongoDB...');
@@ -170,7 +295,6 @@ const seedMonsters = async (): Promise<void> => {
       transformMonster(slug, data)
     );
 
-    // Debug: log dos dados transformados
     console.log('\n🔍 Dados transformados (primeiro item):');
     console.log(JSON.stringify(monstersToInsert[0], null, 2));
 
@@ -188,24 +312,13 @@ const seedMonsters = async (): Promise<void> => {
       lean: true,
     });
 
-    console.log(`\n✅ Sucesso! ${result.length} criaturas inseridos.`);
-
-    console.log('\n📋 Criaturas inseridos:');
-    result.forEach((creature, index) => {
-      console.log(`  ${index + 1}. ${creature.slug}`);
-    });
-
-    // Verifica se os dados foram realmente inseridos
-    const count = await Monster.countDocuments({});
-    console.log(`\n📊 Total de documentos na coleção "monsters": ${count}`);
+    console.log(`\n✅ Sucesso! ${result.length} criaturas inseridas.`);
 
     console.log('\n⏳ Aguardando sincronização com o Atlas...');
-    // Delay intencional para garantir que o driver flushou os dados na rede antes de fechar
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
     console.log('✅ Script finalizado com sucesso.');
 
-    // Fecha a conexão graciosamente ao invés de matar o processo
     const { disconnectDB } = await import('@/lib/db');
     await disconnectDB();
 
@@ -219,5 +332,4 @@ const seedMonsters = async (): Promise<void> => {
   }
 };
 
-// Executa o seed
 void seedMonsters();

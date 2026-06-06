@@ -1,0 +1,75 @@
+@use '../../styles/globals' as *;
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba($neutral-100, 0.8);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  @include flex-center;
+
+  .modal {
+    background-color: $neutral-200;
+    border: 1px solid $primary-400;
+    border-radius: $radius-md;
+    width: 90%;
+    max-width: 800px;
+    max-height: 90vh;
+    @include flex-col-start;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba($neutral-100, 0.5);
+    position: relative;
+  }
+
+  .header {
+    width: 100%;
+    padding: $spacing-4 $spacing-6;
+    border-bottom: 1px solid $neutral-400;
+    @include flex-row-between;
+    align-items: center;
+    background-color: $neutral-300;
+  }
+
+  .title {
+    @include cinzel-lg($primary-100, bold, 1.2);
+    margin: 0;
+  }
+
+  .closeButton {
+    background: none;
+    border: none;
+    color: $neutral-1000;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0 $spacing-2;
+    transition: color 0.2s ease;
+    position: absolute;
+    top: $spacing-2;
+    right: $spacing-2;
+
+    &:hover {
+      color: $error;
+    }
+  }
+
+  .content {
+    width: 100%;
+    padding: $spacing-6;
+    overflow-y: auto;
+    @include main-md($neutral-1000, normal, 1.5);
+
+    &::-webkit-scrollbar {
+      width: 8px;
+    }
+    &::-webkit-scrollbar-track {
+      background: $neutral-200;
+    }
+    &::-webkit-scrollbar-thumb {
+      background-color: $primary-400;
+      border-radius: $radius-full;
+    }
+  }
+}

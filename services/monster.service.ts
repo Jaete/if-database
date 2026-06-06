@@ -1,3 +1,5 @@
+'use server';
+
 import MonsterModel from '../db/monsters/monsters';
 import IMonster from '../db/monsters/monster';
 
@@ -37,7 +39,8 @@ export async function updateMonster(
   if (!monster) {
     return { success: false };
   }
-  return { success: true };
+
+  return { success: true, data: monster };
 }
 
 export async function deleteMonster(slug: string): Promise<Result> {

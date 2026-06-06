@@ -1,27 +1,14 @@
-import { connectDB } from '@/lib/db';
-import { getAllMonsters } from '@/services/monster.service';
-import { notFound } from 'next/navigation';
+'use client';
+
 import CreatureGrid from '@/components/CreatureGrid';
+import MonstersProvider from '@/app/context/MonstersContext';
 
-export default async function MonstersList() {
-  const conn = await connectDB();
-
-  if (!conn) {
-    notFound();
-  }
-
-  const creatures = await getAllMonsters();
-
-  if (!creatures) {
-    notFound();
-  }
-
-  // Convert Mongoose documents to plain objects for the client component
-  const creaturesData = JSON.parse(JSON.stringify(creatures));
-
+export default function MonstersList() {
   return (
     <main>
-      <CreatureGrid creatures={creaturesData} />
+      <MonstersProvider>
+        <CreatureGrid />
+      </MonstersProvider>
     </main>
   );
 }

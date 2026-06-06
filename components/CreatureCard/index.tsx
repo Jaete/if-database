@@ -9,15 +9,18 @@ import '@/styles/components/creatureCard.scss';
 interface IProps {
   creature: ICreature;
   onClick: (creature: ICreature) => void;
+  onEdit?: (creature: ICreature) => void;
 }
 
-const CreatureCard = ({ creature, onClick }: IProps) => {
+const CreatureCard = ({ creature, onClick, onEdit }: IProps) => {
   const handles = useCssHandles(CreatureCardHandles);
 
   const handleEditClick = (e: React.MouseEvent, creature: ICreature) => {
     e.preventDefault();
     e.stopPropagation();
-    window.location.href = `/creatures/edit/${creature.slug}`;
+    if (onEdit) {
+      onEdit(creature);
+    }
   };
 
   return (

@@ -17,10 +17,30 @@ const SensesBlock = ({ senses }: IProps) => {
           <span className={handles.infoLabel}>Percepção passiva:</span>{' '}
           <span id="sense-perception">{senses.passivePerception ?? '---'}</span>
         </div>
-        <div className={handles.infoRow}>
-          <span className={handles.infoLabel}>Visão no escuro:</span>{' '}
-          <span id="sense-darkvision">{senses.darkvision ?? '---'}</span>
-        </div>
+        {senses.darkvision !== undefined && senses.darkvision > 0 && (
+          <div className={handles.infoRow}>
+            <span className={handles.infoLabel}>Visão no escuro:</span>{' '}
+            <span id="sense-darkvision">{senses.darkvision} pés</span>
+          </div>
+        )}
+        {senses.blindsight !== undefined && senses.blindsight > 0 && (
+          <div className={handles.infoRow}>
+            <span className={handles.infoLabel}>Visão às cegas:</span>{' '}
+            <span id="sense-blindsight">{senses.blindsight} pés</span>
+          </div>
+        )}
+        {senses.tremorsense !== undefined && senses.tremorsense > 0 && (
+          <div className={handles.infoRow}>
+            <span className={handles.infoLabel}>Percepção sísmica:</span>{' '}
+            <span id="sense-tremorsense">{senses.tremorsense} pés</span>
+          </div>
+        )}
+        {senses.truesight !== undefined && senses.truesight > 0 && (
+          <div className={handles.infoRow}>
+            <span className={handles.infoLabel}>Visão verdadeira:</span>{' '}
+            <span id="sense-truesight">{senses.truesight} pés</span>
+          </div>
+        )}
       </div>
     </div>
   );

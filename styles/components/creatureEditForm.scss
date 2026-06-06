@@ -1,0 +1,207 @@
+@use '../../styles/globals' as *;
+
+.creatureEditForm {
+  @include flex-col-start;
+  gap: $spacing-6;
+  width: 100%;
+
+  .section {
+    width: 100%;
+    @include flex-col-start;
+    gap: $spacing-4;
+    background-color: rgba($neutral-300, 0.3);
+    padding: $spacing-4;
+    border-radius: $radius-md;
+    border: 1px solid $neutral-400;
+  }
+
+  .sectionTitle {
+    @include cinzel-md($primary-200, bold, 1.2);
+    border-bottom: 1px solid $primary-400;
+    padding-bottom: $spacing-2;
+    margin-bottom: $spacing-2;
+    width: 100%;
+  }
+
+  .grid2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: $spacing-4;
+    width: 100%;
+  }
+
+  .grid3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: $spacing-4;
+    width: 100%;
+  }
+
+  .grid6 {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: $spacing-4;
+    width: 100%;
+  }
+
+  .fieldGroup {
+    @include flex-col-start;
+    gap: $spacing-2;
+    width: 100%;
+  }
+
+  .label {
+    @include main-sm($neutral-1000, bold, 1.2);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .input,
+  .select,
+  .textarea {
+    width: 100%;
+    padding: $spacing-3;
+    background-color: $neutral-300;
+    border: 1px solid $neutral-400;
+    border-radius: $radius-sm;
+    color: $neutral-1000;
+    @include main-md($neutral-1000, normal, 1.5);
+    transition:
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
+
+    &:focus {
+      outline: none;
+      border-color: $primary-300;
+      box-shadow: 0 0 0 2px rgba($primary-300, 0.2);
+    }
+  }
+
+  .textarea {
+    resize: vertical;
+    min-height: 80px;
+  }
+
+  .arrayItem {
+    @include flex-col-start;
+    gap: $spacing-2;
+    padding: $spacing-3;
+    border: 1px solid $neutral-400;
+    border-radius: $radius-sm;
+    position: relative;
+    width: 100%;
+    background-color: $neutral-200;
+  }
+
+  .removeButton {
+    position: absolute;
+    top: $spacing-2;
+    right: $spacing-2;
+    background: none;
+    border: none;
+    color: $error;
+    cursor: pointer;
+    font-weight: bold;
+
+    &:hover {
+      color: lighten($error, 10%);
+    }
+  }
+
+  .addButton {
+    background-color: transparent;
+    color: $primary-300;
+    border: 1px dashed $primary-300;
+    border-radius: $radius-sm;
+    padding: $spacing-2;
+    cursor: pointer;
+    width: 100%;
+    @include main-sm($primary-300, bold, 1.2);
+    transition: all 0.2s ease;
+
+    &:hover {
+      background-color: rgba($primary-300, 0.1);
+    }
+  }
+
+  .actions {
+    @include flex-row-end;
+    gap: $spacing-4;
+    margin-top: $spacing-8;
+    padding-top: $spacing-4;
+    border-top: 1px solid $neutral-400;
+    width: 100%;
+  }
+
+  .submitButton {
+    background-color: $primary-300;
+    color: $neutral-100;
+    border: none;
+    border-radius: $radius-sm;
+    padding: $spacing-3 $spacing-6;
+    cursor: pointer;
+    @include cinzel-sm($neutral-100, bold, 1.2);
+    transition: background-color 0.2s ease;
+
+    &:hover {
+      background-color: $primary-200;
+    }
+  }
+
+  .cancelButton {
+    background-color: transparent;
+    color: $neutral-1000;
+    border: 1px solid $neutral-1000;
+    border-radius: $radius-sm;
+    padding: $spacing-3 $spacing-6;
+    cursor: pointer;
+    @include cinzel-sm($neutral-1000, bold, 1.2);
+    transition: all 0.2s ease;
+
+    &:hover {
+      background-color: $neutral-300;
+      color: $neutral-2000;
+    }
+  }
+
+  .headerActions {
+    @include flex-row-end;
+    width: 100%;
+    margin-bottom: $spacing-2;
+  }
+
+  .importButton {
+    background-color: $success;
+    color: $neutral-100;
+    border: none;
+    border-radius: $radius-sm;
+    padding: $spacing-2 $spacing-4;
+    cursor: pointer;
+    @include main-sm($neutral-100, bold, 1.2);
+    transition: background-color 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: $spacing-2;
+
+    &:hover {
+      background-color: darken($success, 10%);
+    }
+
+    &:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+  }
+
+  .fileInput {
+    display: none;
+  }
+
+  @media (max-width: 749px) {
+    .grid2,
+    .grid3,
+    .grid6 {
+      grid-template-columns: 1fr;
+    }
+  }
+}

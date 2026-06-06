@@ -1,9 +1,9 @@
 import { useCssHandles } from '@/hooks/useCssHandles';
 import DropsBlockHandles from './handles';
-import { IDrops } from '@/db/creatures/creatures.d';
+import { IDrop } from '@/db/monsters/monster';
 
 interface IProps {
-  drops: IDrops[];
+  drops: IDrop[];
 }
 
 const DropsBlock = ({ drops }: IProps) => {
@@ -14,10 +14,10 @@ const DropsBlock = ({ drops }: IProps) => {
       <h3>Itens de Drop</h3>
       <table className={handles.dropsTable}>
         <tbody id="creature-drops">
-          {drops?.map((drop) => (
-            <tr key={drop.item}>
-              <td className={handles.dropRange}>{drop.range}</td>
-              <td className={handles.dropItem}>{drop.item}</td>
+          {drops?.map((drop, index) => (
+            <tr key={`${drop.item || 'item'}-${index}`}>
+              <td className={handles.dropRange}>{drop.chance ?? 100}%</td>
+              <td className={handles.dropItem}>{drop.item ?? '---'}</td>
             </tr>
           ))}
         </tbody>

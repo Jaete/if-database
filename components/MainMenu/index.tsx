@@ -16,7 +16,7 @@ const MainMenu = () => {
 
       <nav className={handles.menuList}>
         <div className={handles.menuItem}>
-          <Link href="/creatures" className={handles.menuLink}>
+          <Link href="/monsters" className={handles.menuLink}>
             Bestiário
           </Link>
         </div>

@@ -1,5 +1,3 @@
-'use client';
-
 import { ReactNode } from 'react';
 import { useCssHandles } from '@/hooks/useCssHandles';
 import CreatureDrawerHandles from '../handles';
