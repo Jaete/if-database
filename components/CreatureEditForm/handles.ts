@@ -17,8 +17,9 @@ const CreatureEditFormHandles = [
   'removeButton',
   'addButton',
   'headerActions',
-  'importButton',
-  'fileInput',
+  'importMarkdownButton',
+  'downloadTemplateButton',
+  'fileInputMarkdown',
 ] as const;
 
 export default CreatureEditFormHandles;

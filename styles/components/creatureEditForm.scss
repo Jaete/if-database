@@ -170,8 +170,8 @@
     margin-bottom: $spacing-2;
   }
 
-  .importButton {
-    background-color: $success;
+  .importMarkdownButton {
+    background-color: #2196f3;
     color: $neutral-100;
     border: none;
     border-radius: $radius-sm;
@@ -184,7 +184,7 @@
     gap: $spacing-2;
 
     &:hover {
-      background-color: darken($success, 10%);
+      background-color: darken(#2196f3, 10%);
     }
 
     &:disabled {
@@ -193,7 +193,25 @@
     }
   }
 
-  .fileInput {
+  .downloadTemplateButton {
+    background-color: $primary-300;
+    color: $neutral-100;
+    border: none;
+    border-radius: $radius-sm;
+    padding: $spacing-2 $spacing-4;
+    cursor: pointer;
+    @include main-sm($neutral-100, bold, 1.2);
+    transition: background-color 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: $spacing-2;
+
+    &:hover {
+      background-color: $primary-200;
+    }
+  }
+
+  .fileInputMarkdown {
     display: none;
   }
 

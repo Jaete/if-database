@@ -12,6 +12,7 @@ import { useMonsters } from '@/app/context/MonstersContext';
 interface IProps {
   creature: IMonster | ICitizen;
   onClose: () => void;
+  mode?: 'create' | 'edit';
 }
 
 type IFormData = Partial<IMonster & ICitizen> & {
@@ -29,9 +30,30 @@ type ArrayItem = {
   chance?: number;
 };
 
-const CreatureEditForm = ({ creature, onClose }: IProps) => {
+const CreatureEditForm = ({ creature, onClose, mode = 'edit' }: IProps) => {
   const handles = useCssHandles(CreatureEditFormHandles);
-  const { update } = useMonsters();
+  const { update, create } = useMonsters();
+
+  const emptyMonster: IFormData = {
+    slug: '',
+    name: '',
+    stats: {},
+    combat: {},
+    senses: {},
+    proficiencies: {},
+    defenses: {},
+    languages: [],
+    traits: [],
+    actions: [],
+    bonusActions: [],
+    reactions: [],
+    legendaryActions: [],
+    spellcasting: {},
+    source: {},
+    drops: [],
+  };
+
+  const isCreate = mode === 'create';
 
   const initialType =
     'drops' in creature
@@ -40,21 +62,36 @@ const CreatureEditForm = ({ creature, onClose }: IProps) => {
         ? 'citizen'
         : 'monster';
 
-  const [creatureType] = useState<'monster' | 'citizen'>(initialType);
-  const [formData, setFormData] = useState<IFormData>(creature as IFormData);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [isImporting, setIsImporting] = useState(false);
+  const [creatureType] = useState<'monster' | 'citizen'>(
+    isCreate ? 'monster' : initialType
+  );
+  const [formData, setFormData] = useState<IFormData>(
+    isCreate ? emptyMonster : (creature as IFormData)
+  );
+  const fileInputMarkdownRef = useRef<HTMLInputElement>(null);
+  const [isImportingMarkdown, setIsImportingMarkdown] = useState(false);
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleDownloadTemplate = () => {
+    const a = document.createElement('a');
+    a.href = '/api/template/markdown';
+    a.download = 'ficha-modelo-monstro.md';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
+  const handleMarkdownUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setIsImporting(true);
+    setIsImportingMarkdown(true);
     try {
       const formDataObj = new FormData();
       formDataObj.append('file', file);
 
-      const res = await fetch('/api/parse-excel', {
+      const res = await fetch('/api/parse-markdown', {
         method: 'POST',
         body: formDataObj,
       });
@@ -71,7 +108,12 @@ const CreatureEditForm = ({ creature, onClose }: IProps) => {
           senses: result.data.senses || {},
           traits: result.data.traits || [],
           actions: result.data.actions || [],
+          bonusActions: result.data.bonusActions || [],
+          reactions: result.data.reactions || [],
+          legendaryActions: result.data.legendaryActions || [],
           drops: result.data.drops || [],
+          spellcasting: result.data.spellcasting || {},
+          source: result.data.source || {},
         }));
         alert(
           'Dados importados com sucesso! Revise os campos antes de salvar.'
@@ -83,9 +125,9 @@ const CreatureEditForm = ({ creature, onClose }: IProps) => {
         error instanceof Error ? error.message : 'Erro desconhecido';
       alert(errorMessage);
     } finally {
-      setIsImporting(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+      setIsImportingMarkdown(false);
+      if (fileInputMarkdownRef.current) {
+        fileInputMarkdownRef.current.value = '';
       }
     }
   };
@@ -195,16 +237,39 @@ const CreatureEditForm = ({ creature, onClose }: IProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.slug) {
-      return;
-    }
 
-    if (creatureType === 'monster') {
-      try {
-        await update(formData as IMonster);
-      } catch (err) {
-        console.error('Erro ao atualizar monstro', err);
+    if (isCreate) {
+      if (!formData.name) {
+        alert('Nome é obrigatório para criar uma criatura.');
         return;
+      }
+      const slug =
+        formData.slug ||
+        formData.name
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-|-$/g, '');
+
+      try {
+        await create({ ...formData, slug } as IMonster);
+      } catch (err) {
+        console.error('Erro ao criar monstro', err);
+        return;
+      }
+    } else {
+      if (!formData.slug) {
+        return;
+      }
+
+      if (creatureType === 'monster') {
+        try {
+          await update(formData as IMonster);
+        } catch (err) {
+          console.error('Erro ao atualizar monstro', err);
+          return;
+        }
       }
     }
 
@@ -218,18 +283,25 @@ const CreatureEditForm = ({ creature, onClose }: IProps) => {
         <div className={handles.headerActions}>
           <input
             type="file"
-            accept=".xlsx, .xls"
-            className={handles.fileInput}
-            ref={fileInputRef}
-            onChange={handleFileUpload}
+            accept=".md,.docx"
+            className={handles.fileInputMarkdown}
+            ref={fileInputMarkdownRef}
+            onChange={handleMarkdownUpload}
           />
           <button
             type="button"
-            className={handles.importButton}
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isImporting}
+            className={handles.importMarkdownButton}
+            onClick={() => fileInputMarkdownRef.current?.click()}
+            disabled={isImportingMarkdown}
           >
-            {isImporting ? 'Importando...' : '📥 Importar Planilha do Excel'}
+            {isImportingMarkdown ? 'Importando...' : '📝 Importar Ficha'}
+          </button>
+          <button
+            type="button"
+            className={handles.downloadTemplateButton}
+            onClick={handleDownloadTemplate}
+          >
+            📄 Baixar Modelo
           </button>
         </div>
       )}
@@ -837,7 +909,7 @@ const CreatureEditForm = ({ creature, onClose }: IProps) => {
           Cancelar
         </button>
         <button type="submit" className={handles.submitButton}>
-          Salvar Alterações
+          {isCreate ? 'Criar Monstro' : 'Salvar Alterações'}
         </button>
       </div>
     </form>

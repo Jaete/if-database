@@ -1,4 +1,4 @@
-const CreatureDB = {
+window.MonsterDB = {
   slimeAcido: {
     name: 'Slime Ácido',
     rarity: 'comum',
@@ -13938,5 +13938,3 @@ Sua ação mais devastadora manifesta-se através do Decreto de Graviga. Ao prof
     ],
   },
 };
-
-export default CreatureDB;

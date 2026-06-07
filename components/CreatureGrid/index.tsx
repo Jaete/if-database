@@ -24,6 +24,7 @@ const CreatureGrid = () => {
     null
   );
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const filteredCreatures = useMemo(() => {
     return monsters.filter((monster) =>
@@ -49,6 +50,10 @@ const CreatureGrid = () => {
     setIsEditModalOpen(true);
   };
 
+  const handleCreateClick = () => {
+    setIsCreateModalOpen(true);
+  };
+
   const handleViewClick = (creature: ICreature) => {
     setSelectedCreature(creature);
   };
@@ -62,7 +67,9 @@ const CreatureGrid = () => {
           navegador.
         </p>
         <div className={handles.navButtons}>
-          <button className={handles.navButton}>+ CRIAR NOVA CRIATURA</button>
+          <button className={handles.navButton} onClick={handleCreateClick}>
+            + CRIAR NOVA CRIATURA
+          </button>
           <button className={handles.navButton}>
             GERAR ÁRVORE DE CRIATURAS
           </button>
@@ -125,6 +132,18 @@ const CreatureGrid = () => {
             }}
           />
         )}
+      </Modal>
+
+      <Modal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        title="Criar Nova Criatura"
+      >
+        <CreatureEditForm
+          creature={{} as ICreature}
+          mode="create"
+          onClose={() => setIsCreateModalOpen(false)}
+        />
       </Modal>
     </div>
   );

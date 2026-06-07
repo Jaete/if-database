@@ -138,7 +138,7 @@ const transformMonster = (
   let type = 'Gosma';
   const rawType = String(raw.type || '');
   const sizeMatch = rawType.match(
-    /(Miúdo|Pequeno|Médio|Grande|Enorme|Colossal)/i
+    /(Miúdo|Pequeno|Médio|Grande|Enorme|Colossal|Gargantuesco)/i
   );
   if (sizeMatch) {
     size = sizeMatch[1];
@@ -149,7 +149,11 @@ const transformMonster = (
   } else {
     type =
       rawType
-        .replace(/(Criatura|Miúdo|Pequeno|Médio|Grande|Enorme|Colossal)/gi, '')
+        .replace(
+          /(Monstro|Criatura|Miúdo|Pequeno|Médio|Grande|Enorme|Colossal|Gargantuesco)/gi,
+          ''
+        )
+        .replace(/\([^)]*\)/g, '')
         .trim() || 'Gosma';
   }
 
