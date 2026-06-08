@@ -8,7 +8,7 @@ const MainMenu = () => {
   const handles = useCssHandles(MainMenuHandles);
 
   return (
-    <div className={handles.container}>
+    <div className={handles.menuContainer}>
       <div className={handles.titleContainer}>
         <h1 className={handles.title}>Isekai Fantasy</h1>
         <span className={handles.subtitle}>Editor</span>

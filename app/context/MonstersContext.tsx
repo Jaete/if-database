@@ -16,6 +16,7 @@ interface IProps {
 
 interface IMonstersContext {
   monsters: IMonster[];
+  loading: boolean;
   update: (monster: IMonster) => Promise<void>;
   erase: (monster: IMonster) => Promise<void>;
   create: (monster: IMonster) => Promise<void>;
@@ -27,7 +28,7 @@ export const MonstersContext = createContext<IMonstersContext | null>(null);
 
 export default function MonstersProvider({ children }: IProps) {
   const [monsters, setMonsters] = useState(initialMonsters);
-
+  const [loading, setLoading] = useState(true);
   const update = useCallback(async (monster: IMonster) => {
     try {
       const { data } = await api.updateMonster(monster);
@@ -68,13 +69,17 @@ export default function MonstersProvider({ children }: IProps) {
         setMonsters(data);
       } catch (err) {
         console.error(err);
+      } finally {
+        setLoading(false);
       }
     };
     loadMonsters();
   }, []);
 
   return (
-    <MonstersContext.Provider value={{ monsters, update, erase, create }}>
+    <MonstersContext.Provider
+      value={{ monsters, loading, update, erase, create }}
+    >
       {children}
     </MonstersContext.Provider>
   );

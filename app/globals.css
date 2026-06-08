@@ -4,10 +4,11 @@
   padding: 0;
 }
 
-html,
+html {
+  overflow-y: auto;
+}
+
 body {
-  width: 100dvw;
-  height: 100dvh;
   background-color: var(--neutral-100);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

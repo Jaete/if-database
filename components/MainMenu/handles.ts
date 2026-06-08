@@ -1,5 +1,5 @@
 const MainMenuHandles = [
-  'container',
+  'menuContainer',
   'titleContainer',
   'title',
   'subtitle',

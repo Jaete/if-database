@@ -10,6 +10,8 @@ const CreatureGridHandles = [
   'searchInput',
   'resultsCount',
   'grid',
+  'gridLoading',
+  'gridSkeleton',
   'emptyState',
   'compactSearchBar',
   'compactSearchInput',

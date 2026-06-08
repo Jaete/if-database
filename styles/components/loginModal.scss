@@ -1,0 +1,172 @@
+@use '../../styles/globals' as *;
+
+.loginOverlay {
+    position: fixed;
+    inset: 0;
+    background: $neutral-100;
+    display: flex;  
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+
+    .card {
+        width: 100%;
+        max-width: 400px;
+        background: $neutral-200;
+        border: 1px solid $neutral-400;
+        border-radius: 12px;
+        padding: $spacing-10 $spacing-8;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+
+    .title {
+        @include cinzel-2xl($primary-100, bold, 1.2, 2px);
+        margin: 0 0 $spacing-8 0;
+        text-align: center;
+    }
+
+    .form {
+        width: 100%;
+        @include flex-col-start();
+        gap: $spacing-5;
+    }
+
+    .inputGroup {
+        width: 100%;
+        @include flex-col-start();
+        gap: $spacing-2;
+    }
+
+    .inputLabel {
+        @include main-sm($neutral-1000, bold);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .input {
+        width: 100%;
+        background-color: rgba(0, 0, 0, 0.2);
+        border: 1px solid $neutral-400;
+        border-radius: 6px;
+        padding: $spacing-3 $spacing-4;
+        color: #ffffff;
+        @include main-md(#ffffff, normal);
+        outline: none;
+        box-sizing: border-box;
+        transition: border-color 0.2s, box-shadow 0.2s;
+
+        &::placeholder {
+            color: $neutral-600;
+        }
+
+        &:focus {
+            border-color: $primary-100;
+            box-shadow: 0 0 0 2px rgba($primary-100, 0.15);
+        }
+
+        &:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+    }
+
+    .submitBtn {
+        width: 100%;
+        @include main-xs(#ffffff, bold);
+        background-color: $primary-100;
+        border: none;
+        padding: $spacing-3 $spacing-6;
+        border-radius: 6px;
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        transition: background-color 0.2s;
+
+        &:hover:not(:disabled) {
+            background-color: $primary-200;
+        }
+
+        &:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    }
+
+    .errorMsg {
+        width: 100%;
+        @include main-sm($error, normal);
+        text-align: center;
+        margin: 0;
+        padding: $spacing-2;
+        background: rgba($error, 0.1);
+        border-radius: 4px;
+    }
+
+    .loadingSpinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid $neutral-400;
+        border-top-color: $primary-100;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .toggleText {
+        @include main-sm($neutral-700, normal);
+        margin: $spacing-4 0 0 0;
+        text-align: center;
+    }
+
+    .toggleLink {
+        background: none;
+        border: none;
+        padding: 0;
+        @include main-sm($primary-100, bold);
+        cursor: pointer;
+        text-decoration: underline;
+        transition: color 0.2s;
+
+        &:hover {
+            color: $primary-200;
+        }
+    }
+
+    @include light {
+        .overlay {
+            background: $neutral-2100;
+        }
+
+        .card {
+            background: #ffffff;
+            border-color: $neutral-2700;
+        }
+
+        .input {
+            background-color: $neutral-2400;
+            color: $neutral-200;
+            border-color: $neutral-2700;
+
+            &::placeholder {
+                color: $neutral-2300;
+            }
+
+            &:focus {
+                border-color: $primary-100;
+            }
+        }
+
+        .inputLabel {
+            color: $neutral-300;
+        }
+    }
+
+}

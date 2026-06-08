@@ -10,6 +10,12 @@
   @include light {
     background-color: $neutral-2100;
   }
+
+  &--viewOnly {
+    .header {
+      margin-bottom: 0;
+    }
+  }
 }
 
 .headerSentinel {
@@ -27,11 +33,11 @@
   top: 0;
   z-index: 10;
   padding-top: $spacing-10;
-  padding-bottom: $spacing-8;
   background: linear-gradient(180deg, $neutral-300 0%, $neutral-300 calc(100% - 24px), transparent 100%);
   transition:
     padding 0.3s ease,
     gap 0.3s ease;
+  width: 100dvw;
 
   @include light {
     background: linear-gradient(180deg, $neutral-2100 0%, $neutral-2100 calc(100% - 24px), transparent 100%);
@@ -240,4 +246,45 @@
   text-align: center;
   padding: $spacing-10;
   @include main-md($neutral-400, normal);
+}
+
+.gridLoading {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: $spacing-6;
+  width: 100%;
+}
+
+.gridSkeleton {
+  height: 160px;
+  border-radius: 12px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.03) 25%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.03) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+
+  @include light {
+    background: linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.03) 25%,
+      rgba(0, 0, 0, 0.08) 50%,
+      rgba(0, 0, 0, 0.03) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+  }
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
 }

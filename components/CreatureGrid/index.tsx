@@ -16,9 +16,11 @@ import DrawerController from '../CreatureDrawer/sections/DrawerController';
 import DrawerHeader from '../CreatureDrawer/sections/DrawerHeader';
 import DrawerContent from '../CreatureDrawer/sections/DrawerContent';
 import { useMonsters } from '@/app/context/MonstersContext';
+import { useAuth } from '@/app/context/AuthContext';
 
 const CreatureGrid = () => {
-  const { monsters, erase } = useMonsters();
+  const { monsters, loading, erase } = useMonsters();
+  const { canEdit } = useAuth();
   const handles = useCssHandles(CreatureGridHandles);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCreature, setSelectedCreature] = useState<ICreature | null>(
@@ -91,7 +93,9 @@ const CreatureGrid = () => {
   };
 
   return (
-    <div className={handles.container}>
+    <div
+      className={`${handles.container}${!canEdit ? ` ${applyModifiers(handles.container, 'viewOnly')}` : ''}`}
+    >
       <div ref={sentinelRef} className={handles.headerSentinel} />
       <header
         className={`${handles.header}${isSticky ? ` ${applyModifiers(handles.header, 'compact')}` : ''}`}
@@ -99,19 +103,23 @@ const CreatureGrid = () => {
         <h1 className={handles.title}>BESTIÁRIO DE TERRALÉM</h1>
         <p className={handles.subtitle}>Lista dos monstros disponíveis.</p>
         <div className={handles.navButtons}>
-          <button
-            className={handles.navButton}
-            onClick={handleCreateClick}
-            aria-label="Criar nova criatura"
-          >
-            + CRIAR NOVA CRIATURA
-          </button>
-          <button
-            className={handles.navButton}
-            aria-label="Gerar árvore de criaturas"
-          >
-            GERAR ÁRVORE DE CRIATURAS
-          </button>
+          {canEdit && (
+            <button
+              className={handles.navButton}
+              onClick={handleCreateClick}
+              aria-label="Criar nova criatura"
+            >
+              + CRIAR NOVA CRIATURA
+            </button>
+          )}
+          {canEdit && (
+            <button
+              className={handles.navButton}
+              aria-label="Gerar árvore de criaturas"
+            >
+              GERAR ÁRVORE DE CRIATURAS
+            </button>
+          )}
         </div>
 
         <div className={handles.compactSearchBar}>
@@ -130,47 +138,51 @@ const CreatureGrid = () => {
               </span>
             )}
           </div>
-          <button
-            className={handles.compactActionBtn}
-            onClick={handleCreateClick}
-            aria-label="Criar nova criatura"
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+          {canEdit && (
+            <button
+              className={handles.compactActionBtn}
+              onClick={handleCreateClick}
+              aria-label="Criar nova criatura"
             >
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-          </button>
-          <button
-            className={handles.compactActionBtn}
-            aria-label="Gerar árvore de criaturas"
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+            </button>
+          )}
+          {canEdit && (
+            <button
+              className={handles.compactActionBtn}
+              aria-label="Gerar árvore de criaturas"
             >
-              <circle cx="12" cy="5" r="2" />
-              <path d="M5 22l5-10" />
-              <path d="M19 22l-5-10" />
-              <circle cx="12" cy="19" r="2" />
-              <circle cx="5" cy="19" r="2" />
-              <circle cx="19" cy="19" r="2" />
-            </svg>
-          </button>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="12" cy="5" r="2" />
+                <path d="M5 22l5-10" />
+                <path d="M19 22l-5-10" />
+                <circle cx="12" cy="19" r="2" />
+                <circle cx="5" cy="19" r="2" />
+                <circle cx="19" cy="19" r="2" />
+              </svg>
+            </button>
+          )}
         </div>
       </header>
 
@@ -193,18 +205,26 @@ const CreatureGrid = () => {
       </div>
 
       <div className={handles.grid}>
-        {filteredCreatures.map((creature) => (
-          <DrawerController key={creature.slug}>
-            <CreatureCard
-              key={creature.slug + '--card'}
-              creature={creature}
-              onClick={handleViewClick}
-              onEdit={handleEditClick}
-              onDelete={handleDeleteClick}
-            />
-          </DrawerController>
-        ))}
-        {filteredCreatures.length === 0 && (
+        {loading ? (
+          <div className={handles.gridLoading}>
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className={handles.gridSkeleton} />
+            ))}
+          </div>
+        ) : (
+          filteredCreatures.map((creature) => (
+            <DrawerController key={creature.slug}>
+              <CreatureCard
+                key={creature.slug + '--card'}
+                creature={creature}
+                onClick={handleViewClick}
+                onEdit={handleEditClick}
+                onDelete={handleDeleteClick}
+              />
+            </DrawerController>
+          ))
+        )}
+        {!loading && filteredCreatures.length === 0 && (
           <div className={handles.emptyState}>Nenhuma criatura encontrada.</div>
         )}
       </div>
