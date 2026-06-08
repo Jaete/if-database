@@ -70,6 +70,7 @@ const CreatureEditForm = ({ creature, onClose, mode = 'edit' }: IProps) => {
   );
   const fileInputMarkdownRef = useRef<HTMLInputElement>(null);
   const [isImportingMarkdown, setIsImportingMarkdown] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleDownloadTemplate = () => {
     const a = document.createElement('a');
@@ -237,10 +238,12 @@ const CreatureEditForm = ({ creature, onClose, mode = 'edit' }: IProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
 
     if (isCreate) {
       if (!formData.name) {
         alert('Nome é obrigatório para criar uma criatura.');
+        setIsSubmitting(false);
         return;
       }
       const slug =
@@ -256,10 +259,12 @@ const CreatureEditForm = ({ creature, onClose, mode = 'edit' }: IProps) => {
         await create({ ...formData, slug } as IMonster);
       } catch (err) {
         console.error('Erro ao criar monstro', err);
+        setIsSubmitting(false);
         return;
       }
     } else {
       if (!formData.slug) {
+        setIsSubmitting(false);
         return;
       }
 
@@ -268,12 +273,14 @@ const CreatureEditForm = ({ creature, onClose, mode = 'edit' }: IProps) => {
           await update(formData as IMonster);
         } catch (err) {
           console.error('Erro ao atualizar monstro', err);
+          setIsSubmitting(false);
           return;
         }
       }
     }
 
     onClose();
+    setIsSubmitting(false);
   };
 
   return (
@@ -294,14 +301,43 @@ const CreatureEditForm = ({ creature, onClose, mode = 'edit' }: IProps) => {
             onClick={() => fileInputMarkdownRef.current?.click()}
             disabled={isImportingMarkdown}
           >
-            {isImportingMarkdown ? 'Importando...' : '📝 Importar Ficha'}
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+              <line x1="12" y1="18" x2="12" y2="12" />
+              <line x1="9" y1="15" x2="15" y2="15" />
+            </svg>
+            {isImportingMarkdown ? 'Importando...' : 'Importar Ficha'}
           </button>
           <button
             type="button"
             className={handles.downloadTemplateButton}
             onClick={handleDownloadTemplate}
           >
-            📄 Baixar Modelo
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            Baixar Modelo
           </button>
         </div>
       )}
@@ -356,7 +392,7 @@ const CreatureEditForm = ({ creature, onClose, mode = 'edit' }: IProps) => {
           />
           {creatureType === 'monster' ? (
             <FormField
-              label="Grau de Desafio (CR)"
+              label="ND (CR)"
               id="cr"
               name="cr"
               value={formData.cr || ''}
@@ -402,7 +438,7 @@ const CreatureEditForm = ({ creature, onClose, mode = 'edit' }: IProps) => {
         {creatureType === 'monster' && (
           <div className={handles.grid3}>
             <FormField
-              label="Pontos de Experiência (XP)"
+              label="EXP (XP)"
               id="xp"
               name="xp"
               type="number"
@@ -415,7 +451,7 @@ const CreatureEditForm = ({ creature, onClose, mode = 'edit' }: IProps) => {
               }
             />
             <FormField
-              label="Fonte (Livro)"
+              label="Fonte"
               id="source-book"
               value={formData.source?.book || ''}
               onChange={(e) =>
@@ -423,7 +459,7 @@ const CreatureEditForm = ({ creature, onClose, mode = 'edit' }: IProps) => {
               }
             />
             <FormField
-              label="Fonte (Página)"
+              label="Página"
               id="source-page"
               type="number"
               value={
@@ -440,14 +476,14 @@ const CreatureEditForm = ({ creature, onClose, mode = 'edit' }: IProps) => {
 
         <div className={handles.grid2}>
           <FormField
-            label="URL da Imagem"
+            label="Imagem"
             id="image"
             name="image"
             value={formData.image || ''}
             onChange={handleChange}
           />
           <FormField
-            label="URL do Ícone"
+            label="Ícone"
             id="icon"
             name="icon"
             value={formData.icon || ''}
@@ -469,7 +505,7 @@ const CreatureEditForm = ({ creature, onClose, mode = 'edit' }: IProps) => {
               onChange={handleChange}
             />
             <FormField
-              label="Família / Afiliação"
+              label="Família"
               id="family"
               name="family"
               value={formData.family || ''}
@@ -484,20 +520,30 @@ const CreatureEditForm = ({ creature, onClose, mode = 'edit' }: IProps) => {
             Equipamento
           </h4>
           <div className={handles.grid3}>
-            {['head', 'torso', 'legs', 'feet', 'hand', 'offhand'].map((eq) => (
-              <FormField
-                key={eq}
-                label={eq}
-                value={
-                  (formData.equipment as Record<string, string | undefined>)?.[
-                    eq
-                  ] || ''
-                }
-                onChange={(e) =>
-                  handleNestedChange('equipment', eq, e.target.value)
-                }
-              />
-            ))}
+            {['head', 'torso', 'legs', 'feet', 'hand', 'offhand'].map((eq) => {
+              const eqLabels: Record<string, string> = {
+                head: 'Cabeça',
+                torso: 'Tronco',
+                legs: 'Pernas',
+                feet: 'Pés',
+                hand: 'Mão',
+                offhand: 'Secundária',
+              };
+              return (
+                <FormField
+                  key={eq}
+                  label={eqLabels[eq]}
+                  value={
+                    (
+                      formData.equipment as Record<string, string | undefined>
+                    )?.[eq] || ''
+                  }
+                  onChange={(e) =>
+                    handleNestedChange('equipment', eq, e.target.value)
+                  }
+                />
+              );
+            })}
           </div>
         </div>
       )}
@@ -537,7 +583,7 @@ const CreatureEditForm = ({ creature, onClose, mode = 'edit' }: IProps) => {
           <>
             <div className={handles.grid2}>
               <FormField
-                label="Classe de Armadura (CA) - Valor"
+                label="CA - Valor"
                 type="number"
                 value={
                   formData.combat?.ac?.value !== undefined
@@ -554,7 +600,7 @@ const CreatureEditForm = ({ creature, onClose, mode = 'edit' }: IProps) => {
                 }
               />
               <FormField
-                label="Classe de Armadura (CA) - Fórmula"
+                label="CA - Fórmula"
                 value={formData.combat?.ac?.formula || ''}
                 onChange={(e) =>
                   handleDoubleNestedChange(
@@ -568,7 +614,7 @@ const CreatureEditForm = ({ creature, onClose, mode = 'edit' }: IProps) => {
             </div>
             <div className={handles.grid2}>
               <FormField
-                label="Pontos de Vida (PV) - Valor"
+                label="PV - Valor"
                 type="number"
                 value={
                   formData.combat?.hp?.value !== undefined
@@ -585,7 +631,7 @@ const CreatureEditForm = ({ creature, onClose, mode = 'edit' }: IProps) => {
                 }
               />
               <FormField
-                label="Pontos de Vida (PV) - Fórmula"
+                label="PV - Fórmula"
                 value={formData.combat?.hp?.formula || ''}
                 onChange={(e) =>
                   handleDoubleNestedChange(
@@ -601,7 +647,7 @@ const CreatureEditForm = ({ creature, onClose, mode = 'edit' }: IProps) => {
               className={handles.sectionTitle}
               style={{ marginTop: '1rem', fontSize: '1rem' }}
             >
-              Velocidades de Deslocamento (em pés)
+              Deslocamentos
             </h4>
             <div className={handles.grid3}>
               <FormField
@@ -692,7 +738,7 @@ const CreatureEditForm = ({ creature, onClose, mode = 'edit' }: IProps) => {
                 }
               />
               <FormField
-                label="Observações de Movimento"
+                label="Notas de Mov."
                 value={formData.combat?.speed?.note || ''}
                 onChange={(e) =>
                   handleDoubleNestedChange(
@@ -708,28 +754,28 @@ const CreatureEditForm = ({ creature, onClose, mode = 'edit' }: IProps) => {
         ) : (
           <div className={handles.grid2}>
             <FormField
-              label="Tipo de Armadura"
+              label="Armadura"
               value={(formData.combat as Record<string, string>)?.type || ''}
               onChange={(e) =>
                 handleNestedChange('combat', 'type', e.target.value)
               }
             />
             <FormField
-              label="Classe de Armadura (AC)"
+              label="CA (AC)"
               value={(formData.combat as Record<string, string>)?.ac || ''}
               onChange={(e) =>
                 handleNestedChange('combat', 'ac', e.target.value)
               }
             />
             <FormField
-              label="Pontos de Vida (HP)"
+              label="PV (HP)"
               value={(formData.combat as Record<string, string>)?.hp || ''}
               onChange={(e) =>
                 handleNestedChange('combat', 'hp', e.target.value)
               }
             />
             <FormField
-              label="Deslocamento (Speed)"
+              label="Deslocamento"
               value={(formData.combat as Record<string, string>)?.speed || ''}
               onChange={(e) =>
                 handleNestedChange('combat', 'speed', e.target.value)
@@ -769,7 +815,7 @@ const CreatureEditForm = ({ creature, onClose, mode = 'edit' }: IProps) => {
 
       {/* Habilidades (Traits) */}
       <div className={handles.section}>
-        <h3 className={handles.sectionTitle}>Habilidades Especiais</h3>
+        <h3 className={handles.sectionTitle}>Habilidades</h3>
         {(
           (creatureType === 'monster'
             ? formData.traits
@@ -785,7 +831,7 @@ const CreatureEditForm = ({ creature, onClose, mode = 'edit' }: IProps) => {
             }
           >
             <FormField
-              label="Nome da Habilidade"
+              label="Habilidade"
               value={ability.name ?? ''}
               onChange={(e) =>
                 handleArrayChange(
@@ -818,7 +864,7 @@ const CreatureEditForm = ({ creature, onClose, mode = 'edit' }: IProps) => {
             addArrayItem(creatureType === 'monster' ? 'traits' : 'abilities')
           }
         >
-          + Adicionar Habilidade
+          Adicionar Habilidade
         </button>
       </div>
 
@@ -831,7 +877,7 @@ const CreatureEditForm = ({ creature, onClose, mode = 'edit' }: IProps) => {
             onRemove={() => removeArrayItem('actions', index)}
           >
             <FormField
-              label="Nome da Ação"
+              label="Ação"
               value={action.name ?? ''}
               onChange={(e) =>
                 handleArrayChange('actions', index, 'name', e.target.value)
@@ -857,7 +903,7 @@ const CreatureEditForm = ({ creature, onClose, mode = 'edit' }: IProps) => {
           className={handles.addButton}
           onClick={() => addArrayItem('actions')}
         >
-          + Adicionar Ação
+          Adicionar Ação
         </button>
       </div>
 
@@ -894,7 +940,7 @@ const CreatureEditForm = ({ creature, onClose, mode = 'edit' }: IProps) => {
             className={handles.addButton}
             onClick={() => addArrayItem('drops')}
           >
-            + Adicionar Drop
+            Adicionar Drop
           </button>
         </div>
       )}
@@ -908,8 +954,21 @@ const CreatureEditForm = ({ creature, onClose, mode = 'edit' }: IProps) => {
         >
           Cancelar
         </button>
-        <button type="submit" className={handles.submitButton}>
-          {isCreate ? 'Criar Monstro' : 'Salvar Alterações'}
+        <button
+          type="submit"
+          className={handles.submitButton}
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? (
+            <>
+              <span className={handles.spinner} />
+              Salvando...
+            </>
+          ) : isCreate ? (
+            'Criar Monstro'
+          ) : (
+            'Salvar Alterações'
+          )}
         </button>
       </div>
     </form>

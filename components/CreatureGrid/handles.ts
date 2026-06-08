@@ -1,5 +1,6 @@
 const CreatureGridHandles = [
   'container',
+  'headerSentinel',
   'header',
   'title',
   'subtitle',
@@ -7,8 +8,12 @@ const CreatureGridHandles = [
   'navButton',
   'searchContainer',
   'searchInput',
+  'resultsCount',
   'grid',
   'emptyState',
+  'compactSearchBar',
+  'compactSearchInput',
+  'compactActionBtn',
 ] as const;
 
 export default CreatureGridHandles;

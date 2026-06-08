@@ -1,0 +1,49 @@
+@use '../../styles/globals' as *;
+
+.body {
+  @include flex-col-start;
+  gap: $spacing-6;
+  width: 100%;
+}
+
+.message {
+  @include main-md($neutral-1000, normal, 1.5);
+  margin: 0;
+}
+
+.actions {
+  @include flex-row-end;
+  gap: $spacing-3;
+  width: 100%;
+}
+
+.cancelButton {
+  background-color: transparent;
+  color: $neutral-1000;
+  border: 1px solid $neutral-1000;
+  border-radius: $radius-sm;
+  padding: $spacing-2 $spacing-4;
+  cursor: pointer;
+  @include cinzel-sm($neutral-1000, bold, 1.2);
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: $neutral-300;
+    color: $neutral-2000;
+  }
+}
+
+.confirmButton {
+  background-color: $error;
+  color: $neutral-100;
+  border: none;
+  border-radius: $radius-sm;
+  padding: $spacing-2 $spacing-4;
+  cursor: pointer;
+  @include cinzel-sm($neutral-100, bold, 1.2);
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: lighten($error, 10%);
+  }
+}

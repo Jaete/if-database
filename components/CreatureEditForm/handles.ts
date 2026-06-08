@@ -19,6 +19,7 @@ const CreatureEditFormHandles = [
   'headerActions',
   'importMarkdownButton',
   'downloadTemplateButton',
+  'spinner',
   'fileInputMarkdown',
 ] as const;
 

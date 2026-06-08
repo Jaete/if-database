@@ -4,3 +4,12 @@
 @forward './config/typography';
 @forward './config/spacing';
 @forward './config/animations';
+
+html {
+  scroll-behavior: smooth;
+}
+
+::selection {
+  background-color: #9c841c;
+  color: #ffffff;
+}

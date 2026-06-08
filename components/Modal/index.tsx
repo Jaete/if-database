@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useCssHandles } from '@/hooks/useCssHandles';
+import { useCssHandles, applyModifiers } from '@/hooks/useCssHandles';
 import ModalHandles from './handles';
 import '@/styles/components/modal.scss';
 
@@ -24,11 +24,16 @@ const Modal = ({ isOpen, onClose, title, children }: IProps) => {
     };
   }, [isOpen]);
 
-  if (!isOpen) return null;
+  const overlayClass = isOpen
+    ? `${handles.overlay} ${applyModifiers(handles.overlay, 'visible')}`
+    : handles.overlay;
 
   return (
-    <div className={handles.overlay} onClick={onClose}>
-      <div className={handles.modal} onClick={(e) => e.stopPropagation()}>
+    <div className={overlayClass} onClick={onClose}>
+      <div
+        className={`${handles.modal}${isOpen ? ` ${applyModifiers(handles.modal, 'open')}` : ''}`}
+        onClick={(e) => e.stopPropagation()}
+      >
         <header className={handles.header}>
           {title && <h2 className={handles.title}>{title}</h2>}
           <button

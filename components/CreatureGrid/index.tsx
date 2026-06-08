@@ -1,14 +1,15 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 
 import type ICreature from '@/db/creatures/creatures.d';
-import { useCssHandles } from '@/hooks/useCssHandles';
+import { useCssHandles, applyModifiers } from '@/hooks/useCssHandles';
 import CreatureCard from '../CreatureCard';
 import CreatureDrawer from '../CreatureDrawer';
 import CreatureData from '../CreatureData';
 import Modal from '../Modal';
 import CreatureEditForm from '../CreatureEditForm';
+import ConfirmModal from '../ConfirmModal';
 import CreatureGridHandles from './handles';
 import '@/styles/components/creatureGrid.scss';
 import DrawerController from '../CreatureDrawer/sections/DrawerController';
@@ -17,7 +18,7 @@ import DrawerContent from '../CreatureDrawer/sections/DrawerContent';
 import { useMonsters } from '@/app/context/MonstersContext';
 
 const CreatureGrid = () => {
-  const { monsters } = useMonsters();
+  const { monsters, erase } = useMonsters();
   const handles = useCssHandles(CreatureGridHandles);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCreature, setSelectedCreature] = useState<ICreature | null>(
@@ -25,6 +26,10 @@ const CreatureGrid = () => {
   );
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<ICreature | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isSticky, setIsSticky] = useState(false);
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
   const filteredCreatures = useMemo(() => {
     return monsters.filter((monster) =>
@@ -45,6 +50,21 @@ const CreatureGrid = () => {
     };
   }, [isEditModalOpen]);
 
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsSticky(!entry.isIntersecting);
+      },
+      { threshold: 0 }
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, []);
+
   const handleEditClick = (creature: ICreature) => {
     setSelectedCreature(creature);
     setIsEditModalOpen(true);
@@ -58,25 +78,105 @@ const CreatureGrid = () => {
     setSelectedCreature(creature);
   };
 
+  const handleDeleteClick = (creature: ICreature) => {
+    setDeleteTarget(creature);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (deleteTarget) {
+      await erase(deleteTarget);
+    }
+    setDeleteTarget(null);
+  };
+
   return (
     <div className={handles.container}>
-      <header className={handles.header}>
-        <h1 className={handles.title}>BESTIÁRIO SALVO</h1>
-        <p className={handles.subtitle}>
-          Suas criaturas salvas no banco de dados e as alterações recentes do
-          navegador.
-        </p>
+      <div ref={sentinelRef} className={handles.headerSentinel} />
+      <header
+        className={`${handles.header}${isSticky ? ` ${applyModifiers(handles.header, 'compact')}` : ''}`}
+      >
+        <h1 className={handles.title}>BESTIÁRIO DE TERRALÉM</h1>
+        <p className={handles.subtitle}>Lista dos monstros disponíveis.</p>
         <div className={handles.navButtons}>
-          <button className={handles.navButton} onClick={handleCreateClick}>
+          <button
+            className={handles.navButton}
+            onClick={handleCreateClick}
+            aria-label="Criar nova criatura"
+          >
             + CRIAR NOVA CRIATURA
           </button>
-          <button className={handles.navButton}>
+          <button
+            className={handles.navButton}
+            aria-label="Gerar árvore de criaturas"
+          >
             GERAR ÁRVORE DE CRIATURAS
+          </button>
+        </div>
+
+        <div className={handles.compactSearchBar}>
+          <div className={handles.compactSearchInput}>
+            <input
+              type="text"
+              className={handles.searchInput}
+              placeholder="Buscar criatura pelo nome..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            {searchTerm.length > 0 && (
+              <span className={handles.resultsCount}>
+                {filteredCreatures.length} resultado
+                {filteredCreatures.length !== 1 ? 's' : ''}
+              </span>
+            )}
+          </div>
+          <button
+            className={handles.compactActionBtn}
+            onClick={handleCreateClick}
+            aria-label="Criar nova criatura"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+          </button>
+          <button
+            className={handles.compactActionBtn}
+            aria-label="Gerar árvore de criaturas"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="12" cy="5" r="2" />
+              <path d="M5 22l5-10" />
+              <path d="M19 22l-5-10" />
+              <circle cx="12" cy="19" r="2" />
+              <circle cx="5" cy="19" r="2" />
+              <circle cx="19" cy="19" r="2" />
+            </svg>
           </button>
         </div>
       </header>
 
-      <div className={handles.searchContainer}>
+      <div
+        className={`${handles.searchContainer}${isSticky ? ` ${applyModifiers(handles.searchContainer, 'hidden')}` : ''}`}
+      >
         <input
           type="text"
           className={handles.searchInput}
@@ -84,6 +184,12 @@ const CreatureGrid = () => {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
+        {searchTerm.length > 0 && (
+          <span className={handles.resultsCount}>
+            {filteredCreatures.length} resultado
+            {filteredCreatures.length !== 1 ? 's' : ''}
+          </span>
+        )}
       </div>
 
       <div className={handles.grid}>
@@ -94,6 +200,7 @@ const CreatureGrid = () => {
               creature={creature}
               onClick={handleViewClick}
               onEdit={handleEditClick}
+              onDelete={handleDeleteClick}
             />
           </DrawerController>
         ))}
@@ -145,6 +252,23 @@ const CreatureGrid = () => {
           onClose={() => setIsCreateModalOpen(false)}
         />
       </Modal>
+
+      <ConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setDeleteTarget(null);
+        }}
+        onConfirm={handleConfirmDelete}
+        title="Excluir Criatura"
+        message={
+          deleteTarget
+            ? `Tem certeza que deseja excluir ${deleteTarget.name}? Esta acao nao pode ser desfeita.`
+            : 'Tem certeza que deseja excluir esta criatura?'
+        }
+        confirmLabel="Sim, Excluir"
+        cancelLabel="Cancelar"
+      />
     </div>
   );
 };

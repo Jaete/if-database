@@ -207,3 +207,26 @@
     letter-spacing: $spacing;
     text-align: $align;
 }
+
+// === Extended mixins ===
+
+@mixin caption ($color, $weight, $line-height: 1.2, $spacing: 1px, $align: left) {
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-size: 10px;
+    line-height: $line-height;
+    color: $color;
+    font-weight: $weight;
+    letter-spacing: $spacing;
+    text-align: $align;
+    text-transform: uppercase;
+}
+
+@mixin stat-value ($color, $weight: bold, $line-height: 1.2, $spacing: 0, $align: center) {
+    font-family: 'Consolas', monospace;
+    font-size: 22px;
+    line-height: $line-height;
+    color: $color;
+    font-weight: $weight;
+    letter-spacing: $spacing;
+    text-align: $align;
+}

@@ -9,15 +9,24 @@
     width: 100%;
     @include flex-col-start;
     gap: $spacing-4;
-    background-color: rgba($neutral-300, 0.3);
+    background-color: $surface;
     padding: $spacing-4;
     border-radius: $radius-md;
     border: 1px solid $neutral-400;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    opacity: 0;
+
+    @for $i from 1 through 20 {
+      &:nth-child(#{$i}) {
+        animation-delay: #{$i * 0.04}s;
+      }
+    }
   }
 
   .sectionTitle {
     @include cinzel-md($primary-200, bold, 1.2);
-    border-bottom: 1px solid $primary-400;
+    border-bottom: 1px solid $neutral-400;
     padding-bottom: $spacing-2;
     margin-bottom: $spacing-2;
     width: 100%;
@@ -54,6 +63,10 @@
     @include main-sm($neutral-1000, bold, 1.2);
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
   }
 
   .input,
@@ -72,8 +85,8 @@
 
     &:focus {
       outline: none;
-      border-color: $primary-300;
-      box-shadow: 0 0 0 2px rgba($primary-300, 0.2);
+      border-color: $primary-100;
+      box-shadow: 0 0 0 2px rgba($primary-100, 0.2);
     }
   }
 
@@ -91,6 +104,7 @@
     position: relative;
     width: 100%;
     background-color: $neutral-200;
+    border-left: 2px solid $primary-400;
   }
 
   .removeButton {
@@ -119,8 +133,19 @@
     @include main-sm($primary-300, bold, 1.2);
     transition: all 0.2s ease;
 
+    &::before {
+      content: '+';
+      display: inline-block;
+      transition: transform 0.2s ease;
+      margin-right: $spacing-1;
+    }
+
     &:hover {
       background-color: rgba($primary-300, 0.1);
+
+      &::before {
+        transform: rotate(90deg);
+      }
     }
   }
 
@@ -142,9 +167,17 @@
     cursor: pointer;
     @include cinzel-sm($neutral-100, bold, 1.2);
     transition: background-color 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: $spacing-2;
 
     &:hover {
       background-color: $primary-200;
+    }
+
+    &:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
     }
   }
 
@@ -168,23 +201,24 @@
     @include flex-row-end;
     width: 100%;
     margin-bottom: $spacing-2;
+    gap: $spacing-3;
   }
 
   .importMarkdownButton {
-    background-color: #2196f3;
+    background-color: $info;
     color: $neutral-100;
     border: none;
     border-radius: $radius-sm;
     padding: $spacing-2 $spacing-4;
     cursor: pointer;
     @include main-sm($neutral-100, bold, 1.2);
-    transition: background-color 0.2s ease;
+    transition: all 0.2s ease;
     display: inline-flex;
     align-items: center;
     gap: $spacing-2;
 
     &:hover {
-      background-color: darken(#2196f3, 10%);
+      background-color: darken($info, 10%);
     }
 
     &:disabled {
@@ -201,7 +235,7 @@
     padding: $spacing-2 $spacing-4;
     cursor: pointer;
     @include main-sm($neutral-100, bold, 1.2);
-    transition: background-color 0.2s ease;
+    transition: all 0.2s ease;
     display: inline-flex;
     align-items: center;
     gap: $spacing-2;
@@ -213,6 +247,15 @@
 
   .fileInputMarkdown {
     display: none;
+  }
+
+  .spinner {
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
   }
 
   @media (max-width: 749px) {

@@ -7,6 +7,11 @@ const CreatureCardHandles = [
   'cardRarity',
   'cardButton',
   'cardButtonIcon',
+  'menuButton',
+  'menuDots',
+  'dropdown',
+  'dropdownItem',
+  'dropdownItemDelete',
 ] as const;
 
 export default CreatureCardHandles;

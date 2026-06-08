@@ -1,7 +1,7 @@
 @use '../../styles/globals' as *;
 
 .container {
-  min-height: 100vh;
+  min-height: 100dvh;
   padding: $spacing-10 $spacing-5;
   @include flex-col-start();
   align-items: center;
@@ -12,12 +12,56 @@
   }
 }
 
+.headerSentinel {
+  height: 1px;
+  pointer-events: none;
+}
+
 .header {
   text-align: center;
   margin-bottom: $spacing-8;
   @include flex-col-start();
   align-items: center;
   gap: $spacing-3;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding-top: $spacing-10;
+  padding-bottom: $spacing-8;
+  background: linear-gradient(180deg, $neutral-300 0%, $neutral-300 calc(100% - 24px), transparent 100%);
+  transition:
+    padding 0.3s ease,
+    gap 0.3s ease;
+
+  @include light {
+    background: linear-gradient(180deg, $neutral-2100 0%, $neutral-2100 calc(100% - 24px), transparent 100%);
+  }
+
+  &--compact {
+    padding-top: $spacing-3;
+    padding-bottom: $spacing-10;
+    gap: 0;
+    width: 100dvw;
+    z-index: 11;
+
+    .title,
+    .subtitle {
+      opacity: 0;
+      height: 0;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .navButtons {
+      display: none;
+    }
+
+    .compactSearchBar {
+      display: flex;
+    }
+  }
 }
 
 .title {
@@ -53,7 +97,9 @@
   padding: $spacing-3 $spacing-6;
   border-radius: 6px;
   cursor: pointer;
-  transition: background-color 0.2s, transform 0.1s;
+  transition:
+    background-color 0.2s,
+    transform 0.15s ease;
 
   &:hover {
     background-color: $primary-200;
@@ -72,18 +118,25 @@
   width: 100%;
   max-width: 600px;
   margin-bottom: $spacing-10;
+  position: relative;
+
+  &--hidden {
+    display: none;
+  }
 }
 
 .searchInput {
   width: 100%;
   background-color: rgba(0, 0, 0, 0.2);
   border: 1px solid $neutral-400;
-  border-radius: 20px;
+  border-radius: $radius-full;
   padding: $spacing-3 $spacing-6;
   color: #ffffff;
   @include main-md(#ffffff, normal);
   outline: none;
-  transition: border-color 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
 
   &::placeholder {
     color: $neutral-400;
@@ -91,6 +144,7 @@
 
   &:focus {
     border-color: $primary-100;
+    box-shadow: 0 0 0 2px rgba($primary-100, 0.15);
   }
 
   @include light {
@@ -101,6 +155,63 @@
     &::placeholder {
       color: $neutral-2300;
     }
+
+    &:focus {
+      border-color: $primary-100;
+      box-shadow: 0 0 0 2px rgba($primary-100, 0.15);
+    }
+  }
+}
+
+.resultsCount {
+  position: absolute;
+  right: $spacing-5;
+  top: 50%;
+  transform: translateY(-50%);
+  @include caption($neutral-1000, normal);
+  pointer-events: none;
+}
+
+.compactSearchBar {
+  display: none;
+  width: 100%;
+  max-width: 700px;
+  align-items: center;
+  gap: $spacing-3;
+  padding: 0 $spacing-5;
+  box-sizing: border-box;
+
+  @include mobile {
+    padding: 0 $spacing-3;
+    max-width: 100%;
+  }
+}
+
+.compactSearchInput {
+  flex: 1;
+  position: relative;
+}
+
+.compactActionBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: $primary-100;
+  border: none;
+  cursor: pointer;
+  color: #ffffff;
+  flex-shrink: 0;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: $primary-200;
+  }
+
+  svg {
+    display: block;
   }
 }
 
@@ -110,6 +221,14 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: $spacing-6;
+
+  @for $i from 1 through 20 {
+    > :nth-child(#{$i}) {
+      animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      animation-delay: #{($i - 1) * 0.05}s;
+      opacity: 0;
+    }
+  }
 
   @include mobile {
     grid-template-columns: 1fr;

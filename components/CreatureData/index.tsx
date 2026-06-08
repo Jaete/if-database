@@ -1,5 +1,3 @@
-import Image from 'next/image';
-
 import type ICreature from '@/db/creatures/creatures.d';
 import { useCssHandles } from '@/hooks/useCssHandles';
 
@@ -25,11 +23,9 @@ const CreatureData = ({ creature }: IProps) => {
       </div>
       <div className={handles.creatureImageContainer}>
         <div className={handles.creatureImageLoader} />
-        <Image
+        <img
           src={creature.image ?? ''}
           alt={creature.name}
-          width={500}
-          height={500}
           onLoad={(e) => e.currentTarget.classList.add('loaded')}
           className={handles.creatureImage}
         />
