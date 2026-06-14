@@ -8,6 +8,7 @@ import ArrayItemWrapper from './sections/ArrayItemWrapper';
 import '@/styles/components/creatureEditForm.scss';
 import { attrMapping, sensesMapping } from '@/db/l10n/attributesMapping';
 import { useMonsters } from '@/app/context/MonstersContext';
+import AlertModal from '../AlertModal';
 
 interface IProps {
   creature: IMonster | ICitizen;
@@ -71,6 +72,7 @@ const CreatureEditForm = ({ creature, onClose, mode = 'edit' }: IProps) => {
   const fileInputMarkdownRef = useRef<HTMLInputElement>(null);
   const [isImportingMarkdown, setIsImportingMarkdown] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [alertMsg, setAlertMsg] = useState<string | null>(null);
 
   const handleDownloadTemplate = () => {
     const a = document.createElement('a');
@@ -116,7 +118,7 @@ const CreatureEditForm = ({ creature, onClose, mode = 'edit' }: IProps) => {
           spellcasting: result.data.spellcasting || {},
           source: result.data.source || {},
         }));
-        alert(
+        setAlertMsg(
           'Dados importados com sucesso! Revise os campos antes de salvar.'
         );
       }
@@ -124,7 +126,7 @@ const CreatureEditForm = ({ creature, onClose, mode = 'edit' }: IProps) => {
       console.error(error);
       const errorMessage =
         error instanceof Error ? error.message : 'Erro desconhecido';
-      alert(errorMessage);
+      setAlertMsg(errorMessage);
     } finally {
       setIsImportingMarkdown(false);
       if (fileInputMarkdownRef.current) {
@@ -242,7 +244,7 @@ const CreatureEditForm = ({ creature, onClose, mode = 'edit' }: IProps) => {
 
     if (isCreate) {
       if (!formData.name) {
-        alert('Nome é obrigatório para criar uma criatura.');
+        setAlertMsg('Nome e obrigatorio para criar uma criatura.');
         setIsSubmitting(false);
         return;
       }
@@ -284,694 +286,713 @@ const CreatureEditForm = ({ creature, onClose, mode = 'edit' }: IProps) => {
   };
 
   return (
-    <form className={handles.creatureEditForm} onSubmit={handleSubmit}>
-      {/* Header Actions */}
-      {creatureType === 'monster' && (
-        <div className={handles.headerActions}>
-          <input
-            type="file"
-            accept=".md,.docx"
-            className={handles.fileInputMarkdown}
-            ref={fileInputMarkdownRef}
-            onChange={handleMarkdownUpload}
-          />
-          <button
-            type="button"
-            className={handles.importMarkdownButton}
-            onClick={() => fileInputMarkdownRef.current?.click()}
-            disabled={isImportingMarkdown}
-          >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-              <polyline points="14 2 14 8 20 8" />
-              <line x1="12" y1="18" x2="12" y2="12" />
-              <line x1="9" y1="15" x2="15" y2="15" />
-            </svg>
-            {isImportingMarkdown ? 'Importando...' : 'Importar Ficha'}
-          </button>
-          <button
-            type="button"
-            className={handles.downloadTemplateButton}
-            onClick={handleDownloadTemplate}
-          >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="7 10 12 15 17 10" />
-              <line x1="12" y1="15" x2="12" y2="3" />
-            </svg>
-            Baixar Modelo
-          </button>
-        </div>
-      )}
-
-      {/* Informações Básicas */}
-      <div className={handles.section}>
-        <h3 className={handles.sectionTitle}>Informações Básicas</h3>
-
-        <div className={handles.grid2}>
-          <FormField
-            label="Nome"
-            id="name"
-            name="name"
-            value={formData.name || ''}
-            onChange={handleChange}
-            required
-          />
-          <FormField
-            label="Subtítulo"
-            id="subtitle"
-            name="subtitle"
-            value={formData.subtitle || ''}
-            onChange={handleChange}
-          />
-        </div>
-
-        <FormField
-          label="Descrição"
-          id="description"
-          name="description"
-          value={formData.description || ''}
-          onChange={handleChange}
-          isTextarea
-        />
-
-        <div className={handles.grid3}>
-          <FormField
-            label={creatureType === 'monster' ? 'Tipo' : 'Raça'}
-            id={creatureType === 'monster' ? 'type' : 'race'}
-            name={creatureType === 'monster' ? 'type' : 'race'}
-            value={
-              (creatureType === 'monster' ? formData.type : formData.race) || ''
-            }
-            onChange={handleChange}
-          />
-          <FormField
-            label="Alinhamento"
-            id="alignment"
-            name="alignment"
-            value={formData.alignment || ''}
-            onChange={handleChange}
-          />
-          {creatureType === 'monster' ? (
-            <FormField
-              label="ND (CR)"
-              id="cr"
-              name="cr"
-              value={formData.cr || ''}
-              onChange={handleChange}
-            />
-          ) : (
-            <FormField
-              label="Nível"
-              id="level"
-              name="level"
-              value={formData.level || ''}
-              onChange={handleChange}
-            />
-          )}
-        </div>
-
-        <div className={handles.grid3}>
-          <FormField
-            label="Raridade"
-            id="rarity"
-            name="rarity"
-            value={formData.rarity || ''}
-            onChange={handleChange}
-          />
-          <FormField
-            label="Tamanho"
-            id="size"
-            name="size"
-            value={formData.size || ''}
-            onChange={handleChange}
-          />
-          {creatureType === 'citizen' && (
-            <FormField
-              label="Classe"
-              id="class"
-              name="class"
-              value={formData.class || ''}
-              onChange={handleChange}
-            />
-          )}
-        </div>
-
+    <>
+      <form className={handles.creatureEditForm} onSubmit={handleSubmit}>
+        {/* Header Actions */}
         {creatureType === 'monster' && (
-          <div className={handles.grid3}>
-            <FormField
-              label="EXP (XP)"
-              id="xp"
-              name="xp"
-              type="number"
-              value={formData.xp !== undefined ? String(formData.xp) : ''}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  xp: parseInt(e.target.value) || 0,
-                }))
-              }
+          <div className={handles.headerActions}>
+            <input
+              type="file"
+              accept=".md,.docx"
+              className={handles.fileInputMarkdown}
+              ref={fileInputMarkdownRef}
+              onChange={handleMarkdownUpload}
             />
-            <FormField
-              label="Fonte"
-              id="source-book"
-              value={formData.source?.book || ''}
-              onChange={(e) =>
-                handleNestedChange('source', 'book', e.target.value)
-              }
-            />
-            <FormField
-              label="Página"
-              id="source-page"
-              type="number"
-              value={
-                formData.source?.page !== undefined
-                  ? String(formData.source?.page)
-                  : ''
-              }
-              onChange={(e) =>
-                handleNestedChange('source', 'page', e.target.value)
-              }
-            />
+            <button
+              type="button"
+              className={handles.importMarkdownButton}
+              onClick={() => fileInputMarkdownRef.current?.click()}
+              disabled={isImportingMarkdown}
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="12" y1="18" x2="12" y2="12" />
+                <line x1="9" y1="15" x2="15" y2="15" />
+              </svg>
+              {isImportingMarkdown ? 'Importando...' : 'Importar Ficha'}
+            </button>
+            <button
+              type="button"
+              className={handles.downloadTemplateButton}
+              onClick={handleDownloadTemplate}
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              Baixar Modelo
+            </button>
           </div>
         )}
 
-        <div className={handles.grid2}>
-          <FormField
-            label="Imagem"
-            id="image"
-            name="image"
-            value={formData.image || ''}
-            onChange={handleChange}
-          />
-          <FormField
-            label="Ícone"
-            id="icon"
-            name="icon"
-            value={formData.icon || ''}
-            onChange={handleChange}
-          />
-        </div>
-      </div>
-
-      {/* Condicional Cidadão */}
-      {creatureType === 'citizen' && (
+        {/* Informações Básicas */}
         <div className={handles.section}>
-          <h3 className={handles.sectionTitle}>Detalhes do Cidadão</h3>
+          <h3 className={handles.sectionTitle}>Informações Básicas</h3>
+
           <div className={handles.grid2}>
             <FormField
-              label="Idade"
-              id="age"
-              name="age"
-              value={formData.age || ''}
+              label="Nome"
+              id="name"
+              name="name"
+              value={formData.name || ''}
               onChange={handleChange}
+              required
             />
             <FormField
-              label="Família"
-              id="family"
-              name="family"
-              value={formData.family || ''}
+              label="Subtítulo"
+              id="subtitle"
+              name="subtitle"
+              value={formData.subtitle || ''}
               onChange={handleChange}
             />
           </div>
 
-          <h4
-            className={handles.sectionTitle}
-            style={{ marginTop: '1rem', fontSize: '1rem' }}
-          >
-            Equipamento
-          </h4>
+          <FormField
+            label="Descrição"
+            id="description"
+            name="description"
+            value={formData.description || ''}
+            onChange={handleChange}
+            isTextarea
+          />
+
           <div className={handles.grid3}>
-            {['head', 'torso', 'legs', 'feet', 'hand', 'offhand'].map((eq) => {
-              const eqLabels: Record<string, string> = {
-                head: 'Cabeça',
-                torso: 'Tronco',
-                legs: 'Pernas',
-                feet: 'Pés',
-                hand: 'Mão',
-                offhand: 'Secundária',
-              };
-              return (
-                <FormField
-                  key={eq}
-                  label={eqLabels[eq]}
-                  value={
-                    (
-                      formData.equipment as Record<string, string | undefined>
-                    )?.[eq] || ''
-                  }
-                  onChange={(e) =>
-                    handleNestedChange('equipment', eq, e.target.value)
-                  }
-                />
-              );
-            })}
+            <FormField
+              label={creatureType === 'monster' ? 'Tipo' : 'Raça'}
+              id={creatureType === 'monster' ? 'type' : 'race'}
+              name={creatureType === 'monster' ? 'type' : 'race'}
+              value={
+                (creatureType === 'monster' ? formData.type : formData.race) ||
+                ''
+              }
+              onChange={handleChange}
+            />
+            <FormField
+              label="Alinhamento"
+              id="alignment"
+              name="alignment"
+              value={formData.alignment || ''}
+              onChange={handleChange}
+            />
+            {creatureType === 'monster' ? (
+              <FormField
+                label="ND (CR)"
+                id="cr"
+                name="cr"
+                value={formData.cr || ''}
+                onChange={handleChange}
+              />
+            ) : (
+              <FormField
+                label="Nível"
+                id="level"
+                name="level"
+                value={formData.level || ''}
+                onChange={handleChange}
+              />
+            )}
+          </div>
+
+          <div className={handles.grid3}>
+            <FormField
+              label="Raridade"
+              id="rarity"
+              name="rarity"
+              value={formData.rarity || ''}
+              onChange={handleChange}
+            />
+            <FormField
+              label="Tamanho"
+              id="size"
+              name="size"
+              value={formData.size || ''}
+              onChange={handleChange}
+            />
+            {creatureType === 'citizen' && (
+              <FormField
+                label="Classe"
+                id="class"
+                name="class"
+                value={formData.class || ''}
+                onChange={handleChange}
+              />
+            )}
+          </div>
+
+          {creatureType === 'monster' && (
+            <div className={handles.grid3}>
+              <FormField
+                label="EXP (XP)"
+                id="xp"
+                name="xp"
+                type="number"
+                value={formData.xp !== undefined ? String(formData.xp) : ''}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    xp: parseInt(e.target.value) || 0,
+                  }))
+                }
+              />
+              <FormField
+                label="Fonte"
+                id="source-book"
+                value={formData.source?.book || ''}
+                onChange={(e) =>
+                  handleNestedChange('source', 'book', e.target.value)
+                }
+              />
+              <FormField
+                label="Página"
+                id="source-page"
+                type="number"
+                value={
+                  formData.source?.page !== undefined
+                    ? String(formData.source?.page)
+                    : ''
+                }
+                onChange={(e) =>
+                  handleNestedChange('source', 'page', e.target.value)
+                }
+              />
+            </div>
+          )}
+
+          <div className={handles.grid2}>
+            <FormField
+              label="Imagem"
+              id="image"
+              name="image"
+              value={formData.image || ''}
+              onChange={handleChange}
+            />
+            <FormField
+              label="Ícone"
+              id="icon"
+              name="icon"
+              value={formData.icon || ''}
+              onChange={handleChange}
+            />
           </div>
         </div>
-      )}
 
-      {/* Atributos (Stats) */}
-      <div className={handles.section}>
-        <h3 className={handles.sectionTitle}>Atributos</h3>
-        <div className={handles.grid6}>
-          {Object.keys(attrMapping).map((stat) => (
-            <FormField
-              key={stat}
-              label={attrMapping[stat as keyof typeof attrMapping]}
-              type="number"
-              value={
-                (formData.stats as Record<string, number | undefined>)?.[
-                  stat
-                ] !== undefined
-                  ? String(
-                      (formData.stats as Record<string, number | undefined>)[
-                        stat
-                      ]
-                    )
-                  : ''
-              }
-              onChange={(e) =>
-                handleNestedChange('stats', stat, e.target.value)
-              }
-            />
-          ))}
-        </div>
-      </div>
-
-      {/* Combate */}
-      <div className={handles.section}>
-        <h3 className={handles.sectionTitle}>Combate</h3>
-        {creatureType === 'monster' ? (
-          <>
+        {/* Condicional Cidadão */}
+        {creatureType === 'citizen' && (
+          <div className={handles.section}>
+            <h3 className={handles.sectionTitle}>Detalhes do Cidadão</h3>
             <div className={handles.grid2}>
               <FormField
-                label="CA - Valor"
-                type="number"
-                value={
-                  formData.combat?.ac?.value !== undefined
-                    ? String(formData.combat.ac.value)
-                    : ''
-                }
-                onChange={(e) =>
-                  handleDoubleNestedChange(
-                    'combat',
-                    'ac',
-                    'value',
-                    parseInt(e.target.value) || 0
-                  )
-                }
+                label="Idade"
+                id="age"
+                name="age"
+                value={formData.age || ''}
+                onChange={handleChange}
               />
               <FormField
-                label="CA - Fórmula"
-                value={formData.combat?.ac?.formula || ''}
-                onChange={(e) =>
-                  handleDoubleNestedChange(
-                    'combat',
-                    'ac',
-                    'formula',
-                    e.target.value
-                  )
-                }
+                label="Família"
+                id="family"
+                name="family"
+                value={formData.family || ''}
+                onChange={handleChange}
               />
             </div>
-            <div className={handles.grid2}>
-              <FormField
-                label="PV - Valor"
-                type="number"
-                value={
-                  formData.combat?.hp?.value !== undefined
-                    ? String(formData.combat.hp.value)
-                    : ''
-                }
-                onChange={(e) =>
-                  handleDoubleNestedChange(
-                    'combat',
-                    'hp',
-                    'value',
-                    parseInt(e.target.value) || 0
-                  )
-                }
-              />
-              <FormField
-                label="PV - Fórmula"
-                value={formData.combat?.hp?.formula || ''}
-                onChange={(e) =>
-                  handleDoubleNestedChange(
-                    'combat',
-                    'hp',
-                    'formula',
-                    e.target.value
-                  )
-                }
-              />
-            </div>
+
             <h4
               className={handles.sectionTitle}
               style={{ marginTop: '1rem', fontSize: '1rem' }}
             >
-              Deslocamentos
+              Equipamento
             </h4>
             <div className={handles.grid3}>
+              {['head', 'torso', 'legs', 'feet', 'hand', 'offhand'].map(
+                (eq) => {
+                  const eqLabels: Record<string, string> = {
+                    head: 'Cabeça',
+                    torso: 'Tronco',
+                    legs: 'Pernas',
+                    feet: 'Pés',
+                    hand: 'Mão',
+                    offhand: 'Secundária',
+                  };
+                  return (
+                    <FormField
+                      key={eq}
+                      label={eqLabels[eq]}
+                      value={
+                        (
+                          formData.equipment as Record<
+                            string,
+                            string | undefined
+                          >
+                        )?.[eq] || ''
+                      }
+                      onChange={(e) =>
+                        handleNestedChange('equipment', eq, e.target.value)
+                      }
+                    />
+                  );
+                }
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Atributos (Stats) */}
+        <div className={handles.section}>
+          <h3 className={handles.sectionTitle}>Atributos</h3>
+          <div className={handles.grid6}>
+            {Object.keys(attrMapping).map((stat) => (
               <FormField
-                label="Caminhar"
+                key={stat}
+                label={attrMapping[stat as keyof typeof attrMapping]}
                 type="number"
                 value={
-                  formData.combat?.speed?.walk !== undefined
-                    ? String(formData.combat.speed.walk)
+                  (formData.stats as Record<string, number | undefined>)?.[
+                    stat
+                  ] !== undefined
+                    ? String(
+                        (formData.stats as Record<string, number | undefined>)[
+                          stat
+                        ]
+                      )
                     : ''
                 }
                 onChange={(e) =>
-                  handleDoubleNestedChange(
-                    'combat',
-                    'speed',
-                    'walk',
-                    parseInt(e.target.value) || 0
-                  )
+                  handleNestedChange('stats', stat, e.target.value)
+                }
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Combate */}
+        <div className={handles.section}>
+          <h3 className={handles.sectionTitle}>Combate</h3>
+          {creatureType === 'monster' ? (
+            <>
+              <div className={handles.grid2}>
+                <FormField
+                  label="CA - Valor"
+                  type="number"
+                  value={
+                    formData.combat?.ac?.value !== undefined
+                      ? String(formData.combat.ac.value)
+                      : ''
+                  }
+                  onChange={(e) =>
+                    handleDoubleNestedChange(
+                      'combat',
+                      'ac',
+                      'value',
+                      parseInt(e.target.value) || 0
+                    )
+                  }
+                />
+                <FormField
+                  label="CA - Fórmula"
+                  value={formData.combat?.ac?.formula || ''}
+                  onChange={(e) =>
+                    handleDoubleNestedChange(
+                      'combat',
+                      'ac',
+                      'formula',
+                      e.target.value
+                    )
+                  }
+                />
+              </div>
+              <div className={handles.grid2}>
+                <FormField
+                  label="PV - Valor"
+                  type="number"
+                  value={
+                    formData.combat?.hp?.value !== undefined
+                      ? String(formData.combat.hp.value)
+                      : ''
+                  }
+                  onChange={(e) =>
+                    handleDoubleNestedChange(
+                      'combat',
+                      'hp',
+                      'value',
+                      parseInt(e.target.value) || 0
+                    )
+                  }
+                />
+                <FormField
+                  label="PV - Fórmula"
+                  value={formData.combat?.hp?.formula || ''}
+                  onChange={(e) =>
+                    handleDoubleNestedChange(
+                      'combat',
+                      'hp',
+                      'formula',
+                      e.target.value
+                    )
+                  }
+                />
+              </div>
+              <h4
+                className={handles.sectionTitle}
+                style={{ marginTop: '1rem', fontSize: '1rem' }}
+              >
+                Deslocamentos
+              </h4>
+              <div className={handles.grid3}>
+                <FormField
+                  label="Caminhar"
+                  type="number"
+                  value={
+                    formData.combat?.speed?.walk !== undefined
+                      ? String(formData.combat.speed.walk)
+                      : ''
+                  }
+                  onChange={(e) =>
+                    handleDoubleNestedChange(
+                      'combat',
+                      'speed',
+                      'walk',
+                      parseInt(e.target.value) || 0
+                    )
+                  }
+                />
+                <FormField
+                  label="Voar"
+                  type="number"
+                  value={
+                    formData.combat?.speed?.fly !== undefined
+                      ? String(formData.combat.speed.fly)
+                      : ''
+                  }
+                  onChange={(e) =>
+                    handleDoubleNestedChange(
+                      'combat',
+                      'speed',
+                      'fly',
+                      parseInt(e.target.value) || 0
+                    )
+                  }
+                />
+                <FormField
+                  label="Nadar"
+                  type="number"
+                  value={
+                    formData.combat?.speed?.swim !== undefined
+                      ? String(formData.combat.speed.swim)
+                      : ''
+                  }
+                  onChange={(e) =>
+                    handleDoubleNestedChange(
+                      'combat',
+                      'speed',
+                      'swim',
+                      parseInt(e.target.value) || 0
+                    )
+                  }
+                />
+              </div>
+              <div className={handles.grid3}>
+                <FormField
+                  label="Escalar"
+                  type="number"
+                  value={
+                    formData.combat?.speed?.climb !== undefined
+                      ? String(formData.combat.speed.climb)
+                      : ''
+                  }
+                  onChange={(e) =>
+                    handleDoubleNestedChange(
+                      'combat',
+                      'speed',
+                      'climb',
+                      parseInt(e.target.value) || 0
+                    )
+                  }
+                />
+                <FormField
+                  label="Cavar"
+                  type="number"
+                  value={
+                    formData.combat?.speed?.burrow !== undefined
+                      ? String(formData.combat.speed.burrow)
+                      : ''
+                  }
+                  onChange={(e) =>
+                    handleDoubleNestedChange(
+                      'combat',
+                      'speed',
+                      'burrow',
+                      parseInt(e.target.value) || 0
+                    )
+                  }
+                />
+                <FormField
+                  label="Notas de Mov."
+                  value={formData.combat?.speed?.note || ''}
+                  onChange={(e) =>
+                    handleDoubleNestedChange(
+                      'combat',
+                      'speed',
+                      'note',
+                      e.target.value
+                    )
+                  }
+                />
+              </div>
+            </>
+          ) : (
+            <div className={handles.grid2}>
+              <FormField
+                label="Armadura"
+                value={(formData.combat as Record<string, string>)?.type || ''}
+                onChange={(e) =>
+                  handleNestedChange('combat', 'type', e.target.value)
                 }
               />
               <FormField
-                label="Voar"
-                type="number"
-                value={
-                  formData.combat?.speed?.fly !== undefined
-                    ? String(formData.combat.speed.fly)
-                    : ''
-                }
+                label="CA (AC)"
+                value={(formData.combat as Record<string, string>)?.ac || ''}
                 onChange={(e) =>
-                  handleDoubleNestedChange(
-                    'combat',
-                    'speed',
-                    'fly',
-                    parseInt(e.target.value) || 0
-                  )
+                  handleNestedChange('combat', 'ac', e.target.value)
                 }
               />
               <FormField
-                label="Nadar"
-                type="number"
-                value={
-                  formData.combat?.speed?.swim !== undefined
-                    ? String(formData.combat.speed.swim)
-                    : ''
-                }
+                label="PV (HP)"
+                value={(formData.combat as Record<string, string>)?.hp || ''}
                 onChange={(e) =>
-                  handleDoubleNestedChange(
-                    'combat',
-                    'speed',
-                    'swim',
-                    parseInt(e.target.value) || 0
-                  )
+                  handleNestedChange('combat', 'hp', e.target.value)
+                }
+              />
+              <FormField
+                label="Deslocamento"
+                value={(formData.combat as Record<string, string>)?.speed || ''}
+                onChange={(e) =>
+                  handleNestedChange('combat', 'speed', e.target.value)
                 }
               />
             </div>
-            <div className={handles.grid3}>
+          )}
+        </div>
+
+        {/* Sentidos (Senses) */}
+        <div className={handles.section}>
+          <h3 className={handles.sectionTitle}>Sentidos</h3>
+          <div className={handles.grid3}>
+            {Object.entries(sensesMapping).map(([key, value]) => (
               <FormField
-                label="Escalar"
+                key={key}
+                label={value}
                 type="number"
                 value={
-                  formData.combat?.speed?.climb !== undefined
-                    ? String(formData.combat.speed.climb)
+                  (formData.senses as Record<string, number | undefined>)?.[
+                    key
+                  ] !== undefined
+                    ? String(
+                        (formData.senses as Record<string, number | undefined>)[
+                          key
+                        ]
+                      )
                     : ''
                 }
                 onChange={(e) =>
-                  handleDoubleNestedChange(
-                    'combat',
-                    'speed',
-                    'climb',
-                    parseInt(e.target.value) || 0
-                  )
+                  handleNestedChange('senses', key, e.target.value)
                 }
               />
+            ))}
+          </div>
+        </div>
+
+        {/* Habilidades (Traits) */}
+        <div className={handles.section}>
+          <h3 className={handles.sectionTitle}>Habilidades</h3>
+          {(
+            (creatureType === 'monster'
+              ? formData.traits
+              : formData.abilities) as ArrayItem[]
+          )?.map((ability, index) => (
+            <ArrayItemWrapper
+              key={`ability-${index}`}
+              onRemove={() =>
+                removeArrayItem(
+                  creatureType === 'monster' ? 'traits' : 'abilities',
+                  index
+                )
+              }
+            >
               <FormField
-                label="Cavar"
-                type="number"
-                value={
-                  formData.combat?.speed?.burrow !== undefined
-                    ? String(formData.combat.speed.burrow)
-                    : ''
-                }
+                label="Habilidade"
+                value={ability.name ?? ''}
                 onChange={(e) =>
-                  handleDoubleNestedChange(
-                    'combat',
-                    'speed',
-                    'burrow',
-                    parseInt(e.target.value) || 0
-                  )
-                }
-              />
-              <FormField
-                label="Notas de Mov."
-                value={formData.combat?.speed?.note || ''}
-                onChange={(e) =>
-                  handleDoubleNestedChange(
-                    'combat',
-                    'speed',
-                    'note',
+                  handleArrayChange(
+                    creatureType === 'monster' ? 'traits' : 'abilities',
+                    index,
+                    'name',
                     e.target.value
                   )
                 }
               />
-            </div>
-          </>
-        ) : (
-          <div className={handles.grid2}>
-            <FormField
-              label="Armadura"
-              value={(formData.combat as Record<string, string>)?.type || ''}
-              onChange={(e) =>
-                handleNestedChange('combat', 'type', e.target.value)
-              }
-            />
-            <FormField
-              label="CA (AC)"
-              value={(formData.combat as Record<string, string>)?.ac || ''}
-              onChange={(e) =>
-                handleNestedChange('combat', 'ac', e.target.value)
-              }
-            />
-            <FormField
-              label="PV (HP)"
-              value={(formData.combat as Record<string, string>)?.hp || ''}
-              onChange={(e) =>
-                handleNestedChange('combat', 'hp', e.target.value)
-              }
-            />
-            <FormField
-              label="Deslocamento"
-              value={(formData.combat as Record<string, string>)?.speed || ''}
-              onChange={(e) =>
-                handleNestedChange('combat', 'speed', e.target.value)
-              }
-            />
-          </div>
-        )}
-      </div>
-
-      {/* Sentidos (Senses) */}
-      <div className={handles.section}>
-        <h3 className={handles.sectionTitle}>Sentidos</h3>
-        <div className={handles.grid3}>
-          {Object.entries(sensesMapping).map(([key, value]) => (
-            <FormField
-              key={key}
-              label={value}
-              type="number"
-              value={
-                (formData.senses as Record<string, number | undefined>)?.[
-                  key
-                ] !== undefined
-                  ? String(
-                      (formData.senses as Record<string, number | undefined>)[
-                        key
-                      ]
-                    )
-                  : ''
-              }
-              onChange={(e) =>
-                handleNestedChange('senses', key, e.target.value)
-              }
-            />
-          ))}
-        </div>
-      </div>
-
-      {/* Habilidades (Traits) */}
-      <div className={handles.section}>
-        <h3 className={handles.sectionTitle}>Habilidades</h3>
-        {(
-          (creatureType === 'monster'
-            ? formData.traits
-            : formData.abilities) as ArrayItem[]
-        )?.map((ability, index) => (
-          <ArrayItemWrapper
-            key={`ability-${index}`}
-            onRemove={() =>
-              removeArrayItem(
-                creatureType === 'monster' ? 'traits' : 'abilities',
-                index
-              )
-            }
-          >
-            <FormField
-              label="Habilidade"
-              value={ability.name ?? ''}
-              onChange={(e) =>
-                handleArrayChange(
-                  creatureType === 'monster' ? 'traits' : 'abilities',
-                  index,
-                  'name',
-                  e.target.value
-                )
-              }
-            />
-            <FormField
-              label="Descrição"
-              isTextarea
-              value={ability.description ?? ''}
-              onChange={(e) =>
-                handleArrayChange(
-                  creatureType === 'monster' ? 'traits' : 'abilities',
-                  index,
-                  'description',
-                  e.target.value
-                )
-              }
-            />
-          </ArrayItemWrapper>
-        ))}
-        <button
-          type="button"
-          className={handles.addButton}
-          onClick={() =>
-            addArrayItem(creatureType === 'monster' ? 'traits' : 'abilities')
-          }
-        >
-          Adicionar Habilidade
-        </button>
-      </div>
-
-      {/* Ações */}
-      <div className={handles.section}>
-        <h3 className={handles.sectionTitle}>Ações</h3>
-        {(formData.actions as ArrayItem[])?.map((action, index) => (
-          <ArrayItemWrapper
-            key={`action-${index}`}
-            onRemove={() => removeArrayItem('actions', index)}
-          >
-            <FormField
-              label="Ação"
-              value={action.name ?? ''}
-              onChange={(e) =>
-                handleArrayChange('actions', index, 'name', e.target.value)
-              }
-            />
-            <FormField
-              label="Descrição"
-              isTextarea
-              value={action.description ?? ''}
-              onChange={(e) =>
-                handleArrayChange(
-                  'actions',
-                  index,
-                  'description',
-                  e.target.value
-                )
-              }
-            />
-          </ArrayItemWrapper>
-        ))}
-        <button
-          type="button"
-          className={handles.addButton}
-          onClick={() => addArrayItem('actions')}
-        >
-          Adicionar Ação
-        </button>
-      </div>
-
-      {/* Drops (Apenas Monstro) */}
-      {creatureType === 'monster' && (
-        <div className={handles.section}>
-          <h3 className={handles.sectionTitle}>Drops</h3>
-          {(formData.drops as ArrayItem[])?.map((drop, index) => (
-            <ArrayItemWrapper
-              key={`drop-${index}`}
-              onRemove={() => removeArrayItem('drops', index)}
-            >
-              <div className={handles.grid2}>
-                <FormField
-                  label="Chance (%)"
-                  type="number"
-                  value={drop.chance !== undefined ? String(drop.chance) : ''}
-                  onChange={(e) =>
-                    handleArrayChange('drops', index, 'chance', e.target.value)
-                  }
-                />
-                <FormField
-                  label="Item"
-                  value={drop.item ?? ''}
-                  onChange={(e) =>
-                    handleArrayChange('drops', index, 'item', e.target.value)
-                  }
-                />
-              </div>
+              <FormField
+                label="Descrição"
+                isTextarea
+                value={ability.description ?? ''}
+                onChange={(e) =>
+                  handleArrayChange(
+                    creatureType === 'monster' ? 'traits' : 'abilities',
+                    index,
+                    'description',
+                    e.target.value
+                  )
+                }
+              />
             </ArrayItemWrapper>
           ))}
           <button
             type="button"
             className={handles.addButton}
-            onClick={() => addArrayItem('drops')}
+            onClick={() =>
+              addArrayItem(creatureType === 'monster' ? 'traits' : 'abilities')
+            }
           >
-            Adicionar Drop
+            Adicionar Habilidade
           </button>
         </div>
-      )}
 
-      {/* Botões de Ação Final */}
-      <div className={handles.actions}>
-        <button
-          type="button"
-          className={handles.cancelButton}
-          onClick={onClose}
-        >
-          Cancelar
-        </button>
-        <button
-          type="submit"
-          className={handles.submitButton}
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? (
-            <>
-              <span className={handles.spinner} />
-              Salvando...
-            </>
-          ) : isCreate ? (
-            'Criar Monstro'
-          ) : (
-            'Salvar Alterações'
-          )}
-        </button>
-      </div>
-    </form>
+        {/* Ações */}
+        <div className={handles.section}>
+          <h3 className={handles.sectionTitle}>Ações</h3>
+          {(formData.actions as ArrayItem[])?.map((action, index) => (
+            <ArrayItemWrapper
+              key={`action-${index}`}
+              onRemove={() => removeArrayItem('actions', index)}
+            >
+              <FormField
+                label="Ação"
+                value={action.name ?? ''}
+                onChange={(e) =>
+                  handleArrayChange('actions', index, 'name', e.target.value)
+                }
+              />
+              <FormField
+                label="Descrição"
+                isTextarea
+                value={action.description ?? ''}
+                onChange={(e) =>
+                  handleArrayChange(
+                    'actions',
+                    index,
+                    'description',
+                    e.target.value
+                  )
+                }
+              />
+            </ArrayItemWrapper>
+          ))}
+          <button
+            type="button"
+            className={handles.addButton}
+            onClick={() => addArrayItem('actions')}
+          >
+            Adicionar Ação
+          </button>
+        </div>
+
+        {/* Drops (Apenas Monstro) */}
+        {creatureType === 'monster' && (
+          <div className={handles.section}>
+            <h3 className={handles.sectionTitle}>Drops</h3>
+            {(formData.drops as ArrayItem[])?.map((drop, index) => (
+              <ArrayItemWrapper
+                key={`drop-${index}`}
+                onRemove={() => removeArrayItem('drops', index)}
+              >
+                <div className={handles.grid2}>
+                  <FormField
+                    label="Chance (%)"
+                    type="number"
+                    value={drop.chance !== undefined ? String(drop.chance) : ''}
+                    onChange={(e) =>
+                      handleArrayChange(
+                        'drops',
+                        index,
+                        'chance',
+                        e.target.value
+                      )
+                    }
+                  />
+                  <FormField
+                    label="Item"
+                    value={drop.item ?? ''}
+                    onChange={(e) =>
+                      handleArrayChange('drops', index, 'item', e.target.value)
+                    }
+                  />
+                </div>
+              </ArrayItemWrapper>
+            ))}
+            <button
+              type="button"
+              className={handles.addButton}
+              onClick={() => addArrayItem('drops')}
+            >
+              Adicionar Drop
+            </button>
+          </div>
+        )}
+
+        {/* Botões de Ação Final */}
+        <div className={handles.actions}>
+          <button
+            type="button"
+            className={handles.cancelButton}
+            onClick={onClose}
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            className={handles.submitButton}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <>
+                <span className={handles.spinner} />
+                Salvando...
+              </>
+            ) : isCreate ? (
+              'Criar Monstro'
+            ) : (
+              'Salvar Alterações'
+            )}
+          </button>
+        </div>
+      </form>
+
+      <AlertModal
+        isOpen={!!alertMsg}
+        message={alertMsg ?? ''}
+        onClose={() => setAlertMsg(null)}
+      />
+    </>
   );
 };
 

@@ -17,6 +17,7 @@ import DrawerHeader from '../CreatureDrawer/sections/DrawerHeader';
 import DrawerContent from '../CreatureDrawer/sections/DrawerContent';
 import { useMonsters } from '@/app/context/MonstersContext';
 import { useAuth } from '@/app/context/AuthContext';
+import EvolutionTreeModal from '../EvolutionTreeModal';
 
 const CreatureGrid = () => {
   const { monsters, loading, erase } = useMonsters();
@@ -31,6 +32,7 @@ const CreatureGrid = () => {
   const [deleteTarget, setDeleteTarget] = useState<ICreature | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isSticky, setIsSticky] = useState(false);
+  const [isTreeModalOpen, setIsTreeModalOpen] = useState(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   const filteredCreatures = useMemo(() => {
@@ -76,6 +78,10 @@ const CreatureGrid = () => {
     setIsCreateModalOpen(true);
   };
 
+  const handleTreeModalOpen = () => {
+    setIsTreeModalOpen(true);
+  };
+
   const handleViewClick = (creature: ICreature) => {
     setSelectedCreature(creature);
   };
@@ -115,9 +121,10 @@ const CreatureGrid = () => {
           {canEdit && (
             <button
               className={handles.navButton}
-              aria-label="Gerar árvore de criaturas"
+              onClick={handleTreeModalOpen}
+              aria-label="Gerar arvore de criaturas"
             >
-              GERAR ÁRVORE DE CRIATURAS
+              GERAR ARVORE DE CRIATURAS
             </button>
           )}
         </div>
@@ -288,6 +295,12 @@ const CreatureGrid = () => {
         }
         confirmLabel="Sim, Excluir"
         cancelLabel="Cancelar"
+      />
+
+      <EvolutionTreeModal
+        isOpen={isTreeModalOpen}
+        onClose={() => setIsTreeModalOpen(false)}
+        monsters={monsters}
       />
     </div>
   );

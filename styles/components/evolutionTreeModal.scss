@@ -1,0 +1,407 @@
+@use '../../styles/globals' as *;
+
+.fullScreenOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: $overlay;
+  z-index: 1000;
+  @include flex-center;
+  padding: $spacing-4;
+  @include fade-in(0.25s);
+
+  .fullScreenModal {
+    background-color: $neutral-200;
+    border: 1px solid $primary-400;
+    border-radius: $radius-md;
+    width: 100%;
+    max-width: 95vw;
+    height: 95vh;
+    @include flex-col-start;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba($neutral-100, 0.5);
+    position: relative;
+    @include slide-up(0.35s);
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba($primary-100, 0.5),
+        transparent
+      );
+      z-index: 1;
+    }
+  }
+
+  .modalHeader {
+    width: 100%;
+    padding: $spacing-4 $spacing-6;
+    border-bottom: 1px solid $neutral-400;
+    @include flex-row-between;
+    align-items: center;
+    background: linear-gradient(180deg, $neutral-300 0%, $neutral-200 100%);
+    flex-shrink: 0;
+  }
+
+  .modalTitle {
+    @include cinzel-lg($primary-100, bold, 1.2);
+    margin: 0;
+  }
+
+  .modalCloseButton {
+    background: none;
+    border: none;
+    color: $neutral-1000;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0 $spacing-2;
+    margin-left: auto;
+    line-height: 1;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: $error;
+    }
+  }
+
+  .toolbar {
+    width: 100%;
+    padding: $spacing-3 $spacing-6;
+    border-bottom: 1px solid $neutral-400;
+    @include flex-row-between;
+    align-items: center;
+    gap: $spacing-4;
+    flex-shrink: 0;
+    background-color: $neutral-300;
+  }
+
+  .toolbarLeft {
+    @include flex-row-center;
+    gap: $spacing-4;
+    flex: 1;
+  }
+
+  .toolbarRight {
+    @include flex-row-center;
+    gap: $spacing-3;
+    flex-shrink: 0;
+  }
+
+  .treeNameInput {
+    background-color: rgba(0, 0, 0, 0.2);
+    border: 1px solid $neutral-400;
+    border-radius: $radius-sm;
+    padding: $spacing-2 $spacing-4;
+    color: #ffffff;
+    @include main-sm(#ffffff, normal);
+    outline: none;
+    min-width: 200px;
+    transition: border-color 0.2s;
+
+    &::placeholder {
+      color: $neutral-800;
+    }
+
+    &:focus {
+      border-color: $primary-100;
+    }
+
+    @include light {
+      background-color: #ffffff;
+      color: $neutral-200;
+      border-color: $neutral-2700;
+
+      &::placeholder {
+        color: $neutral-2300;
+      }
+    }
+  }
+
+  .saveButton {
+    @include main-xs(#ffffff, bold);
+    background-color: $primary-100;
+    border: none;
+    padding: $spacing-2 $spacing-5;
+    border-radius: 6px;
+    cursor: pointer;
+    transition:
+      background-color 0.2s,
+      transform 0.15s ease;
+    white-space: nowrap;
+
+    &:hover:not(:disabled) {
+      background-color: $primary-200;
+    }
+
+    &:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+  }
+
+  .canvas {
+    flex: 1;
+    width: 100%;
+    overflow: auto;
+    position: relative;
+    background-color: $neutral-300;
+    background-image:
+      radial-gradient(circle, $neutral-400 1px, transparent 1px);
+    background-size: 24px 24px;
+
+    @include light {
+      background-color: $neutral-2100;
+      background-image:
+        radial-gradient(circle, $neutral-2700 1px, transparent 1px);
+    }
+
+    &::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    &::-webkit-scrollbar-track {
+      background: $neutral-200;
+    }
+    &::-webkit-scrollbar-thumb {
+      background-color: $primary-400;
+      border-radius: $radius-full;
+    }
+  }
+
+  .treeContainer {
+    position: relative;
+    min-width: 100%;
+    min-height: 100%;
+  }
+
+  .treeNode {
+    position: absolute;
+    background-color: $neutral-200;
+    border: 1px solid $primary-400;
+    border-radius: $radius-md;
+    display: flex;
+    flex-direction: column;
+    overflow: visible;
+    transition:
+      border-color 0.2s,
+      box-shadow 0.2s;
+
+    &:hover {
+      border-color: $primary-100;
+      box-shadow: 0 0 12px rgba($primary-100, 0.2);
+    }
+  }
+
+  .treeNodeContent {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: $spacing-3;
+    padding: $spacing-2 $spacing-3;
+    overflow: hidden;
+  }
+
+  .treeNodeImage {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    flex-shrink: 0;
+    border-radius: $radius-sm;
+    background-color: $neutral-300;
+
+    @include light {
+      background-color: $neutral-2400;
+    }
+  }
+
+  .treeNodeInfo {
+    flex: 1;
+    overflow: hidden;
+  }
+
+  .treeNodeName {
+    @include main-sm(#ffffff, bold);
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    @include light {
+      color: $neutral-200;
+    }
+  }
+
+  .treeNodeActions {
+    display: flex;
+    gap: 2px;
+    padding: 0 $spacing-2 $spacing-1;
+    justify-content: flex-end;
+  }
+
+  .treeNodeAddBtn,
+  .treeNodeRemoveBtn {
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    line-height: 1;
+    transition:
+      background-color 0.2s,
+      transform 0.15s;
+
+    &:active {
+      transform: scale(0.9);
+    }
+  }
+
+  .treeNodeAddBtn {
+    background-color: $primary-400;
+    color: $primary-100;
+
+    &:hover {
+      background-color: $primary-300;
+    }
+  }
+
+  .treeNodeRemoveBtn {
+    background-color: rgba($error, 0.2);
+    color: $error;
+
+    &:hover {
+      background-color: rgba($error, 0.4);
+    }
+  }
+
+  .noTreeMessage {
+    @include main-md($neutral-800, normal);
+    text-align: center;
+    padding: $spacing-10;
+    width: 100%;
+  }
+
+  .savedTreesList {
+    width: 100%;
+    max-width: 600px;
+    margin: $spacing-6 auto;
+    @include flex-col-start;
+    gap: $spacing-3;
+    padding: $spacing-4;
+  }
+
+  .sectionTitle {
+    @include cinzel-md($primary-100, bold, 1.2);
+    margin: 0 0 $spacing-2;
+  }
+
+  .savedTreeItem {
+    width: 100%;
+    background-color: $neutral-200;
+    border: 1px solid $neutral-400;
+    border-radius: $radius-md;
+    padding: $spacing-3 $spacing-4;
+    @include flex-row-between;
+    align-items: center;
+    gap: $spacing-4;
+    transition: border-color 0.2s;
+
+    &:hover {
+      border-color: $primary-400;
+    }
+  }
+
+  .savedTreeItemInfo {
+    @include flex-col-start;
+    gap: $spacing-1;
+
+    strong {
+      @include main-sm(#ffffff, bold);
+
+      @include light {
+        color: $neutral-200;
+      }
+    }
+
+    span {
+      @include caption($neutral-800, normal);
+    }
+  }
+
+  .savedTreeItemActions {
+    @include flex-row-center;
+    gap: $spacing-2;
+  }
+
+  .loadTreeBtn,
+  .deleteTreeBtn,
+  .newTreeBtn {
+    @include main-xs(#ffffff, bold);
+    border: none;
+    padding: $spacing-1 $spacing-4;
+    border-radius: 4px;
+    cursor: pointer;
+    transition:
+      background-color 0.2s,
+      transform 0.15s ease;
+    white-space: nowrap;
+
+    &:active {
+      transform: scale(0.97);
+    }
+  }
+
+  .loadTreeBtn {
+    background-color: $primary-400;
+    color: $primary-100;
+
+    &:hover {
+      background-color: $primary-300;
+    }
+  }
+
+  .deleteTreeBtn {
+    background-color: rgba($error, 0.2);
+    color: $error;
+
+    &:hover {
+      background-color: rgba($error, 0.4);
+    }
+  }
+
+  .newTreeBtn {
+    background-color: $primary-100;
+    margin-top: $spacing-3;
+    align-self: center;
+    padding: $spacing-2 $spacing-6;
+
+    &:hover {
+      background-color: $primary-200;
+    }
+  }
+}
+
+@include light {
+  .fullScreenOverlay {
+    .savedTreeItemInfo strong {
+      color: $neutral-200;
+    }
+  }
+}

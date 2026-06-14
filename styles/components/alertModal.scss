@@ -1,0 +1,44 @@
+@use '../../styles/globals' as *;
+
+.body {
+  @include flex-col-start;
+  gap: $spacing-6;
+  padding: $spacing-2 0;
+}
+
+.message {
+  @include main-md($neutral-1000, normal, 1.5);
+  margin: 0;
+  white-space: pre-wrap;
+
+  @include light {
+    color: $neutral-500;
+  }
+}
+
+.actions {
+  width: 100%;
+  @include flex-row-center;
+  gap: $spacing-4;
+  margin-top: $spacing-2;
+}
+
+.okButton {
+  @include main-xs(#ffffff, bold);
+  background-color: $primary-100;
+  border: none;
+  padding: $spacing-2 $spacing-8;
+  border-radius: 6px;
+  cursor: pointer;
+  transition:
+    background-color 0.2s,
+    transform 0.15s ease;
+
+  &:hover {
+    background-color: $primary-200;
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
