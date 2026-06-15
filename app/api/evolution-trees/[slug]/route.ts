@@ -1,10 +1,35 @@
 import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import {
+  getEvolutionTreeBySlug,
   updateEvolutionTree,
   deleteEvolutionTree,
 } from '@/services/evolutionTree.service';
 import { getSessionFromCookie } from '@/services/auth.service';
+import { corsResponse, corsOptions } from '@/lib/cors';
+
+export async function OPTIONS() {
+  return corsOptions();
+}
+
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ slug: string }> }
+) {
+  try {
+    await connectDB();
+    const slug = (await params).slug;
+    const result = await getEvolutionTreeBySlug(slug);
+    if (!result.success) {
+      return corsResponse({ error: 'Arvore nao encontrada' }, 404);
+    }
+    return corsResponse(result.data);
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error';
+    return corsResponse({ error: errorMessage }, 500);
+  }
+}
 
 export async function PUT(
   request: Request,

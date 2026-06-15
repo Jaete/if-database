@@ -28,6 +28,13 @@ export async function getMonsterBySlug(slug: string): Promise<Result> {
   return { success: true, data: monster };
 }
 
+export async function getMonstersBySlugs(slugs: string[]): Promise<IMonster[]> {
+  const monsters = await MonsterModel.find({ slug: { $in: slugs } }).select(
+    '-__v'
+  );
+  return monsters;
+}
+
 export async function updateMonster(
   slug: string,
   updateData: Partial<IMonster>
