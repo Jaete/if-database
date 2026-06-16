@@ -25,6 +25,7 @@ const EvolutionTreeModalHandles = [
   'savedTreeItemInfo',
   'savedTreeItemActions',
   'loadTreeBtn',
+  'copyBBCodeBtn',
   'deleteTreeBtn',
   'newTreeBtn',
   'sectionTitle',

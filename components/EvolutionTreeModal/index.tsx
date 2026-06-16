@@ -393,6 +393,16 @@ const EvolutionTreeModal = ({ isOpen, onClose, monsters }: IProps) => {
     }
   };
 
+  const handleCopyBBCode = (slug: string) => {
+    const bbcode = '[arvore=' + slug + ']';
+    navigator.clipboard.writeText(bbcode).then(() => {
+      setAlertTitle('Copiado!');
+      setAlertMsg(
+        'BBCode [arvore=' + slug + '] copiado para a area de transferencia'
+      );
+    });
+  };
+
   if (!isOpen) return null;
 
   // Build positions map for rendering
@@ -510,6 +520,12 @@ const EvolutionTreeModal = ({ isOpen, onClose, monsters }: IProps) => {
                         onClick={() => handleLoadTree(tree)}
                       >
                         Carregar
+                      </button>
+                      <button
+                        className={handles.copyBBCodeBtn}
+                        onClick={() => handleCopyBBCode(tree.slug)}
+                      >
+                        Copiar BBCode
                       </button>
                       {canEdit && (
                         <button

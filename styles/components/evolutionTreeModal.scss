@@ -351,6 +351,7 @@
   }
 
   .loadTreeBtn,
+  .copyBBCodeBtn,
   .deleteTreeBtn,
   .newTreeBtn {
     @include main-xs(#ffffff, bold);
@@ -374,6 +375,15 @@
 
     &:hover {
       background-color: $primary-300;
+    }
+  }
+
+  .copyBBCodeBtn {
+    background-color: rgba($primary-100, 0.15);
+    color: $primary-100;
+
+    &:hover {
+      background-color: rgba($primary-100, 0.3);
     }
   }
 
