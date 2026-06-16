@@ -136,6 +136,7 @@ const EvolutionTreeModal = ({ isOpen, onClose, monsters }: IProps) => {
   const [activeAddTarget, setActiveAddTarget] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [showCanvas, setShowCanvas] = useState(false);
 
   // --- Drag state ---
   const [nodePositions, setNodePositions] = useState<
@@ -233,6 +234,7 @@ const EvolutionTreeModal = ({ isOpen, onClose, monsters }: IProps) => {
       setShowRootSearch(false);
       setActiveAddTarget(null);
       setNodePositions({});
+      setShowCanvas(false);
     }
   }, [isOpen, loadSavedTrees]);
 
@@ -303,6 +305,7 @@ const EvolutionTreeModal = ({ isOpen, onClose, monsters }: IProps) => {
     setShowRootSearch(false);
     setActiveAddTarget(null);
     setNodePositions({});
+    setShowCanvas(true);
   };
 
   const handleLoadTree = (tree: IEvolutionTree) => {
@@ -312,6 +315,7 @@ const EvolutionTreeModal = ({ isOpen, onClose, monsters }: IProps) => {
     setHasUnsavedChanges(false);
     setShowRootSearch(false);
     setActiveAddTarget(null);
+    setShowCanvas(true);
   };
 
   const handleAddRootNode = (monsterId: string) => {
@@ -403,6 +407,23 @@ const EvolutionTreeModal = ({ isOpen, onClose, monsters }: IProps) => {
     });
   };
 
+  const handleBackToList = () => {
+    if (hasUnsavedChanges) {
+      const confirmed = window.confirm(
+        'Existem alteracoes nao salvas. Deseja realmente voltar?'
+      );
+      if (!confirmed) return;
+    }
+    setCurrentTree(null);
+    setTreeName('');
+    setTreeNodes([]);
+    setHasUnsavedChanges(false);
+    setShowRootSearch(false);
+    setActiveAddTarget(null);
+    setNodePositions({});
+    setShowCanvas(false);
+  };
+
   if (!isOpen) return null;
 
   // Build positions map for rendering
@@ -446,9 +467,29 @@ const EvolutionTreeModal = ({ isOpen, onClose, monsters }: IProps) => {
           </button>
         </header>
 
-        {canEdit && (
+        {canEdit && (showCanvas || treeNodes.length > 0) && (
           <div className={handles.toolbar}>
             <div className={handles.toolbarLeft}>
+              <button
+                onClick={handleBackToList}
+                title="Voltar para lista"
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#9c841c',
+                  cursor: 'pointer',
+                  fontSize: 14,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  padding: '0 8px',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                &larr; Voltar
+              </button>
+            </div>
+            <div className={handles.toolbarCenter}>
               <input
                 className={handles.treeNameInput}
                 type="text"
@@ -474,12 +515,18 @@ const EvolutionTreeModal = ({ isOpen, onClose, monsters }: IProps) => {
                   title="Adicionar raiz"
                   style={{
                     height: 32,
-                    width: 32,
-                    fontSize: 18,
-                    borderRadius: '50%',
+                    width: 'auto',
+                    fontSize: 13,
+                    borderRadius: 4,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    padding: '0 12px',
+                    border: 'none',
+                    cursor: 'pointer',
                   }}
                 >
-                  +
+                  + Adicionar monstro
                 </button>
               )}
             </div>
@@ -496,14 +543,14 @@ const EvolutionTreeModal = ({ isOpen, onClose, monsters }: IProps) => {
         )}
 
         <div className={handles.canvas}>
-          {treeNodes.length === 0 && savedTrees.length === 0 && (
+          {!showCanvas && treeNodes.length === 0 && savedTrees.length === 0 && (
             <div className={handles.noTreeMessage}>
               Nenhuma arvore criada ainda. Crie uma nova ou selecione uma
               existente.
             </div>
           )}
 
-          {treeNodes.length === 0 && savedTrees.length > 0 && (
+          {!showCanvas && treeNodes.length === 0 && savedTrees.length > 0 && (
             <div className={handles.savedTreesList}>
               <h3 className={handles.sectionTitle}>Arvores Salvas</h3>
               {savedTrees.map((tree) => {
@@ -547,7 +594,7 @@ const EvolutionTreeModal = ({ isOpen, onClose, monsters }: IProps) => {
             </div>
           )}
 
-          {treeNodes.length > 0 && (
+          {(showCanvas || treeNodes.length > 0) && (
             <div
               className={handles.treeContainer}
               style={{ opacity: positionsReady ? 1 : 0 }}

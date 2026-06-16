@@ -169,6 +169,7 @@ const CreatureGrid = () => {
           {canEdit && (
             <button
               className={handles.compactActionBtn}
+              onClick={handleTreeModalOpen}
               aria-label="Gerar árvore de criaturas"
             >
               <svg

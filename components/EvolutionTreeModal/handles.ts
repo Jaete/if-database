@@ -6,6 +6,7 @@ const EvolutionTreeModalHandles = [
   'modalCloseButton',
   'toolbar',
   'toolbarLeft',
+  'toolbarCenter',
   'toolbarRight',
   'treeNameInput',
   'saveButton',

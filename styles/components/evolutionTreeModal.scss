@@ -86,6 +86,12 @@
 
   .toolbarLeft {
     @include flex-row-center;
+    gap: $spacing-3;
+    flex-shrink: 0;
+  }
+
+  .toolbarCenter {
+    @include flex-row-center;
     gap: $spacing-4;
     flex: 1;
   }
