@@ -6,6 +6,43 @@
   width: 100%;
 }
 
+.progression::-webkit-scrollbar {
+  width: 6px;
+}
+
+.progression::-webkit-scrollbar-track {
+  background: $neutral-300;
+  border-radius: 3px;
+
+  @include light {
+    background: $neutral-2300;
+  }
+}
+
+.progression::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, $primary-100, $primary-200);
+  border-radius: 3px;
+  border: 1px solid $neutral-400;
+
+  @include light {
+    border-color: $neutral-2700;
+  }
+}
+
+.progression::-webkit-scrollbar-thumb:hover {
+  background: $primary-100;
+}
+
+/* Firefox */
+.progression {
+  scrollbar-width: thin;
+  scrollbar-color: $primary-100 $neutral-300;
+
+  @include light {
+    scrollbar-color: $primary-100 $neutral-2300;
+  }
+}
+
 .levelCard {
   width: 100%;
   background: $neutral-300;

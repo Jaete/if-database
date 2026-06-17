@@ -94,19 +94,29 @@
 
   .content {
     width: 100%;
+    flex: 1;
+    min-height: 0;
     padding: $spacing-6 $spacing-8;
     overflow-y: auto;
     @include main-md($neutral-1000, normal, 1.5);
 
     &::-webkit-scrollbar {
-      width: 8px;
+      width: 6px;
     }
     &::-webkit-scrollbar-track {
       background: $neutral-200;
+      border-radius: 3px;
     }
     &::-webkit-scrollbar-thumb {
-      background-color: $primary-400;
-      border-radius: $radius-full;
+      background: linear-gradient(180deg, $primary-100, $primary-400);
+      border-radius: 3px;
+      border: 1px solid $neutral-400;
     }
+    &::-webkit-scrollbar-thumb:hover {
+      background: $primary-100;
+    }
+    /* Firefox */
+    scrollbar-width: thin;
+    scrollbar-color: $primary-100 $neutral-200;
   }
 }
