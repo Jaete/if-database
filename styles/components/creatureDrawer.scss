@@ -451,3 +451,21 @@
     color: $neutral-200;
   }
 }
+
+.levelButton {
+  width: 100%;
+  background: linear-gradient(135deg, $primary-300 0%, $primary-100 100%);
+  border: none;
+  border-radius: $radius-sm;
+  padding: $spacing-3 $spacing-5;
+  cursor: pointer;
+  @include cinzel-sm($neutral-100, bold, 1.3);
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+
+  &:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
+}

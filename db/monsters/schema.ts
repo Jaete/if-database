@@ -128,6 +128,24 @@ const MonsterSchema = new Schema<IMonster>(
         chance: { type: Number },
       },
     ],
+    levels: [
+      {
+        level: { type: Number, required: true },
+        acquiredPerks: [
+          {
+            type: {
+              type: String,
+              enum: ['atributo', 'habilidade', 'acao', 'classe'],
+              required: true,
+            },
+            name: { type: String },
+            description: { type: String },
+            attribute: { type: String },
+            value: { type: Number },
+          },
+        ],
+      },
+    ],
   },
   {
     timestamps: true,

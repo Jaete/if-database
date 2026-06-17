@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useCssHandles, applyModifiers } from '@/hooks/useCssHandles';
 import ModalHandles from './handles';
 import '@/styles/components/modal.scss';
@@ -28,7 +29,8 @@ const Modal = ({ isOpen, onClose, title, children }: IProps) => {
     ? `${handles.overlay} ${applyModifiers(handles.overlay, 'visible')}`
     : handles.overlay;
 
-  return (
+  // Portal to body so fixed-position is relative to viewport
+  const modalContent = (
     <div className={overlayClass} onClick={onClose}>
       <div
         className={`${handles.modal}${isOpen ? ` ${applyModifiers(handles.modal, 'open')}` : ''}`}
@@ -48,6 +50,8 @@ const Modal = ({ isOpen, onClose, title, children }: IProps) => {
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 };
 
 export default Modal;

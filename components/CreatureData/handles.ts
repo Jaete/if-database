@@ -7,6 +7,7 @@ const CreatureDataHandles = [
   'creatureDescription',
   'creatureImageLoader',
   'creatureImageSpinner',
+  'levelButton',
 ] as const;
 
 export default CreatureDataHandles;

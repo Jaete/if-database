@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type ICreature from '@/db/creatures/creatures.d';
 import { useCssHandles } from '@/hooks/useCssHandles';
 
@@ -6,6 +7,7 @@ import StatBlock from '@/components/StatsBlock';
 import AbilitiesBlock from '@/components/AbilitiesBlock';
 import SensesBlock from '@/components/SensesBlock';
 import DropsBlock from '@/components/DropsBlock';
+import LevelProgressionModal from '@/components/LevelProgressionModal';
 import CreatureDataHandles from './handles';
 import IMonster from '@/db/monsters/monster';
 
@@ -15,6 +17,10 @@ interface IProps {
 
 const CreatureData = ({ creature }: IProps) => {
   const handles = useCssHandles(CreatureDataHandles);
+  const [showLevels, setShowLevels] = useState(false);
+
+  const monster = 'levels' in creature ? (creature as IMonster) : null;
+  const hasLevels = monster && monster.levels && monster.levels.length > 0;
 
   return (
     <div key={creature.slug} className={handles.creatureData}>
@@ -31,6 +37,23 @@ const CreatureData = ({ creature }: IProps) => {
         />
       </div>
       <p className={handles.creatureDescription}>{creature.description}</p>
+
+      {hasLevels && (
+        <>
+          <button
+            className={handles.levelButton}
+            onClick={() => setShowLevels(true)}
+          >
+            Ver Progressão de Níveis
+          </button>
+        </>
+      )}
+      <LevelProgressionModal
+        isOpen={showLevels}
+        onClose={() => setShowLevels(false)}
+        monster={monster}
+      />
+
       <StatBlock stats={creature.stats ?? {}} />
       <CombatInfo combat={creature.combat ?? {}} />
       <AbilitiesBlock abilities={creature.traits ?? []} title="Habilidades" />

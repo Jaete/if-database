@@ -5,6 +5,7 @@ import { useCssHandles } from '@/hooks/useCssHandles';
 import CreatureEditFormHandles from './handles';
 import FormField from './sections/FormField';
 import ArrayItemWrapper from './sections/ArrayItemWrapper';
+import type { PerkType, ILevelPerk } from '@/db/monsters/monster.d';
 import '@/styles/components/creatureEditForm.scss';
 import { attrMapping, sensesMapping } from '@/db/l10n/attributesMapping';
 import { useMonsters } from '@/app/context/MonstersContext';
@@ -52,6 +53,7 @@ const CreatureEditForm = ({ creature, onClose, mode = 'edit' }: IProps) => {
     spellcasting: {},
     source: {},
     drops: [],
+    levels: [],
   };
 
   const isCreate = mode === 'create';
@@ -236,6 +238,82 @@ const CreatureEditForm = ({ creature, onClose, mode = 'edit' }: IProps) => {
           ),
         }) as IFormData
     );
+  };
+
+  // === Level handlers ===
+
+  const addLevel = () => {
+    const levels = formData.levels || [];
+    const nextLevel = levels.length + 1;
+    setFormData((prev) => ({
+      ...prev,
+      levels: [...(prev.levels || []), { level: nextLevel, acquiredPerks: [] }],
+    }));
+  };
+
+  const removeLevel = (levelIndex: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      levels: (prev.levels || []).filter((_, i) => i !== levelIndex),
+    }));
+  };
+
+  const handleLevelNumberChange = (levelIndex: number, value: number) => {
+    setFormData((prev) => {
+      const levels = [...(prev.levels || [])];
+      if (!levels[levelIndex])
+        levels[levelIndex] = { level: 1, acquiredPerks: [] };
+      levels[levelIndex] = { ...levels[levelIndex], level: value };
+      return { ...prev, levels };
+    });
+  };
+
+  const addPerk = (levelIndex: number) => {
+    setFormData((prev) => {
+      const levels = [...(prev.levels || [])];
+      if (!levels[levelIndex])
+        levels[levelIndex] = { level: 1, acquiredPerks: [] };
+      levels[levelIndex] = {
+        ...levels[levelIndex],
+        acquiredPerks: [
+          ...(levels[levelIndex].acquiredPerks || []),
+          { type: 'atributo' as PerkType },
+        ],
+      };
+      return { ...prev, levels };
+    });
+  };
+
+  const removePerk = (levelIndex: number, perkIndex: number) => {
+    setFormData((prev) => {
+      const levels = [...(prev.levels || [])];
+      if (!levels[levelIndex]) return prev;
+      levels[levelIndex] = {
+        ...levels[levelIndex],
+        acquiredPerks: (levels[levelIndex].acquiredPerks || []).filter(
+          (_, i) => i !== perkIndex
+        ),
+      };
+      return { ...prev, levels };
+    });
+  };
+
+  const handlePerkChange = (
+    levelIndex: number,
+    perkIndex: number,
+    key: keyof ILevelPerk,
+    value: string | number
+  ) => {
+    setFormData((prev) => {
+      const levels = [...(prev.levels || [])];
+      if (!levels[levelIndex]) return prev;
+      const perks = [...(levels[levelIndex].acquiredPerks || [])];
+      if (!perks[perkIndex])
+        perks[perkIndex] = { type: 'atributo' as PerkType };
+      perks[perkIndex] = { ...perks[perkIndex], [key]: value } as ILevelPerk;
+      levels[levelIndex] = { ...levels[levelIndex], acquiredPerks: perks };
+      return { ...prev, levels };
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -955,6 +1033,186 @@ const CreatureEditForm = ({ creature, onClose, mode = 'edit' }: IProps) => {
               onClick={() => addArrayItem('drops')}
             >
               Adicionar Drop
+            </button>
+          </div>
+        )}
+
+        {/* Níveis de Evolução */}
+        {creatureType === 'monster' && (
+          <div className={handles.section}>
+            <h3 className={handles.sectionTitle}>Níveis de Evolução</h3>
+
+            {(formData.levels || []).map((levelEntry, levelIndex) => (
+              <div key={levelIndex} className={handles.arrayItem}>
+                <button
+                  type="button"
+                  className={handles.removeButton}
+                  onClick={() => removeLevel(levelIndex)}
+                >
+                  &times;
+                </button>
+
+                <div
+                  style={{
+                    display: 'flex',
+                    gap: '8px',
+                    alignItems: 'center',
+                    marginBottom: '8px',
+                    width: '100%',
+                  }}
+                >
+                  <FormField
+                    label="Nível"
+                    type="number"
+                    id={`level-num-${levelIndex}`}
+                    value={String(levelEntry.level || '')}
+                    onChange={(e) =>
+                      handleLevelNumberChange(
+                        levelIndex,
+                        parseInt(e.target.value) || 1
+                      )
+                    }
+                  />
+                </div>
+
+                {levelEntry.acquiredPerks.map((perk, perkIndex) => (
+                  <div
+                    key={perkIndex}
+                    style={{
+                      border: '1px solid #3A3028',
+                      borderRadius: '6px',
+                      padding: '10px',
+                      marginBottom: '8px',
+                      position: 'relative',
+                      width: '100%',
+                      boxSizing: 'border-box',
+                    }}
+                  >
+                    <button
+                      type="button"
+                      className={handles.removeButton}
+                      onClick={() => removePerk(levelIndex, perkIndex)}
+                      style={{ position: 'absolute', top: '4px', right: '4px' }}
+                    >
+                      &times;
+                    </button>
+
+                    <div className={handles.fieldGroup}>
+                      <label className={handles.label}>Tipo</label>
+                      <select
+                        className={handles.select}
+                        value={perk.type}
+                        onChange={(e) =>
+                          handlePerkChange(
+                            levelIndex,
+                            perkIndex,
+                            'type',
+                            e.target.value as PerkType
+                          )
+                        }
+                      >
+                        <option value="atributo">Aumento de Atributo</option>
+                        <option value="habilidade">Nova Habilidade</option>
+                        <option value="acao">Nova Ação</option>
+                        <option value="classe">Melhoria de Classe</option>
+                      </select>
+                    </div>
+
+                    {perk.type === 'atributo' && (
+                      <div className={handles.grid2}>
+                        <div className={handles.fieldGroup}>
+                          <label className={handles.label}>Atributo</label>
+                          <select
+                            className={handles.select}
+                            value={perk.attribute || 'str'}
+                            onChange={(e) =>
+                              handlePerkChange(
+                                levelIndex,
+                                perkIndex,
+                                'attribute',
+                                e.target.value
+                              )
+                            }
+                          >
+                            {Object.entries(attrMapping).map(([key, label]) => (
+                              <option key={key} value={key}>
+                                {label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <FormField
+                          label="Valor"
+                          type="number"
+                          value={String(perk.value ?? '')}
+                          onChange={(e) =>
+                            handlePerkChange(
+                              levelIndex,
+                              perkIndex,
+                              'value',
+                              parseInt(e.target.value) || 0
+                            )
+                          }
+                        />
+                      </div>
+                    )}
+
+                    {(perk.type === 'habilidade' ||
+                      perk.type === 'acao' ||
+                      perk.type === 'classe') && (
+                      <>
+                        <FormField
+                          label={
+                            perk.type === 'habilidade'
+                              ? 'Nome da Habilidade'
+                              : perk.type === 'acao'
+                                ? 'Nome da Ação'
+                                : 'Nome da Melhoria'
+                          }
+                          value={perk.name ?? ''}
+                          onChange={(e) =>
+                            handlePerkChange(
+                              levelIndex,
+                              perkIndex,
+                              'name',
+                              e.target.value
+                            )
+                          }
+                        />
+                        <FormField
+                          label="Descrição"
+                          isTextarea
+                          value={perk.description ?? ''}
+                          onChange={(e) =>
+                            handlePerkChange(
+                              levelIndex,
+                              perkIndex,
+                              'description',
+                              e.target.value
+                            )
+                          }
+                        />
+                      </>
+                    )}
+                  </div>
+                ))}
+
+                <button
+                  type="button"
+                  className={handles.addButton}
+                  onClick={() => addPerk(levelIndex)}
+                >
+                  Adicionar Perk
+                </button>
+              </div>
+            ))}
+
+            <button
+              type="button"
+              className={handles.addButton}
+              onClick={addLevel}
+            >
+              Adicionar Nível
             </button>
           </div>
         )}
