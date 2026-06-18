@@ -80,7 +80,7 @@
 
 ### Imunidades a Condição
 
-- ***
+-
 
 ## 👁️ Sentidos
 
@@ -94,7 +94,7 @@
 
 ## 🗣️ Idiomas
 
-- ***
+-
 
 ## ✨ Traços / Habilidades Passivas
 
