@@ -15,6 +15,7 @@ const MonsterSchema = new Schema<IMonster>(
     description: { type: String },
     cr: { type: String },
     xp: { type: Number },
+    dice: { type: String },
     combat: {
       ac: {
         value: { type: Number },
@@ -125,7 +126,7 @@ const MonsterSchema = new Schema<IMonster>(
     drops: [
       {
         item: { type: String },
-        chance: { type: Number },
+        range: { type: String },
       },
     ],
     levels: [

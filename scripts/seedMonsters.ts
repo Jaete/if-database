@@ -214,7 +214,7 @@ const transformMonster = (
   const swimMatch = speedStr.match(/(\d+)m\s*natação/i);
   const swimSpeed = swimMatch ? parseInt(swimMatch[1], 10) * 5 : undefined;
 
-  // Drops (item e chance)
+  // Drops (range e item)
   const drops = ((raw.drops as Array<{ range?: string; item?: string }>) || [])
     .filter(
       (d) =>
@@ -223,11 +223,9 @@ const transformMonster = (
         d.item.toLowerCase() !== 'nada.'
     )
     .map((d, index, arr) => {
-      // Distribui chances baseadas no tamanho da lista, ou chance padrão 25%
-      const chance = arr.length > 0 ? Math.round(100 / arr.length) : 25;
       return {
         item: d.item,
-        chance,
+        range: d.range || `${index + 1}~${arr.length}`,
       };
     });
 

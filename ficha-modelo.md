@@ -80,9 +80,7 @@
 
 ### Imunidades a Condição
 
--
-
----
+- ***
 
 ## 👁️ Sentidos
 
@@ -96,9 +94,7 @@
 
 ## 🗣️ Idiomas
 
--
-
----
+- ***
 
 ## ✨ Traços / Habilidades Passivas
 
@@ -210,10 +206,12 @@
 
 ### Espólios (Drops)
 
-| Item | Chance (%) |
-| ---- | ---------- |
-|      |            |
-|      |            |
+- **Dado (ex: 1d4, 1d6, 1d20):**
+
+| Item | Range |
+| ---- | ----- |
+|      |       |
+|      |       |
 
 ---
 

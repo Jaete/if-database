@@ -2,7 +2,7 @@ import ICreature from '../creatures/creatures.d';
 
 export interface IDrop {
   item?: string;
-  chance?: number; // ex: 50 (porcentagem de 0 a 100)
+  range?: string; // ex: "1~2" (range dentro da rolagem do dado)
 }
 
 export type PerkType = 'atributo' | 'habilidade' | 'acao' | 'classe';
@@ -23,6 +23,7 @@ export interface IMonsterLevel {
 export default interface IMonster extends ICreature {
   cr?: string; // ex: "1", "5", "1/4"
   xp?: number; // ex: 200, 1800
+  dice?: string; // ex: "1d4", "1d6", "1d20" (dado para rolagem de drops)
   drops?: IDrop[];
   levels?: IMonsterLevel[];
 }

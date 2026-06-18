@@ -3,6 +3,7 @@ const DropsBlockHandles = [
   'dropsTable',
   'dropRange',
   'dropItem',
+  'dropDiceInfo',
 ] as const;
 
 export default DropsBlockHandles;

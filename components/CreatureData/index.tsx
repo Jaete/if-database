@@ -66,7 +66,10 @@ const CreatureData = ({ creature }: IProps) => {
       )}
       <SensesBlock senses={creature.senses ?? {}} />
       {'drops' in creature && (creature as IMonster).drops && (
-        <DropsBlock drops={(creature as IMonster).drops ?? []} />
+        <DropsBlock
+          drops={(creature as IMonster).drops ?? []}
+          dice={(creature as IMonster).dice}
+        />
       )}
     </div>
   );

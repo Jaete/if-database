@@ -527,16 +527,16 @@ export async function POST(request: Request) {
         continue;
       }
 
-      // Drops table (2 columns: Item | Chance)
+      // Drops table (2 columns: Item | Range)
       if (currentSection === 'Dados Específicos de Monstro') {
         const dropRow = parseTableRow(line, 2);
         if (dropRow) {
           const itemName = dropRow[0];
           // Skip header row
           if (itemName.toLowerCase() === 'item') continue;
-          const chanceVal = getNum(dropRow[1]) || 100;
+          const rangeVal = dropRow[1] || '---';
           if (itemName) {
-            parsedData.drops?.push({ item: itemName, chance: chanceVal });
+            parsedData.drops?.push({ item: itemName, range: rangeVal });
           }
           if (i + 1 < lines.length && /^[\s|:-]+$/.test(lines[i + 1])) {
             i++;
@@ -544,34 +544,34 @@ export async function POST(request: Request) {
           continue;
         }
 
-        // Numbered drops from docx: "1. Item Name" (chance on same or next line)
+        // Numbered drops from docx: "1. Item Name" (range on same or next line)
         const numberedDrop = line.match(/^(\d+)\.\s+(.+)/);
         if (numberedDrop) {
           let itemText = numberedDrop[2].trim();
-          // Check for inline chance: "Item (25%)"
-          const inlineChance = itemText.match(/^(.+?)\s*\((\d+)%\)\s*$/);
-          let chanceVal = 100;
-          if (inlineChance) {
-            itemText = inlineChance[1].trim();
-            chanceVal = parseInt(inlineChance[2], 10);
+          // Check for inline range: "Item (1~2)"
+          const inlineRange = itemText.match(/^(.+?)\s*\(([\d~]+)\)\s*$/);
+          let rangeVal = '---';
+          if (inlineRange) {
+            itemText = inlineRange[1].trim();
+            rangeVal = inlineRange[2];
           } else {
-            // Look ahead for "XX%" on next non-empty line
+            // Look ahead for range on next non-empty line
             for (let j = i + 1; j < Math.min(i + 4, lines.length); j++) {
               const nextLine = lines[j].trim();
               if (!nextLine) continue;
-              const chanceMatch = nextLine.match(/^(\d+)%\s*$/);
-              if (chanceMatch) {
-                chanceVal = parseInt(chanceMatch[1], 10);
-                i = j; // skip the chance line
+              const rangeMatch = nextLine.match(/^([\d~]+)\s*$/);
+              if (rangeMatch) {
+                rangeVal = rangeMatch[1];
+                i = j; // skip the range line
               }
               break;
             }
           }
           // Skip header rows
-          if (['Item', 'Espólios', 'Drops', 'Chance'].includes(itemText))
+          if (['Item', 'Espólios', 'Drops', 'Range'].includes(itemText))
             continue;
           if (itemText) {
-            parsedData.drops?.push({ item: itemText, chance: chanceVal });
+            parsedData.drops?.push({ item: itemText, range: rangeVal });
           }
           continue;
         }
@@ -699,6 +699,7 @@ export async function POST(request: Request) {
           case 'Dados Específicos de Monstro': {
             if (key === 'Nível de Desafio') parsedData.cr = value;
             else if (key === 'XP') parsedData.xp = getNum(value);
+            else if (key.includes('Dado')) parsedData.dice = value;
             break;
           }
 

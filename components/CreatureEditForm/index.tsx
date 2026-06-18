@@ -22,14 +22,14 @@ type IFormData = Partial<IMonster & ICitizen> & {
   traits?: Array<{ name?: string; description?: string }>;
   actions?: Array<{ name?: string; description?: string }>;
   legendaryActions?: Array<{ name?: string; description?: string }>;
-  drops?: Array<{ item?: string; chance?: number }>;
+  drops?: Array<{ item?: string; range?: string }>;
   level?: string;
 };
 type ArrayItem = {
   name?: string;
   description?: string;
   item?: string;
-  chance?: number;
+  range?: string;
 };
 
 const CreatureEditForm = ({ creature, onClose, mode = 'edit' }: IProps) => {
@@ -39,6 +39,7 @@ const CreatureEditForm = ({ creature, onClose, mode = 'edit' }: IProps) => {
   const emptyMonster: IFormData = {
     slug: '',
     name: '',
+    dice: '',
     stats: {},
     combat: {},
     senses: {},
@@ -212,8 +213,7 @@ const CreatureEditForm = ({ creature, onClose, mode = 'edit' }: IProps) => {
     setFormData((prev) => {
       const arr = [...((prev[field] as ArrayItem[]) || [])];
       if (!arr[index]) arr[index] = {};
-      const parsedValue = key === 'chance' ? parseInt(value, 10) || 0 : value;
-      arr[index] = { ...arr[index], [key]: parsedValue } as ArrayItem;
+      arr[index] = { ...arr[index], [key]: value } as ArrayItem;
       return { ...prev, [field]: arr } as IFormData;
     });
   };
@@ -998,6 +998,16 @@ const CreatureEditForm = ({ creature, onClose, mode = 'edit' }: IProps) => {
         {creatureType === 'monster' && (
           <div className={handles.section}>
             <h3 className={handles.sectionTitle}>Drops</h3>
+            <div className={handles.grid2}>
+              <FormField
+                label="Dado (ex: 1d4, 1d6, 1d20)"
+                value={formData.dice ?? ''}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, dice: e.target.value }))
+                }
+              />
+              <div />
+            </div>
             {(formData.drops as ArrayItem[])?.map((drop, index) => (
               <ArrayItemWrapper
                 key={`drop-${index}`}
@@ -1005,16 +1015,10 @@ const CreatureEditForm = ({ creature, onClose, mode = 'edit' }: IProps) => {
               >
                 <div className={handles.grid2}>
                   <FormField
-                    label="Chance (%)"
-                    type="number"
-                    value={drop.chance !== undefined ? String(drop.chance) : ''}
+                    label="Range (ex: 1~2)"
+                    value={drop.range ?? ''}
                     onChange={(e) =>
-                      handleArrayChange(
-                        'drops',
-                        index,
-                        'chance',
-                        e.target.value
-                      )
+                      handleArrayChange('drops', index, 'range', e.target.value)
                     }
                   />
                   <FormField
