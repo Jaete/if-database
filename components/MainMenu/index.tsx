@@ -21,9 +21,9 @@ const MainMenu = () => {
           </Link>
         </div>
         <div className={handles.menuItem}>
-          <button className={handles.menuLinkDisabled} disabled>
+          <Link href="/citizens" className={handles.menuLink}>
             Cidadãos
-          </button>
+          </Link>
         </div>
       </nav>
     </div>

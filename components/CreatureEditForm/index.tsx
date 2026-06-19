@@ -79,8 +79,13 @@ const CreatureEditForm = ({ creature, onClose, mode = 'edit' }: IProps) => {
 
   const handleDownloadTemplate = () => {
     const a = document.createElement('a');
-    a.href = '/api/template/markdown';
-    a.download = 'ficha-modelo-monstro.md';
+    if (creatureType === 'citizen') {
+      a.href = '/api/template/markdown-citizen';
+      a.download = 'ficha-modelo-cidadao.md';
+    } else {
+      a.href = '/api/template/markdown';
+      a.download = 'ficha-modelo-monstro.md';
+    }
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -97,7 +102,12 @@ const CreatureEditForm = ({ creature, onClose, mode = 'edit' }: IProps) => {
       const formDataObj = new FormData();
       formDataObj.append('file', file);
 
-      const res = await fetch('/api/parse-markdown', {
+      const endpoint =
+        creatureType === 'citizen'
+          ? '/api/parse-markdown-citizen'
+          : '/api/parse-markdown';
+
+      const res = await fetch(endpoint, {
         method: 'POST',
         body: formDataObj,
       });

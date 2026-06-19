@@ -1,0 +1,27 @@
+const CitizenDataHandles = [
+  'creatureData',
+  'creatureHeader',
+  'creatureName',
+  'creatureImageContainer',
+  'creatureImage',
+  'creatureImageLoader',
+  'creatureDescription',
+  'creatureInfoList',
+  'infoRow',
+  'infoLabel',
+  'infoValue',
+  'statSection',
+  'attributesGrid',
+  'attrItem',
+  'attrLabel',
+  'attrValue',
+  'abilitiesContainer',
+  'ability',
+  'abilityName',
+  'abilityDescription',
+  'dropsTable',
+  'dropRange',
+  'dropItem',
+] as const;
+
+export default CitizenDataHandles;

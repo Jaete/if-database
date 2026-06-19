@@ -53,6 +53,9 @@ export interface ISkill {
 export interface IProficiencies {
   savingThrows?: ISavingThrow[];
   skills?: ISkill[];
+  weapons?: string[]; // ex: ["armas simples", "espadas longas"]
+  armor?: string[]; // ex: ["armaduras leves", "escudos"]
+  tools?: string[]; // ex: ["ferramentas de ladrão", "kit de alquimia"]
 }
 
 // === Defesas ===

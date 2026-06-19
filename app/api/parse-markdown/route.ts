@@ -5,7 +5,10 @@ import * as mammoth from 'mammoth';
 type IStats = NonNullable<IMonster['stats']>;
 type ISenses = NonNullable<IMonster['senses']>;
 
-const getNum = (v: string) => parseInt(v.replace(/\D/g, ''), 10) || 0;
+const getNum = (v: string) => {
+  const cleaned = v.replace(/[^\d-]/g, '');
+  return parseInt(cleaned, 10) || 0;
+};
 
 function sectionTitle(raw: string): string {
   // Strip emoji, keep text, accents, and common symbols
