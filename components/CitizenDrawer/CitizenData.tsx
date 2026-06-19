@@ -107,6 +107,18 @@ const CitizenData = ({ citizen }: IProps) => {
             <span className={handles.infoValue}>{citizen.family}</span>
           </div>
         )}
+        {citizen.kingdom && (
+          <div className={handles.infoRow}>
+            <span className={handles.infoLabel}>Reino: </span>
+            <span className={handles.infoValue}>{citizen.kingdom}</span>
+          </div>
+        )}
+        {citizen.clan && (
+          <div className={handles.infoRow}>
+            <span className={handles.infoLabel}>Clã: </span>
+            <span className={handles.infoValue}>{citizen.clan}</span>
+          </div>
+        )}
         {citizen.alignment && (
           <div className={handles.infoRow}>
             <span className={handles.infoLabel}>Alinhamento: </span>
@@ -381,33 +393,61 @@ const CitizenData = ({ citizen }: IProps) => {
           </div>
           {citizen.playerSpellcasting.spellLevels &&
             citizen.playerSpellcasting.spellLevels.length > 0 && (
-              <table className={handles.dropsTable}>
-                <thead>
-                  <tr>
-                    <td>
-                      <strong>Círculo</strong>
-                    </td>
-                    <td>
-                      <strong>Slots</strong>
-                    </td>
-                  </tr>
-                </thead>
-                <tbody>
-                  {citizen.playerSpellcasting.spellLevels.map(
-                    (sl) =>
-                      sl.slotsTotal > 0 && (
-                        <tr key={sl.level}>
-                          <td className={handles.dropRange}>
-                            {sl.level === 0 ? 'Truques' : `${sl.level}º`}
-                          </td>
-                          <td className={handles.dropItem}>
-                            {sl.slotsUsed} / {sl.slotsTotal}
-                          </td>
-                        </tr>
-                      )
-                  )}
-                </tbody>
-              </table>
+              <>
+                {/* Cantrips (Truques) */}
+                {(() => {
+                  const cantripLevel =
+                    citizen.playerSpellcasting!.spellLevels!.find(
+                      (sl) => sl.level === 0
+                    );
+                  if (!cantripLevel?.spells || cantripLevel.spells.length === 0)
+                    return null;
+                  return (
+                    <div style={{ marginTop: '0.5rem' }}>
+                      <div className={handles.infoRow}>
+                        <span className={handles.infoLabel}>Truques: </span>
+                        <span className={handles.infoValue}>
+                          {cantripLevel.spells
+                            .map((s) => s.name)
+                            .filter(Boolean)
+                            .join(', ')}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Spell Slots Table */}
+                {citizen.playerSpellcasting.spellLevels.some(
+                  (sl) => sl.slotsTotal > 0
+                ) && (
+                  <table className={handles.dropsTable}>
+                    <thead>
+                      <tr>
+                        <td>
+                          <strong>Círculo</strong>
+                        </td>
+                        <td>
+                          <strong>Slots</strong>
+                        </td>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {citizen.playerSpellcasting.spellLevels.map(
+                        (sl) =>
+                          sl.slotsTotal > 0 && (
+                            <tr key={sl.level}>
+                              <td className={handles.dropRange}>{sl.level}º</td>
+                              <td className={handles.dropItem}>
+                                {sl.slotsUsed} / {sl.slotsTotal}
+                              </td>
+                            </tr>
+                          )
+                      )}
+                    </tbody>
+                  </table>
+                )}
+              </>
             )}
         </div>
       )}

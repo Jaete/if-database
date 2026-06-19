@@ -14,8 +14,8 @@ import { connectDB } from '@/lib/db';
 import User from '@/db/users/users';
 import { hashPassword } from '@/services/auth.service';
 
-const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'xxx';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'xxxxxx';
 
 const seedAdmin = async () => {
   try {

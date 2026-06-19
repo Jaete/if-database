@@ -10,8 +10,11 @@
 - **Gênero:** Feminino
 - **Alinhamento:** Leal e Neutra
 - **Família:** Casa Frostbane
+- **Reino:** Frosthal
+- **Clã:** Guardiões do Selo
 - **Adoração:** --
 - **Imagem:** https://2img.net/i.imgur.com/8hyhBLA.png
+- **Ícone:** https://2img.net/i.imgur.com/selha-icon.png
 
 ---
 
@@ -116,10 +119,14 @@
 - **Bônus de Ataque:** 11
 - **Nível de Conjuração:** 12
 
-### Magias Preparadas
+### Truques
 
 - Mão do Mago
 - Raio de Gelo
+- Mensagem
+
+### Magias Preparadas
+
 - Armadura Arcana
 - Projétil Mágico
 - Muralha de Gelo

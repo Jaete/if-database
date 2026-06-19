@@ -11,10 +11,13 @@ const CitizenSchema = new Schema<ICitizen>({
   age: { type: String },
   height: { type: String },
   family: { type: String },
+  kingdom: { type: String },
+  clan: { type: String },
   deity: { type: String },
 
   // ── Geral (herdado de ICreature) ──
   rarity: { type: String },
+  icon: { type: String },
   image: { type: String },
   description: { type: String },
 

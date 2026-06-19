@@ -10,8 +10,11 @@
 - **Gênero:**
 - **Alinhamento:**
 - **Família:**
+- **Reino:**
+- **Clã:**
 - **Adoração:**
 - **Imagem:**
+- **Ícone:**
 
 ---
 
@@ -108,6 +111,11 @@
 - **CD de Resistência:**
 - **Bônus de Ataque:**
 - **Nível de Conjuração:**
+
+### Truques
+
+- Nome do Truque
+- Nome do Truque
 
 ### Magias Preparadas
 

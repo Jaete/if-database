@@ -115,6 +115,8 @@ export default interface ICitizen extends ICreature {
   age?: string;
   height?: string; // altura em metros, ex: "1.75m"
   family?: string;
+  kingdom?: string;
+  clan?: string;
   deity?: string; // adoração / deus seguido
 
   // ── Progressão ──

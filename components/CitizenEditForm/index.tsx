@@ -19,6 +19,7 @@ interface IProps {
 
 type FormDataType = Partial<ICitizen> & {
   spells: string[];
+  cantrips: string[];
   profSavingThrows: Array<{ attribute: string; value: number }>;
   profSkills: Array<{ name: string; value: number }>;
   spellSlots: Array<{ level: number; slotsTotal: number; slotsUsed: number }>;
@@ -38,8 +39,11 @@ const emptyCitizen: FormDataType = {
   height: '',
   alignment: '',
   family: '',
+  kingdom: '',
+  clan: '',
   deity: '',
   image: '',
+  icon: '',
   level: undefined,
   experience: { current: 0, nextLevel: 0 },
   combat: { ac: {}, hp: {}, speed: {} },
@@ -78,6 +82,7 @@ const emptyCitizen: FormDataType = {
   backstory: '',
   // UI-only fields (not sent to API)
   spells: [],
+  cantrips: [],
   profSavingThrows: [],
   profSkills: [],
   spellSlots: [],
@@ -87,11 +92,18 @@ const emptyCitizen: FormDataType = {
 
 const citizenToFormData = (citizen: ICitizen) => {
   const spells: string[] = [];
+  const cantrips: string[] = [];
   const sl = citizen.playerSpellcasting?.spellLevels || [];
   sl.forEach((level) => {
-    (level.spells || []).forEach((s) => {
-      if (s.name && !spells.includes(s.name)) spells.push(s.name);
-    });
+    if (level.level === 0) {
+      (level.spells || []).forEach((s) => {
+        if (s.name && !cantrips.includes(s.name)) cantrips.push(s.name);
+      });
+    } else {
+      (level.spells || []).forEach((s) => {
+        if (s.name && !spells.includes(s.name)) spells.push(s.name);
+      });
+    }
   });
 
   // Extract professions sub-names
@@ -113,15 +125,18 @@ const citizenToFormData = (citizen: ICitizen) => {
   return {
     ...citizen,
     spells,
+    cantrips,
     profSavingThrows: (citizen.proficiencies?.savingThrows ||
       []) as FormDataType['profSavingThrows'],
     profSkills: (citizen.proficiencies?.skills ||
       []) as FormDataType['profSkills'],
-    spellSlots: (citizen.playerSpellcasting?.spellLevels || []).map((l) => ({
-      level: l.level,
-      slotsTotal: l.slotsTotal,
-      slotsUsed: l.slotsUsed,
-    })),
+    spellSlots: (citizen.playerSpellcasting?.spellLevels || [])
+      .filter((l) => l.level > 0)
+      .map((l) => ({
+        level: l.level,
+        slotsTotal: l.slotsTotal,
+        slotsUsed: l.slotsUsed,
+      })),
     subProfessions,
     backpackText,
   };
@@ -176,12 +191,19 @@ const CitizenEditForm = ({ citizen, onClose, mode = 'edit' }: IProps) => {
 
         // Extract spell list for UI
         const spells: string[] = [];
+        const cantrips: string[] = [];
 
         const sl = d.playerSpellcasting?.spellLevels || [];
         sl.forEach((level: IPlayerSpellLevel) => {
-          (level.spells || []).forEach((s) => {
-            if (s.name && !spells.includes(s.name)) spells.push(s.name);
-          });
+          if (level.level === 0) {
+            (level.spells || []).forEach((s) => {
+              if (s.name && !cantrips.includes(s.name)) cantrips.push(s.name);
+            });
+          } else {
+            (level.spells || []).forEach((s) => {
+              if (s.name && !spells.includes(s.name)) spells.push(s.name);
+            });
+          }
         });
         if (d.playerSpellcasting?.preparedSpells) {
           (d.playerSpellcasting.preparedSpells as string[]).forEach(
@@ -230,11 +252,14 @@ const CitizenEditForm = ({ citizen, onClose, mode = 'edit' }: IProps) => {
           languages: d.languages || [],
           // UI fields
           spells,
-          spellSlots: sl.map((l: IPlayerSpellLevel) => ({
-            level: l.level,
-            slotsTotal: l.slotsTotal,
-            slotsUsed: l.slotsUsed,
-          })),
+          cantrips,
+          spellSlots: sl
+            .filter((l: IPlayerSpellLevel) => l.level > 0)
+            .map((l: IPlayerSpellLevel) => ({
+              level: l.level,
+              slotsTotal: l.slotsTotal,
+              slotsUsed: l.slotsUsed,
+            })),
           profSavingThrows: d.proficiencies?.savingThrows || [],
           profSkills: d.proficiencies?.skills || [],
           subProfessions,
@@ -488,6 +513,28 @@ const CitizenEditForm = ({ citizen, onClose, mode = 'edit' }: IProps) => {
     }));
   };
 
+  const addCantrip = () => {
+    setFormData((prev) => ({
+      ...prev,
+      cantrips: [...(prev.cantrips || []), ''],
+    }));
+  };
+
+  const handleCantripChange = (index: number, value: string) => {
+    setFormData((prev) => {
+      const arr = [...(prev.cantrips || [])];
+      arr[index] = value;
+      return { ...prev, cantrips: arr } as typeof prev;
+    });
+  };
+
+  const removeCantrip = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      cantrips: (prev.cantrips || []).filter((_, i) => i !== index),
+    }));
+  };
+
   const handleDefensesChange = (category: string, value: string) => {
     const items = value
       .split(',')
@@ -513,7 +560,7 @@ const CitizenEditForm = ({ citizen, onClose, mode = 'edit' }: IProps) => {
   // ─── Submit ────────────────────────────────────────────
 
   const buildCitizenData = () => {
-    // Build playerSpellcasting from spellSlots + spells
+    // Build playerSpellcasting from spellSlots + spells + cantrips
     const spellLevels = (formData.spellSlots || [])
       .filter((s) => s.level > 0)
       .map((slot) => {
@@ -527,6 +574,19 @@ const CitizenEditForm = ({ citizen, onClose, mode = 'edit' }: IProps) => {
           spells: levelSpells,
         };
       });
+
+    // Add cantrips as level 0 entry if any exist
+    const cantripSpells = (formData.cantrips || [])
+      .filter(Boolean)
+      .map((name) => ({ name, prepared: true }));
+    if (cantripSpells.length > 0) {
+      spellLevels.unshift({
+        level: 0,
+        slotsTotal: 0,
+        slotsUsed: 0,
+        spells: cantripSpells,
+      });
+    }
 
     const playerSpellcasting = {
       ...formData.playerSpellcasting,
@@ -576,9 +636,12 @@ const CitizenEditForm = ({ citizen, onClose, mode = 'edit' }: IProps) => {
       age: formData.age || undefined,
       height: formData.height || undefined,
       family: formData.family || undefined,
+      kingdom: formData.kingdom || undefined,
+      clan: formData.clan || undefined,
       deity: formData.deity || undefined,
       alignment: formData.alignment || undefined,
       image: formData.image || undefined,
+      icon: formData.icon || undefined,
       level: formData.level || undefined,
       experience: formData.experience || undefined,
       combat: formData.combat || undefined,
@@ -713,6 +776,15 @@ const CitizenEditForm = ({ citizen, onClose, mode = 'edit' }: IProps) => {
           </div>
           <div className={handles.grid2}>
             <FormField
+              label="Ícone (URL)"
+              id="icon"
+              name="icon"
+              value={formData.icon || ''}
+              onChange={handleChange}
+            />
+          </div>
+          <div className={handles.grid2}>
+            <FormField
               label="Raça"
               id="race"
               name="race"
@@ -765,6 +837,22 @@ const CitizenEditForm = ({ citizen, onClose, mode = 'edit' }: IProps) => {
               value={formData.family || ''}
               onChange={handleChange}
             />
+            <FormField
+              label="Reino"
+              id="kingdom"
+              name="kingdom"
+              value={formData.kingdom || ''}
+              onChange={handleChange}
+            />
+            <FormField
+              label="Clã"
+              id="clan"
+              name="clan"
+              value={formData.clan || ''}
+              onChange={handleChange}
+            />
+          </div>
+          <div className={handles.grid3}>
             <FormField
               label="Adoração"
               id="deity"
@@ -940,6 +1028,40 @@ const CitizenEditForm = ({ citizen, onClose, mode = 'edit' }: IProps) => {
               }))
             }
           />
+
+          {/* Truques (Cantrips) - Level 0 */}
+          <h4
+            style={{
+              marginTop: '1rem',
+              marginBottom: '0.5rem',
+              fontSize: '1rem',
+            }}
+          >
+            Truques
+          </h4>
+          {(formData.cantrips || []).map((cantrip, i) => (
+            <div key={i} className={handles.arrayItem}>
+              <button
+                type="button"
+                className={handles.removeButton}
+                onClick={() => removeCantrip(i)}
+              >
+                &times;
+              </button>
+              <FormField
+                label={`Truque ${i + 1}`}
+                value={cantrip}
+                onChange={(e) => handleCantripChange(i, e.target.value)}
+              />
+            </div>
+          ))}
+          <button
+            type="button"
+            className={handles.addButton}
+            onClick={addCantrip}
+          >
+            + Adicionar Truque
+          </button>
 
           {/* Spell Slots - Dynamic Array */}
           <h4

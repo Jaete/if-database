@@ -455,6 +455,27 @@ export async function POST(request: Request) {
           sc.preparedSpells = existingSpells;
           continue;
         }
+
+        // Cantrips (Truques) — stored as level 0 spells
+        if (
+          currentSection === 'Conjuração de Magias' &&
+          currentSubSection?.toLowerCase().includes('truques')
+        ) {
+          const sc = getSpellcasting();
+          const levels =
+            (sc.spellLevels as Array<Record<string, unknown>>) || [];
+          let level0 = levels.find((l) => l.level === 0);
+          if (!level0) {
+            level0 = { level: 0, slotsTotal: 0, slotsUsed: 0, spells: [] };
+            levels.push(level0);
+            sc.spellLevels = levels;
+          }
+          const spells0 =
+            (level0.spells as Array<Record<string, unknown>>) || [];
+          spells0.push({ name: listValue, prepared: true });
+          level0.spells = spells0;
+          continue;
+        }
       }
 
       // ─── Key-Value pairs: "- **Key:** value" or "Key: value" ──
@@ -478,8 +499,12 @@ export async function POST(request: Request) {
             else if (key === 'Gênero') parsedData.gender = value;
             else if (key === 'Alinhamento') parsedData.alignment = value;
             else if (key === 'Família') parsedData.family = value;
+            else if (key === 'Reino') parsedData.kingdom = value;
+            else if (key === 'Clã' || key === 'Cla') parsedData.clan = value;
             else if (key === 'Adoração') parsedData.deity = value;
             else if (key === 'Imagem') parsedData.image = value;
+            else if (key === 'Ícone' || key === 'Icone')
+              parsedData.icon = value;
             break;
           }
 
