@@ -82,8 +82,10 @@ const CitizenSchema = new Schema<ICitizen>({
     feet: { type: String },
     hand: { type: String },
     offhand: { type: String },
+    accessory1: { type: String },
+    accessory2: { type: String },
     gil: { type: Number },
-    backpack: { type: [Schema.Types.Mixed] },
+    backpack: { type: String },
   },
 
   // ── Aparência e História ──

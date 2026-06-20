@@ -27,6 +27,7 @@ const CitizenEditFormHandles = [
   'slotTableInput',
   'statTable',
   'statTableRow',
+  'gilField',
 ] as const;
 
 export default CitizenEditFormHandles;

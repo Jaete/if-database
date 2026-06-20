@@ -25,6 +25,8 @@ const CitizenData = ({ citizen }: IProps) => {
     citizen.equipment?.feet ||
     citizen.equipment?.hand ||
     citizen.equipment?.offhand ||
+    citizen.equipment?.accessory1 ||
+    citizen.equipment?.accessory2 ||
     citizen.equipment?.gil !== undefined ||
     citizen.equipment?.backpack?.length;
   const hasSpellcasting = !!citizen.playerSpellcasting;
@@ -516,6 +518,26 @@ const CitizenData = ({ citizen }: IProps) => {
               </span>
             </div>
           )}
+          {citizen.equipment?.accessory1 && (
+            <div className={handles.infoRow}>
+              <span className={handles.infoLabel}>Acessório 1: </span>
+              <span className={handles.infoValue}>
+                {typeof citizen.equipment.accessory1 === 'string'
+                  ? citizen.equipment.accessory1
+                  : citizen.equipment.accessory1.name}
+              </span>
+            </div>
+          )}
+          {citizen.equipment?.accessory2 && (
+            <div className={handles.infoRow}>
+              <span className={handles.infoLabel}>Acessório 2: </span>
+              <span className={handles.infoValue}>
+                {typeof citizen.equipment.accessory2 === 'string'
+                  ? citizen.equipment.accessory2
+                  : citizen.equipment.accessory2.name}
+              </span>
+            </div>
+          )}
           {citizen.equipment?.gil !== undefined && (
             <div className={handles.infoRow}>
               <span className={handles.infoLabel}>Gil: </span>
@@ -524,20 +546,17 @@ const CitizenData = ({ citizen }: IProps) => {
               </span>
             </div>
           )}
-          {citizen.equipment?.backpack &&
-            citizen.equipment.backpack.length > 0 && (
-              <div className={handles.infoRow}>
-                <span className={handles.infoLabel}>Mochila: </span>
-                <span className={handles.infoValue}>
-                  {citizen.equipment.backpack
-                    .map((item) =>
-                      typeof item === 'string' ? item : item.name
-                    )
-                    .filter(Boolean)
-                    .join(', ')}
-                </span>
-              </div>
-            )}
+          {citizen.equipment?.backpack && (
+            <div className={handles.infoRow}>
+              <span className={handles.infoLabel}>Mochila: </span>
+              <span
+                className={handles.infoValue}
+                style={{ whiteSpace: 'pre-wrap' }}
+              >
+                {citizen.equipment.backpack}
+              </span>
+            </div>
+          )}
         </div>
       )}
 

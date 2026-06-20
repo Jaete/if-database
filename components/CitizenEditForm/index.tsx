@@ -76,7 +76,7 @@ const emptyCitizen: FormDataType = {
     hand: '',
     offhand: '',
     gil: 0,
-    backpack: [],
+    backpack: '',
   },
   appearance: '',
   backstory: '',
@@ -115,12 +115,11 @@ const citizenToFormData = (citizen: ICitizen) => {
     });
   });
 
-  const backpackItems = citizen.equipment?.backpack || [];
-  const backpackText = Array.isArray(backpackItems)
-    ? backpackItems
+  const backpackText = Array.isArray(citizen.equipment?.backpack)
+    ? (citizen.equipment.backpack as Array<string | { name?: string }>)
         .map((i) => (typeof i === 'string' ? i : i.name || ''))
         .join(', ')
-    : '';
+    : (citizen.equipment?.backpack as string) || '';
 
   return {
     ...citizen,
@@ -224,15 +223,14 @@ const CitizenEditForm = ({ citizen, onClose, mode = 'edit' }: IProps) => {
           }
         );
 
-        // Backpack items
-        const backpackItems = d.equipment?.backpack || [];
-        const backpackText = Array.isArray(backpackItems)
-          ? backpackItems
+        // Backpack (string or legacy array)
+        const backpackText = Array.isArray(d.equipment?.backpack)
+          ? (d.equipment.backpack as Array<string | { name?: string }>)
               .map((i: string | { name?: string }) =>
                 typeof i === 'string' ? i : i.name || ''
               )
               .join(', ')
-          : '';
+          : (d.equipment?.backpack as string) || '';
 
         setFormData((prev) => ({
           ...prev,
@@ -604,12 +602,9 @@ const CitizenEditForm = ({ citizen, onClose, mode = 'edit' }: IProps) => {
         .map((name: string) => ({ name })),
     }));
 
-    // Build equipment
+    // Build equipment — backpack is now a free-form string
     const eq = formData.equipment || {};
-    const backpackItems = (formData.backpackText || '')
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean);
+    const backpackText = formData.backpackText || '';
 
     // Build proficiencies
     const proficiencies = {
@@ -657,7 +652,7 @@ const CitizenEditForm = ({ citizen, onClose, mode = 'edit' }: IProps) => {
       professions,
       actions: formData.actions || undefined,
       playerSpellcasting,
-      equipment: { ...eq, backpack: backpackItems, gil: eq.gil || 0 },
+      equipment: { ...eq, backpack: backpackText, gil: eq.gil || 0 },
       appearance: formData.appearance || undefined,
       backstory: formData.backstory || undefined,
     } as ICitizen;
@@ -1548,7 +1543,16 @@ const CitizenEditForm = ({ citizen, onClose, mode = 'edit' }: IProps) => {
           <h4 style={{ marginBottom: '0.5rem', fontSize: '1rem' }}>Slots</h4>
           <div className={handles.grid3}>
             {(
-              ['head', 'torso', 'legs', 'feet', 'hand', 'offhand'] as const
+              [
+                'head',
+                'torso',
+                'legs',
+                'feet',
+                'hand',
+                'offhand',
+                'accessory1',
+                'accessory2',
+              ] as const
             ).map((eq) => {
               const labels: Record<string, string> = {
                 head: 'Cabeça',
@@ -1557,6 +1561,8 @@ const CitizenEditForm = ({ citizen, onClose, mode = 'edit' }: IProps) => {
                 feet: 'Pés',
                 hand: 'Mão',
                 offhand: 'Secundária',
+                accessory1: 'Acessório 1',
+                accessory2: 'Acessório 2',
               };
               return (
                 <FormField
@@ -1583,11 +1589,26 @@ const CitizenEditForm = ({ citizen, onClose, mode = 'edit' }: IProps) => {
           >
             Inventário
           </h4>
-          <div className={handles.grid2}>
-            <FormField
-              label="Gil"
-              id="gil"
+          <FormField
+            label="Mochila"
+            id="backpack"
+            isTextarea
+            value={formData.backpackText || ''}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                backpackText: e.target.value,
+              }))
+            }
+          />
+          <div className={handles.gilField}>
+            <label className={handles.label} htmlFor="gil">
+              Gil
+            </label>
+            <input
+              className={handles.input}
               type="number"
+              id="gil"
               value={
                 formData.equipment?.gil !== undefined
                   ? String(formData.equipment.gil)
@@ -1599,17 +1620,6 @@ const CitizenEditForm = ({ citizen, onClose, mode = 'edit' }: IProps) => {
                   'gil',
                   parseInt(e.target.value, 10) || 0
                 )
-              }
-            />
-            <FormField
-              label="Mochila (itens separados por vírgula)"
-              id="backpack"
-              value={formData.backpackText || ''}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  backpackText: e.target.value,
-                }))
               }
             />
           </div>

@@ -211,6 +211,8 @@ const CreatureEditForm = ({ creature, onClose, mode = 'edit' }: IProps) => {
     | 'abilities'
     | 'traits'
     | 'actions'
+    | 'bonusActions'
+    | 'reactions'
     | 'legendaryActions'
     | 'drops';
 
@@ -1001,6 +1003,89 @@ const CreatureEditForm = ({ creature, onClose, mode = 'edit' }: IProps) => {
             onClick={() => addArrayItem('actions')}
           >
             Adicionar Ação
+          </button>
+        </div>
+
+        {/* Ações Bônus */}
+        <div className={handles.section}>
+          <h3 className={handles.sectionTitle}>Ações Bônus</h3>
+          {(formData.bonusActions as ArrayItem[])?.map((action, index) => (
+            <ArrayItemWrapper
+              key={`bonusAction-${index}`}
+              onRemove={() => removeArrayItem('bonusActions', index)}
+            >
+              <FormField
+                label="Ação Bônus"
+                value={action.name ?? ''}
+                onChange={(e) =>
+                  handleArrayChange(
+                    'bonusActions',
+                    index,
+                    'name',
+                    e.target.value
+                  )
+                }
+              />
+              <FormField
+                label="Descrição"
+                isTextarea
+                value={action.description ?? ''}
+                onChange={(e) =>
+                  handleArrayChange(
+                    'bonusActions',
+                    index,
+                    'description',
+                    e.target.value
+                  )
+                }
+              />
+            </ArrayItemWrapper>
+          ))}
+          <button
+            type="button"
+            className={handles.addButton}
+            onClick={() => addArrayItem('bonusActions')}
+          >
+            Adicionar Ação Bônus
+          </button>
+        </div>
+
+        {/* Reações */}
+        <div className={handles.section}>
+          <h3 className={handles.sectionTitle}>Reações</h3>
+          {(formData.reactions as ArrayItem[])?.map((action, index) => (
+            <ArrayItemWrapper
+              key={`reaction-${index}`}
+              onRemove={() => removeArrayItem('reactions', index)}
+            >
+              <FormField
+                label="Reação"
+                value={action.name ?? ''}
+                onChange={(e) =>
+                  handleArrayChange('reactions', index, 'name', e.target.value)
+                }
+              />
+              <FormField
+                label="Descrição"
+                isTextarea
+                value={action.description ?? ''}
+                onChange={(e) =>
+                  handleArrayChange(
+                    'reactions',
+                    index,
+                    'description',
+                    e.target.value
+                  )
+                }
+              />
+            </ArrayItemWrapper>
+          ))}
+          <button
+            type="button"
+            className={handles.addButton}
+            onClick={() => addArrayItem('reactions')}
+          >
+            Adicionar Reação
           </button>
         </div>
 

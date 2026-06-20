@@ -41,14 +41,14 @@
 
   .grid3 {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: $spacing-4;
     width: 100%;
   }
 
   .grid4 {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: $spacing-4;
     width: 100%;
   }
@@ -180,6 +180,23 @@
   }
 
   // ─── Inline Fields (stat breakdown, slot rows) ──────
+
+  .gilField {
+    display: flex;
+    align-items: center;
+    gap: $spacing-3;
+    width: fit-content;
+
+    .label {
+      margin-bottom: 0;
+      white-space: nowrap;
+    }
+
+    .input {
+      width: 120px;
+      padding: $spacing-2 $spacing-3;
+    }
+  }
 
   .inlineFields {
     display: flex;

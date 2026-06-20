@@ -58,6 +58,12 @@ const CreatureData = ({ creature }: IProps) => {
       <CombatInfo combat={creature.combat ?? {}} />
       <AbilitiesBlock abilities={creature.traits ?? []} title="Habilidades" />
       <AbilitiesBlock abilities={creature.actions ?? []} title="Ações" />
+      {creature.bonusActions && creature.bonusActions.length > 0 && (
+        <AbilitiesBlock abilities={creature.bonusActions} title="Ações Bônus" />
+      )}
+      {creature.reactions && creature.reactions.length > 0 && (
+        <AbilitiesBlock abilities={creature.reactions} title="Reações" />
+      )}
       {creature.legendaryActions && creature.legendaryActions.length > 0 && (
         <AbilitiesBlock
           abilities={creature.legendaryActions}

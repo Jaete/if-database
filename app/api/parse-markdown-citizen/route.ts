@@ -589,16 +589,15 @@ export async function POST(request: Request) {
               else if (key === 'Mão') eq.hand = value;
               else if (key === 'Secundária' || key === 'Offhand')
                 eq.offhand = value;
+              else if (key === 'Acessório 1') eq.accessory1 = value;
+              else if (key === 'Acessório 2') eq.accessory2 = value;
             } else if (
               currentSubSection === 'Inventário' ||
               currentSubSection?.toLowerCase().includes('inventário')
             ) {
               if (key === 'Gil') eq.gil = getNum(value);
               else if (key === 'Mochila') {
-                eq.backpack = value
-                  .split(',')
-                  .map((s) => s.trim())
-                  .filter(Boolean);
+                eq.backpack = value;
               }
             }
             break;

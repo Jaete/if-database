@@ -90,8 +90,10 @@ export interface IEquipment {
   feet?: IItem;
   hand?: IItem;
   offhand?: IItem;
+  accessory1?: IItem;
+  accessory2?: IItem;
   gil?: number;
-  backpack?: IItem[];
+  backpack?: string;
 }
 
 // ============================================================
