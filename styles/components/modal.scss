@@ -6,15 +6,15 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: $overlay;
-  backdrop-filter: blur(4px);
+  background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
   z-index: 1000;
   @include flex-center;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
   transition:
-    opacity 0.3s ease,
+    opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
     visibility 0.3s ease;
 
   &--visible {
@@ -24,20 +24,20 @@
   }
 
   .modal {
-    background-color: $neutral-200;
-    border: 1px solid $primary-400;
-    border-radius: $radius-md;
+    background: linear-gradient(180deg, $surface-elevated 0%, $surface 100%);
+    border: 1px solid $neutral-400;
+    border-radius: $radius-lg;
     width: 90%;
     max-width: 800px;
     max-height: 90vh;
     @include flex-col-start;
     overflow: hidden;
-    box-shadow: 0 4px 20px rgba($neutral-100, 0.5);
+    @include elevation(3);
     position: relative;
     transform: scale(0.92);
     opacity: 0;
     transition:
-      transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
       opacity 0.3s ease;
 
     &--open {
@@ -55,10 +55,14 @@
       background: linear-gradient(
         90deg,
         transparent,
-        rgba($primary-100, 0.5),
+        rgba($gold-100, 0.4),
         transparent
       );
       z-index: 1;
+    }
+
+    &:hover {
+      border-color: rgba($gold-100, 0.15);
     }
   }
 
@@ -68,27 +72,28 @@
     border-bottom: 1px solid $neutral-400;
     @include flex-row-between;
     align-items: center;
-    background: linear-gradient(180deg, $neutral-300 0%, $neutral-200 100%);
+    background: linear-gradient(180deg, rgba($surface-float, 0.5) 0%, $surface-elevated 100%);
   }
 
   .title {
-    @include cinzel-lg($primary-100, bold, 1.2);
+    @include cinzel-lg($gold-300, bold, 1.2);
     margin: 0;
   }
 
   .closeButton {
     background: none;
     border: none;
-    color: $neutral-1000;
+    color: $neutral-800;
     font-size: 1.5rem;
     cursor: pointer;
     padding: 0 $spacing-2;
     margin-left: auto;
     line-height: 1;
-    transition: color 0.2s ease;
+    transition: all 0.2s ease;
+    border-radius: $radius-sm;
 
     &:hover {
-      color: $error;
+      color: $gold-300;
     }
   }
 
@@ -108,15 +113,15 @@
       border-radius: 3px;
     }
     &::-webkit-scrollbar-thumb {
-      background: linear-gradient(180deg, $primary-100, $primary-400);
+      background: linear-gradient(180deg, $gold-300, $gold-500);
       border-radius: 3px;
       border: 1px solid $neutral-400;
     }
     &::-webkit-scrollbar-thumb:hover {
-      background: $primary-100;
+      background: $gold-200;
     }
     /* Firefox */
     scrollbar-width: thin;
-    scrollbar-color: $primary-100 $neutral-200;
+    scrollbar-color: $gold-400 $neutral-200;
   }
 }

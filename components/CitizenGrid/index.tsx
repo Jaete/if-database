@@ -92,20 +92,20 @@ const CitizenGrid = () => {
 
   return (
     <div
-      className={`${handles.container}${!canEdit ? ` ${applyModifiers(handles.container, 'viewOnly')}` : ''}`}
+      className={`${handles.cgContainer}${!canEdit ? ` ${applyModifiers(handles.cgContainer, 'viewOnly')}` : ''}`}
     >
-      <div ref={sentinelRef} className={handles.headerSentinel} />
+      <div ref={sentinelRef} className={handles.cgHeaderSentinel} />
       <header
-        className={`${handles.header}${isSticky ? ` ${applyModifiers(handles.header, 'compact')}` : ''}`}
+        className={`${handles.cgHeader}${isSticky ? ` ${applyModifiers(handles.cgHeader, 'compact')}` : ''}`}
       >
-        <h1 className={handles.title}>CIDADÃOS DE TERRALÉM</h1>
-        <p className={handles.subtitle}>
+        <h1 className={handles.cgTitle}>CIDADÃOS DE TERRALÉM</h1>
+        <p className={handles.cgSubtitle}>
           Lista dos cidadãos, heróis e figuras do mundo.
         </p>
-        <div className={handles.navButtons}>
+        <div className={handles.cgNavButtons}>
           {canEdit && (
             <button
-              className={handles.navButton}
+              className={handles.cgNavButton}
               onClick={handleCreateClick}
               aria-label="Criar novo cidadão"
             >
@@ -114,17 +114,17 @@ const CitizenGrid = () => {
           )}
         </div>
 
-        <div className={handles.compactSearchBar}>
-          <div className={handles.compactSearchInput}>
+        <div className={handles.cgCompactSearchBar}>
+          <div className={handles.cgCompactSearchInput}>
             <input
               type="text"
-              className={handles.searchInput}
+              className={handles.cgSearchInput}
               placeholder="Buscar cidadão pelo nome..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
             {searchTerm.length > 0 && (
-              <span className={handles.resultsCount}>
+              <span className={handles.cgResultsCount}>
                 {filteredCitizens.length} resultado
                 {filteredCitizens.length !== 1 ? 's' : ''}
               </span>
@@ -132,7 +132,7 @@ const CitizenGrid = () => {
           </div>
           {canEdit && (
             <button
-              className={handles.compactActionBtn}
+              className={handles.cgCompactActionBtn}
               onClick={handleCreateClick}
               aria-label="Criar novo cidadão"
             >
@@ -155,28 +155,28 @@ const CitizenGrid = () => {
       </header>
 
       <div
-        className={`${handles.searchContainer}${isSticky ? ` ${applyModifiers(handles.searchContainer, 'hidden')}` : ''}`}
+        className={`${handles.cgSearchContainer}${isSticky ? ` ${applyModifiers(handles.cgSearchContainer, 'hidden')}` : ''}`}
       >
         <input
           type="text"
-          className={handles.searchInput}
+          className={handles.cgSearchInput}
           placeholder="Buscar cidadão pelo nome..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
         {searchTerm.length > 0 && (
-          <span className={handles.resultsCount}>
+          <span className={handles.cgResultsCount}>
             {filteredCitizens.length} resultado
             {filteredCitizens.length !== 1 ? 's' : ''}
           </span>
         )}
       </div>
 
-      <div className={handles.grid}>
+      <div className={handles.cgGrid}>
         {loading ? (
-          <div className={handles.gridLoading}>
+          <div className={handles.cgGridLoading}>
             {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className={handles.gridSkeleton} />
+              <div key={i} className={handles.cgGridSkeleton} />
             ))}
           </div>
         ) : (
@@ -193,7 +193,7 @@ const CitizenGrid = () => {
           ))
         )}
         {!loading && filteredCitizens.length === 0 && (
-          <div className={handles.emptyState}>Nenhum cidadão encontrado.</div>
+          <div className={handles.cgEmptyState}>Nenhum cidadão encontrado.</div>
         )}
       </div>
 

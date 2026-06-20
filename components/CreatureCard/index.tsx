@@ -66,9 +66,9 @@ const CreatureCard = ({ creature, onClick, onEdit, onDelete }: IProps) => {
   }, [menuOpen]);
 
   return (
-    <div className={handles.card} onClick={() => onClick(creature)}>
+    <div className={handles.mcCard} onClick={() => onClick(creature)}>
       <div
-        className={`${handles.cardImage}${!hasImage ? ` ${applyModifiers(handles.cardImage, 'placeholder')}` : ''}`}
+        className={`${handles.mcCardImage}${!hasImage ? ` ${applyModifiers(handles.mcCardImage, 'placeholder')}` : ''}`}
       >
         {hasImage ? (
           <img
@@ -83,17 +83,17 @@ const CreatureCard = ({ creature, onClick, onEdit, onDelete }: IProps) => {
             onError={() => setImageError(true)}
           />
         ) : null}
-        <div className={handles.cardImageOverlay} />
+        <div className={handles.mcCardImageOverlay} />
       </div>
-      <div className={handles.cardInfo}>
+      <div className={handles.mcCardInfo}>
         {canEdit && (
           <div
             ref={menuRef}
-            className={handles.menuButton}
+            className={handles.mcMenuButton}
             onClick={(e) => e.stopPropagation()}
           >
             <button
-              className={handles.menuDots}
+              className={handles.mcMenuDots}
               onClick={handleMenuToggle}
               aria-label="Opções da criatura"
               aria-expanded={menuOpen}
@@ -110,9 +110,9 @@ const CreatureCard = ({ creature, onClick, onEdit, onDelete }: IProps) => {
               </svg>
             </button>
             {menuOpen && (
-              <div className={handles.dropdown}>
+              <div className={handles.mcDropdown}>
                 <button
-                  className={`${handles.dropdownItem} ${handles.dropdownItemDelete}`}
+                  className={`${handles.mcDropdownItem} ${handles.mcDropdownItemDelete}`}
                   onClick={(e) => handleDeleteClick(e, creature)}
                 >
                   <svg
@@ -136,15 +136,15 @@ const CreatureCard = ({ creature, onClick, onEdit, onDelete }: IProps) => {
             )}
           </div>
         )}
-        <div className={handles.cardRarity}>{creature.rarity}</div>
-        <h3 className={handles.cardName}>{creature.name}</h3>
+        <div className={handles.mcCardRarity}>{creature.rarity}</div>
+        <h3 className={handles.mcCardName}>{creature.name}</h3>
         {canEdit && (
           <button
-            className={handles.cardButton}
+            className={handles.mcCardButton}
             onClick={(e) => handleEditClick(e, creature)}
           >
             <svg
-              className={handles.cardButtonIcon}
+              className={handles.mcCardButtonIcon}
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
               fill="none"

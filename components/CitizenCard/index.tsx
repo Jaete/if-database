@@ -68,9 +68,9 @@ const CitizenCard = ({ citizen, onClick, onEdit, onDelete }: IProps) => {
   const subtitle = [citizen.race, citizen.class].filter(Boolean).join(' · ');
 
   return (
-    <div className={handles.card} onClick={() => onClick(citizen)}>
+    <div className={handles.ccCard} onClick={() => onClick(citizen)}>
       <div
-        className={`${handles.cardImage}${!hasImage ? ` ${applyModifiers(handles.cardImage, 'placeholder')}` : ''}`}
+        className={`${handles.ccCardImage}${!hasImage ? ` ${applyModifiers(handles.ccCardImage, 'placeholder')}` : ''}`}
       >
         {hasImage ? (
           <img
@@ -85,19 +85,19 @@ const CitizenCard = ({ citizen, onClick, onEdit, onDelete }: IProps) => {
             onError={() => setImageError(true)}
           />
         ) : null}
-        <div className={handles.cardImageOverlay} />
+        <div className={handles.ccCardImageOverlay} />
       </div>
-      <div className={handles.cardInfo}>
-        <div className={handles.cardSubtitle}>{subtitle}</div>
-        <h3 className={handles.cardName}>{citizen.name}</h3>
-        <div className={handles.cardActions}>
+      <div className={handles.ccCardInfo}>
+        <div className={handles.ccCardSubtitle}>{subtitle}</div>
+        <h3 className={handles.ccCardName}>{citizen.name}</h3>
+        <div className={handles.ccCardActions}>
           {canEdit && (
             <button
-              className={handles.cardButton}
+              className={handles.ccCardButton}
               onClick={(e) => handleEditClick(e, citizen)}
             >
               <svg
-                className={handles.cardButtonIcon}
+                className={handles.ccCardButtonIcon}
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
                 fill="none"
@@ -115,11 +115,11 @@ const CitizenCard = ({ citizen, onClick, onEdit, onDelete }: IProps) => {
           {canEdit && (
             <div
               ref={menuRef}
-              className={handles.menuButton}
+              className={handles.ccMenuButton}
               onClick={(e) => e.stopPropagation()}
             >
               <button
-                className={handles.menuDots}
+                className={handles.ccMenuDots}
                 onClick={handleMenuToggle}
                 aria-label="Opções do cidadão"
                 aria-expanded={menuOpen}
@@ -136,9 +136,9 @@ const CitizenCard = ({ citizen, onClick, onEdit, onDelete }: IProps) => {
                 </svg>
               </button>
               {menuOpen && (
-                <div className={handles.dropdown}>
+                <div className={handles.ccDropdown}>
                   <button
-                    className={`${handles.dropdownItem} ${handles.dropdownItemDelete}`}
+                    className={`${handles.ccDropdownItem} ${handles.ccDropdownItemDelete}`}
                     onClick={(e) => handleDeleteClick(e, citizen)}
                   >
                     <svg

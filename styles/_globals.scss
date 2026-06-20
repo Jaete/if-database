@@ -5,11 +5,26 @@
 @forward './config/spacing';
 @forward './config/animations';
 
+@use './config/mixins' as *;
+
 html {
   scroll-behavior: smooth;
+  @include noise-texture(0.025);
 }
 
 ::selection {
   background-color: #9c841c;
   color: #ffffff;
+}
+
+/* Hide number input spinners */
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
 }

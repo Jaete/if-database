@@ -1,9 +1,9 @@
 @use '../../styles/globals' as *;
 
-.card {
+.ccCard {
   display: flex;
   flex-direction: column;
-  background-color: $neutral-200;
+  background: linear-gradient(180deg, $surface-raised 0%, $surface 100%);
   border: 1px solid $neutral-400;
   border-radius: 12px;
   overflow: hidden;
@@ -13,23 +13,29 @@
     border-color 0.25s ease,
     box-shadow 0.25s ease;
   position: relative;
+  @include elevation(1);
 
   &:hover {
     transform: translateY(-4px);
-    border-color: $primary-100;
+    border-color: rgba($gold-100, 0.4);
     box-shadow:
       0 10px 20px rgba(0, 0, 0, 0.4),
-      0 0 0 1px rgba($primary-100, 0.3);
+      0 0 0 1px rgba($gold-100, 0.3),
+      0 0 20px rgba($gold-100, 0.08);
 
-    .cardImageOverlay {
+    .ccCardImageOverlay {
       opacity: 0.2;
     }
 
-    .cardInfo::after {
+    .ccCardImage {
+      border-bottom-color: rgba($gold-100, 0.5);
+    }
+
+    .ccCardInfo::after {
       opacity: 1;
     }
 
-    .cardButtonIcon {
+    .ccCardButtonIcon {
       transform: translateX(2px);
     }
   }
@@ -47,12 +53,14 @@
   }
 }
 
-.cardImage {
+.ccCardImage {
   width: 100%;
   aspect-ratio: 1 / 1;
   position: relative;
   flex-shrink: 0;
   overflow: hidden;
+  border-bottom: 2px solid transparent;
+  transition: border-color 0.3s ease;
 
   &::after {
     content: '';
@@ -60,8 +68,9 @@
     inset: 0;
     background: linear-gradient(
       to bottom,
-      transparent 40%,
-      $neutral-200 100%
+      transparent 55%,
+      rgba($surface, 0.4) 80%,
+      $surface 100%
     );
     z-index: 1;
     pointer-events: none;
@@ -69,7 +78,8 @@
     @include light {
       background: linear-gradient(
         to bottom,
-        transparent 40%,
+        transparent 55%,
+        rgba($neutral-2100, 0.4) 80%,
         $neutral-2100 100%
       );
     }
@@ -85,7 +95,7 @@
   }
 }
 
-.cardImageOverlay {
+.ccCardImageOverlay {
   position: absolute;
   inset: 0;
   background: $primary-100;
@@ -94,7 +104,7 @@
   z-index: 2;
 }
 
-.cardInfo {
+.ccCardInfo {
   padding: $spacing-4 $spacing-5 $spacing-5;
   @include flex-col-start();
   gap: $spacing-2;
@@ -111,7 +121,7 @@
     background: linear-gradient(
       90deg,
       transparent,
-      rgba($primary-100, 0.4),
+      rgba($gold-100, 0.5),
       transparent
     );
     opacity: 0;
@@ -119,7 +129,7 @@
   }
 }
 
-.cardSubtitle {
+.ccCardSubtitle {
   @include main-xs($neutral-1000, normal);
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -129,7 +139,7 @@
   }
 }
 
-.cardName {
+.ccCardName {
   @include cinzel-md(#ffffff, bold, 1.3);
   margin: 0;
   display: -webkit-box;
@@ -144,7 +154,7 @@
   }
 }
 
-.cardActions {
+.ccCardActions {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -152,19 +162,21 @@
   margin-top: $spacing-3;
 }
 
-.cardButton {
-  background-color: $primary-100;
+.ccCardButton {
+  background: linear-gradient(135deg, $gold-300, $primary-200);
   @include main-xs(#ffffff, bold);
   border: none;
-  padding: 4px 12px;
+  padding: 5px 14px;
   border-radius: 6px;
   cursor: pointer;
   @include flex-row-center();
   gap: $spacing-2;
-  transition: background-color 0.2s;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 
   &:hover {
-    background-color: $primary-200;
+    background: linear-gradient(135deg, $gold-200, $primary-100);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3), 0 0 10px rgba($gold-100, 0.15);
   }
 
   &Icon {
@@ -174,12 +186,12 @@
   }
 }
 
-.menuButton {
+.ccMenuButton {
   position: relative;
   z-index: 10;
 }
 
-.menuDots {
+.ccMenuDots {
   background: none;
   border: none;
   color: $neutral-1000;
@@ -208,15 +220,15 @@
   }
 }
 
-.dropdown {
+.ccDropdown {
   position: absolute;
   bottom: 100%;
   right: 0;
   margin-bottom: $spacing-1;
-  background-color: $neutral-200;
-  border: 1px solid $neutral-400;
+  background-color: $surface-raised;
+  border: 1px solid rgba($gold-100, 0.15);
   border-radius: $radius-sm;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
   min-width: 140px;
   padding: $spacing-1;
   z-index: 20;
@@ -229,7 +241,7 @@
   }
 }
 
-.dropdownItem {
+.ccDropdownItem {
   width: 100%;
   background: none;
   border: none;

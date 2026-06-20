@@ -7,11 +7,13 @@ import {
   useState,
   useEffect,
   useCallback,
+  useRef,
 } from 'react';
 import * as api from './citizensUtils';
 
 interface IProps {
   children: React.ReactNode;
+  initialCitizens?: ICitizen[];
 }
 
 interface ICitizensContext {
@@ -22,13 +24,24 @@ interface ICitizensContext {
   create: (citizen: ICitizen) => Promise<void>;
 }
 
-const initialCitizens: ICitizen[] = [];
-
 export const CitizensContext = createContext<ICitizensContext | null>(null);
 
-export default function CitizensProvider({ children }: IProps) {
-  const [citizens, setCitizens] = useState(initialCitizens);
-  const [loading, setLoading] = useState(true);
+export default function CitizensProvider({
+  children,
+  initialCitizens,
+}: IProps) {
+  const [citizens, setCitizens] = useState(initialCitizens ?? []);
+  const [loading, setLoading] = useState(!initialCitizens);
+  const citizensRef = useRef(citizens);
+  const loadingRef = useRef(loading);
+
+  useEffect(() => {
+    citizensRef.current = citizens;
+  }, [citizens]);
+
+  useEffect(() => {
+    loadingRef.current = loading;
+  }, [loading]);
 
   const update = useCallback(async (citizen: ICitizen) => {
     try {
@@ -64,17 +77,49 @@ export default function CitizensProvider({ children }: IProps) {
   }, []);
 
   useEffect(() => {
+    let mounted = true;
+
     const loadCitizens = async () => {
+      setLoading(true);
       try {
         const data = await api.fetchCitizens();
-        setCitizens(data);
+        if (mounted) {
+          setCitizens(data);
+        }
       } catch (err) {
         console.error(err);
       } finally {
-        setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     };
+
     loadCitizens();
+
+    const handlePageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) {
+        loadCitizens();
+      }
+    };
+    window.addEventListener('pageshow', handlePageShow);
+
+    const handleVisibilityChange = () => {
+      if (
+        document.visibilityState === 'visible' &&
+        citizensRef.current.length === 0 &&
+        !loadingRef.current
+      ) {
+        loadCitizens();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      mounted = false;
+      window.removeEventListener('pageshow', handlePageShow);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, []);
 
   return (

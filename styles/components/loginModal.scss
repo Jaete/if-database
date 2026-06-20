@@ -12,20 +12,21 @@
     .card {
         width: 100%;
         max-width: 400px;
-        background: $neutral-200;
-        border: 1px solid $neutral-400;
+        background: $surface-elevated;
+        border: 1px solid rgba($gold-100, 0.2);
         border-radius: 12px;
         padding: $spacing-10 $spacing-8;
         display: flex;
         flex-direction: column;
         align-items: center;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        @include elevation(3);
     }
 
     .title {
-        @include cinzel-2xl($primary-100, bold, 1.2, 2px);
+        @include cinzel-2xl($gold-100, bold, 1.2, 2px);
         margin: 0 0 $spacing-8 0;
         text-align: center;
+        text-shadow: 0 0 20px rgba($gold-100, 0.15);
     }
 
     .form {
@@ -63,8 +64,8 @@
         }
 
         &:focus {
-            border-color: $primary-100;
-            box-shadow: 0 0 0 2px rgba($primary-100, 0.15);
+            border-color: $gold-200;
+            box-shadow: 0 0 0 2px rgba($gold-100, 0.2), 0 0 12px rgba($gold-100, 0.1);
         }
 
         &:disabled {
@@ -76,17 +77,20 @@
     .submitBtn {
         width: 100%;
         @include main-xs(#ffffff, bold);
-        background-color: $primary-100;
+        background: linear-gradient(135deg, $gold-300, $primary-200);
         border: none;
         padding: $spacing-3 $spacing-6;
         border-radius: 6px;
         cursor: pointer;
         text-transform: uppercase;
         letter-spacing: 2px;
-        transition: background-color 0.2s;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 
         &:hover:not(:disabled) {
-            background-color: $primary-200;
+            background: linear-gradient(135deg, $gold-200, $primary-100);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), 0 0 12px rgba($gold-100, 0.2);
+            transform: translateY(-1px);
         }
 
         &:disabled {
@@ -130,13 +134,13 @@
         background: none;
         border: none;
         padding: 0;
-        @include main-sm($primary-100, bold);
+        @include main-sm($gold-100, bold);
         cursor: pointer;
         text-decoration: underline;
         transition: color 0.2s;
 
         &:hover {
-            color: $primary-200;
+            color: $gold-200;
         }
     }
 

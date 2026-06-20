@@ -1,3 +1,6 @@
+@use 'colors' as *;
+@use 'spacing' as *;
+
 @mixin desktop {
     @media (min-width: 750px) {
         @content;
@@ -22,6 +25,154 @@
     }
 }
 
+// ==========================================
+// Premium Design Mixins
+// ==========================================
 
+/// Gold gradient border using pseudo-element
+@mixin gold-border($width: 1px, $opacity: 0.4) {
+  position: relative;
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: $width;
+    background: linear-gradient(
+      135deg,
+      rgba($gold-100, $opacity),
+      rgba($gold-300, $opacity * 0.7),
+      rgba($gold-100, $opacity)
+    );
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: 0;
+  }
+}
 
+/// Gold decorative line under a heading
+@mixin gold-decorative-line($width: 48px, $height: 2px) {
+  &::after {
+    content: '';
+    display: block;
+    width: $width;
+    height: $height;
+    margin-top: $spacing-2;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba($gold-100, 0.6),
+      $gold-100,
+      rgba($gold-300, 0.6),
+      transparent
+    );
+  }
+}
+
+/// Gold gradient text
+@mixin gold-gradient-text {
+  background: linear-gradient(
+    135deg,
+    $gold-100,
+    $primary-100,
+    $gold-300
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/// Premium input focus style
+@mixin premium-input-focus {
+  outline: none;
+  border-color: $gold-200;
+  box-shadow:
+    0 0 0 2px rgba($primary-100, 0.25),
+    0 0 12px rgba($gold-100, 0.1);
+}
+
+/// Gold glow shadow
+@mixin gold-glow($intensity: 1) {
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.4),
+    0 0 #{$intensity * 20}px rgba($gold-100, #{$intensity * 0.15});
+}
+
+/// Section card style
+@mixin premium-card($padding: $spacing-5) {
+  background: linear-gradient(
+    180deg,
+    $surface-raised 0%,
+    $surface 100%
+  );
+  border: 1px solid $neutral-400;
+  border-radius: $radius-lg;
+  padding: $padding;
+  transition:
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+
+  &:hover {
+    border-color: rgba($gold-100, 0.3);
+    box-shadow: $glow-gold;
+  }
+}
+
+/// Ornament corner decoration
+@mixin corner-ornament($size: 8px, $color: $gold-100, $opacity: 0.3) {
+  &::before {
+    content: '\25C6';
+    position: absolute;
+    top: $spacing-2;
+    left: $spacing-3;
+    font-size: $size;
+    color: $color;
+    opacity: $opacity;
+    pointer-events: none;
+  }
+}
+
+/// Elevation level system
+@mixin elevation($level: 1) {
+  @if $level == 0 {
+    box-shadow: none;
+  } @else if $level == 1 {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  } @else if $level == 2 {
+    box-shadow:
+      0 4px 12px rgba(0, 0, 0, 0.4),
+      0 0 0 1px rgba($gold-100, 0.1);
+  } @else if $level == 3 {
+    box-shadow:
+      0 8px 24px rgba(0, 0, 0, 0.5),
+      0 0 20px rgba($gold-100, 0.12);
+  } @else if $level == 4 {
+    box-shadow:
+      0 16px 40px rgba(0, 0, 0, 0.6),
+      0 0 30px rgba($gold-100, 0.15);
+  }
+}
+
+/// Subtle noise texture via CSS (no image needed)
+@mixin noise-texture($opacity: 0.03) {
+  &::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    opacity: $opacity;
+    pointer-events: none;
+    z-index: 9999;
+    background: repeating-conic-gradient(
+      #000 0.000001%,
+      transparent 0.0001%,
+      transparent 0.00015%,
+      #000 0.0002%
+    );
+    background-size: 200px 200px;
+  }
+}
 

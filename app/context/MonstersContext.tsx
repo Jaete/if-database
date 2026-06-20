@@ -7,11 +7,13 @@ import {
   useState,
   useEffect,
   useCallback,
+  useRef,
 } from 'react';
 import * as api from './monstersUtils';
 
 interface IProps {
   children: React.ReactNode;
+  initialMonsters?: IMonster[];
 }
 
 interface IMonstersContext {
@@ -22,13 +24,24 @@ interface IMonstersContext {
   create: (monster: IMonster) => Promise<void>;
 }
 
-const initialMonsters: IMonster[] = [];
-
 export const MonstersContext = createContext<IMonstersContext | null>(null);
 
-export default function MonstersProvider({ children }: IProps) {
-  const [monsters, setMonsters] = useState(initialMonsters);
-  const [loading, setLoading] = useState(true);
+export default function MonstersProvider({
+  children,
+  initialMonsters,
+}: IProps) {
+  const [monsters, setMonsters] = useState(initialMonsters ?? []);
+  const [loading, setLoading] = useState(!initialMonsters);
+  const monstersRef = useRef(monsters);
+  const loadingRef = useRef(loading);
+
+  useEffect(() => {
+    monstersRef.current = monsters;
+  }, [monsters]);
+
+  useEffect(() => {
+    loadingRef.current = loading;
+  }, [loading]);
   const update = useCallback(async (monster: IMonster) => {
     try {
       const { data } = await api.updateMonster(monster);
@@ -63,17 +76,49 @@ export default function MonstersProvider({ children }: IProps) {
   }, []);
 
   useEffect(() => {
+    let mounted = true;
+
     const loadMonsters = async () => {
+      setLoading(true);
       try {
         const data = await api.fetchMonsters();
-        setMonsters(data);
+        if (mounted) {
+          setMonsters(data);
+        }
       } catch (err) {
         console.error(err);
       } finally {
-        setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     };
+
     loadMonsters();
+
+    const handlePageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) {
+        loadMonsters();
+      }
+    };
+    window.addEventListener('pageshow', handlePageShow);
+
+    const handleVisibilityChange = () => {
+      if (
+        document.visibilityState === 'visible' &&
+        monstersRef.current.length === 0 &&
+        !loadingRef.current
+      ) {
+        loadMonsters();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      mounted = false;
+      window.removeEventListener('pageshow', handlePageShow);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, []);
 
   return (

@@ -100,18 +100,18 @@ const CreatureGrid = () => {
 
   return (
     <div
-      className={`${handles.container}${!canEdit ? ` ${applyModifiers(handles.container, 'viewOnly')}` : ''}`}
+      className={`${handles.mgContainer}${!canEdit ? ` ${applyModifiers(handles.mgContainer, 'viewOnly')}` : ''}`}
     >
-      <div ref={sentinelRef} className={handles.headerSentinel} />
+      <div ref={sentinelRef} className={handles.mgHeaderSentinel} />
       <header
-        className={`${handles.header}${isSticky ? ` ${applyModifiers(handles.header, 'compact')}` : ''}`}
+        className={`${handles.mgHeader}${isSticky ? ` ${applyModifiers(handles.mgHeader, 'compact')}` : ''}`}
       >
-        <h1 className={handles.title}>BESTIÁRIO DE TERRALÉM</h1>
-        <p className={handles.subtitle}>Lista dos monstros disponíveis.</p>
-        <div className={handles.navButtons}>
+        <h1 className={handles.mgTitle}>BESTIÁRIO DE TERRALÉM</h1>
+        <p className={handles.mgSubtitle}>Lista dos monstros disponíveis.</p>
+        <div className={handles.mgNavButtons}>
           {canEdit && (
             <button
-              className={handles.navButton}
+              className={handles.mgNavButton}
               onClick={handleCreateClick}
               aria-label="Criar nova criatura"
             >
@@ -120,7 +120,7 @@ const CreatureGrid = () => {
           )}
           {canEdit && (
             <button
-              className={handles.navButton}
+              className={handles.mgNavButton}
               onClick={handleTreeModalOpen}
               aria-label="Gerar arvore de criaturas"
             >
@@ -129,17 +129,17 @@ const CreatureGrid = () => {
           )}
         </div>
 
-        <div className={handles.compactSearchBar}>
-          <div className={handles.compactSearchInput}>
+        <div className={handles.mgCompactSearchBar}>
+          <div className={handles.mgCompactSearchInput}>
             <input
               type="text"
-              className={handles.searchInput}
+              className={handles.mgSearchInput}
               placeholder="Buscar criatura pelo nome..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
             {searchTerm.length > 0 && (
-              <span className={handles.resultsCount}>
+              <span className={handles.mgResultsCount}>
                 {filteredCreatures.length} resultado
                 {filteredCreatures.length !== 1 ? 's' : ''}
               </span>
@@ -147,7 +147,7 @@ const CreatureGrid = () => {
           </div>
           {canEdit && (
             <button
-              className={handles.compactActionBtn}
+              className={handles.mgCompactActionBtn}
               onClick={handleCreateClick}
               aria-label="Criar nova criatura"
             >
@@ -168,7 +168,7 @@ const CreatureGrid = () => {
           )}
           {canEdit && (
             <button
-              className={handles.compactActionBtn}
+              className={handles.mgCompactActionBtn}
               onClick={handleTreeModalOpen}
               aria-label="Gerar árvore de criaturas"
             >
@@ -195,28 +195,28 @@ const CreatureGrid = () => {
       </header>
 
       <div
-        className={`${handles.searchContainer}${isSticky ? ` ${applyModifiers(handles.searchContainer, 'hidden')}` : ''}`}
+        className={`${handles.mgSearchContainer}${isSticky ? ` ${applyModifiers(handles.mgSearchContainer, 'hidden')}` : ''}`}
       >
         <input
           type="text"
-          className={handles.searchInput}
+          className={handles.mgSearchInput}
           placeholder="Buscar criatura pelo nome..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
         {searchTerm.length > 0 && (
-          <span className={handles.resultsCount}>
+          <span className={handles.mgResultsCount}>
             {filteredCreatures.length} resultado
             {filteredCreatures.length !== 1 ? 's' : ''}
           </span>
         )}
       </div>
 
-      <div className={handles.grid}>
+      <div className={handles.mgGrid}>
         {loading ? (
-          <div className={handles.gridLoading}>
+          <div className={handles.mgGridLoading}>
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className={handles.gridSkeleton} />
+              <div key={i} className={handles.mgGridSkeleton} />
             ))}
           </div>
         ) : (
@@ -233,7 +233,9 @@ const CreatureGrid = () => {
           ))
         )}
         {!loading && filteredCreatures.length === 0 && (
-          <div className={handles.emptyState}>Nenhuma criatura encontrada.</div>
+          <div className={handles.mgEmptyState}>
+            Nenhuma criatura encontrada.
+          </div>
         )}
       </div>
 

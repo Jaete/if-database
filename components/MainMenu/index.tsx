@@ -16,12 +16,12 @@ const MainMenu = () => {
 
       <nav className={handles.menuList}>
         <div className={handles.menuItem}>
-          <Link href="/monsters" className={handles.menuLink}>
+          <Link href="/monsters" className={handles.menuLink} prefetch={false}>
             Bestiário
           </Link>
         </div>
         <div className={handles.menuItem}>
-          <Link href="/citizens" className={handles.menuLink}>
+          <Link href="/citizens" className={handles.menuLink} prefetch={false}>
             Cidadãos
           </Link>
         </div>

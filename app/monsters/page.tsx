@@ -1,14 +1,19 @@
-'use client';
+import { connectDB } from '@/lib/db';
+import { getAllMonsters } from '@/services/monster.service';
+import MonstersPageClient from './MonstersPageClient';
+import IMonster from '@/db/monsters/monster';
 
-import CreatureGrid from '@/components/CreatureGrid';
-import MonstersProvider from '@/app/context/MonstersContext';
+export const dynamic = 'force-dynamic';
 
-export default function MonstersList() {
-  return (
-    <main>
-      <MonstersProvider>
-        <CreatureGrid />
-      </MonstersProvider>
-    </main>
-  );
+export default async function MonstersPage() {
+  let serialized: IMonster[] = [];
+  try {
+    await connectDB();
+    const monsters = await getAllMonsters();
+    serialized = JSON.parse(JSON.stringify(monsters));
+  } catch (error) {
+    console.error('Failed to load monsters:', error);
+  }
+
+  return <MonstersPageClient initialMonsters={serialized} />;
 }
