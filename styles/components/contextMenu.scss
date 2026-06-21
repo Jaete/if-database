@@ -1,0 +1,75 @@
+@use '../../styles/globals' as *;
+
+.contextMenu {
+  position: fixed;
+  z-index: 1200;
+  min-width: 180px;
+  max-width: 260px;
+  padding: $spacing-2 0;
+  background: $surface-elevated;
+  border: 1px solid $neutral-400;
+  border-radius: $radius-md;
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba($gold-100, 0.06);
+  animation: contextMenuFadeIn 0.12s ease-out;
+}
+
+.contextMenuItem {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+  width: 100%;
+  padding: $spacing-2 $spacing-4;
+  background: none;
+  border: none;
+  color: $neutral-2000;
+  text-align: left;
+  cursor: pointer;
+  @include main-sm($neutral-2000, normal, 1.4);
+  transition:
+    background 0.12s ease,
+    color 0.12s ease;
+
+  &:hover {
+    background: $accent-overlay-hover;
+    color: $gold-100;
+  }
+
+  &--disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+}
+
+.contextMenuItem__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: $gold-200;
+}
+
+.contextMenuItem__label {
+  flex: 1;
+}
+
+.contextMenu__separator {
+  height: 1px;
+  margin: $spacing-2 0;
+  background: $neutral-400;
+}
+
+@keyframes contextMenuFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

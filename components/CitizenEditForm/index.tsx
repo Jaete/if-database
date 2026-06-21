@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import type ICitizen from '@/db/citizens/citizen.d';
 import type { IPlayerSpellLevel } from '@/db/citizens/citizen.d';
 import { useCssHandles } from '@/hooks/useCssHandles';
@@ -15,9 +15,11 @@ interface IProps {
   citizen?: ICitizen;
   onClose: () => void;
   mode?: 'create' | 'edit';
+  externalFormData?: FormDataType;
+  onFormDataChange?: (data: FormDataType) => void;
 }
 
-type FormDataType = Partial<ICitizen> & {
+export type FormDataType = Partial<ICitizen> & {
   spells: string[];
   cantrips: string[];
   profSavingThrows: Array<{ attribute: string; value: number }>;
@@ -29,7 +31,7 @@ type FormDataType = Partial<ICitizen> & {
 
 const STAT_KEYS = ['str', 'dex', 'con', 'int', 'wis', 'cha'] as const;
 
-const emptyCitizen: FormDataType = {
+export const emptyCitizen: FormDataType = {
   slug: '',
   name: '',
   race: '',
@@ -90,7 +92,7 @@ const emptyCitizen: FormDataType = {
   backpackText: '',
 };
 
-const citizenToFormData = (citizen: ICitizen) => {
+export const citizenToFormData = (citizen: ICitizen) => {
   const spells: string[] = [];
   const cantrips: string[] = [];
   const sl = citizen.playerSpellcasting?.spellLevels || [];
@@ -141,16 +143,43 @@ const citizenToFormData = (citizen: ICitizen) => {
   };
 };
 
-const CitizenEditForm = ({ citizen, onClose, mode = 'edit' }: IProps) => {
+const CitizenEditForm = ({
+  citizen,
+  onClose,
+  mode = 'edit',
+  externalFormData,
+  onFormDataChange,
+}: IProps) => {
   const handles = useCssHandles(CitizenEditFormHandles);
   const { update, create } = useCitizens();
   const isCreate = mode === 'create';
 
   const [formData, setFormData] = useState<FormDataType>(
-    isCreate ? emptyCitizen : (citizenToFormData(citizen!) as FormDataType)
+    externalFormData
+      ? externalFormData
+      : isCreate
+        ? emptyCitizen
+        : (citizenToFormData(citizen!) as FormDataType)
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [alertMsg, setAlertMsg] = useState<string | null>(null);
+
+  // ─── Tab sync ────────────────────────────────────────
+  const lastSyncedRef = useRef<FormDataType>(formData);
+
+  useEffect(() => {
+    if (externalFormData && externalFormData !== lastSyncedRef.current) {
+      lastSyncedRef.current = externalFormData;
+      setFormData(externalFormData);
+    }
+  }, [externalFormData]);
+
+  useEffect(() => {
+    if (onFormDataChange && formData !== lastSyncedRef.current) {
+      lastSyncedRef.current = formData;
+      onFormDataChange(formData);
+    }
+  }, [formData, onFormDataChange]);
 
   const fileInputMarkdownRef = useRef<HTMLInputElement>(null);
   const [isImportingMarkdown, setIsImportingMarkdown] = useState(false);

@@ -2,7 +2,7 @@
 
 .cgContainer {
   min-height: 100dvh;
-  padding: $spacing-10 $spacing-5;
+  padding: $spacing-10 $spacing-5 calc($spacing-10 + 3.5rem);
   @include flex-col-start();
   align-items: center;
   background-color: $neutral-100;

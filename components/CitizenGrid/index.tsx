@@ -7,7 +7,11 @@ import { useCssHandles, applyModifiers } from '@/hooks/useCssHandles';
 import CitizenCard from '../CitizenCard';
 import CreatureDrawer from '../CreatureDrawer';
 import Modal from '../Modal';
-import CitizenEditForm from '../CitizenEditForm';
+import CitizenEditForm, {
+  citizenToFormData,
+  emptyCitizen,
+  type FormDataType,
+} from '../CitizenEditForm';
 import ConfirmModal from '../ConfirmModal';
 import CitizenGridHandles from './handles';
 import '@/styles/components/citizenGrid.scss';
@@ -17,6 +21,7 @@ import DrawerContent from '../CreatureDrawer/sections/DrawerContent';
 import CitizenData from '../CitizenDrawer/CitizenData';
 import { useCitizens } from '@/app/context/CitizensContext';
 import { useAuth } from '@/app/context/AuthContext';
+import { useTabs } from '@/app/context/TabContext';
 
 const CitizenGrid = () => {
   const { citizens, loading, erase } = useCitizens();
@@ -24,12 +29,17 @@ const CitizenGrid = () => {
   const handles = useCssHandles(CitizenGridHandles);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCitizen, setSelectedCitizen] = useState<ICitizen | null>(null);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<ICitizen | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isSticky, setIsSticky] = useState(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
+
+  const { activeTab, openTab, openTabSilently, closeTab, updateTabFormData } =
+    useTabs<FormDataType>();
+  const [directEditCitizen, setDirectEditCitizen] = useState<ICitizen | null>(
+    null
+  );
+  const [isDirectModalOpen, setIsDirectModalOpen] = useState(false);
 
   const filteredCitizens = useMemo(() => {
     return citizens.filter((citizen) =>
@@ -39,7 +49,7 @@ const CitizenGrid = () => {
 
   useEffect(() => {
     const handleClose = () => {
-      if (!isEditModalOpen) {
+      if (!activeTab) {
         setSelectedCitizen(null);
       }
     };
@@ -48,7 +58,7 @@ const CitizenGrid = () => {
     return () => {
       window.removeEventListener('drawer:close', handleClose);
     };
-  }, [isEditModalOpen]);
+  }, [activeTab]);
 
   useEffect(() => {
     const sentinel = sentinelRef.current;
@@ -66,12 +76,25 @@ const CitizenGrid = () => {
   }, []);
 
   const handleEditClick = (citizen: ICitizen) => {
-    setSelectedCitizen(citizen);
-    setIsEditModalOpen(true);
+    setDirectEditCitizen(citizen);
+    setIsDirectModalOpen(true);
+  };
+
+  const handleEditInNewTabClick = (citizen: ICitizen) => {
+    openTabSilently({
+      mode: 'edit',
+      slug: citizen.slug,
+      label: `Editando: ${citizen.name}`,
+      formData: citizenToFormData(citizen),
+    });
   };
 
   const handleCreateClick = () => {
-    setIsCreateModalOpen(true);
+    openTab({
+      mode: 'create',
+      label: 'Novo Cidadão',
+      formData: emptyCitizen,
+    });
   };
 
   const handleViewClick = (citizen: ICitizen) => {
@@ -188,6 +211,7 @@ const CitizenGrid = () => {
                 onClick={handleViewClick}
                 onEdit={handleEditClick}
                 onDelete={handleDeleteClick}
+                onEditInNewTab={handleEditInNewTabClick}
               />
             </DrawerController>
           ))
@@ -200,44 +224,48 @@ const CitizenGrid = () => {
       <CreatureDrawer>
         <DrawerHeader />
         <DrawerContent>
-          {selectedCitizen && !isEditModalOpen && (
+          {selectedCitizen && !activeTab && !directEditCitizen && (
             <CitizenData citizen={selectedCitizen} />
           )}
         </DrawerContent>
       </CreatureDrawer>
 
+      {/* Direct edit modal (left-click edit, no tab) */}
       <Modal
-        isOpen={isEditModalOpen}
+        isOpen={isDirectModalOpen && !!directEditCitizen}
         onClose={() => {
-          setIsEditModalOpen(false);
-          setSelectedCitizen(null);
+          setIsDirectModalOpen(false);
+          setDirectEditCitizen(null);
         }}
-        title={
-          selectedCitizen
-            ? `Editando: ${selectedCitizen.name}`
-            : 'Editar Cidadão'
-        }
+        title={`Editando: ${directEditCitizen?.name || ''}`}
       >
-        {selectedCitizen && (
+        {directEditCitizen && (
           <CitizenEditForm
-            citizen={selectedCitizen}
+            mode="edit"
             onClose={() => {
-              setIsEditModalOpen(false);
-              setSelectedCitizen(null);
+              setIsDirectModalOpen(false);
+              setDirectEditCitizen(null);
             }}
           />
         )}
       </Modal>
 
+      {/* Tab-based edit modal */}
       <Modal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        title="Criar Novo Cidadão"
+        isOpen={!!activeTab}
+        onClose={() => {
+          if (activeTab) closeTab(activeTab.id);
+        }}
+        title={activeTab?.label || 'Formulário'}
       >
-        <CitizenEditForm
-          mode="create"
-          onClose={() => setIsCreateModalOpen(false)}
-        />
+        {activeTab && (
+          <CitizenEditForm
+            mode={activeTab.mode}
+            externalFormData={activeTab.formData}
+            onFormDataChange={(data) => updateTabFormData(activeTab.id, data)}
+            onClose={() => closeTab(activeTab.id)}
+          />
+        )}
       </Modal>
 
       <ConfirmModal

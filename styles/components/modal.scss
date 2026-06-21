@@ -5,7 +5,8 @@
   top: 0;
   left: 0;
   width: 100vw;
-  height: 100vh;
+  height: 100dvh;
+  padding-bottom: 3.5rem;
   background-color: rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(8px);
   z-index: 1000;
@@ -29,7 +30,7 @@
     border-radius: $radius-lg;
     width: 90%;
     max-width: 800px;
-    max-height: 90vh;
+    max-height: 85dvh;
     @include flex-col-start;
     overflow: hidden;
     @include elevation(3);

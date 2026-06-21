@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import type IMonster from '@/db/monsters/monster.d';
 import type ICitizen from '@/db/citizens/citizen.d';
 import { useCssHandles } from '@/hooks/useCssHandles';
@@ -15,9 +15,11 @@ interface IProps {
   creature: IMonster | ICitizen;
   onClose: () => void;
   mode?: 'create' | 'edit';
+  externalFormData?: IFormData;
+  onFormDataChange?: (data: IFormData) => void;
 }
 
-type IFormData = Partial<IMonster & ICitizen> & {
+export type IFormData = Partial<IMonster & ICitizen> & {
   abilities?: Array<{ name?: string; description?: string }>;
   traits?: Array<{ name?: string; description?: string }>;
   actions?: Array<{ name?: string; description?: string }>;
@@ -32,30 +34,36 @@ type ArrayItem = {
   range?: string;
 };
 
-const CreatureEditForm = ({ creature, onClose, mode = 'edit' }: IProps) => {
+export const emptyMonster: IFormData = {
+  slug: '',
+  name: '',
+  dice: '',
+  stats: {},
+  combat: {},
+  senses: {},
+  proficiencies: {},
+  defenses: {},
+  languages: [],
+  traits: [],
+  actions: [],
+  bonusActions: [],
+  reactions: [],
+  legendaryActions: [],
+  spellcasting: {},
+  source: {},
+  drops: [],
+  levels: [],
+};
+
+const CreatureEditForm = ({
+  creature,
+  onClose,
+  mode = 'edit',
+  externalFormData,
+  onFormDataChange,
+}: IProps) => {
   const handles = useCssHandles(CreatureEditFormHandles);
   const { update, create } = useMonsters();
-
-  const emptyMonster: IFormData = {
-    slug: '',
-    name: '',
-    dice: '',
-    stats: {},
-    combat: {},
-    senses: {},
-    proficiencies: {},
-    defenses: {},
-    languages: [],
-    traits: [],
-    actions: [],
-    bonusActions: [],
-    reactions: [],
-    legendaryActions: [],
-    spellcasting: {},
-    source: {},
-    drops: [],
-    levels: [],
-  };
 
   const isCreate = mode === 'create';
 
@@ -70,8 +78,29 @@ const CreatureEditForm = ({ creature, onClose, mode = 'edit' }: IProps) => {
     isCreate ? 'monster' : initialType
   );
   const [formData, setFormData] = useState<IFormData>(
-    isCreate ? emptyMonster : (creature as IFormData)
+    externalFormData
+      ? externalFormData
+      : isCreate
+        ? emptyMonster
+        : (creature as IFormData)
   );
+
+  // ─── Tab sync ────────────────────────────────────────
+  const lastSyncedRef = useRef<IFormData>(formData);
+
+  useEffect(() => {
+    if (externalFormData && externalFormData !== lastSyncedRef.current) {
+      lastSyncedRef.current = externalFormData;
+      setFormData(externalFormData);
+    }
+  }, [externalFormData]);
+
+  useEffect(() => {
+    if (onFormDataChange && formData !== lastSyncedRef.current) {
+      lastSyncedRef.current = formData;
+      onFormDataChange(formData);
+    }
+  }, [formData, onFormDataChange]);
   const fileInputMarkdownRef = useRef<HTMLInputElement>(null);
   const [isImportingMarkdown, setIsImportingMarkdown] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);

@@ -2,6 +2,9 @@
 
 import CreatureGrid from '@/components/CreatureGrid';
 import MonstersProvider from '@/app/context/MonstersContext';
+import { TabProvider } from '@/app/context/TabContext';
+import TabBar from '@/components/TabBar';
+import type { IFormData } from '@/components/CreatureEditForm';
 import IMonster from '@/db/monsters/monster';
 
 export default function MonstersPageClient({
@@ -12,7 +15,10 @@ export default function MonstersPageClient({
   return (
     <main>
       <MonstersProvider initialMonsters={initialMonsters}>
-        <CreatureGrid />
+        <TabProvider<IFormData>>
+          <CreatureGrid />
+          <TabBar />
+        </TabProvider>
       </MonstersProvider>
     </main>
   );
