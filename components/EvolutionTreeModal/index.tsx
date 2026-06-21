@@ -297,6 +297,16 @@ const EvolutionTreeModal = ({ isOpen, onClose, monsters }: IProps) => {
     onClose();
   };
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') handleClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, hasUnsavedChanges]);
+
   const handleNewTree = () => {
     setCurrentTree(null);
     setTreeName('');
@@ -447,7 +457,7 @@ const EvolutionTreeModal = ({ isOpen, onClose, monsters }: IProps) => {
     layoutNodes.length === 0 || layoutNodes.every((n) => nodePositions[n.id]);
 
   return (
-    <div className={handles.fullScreenOverlay} onClick={handleClose}>
+    <div className={handles.fullScreenOverlay}>
       <div
         className={handles.fullScreenModal}
         onClick={(e) => e.stopPropagation()}
