@@ -25,13 +25,22 @@ const Modal = ({ isOpen, onClose, title, children }: IProps) => {
     };
   }, [isOpen]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   const overlayClass = isOpen
     ? `${handles.overlay} ${applyModifiers(handles.overlay, 'visible')}`
     : handles.overlay;
 
   // Portal to body so fixed-position is relative to viewport
   const modalContent = (
-    <div className={overlayClass} onClick={onClose}>
+    <div className={overlayClass}>
       <div
         className={`${handles.modal}${isOpen ? ` ${applyModifiers(handles.modal, 'open')}` : ''}`}
         onClick={(e) => e.stopPropagation()}

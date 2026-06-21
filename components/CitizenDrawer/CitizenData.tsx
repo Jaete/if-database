@@ -210,18 +210,12 @@ const CitizenData = ({ citizen }: IProps) => {
                 <div key={key} className={handles.attrItem}>
                   <span className={handles.attrLabel}>{label}</span>
                   <span className={handles.attrValue}>
-                    {stat.total}
+                    {stat.modifier >= 0
+                      ? `+${stat.modifier}`
+                      : `${stat.modifier}`}
                     <br />
-                    <small style={{ fontSize: '11px', color: '#808080' }}>
-                      Base {stat.base}
-                      {stat.raceBonus
-                        ? ` +R${stat.raceBonus >= 0 ? stat.raceBonus : stat.raceBonus}`
-                        : ''}
-                      {stat.classBonus
-                        ? ` +C${stat.classBonus >= 0 ? stat.classBonus : stat.classBonus}`
-                        : ''}
-                      {' · '}
-                      {stat.modifier >= 0 ? `+${stat.modifier}` : stat.modifier}
+                    <small style={{ fontSize: '14px', color: '#808080' }}>
+                      {stat.total}
                     </small>
                   </span>
                 </div>
