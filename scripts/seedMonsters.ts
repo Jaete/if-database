@@ -206,13 +206,13 @@ const transformMonster = (
   // Parse velocidades (ex: "6m", "9m, 15m natação", "9m escalar 9m")
   const speedStr = String(raw.speed || '6m');
   const walkMatch = speedStr.match(/(\d+)m/);
-  const walkSpeed = walkMatch ? parseInt(walkMatch[1], 10) * 5 : 30; // convert to feet: 6m ~ 30 feet (1.5m = 5 feet)
+  const walkSpeed = walkMatch ? parseInt(walkMatch[1], 10) : 6; // original data is in meters
 
   const climbMatch = speedStr.match(/escalar\s*(\d+)m/i);
-  const climbSpeed = climbMatch ? parseInt(climbMatch[1], 10) * 5 : undefined;
+  const climbSpeed = climbMatch ? parseInt(climbMatch[1], 10) : undefined;
 
   const swimMatch = speedStr.match(/(\d+)m\s*natação/i);
-  const swimSpeed = swimMatch ? parseInt(swimMatch[1], 10) * 5 : undefined;
+  const swimSpeed = swimMatch ? parseInt(swimMatch[1], 10) : undefined;
 
   // Drops (range e item)
   const drops = ((raw.drops as Array<{ range?: string; item?: string }>) || [])

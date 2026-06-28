@@ -20,25 +20,25 @@ const SensesBlock = ({ senses }: IProps) => {
         {senses.darkvision !== undefined && senses.darkvision > 0 && (
           <div className={handles.infoRow}>
             <span className={handles.infoLabel}>Visão no escuro:</span>{' '}
-            <span id="sense-darkvision">{senses.darkvision} pés</span>
+            <span id="sense-darkvision">{senses.darkvision} m</span>
           </div>
         )}
         {senses.blindsight !== undefined && senses.blindsight > 0 && (
           <div className={handles.infoRow}>
             <span className={handles.infoLabel}>Visão às cegas:</span>{' '}
-            <span id="sense-blindsight">{senses.blindsight} pés</span>
+            <span id="sense-blindsight">{senses.blindsight} m</span>
           </div>
         )}
         {senses.tremorsense !== undefined && senses.tremorsense > 0 && (
           <div className={handles.infoRow}>
             <span className={handles.infoLabel}>Percepção sísmica:</span>{' '}
-            <span id="sense-tremorsense">{senses.tremorsense} pés</span>
+            <span id="sense-tremorsense">{senses.tremorsense} m</span>
           </div>
         )}
         {senses.truesight !== undefined && senses.truesight > 0 && (
           <div className={handles.infoRow}>
             <span className={handles.infoLabel}>Visão verdadeira:</span>{' '}
-            <span id="sense-truesight">{senses.truesight} pés</span>
+            <span id="sense-truesight">{senses.truesight} m</span>
           </div>
         )}
       </div>
