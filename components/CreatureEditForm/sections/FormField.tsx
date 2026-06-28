@@ -49,6 +49,11 @@ const FormField = ({
           value={value}
           onChange={onChange}
           required={required}
+          onWheel={
+            type === 'number'
+              ? (e) => (e.target as HTMLInputElement).blur()
+              : undefined
+          }
         />
       )}
     </div>
