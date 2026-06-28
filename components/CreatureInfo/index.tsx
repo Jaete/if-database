@@ -9,11 +9,11 @@ interface IProps {
 const getSpeedText = (speed?: ISpeed) => {
   if (!speed) return '---';
   const parts = [];
-  if (speed.walk !== undefined) parts.push(`${speed.walk} m`);
-  if (speed.fly !== undefined) parts.push(`voo ${speed.fly} m`);
-  if (speed.swim !== undefined) parts.push(`nado ${speed.swim} m`);
-  if (speed.climb !== undefined) parts.push(`escalar ${speed.climb} m`);
-  if (speed.burrow !== undefined) parts.push(`escavação ${speed.burrow} m`);
+  if (speed.walk != null) parts.push(`${speed.walk} m`);
+  if (speed.fly != null) parts.push(`voo ${speed.fly} m`);
+  if (speed.swim != null) parts.push(`nado ${speed.swim} m`);
+  if (speed.climb != null) parts.push(`escalar ${speed.climb} m`);
+  if (speed.burrow != null) parts.push(`escavação ${speed.burrow} m`);
   if (speed.note) parts.push(`(${speed.note})`);
   return parts.join(', ') || '---';
 };
