@@ -35,7 +35,7 @@ const CreatureGrid = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isSticky, setIsSticky] = useState(false);
   const [isTreeModalOpen, setIsTreeModalOpen] = useState(false);
-  const sentinelRef = useRef<HTMLDivElement>(null);
+  const lastScrollYRef = useRef(0);
 
   const { activeTab, openTab, openTabSilently, closeTab, updateTabFormData } =
     useTabs<IFormData>();
@@ -63,18 +63,20 @@ const CreatureGrid = () => {
   }, [activeTab]);
 
   useEffect(() => {
-    const sentinel = sentinelRef.current;
-    if (!sentinel) return;
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsSticky(!entry.isIntersecting);
-      },
-      { threshold: 0 }
-    );
+      if (currentScrollY <= 0) {
+        setIsSticky(false);
+      } else if (currentScrollY > lastScrollYRef.current) {
+        setIsSticky(true);
+      }
 
-    observer.observe(sentinel);
-    return () => observer.disconnect();
+      lastScrollYRef.current = currentScrollY;
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const handleEditClick = (creature: ICreature) => {
@@ -123,7 +125,6 @@ const CreatureGrid = () => {
     <div
       className={`${handles.mgContainer}${!canEdit ? ` ${applyModifiers(handles.mgContainer, 'viewOnly')}` : ''}`}
     >
-      <div ref={sentinelRef} className={handles.mgHeaderSentinel} />
       <header
         className={`${handles.mgHeader}${isSticky ? ` ${applyModifiers(handles.mgHeader, 'compact')}` : ''}`}
       >

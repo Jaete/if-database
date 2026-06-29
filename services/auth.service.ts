@@ -2,10 +2,11 @@ import { scryptSync, randomBytes, timingSafeEqual, createHmac } from 'crypto';
 import { cookies } from 'next/headers';
 import { connectDB } from '@/lib/db';
 import User from '@/db/users/users';
+import Time from '@/lib/time';
 
 const TOKEN_SECRET = process.env.JWT_SECRET || 'fallback-dev-secret';
 const COOKIE_NAME = 'session';
-const TOKEN_EXPIRY = 24 * 60 * 60 * 1000; // 24 hours
+const TOKEN_EXPIRY = Time.days(3);
 
 // ===== PASSWORD HASHING =====
 
@@ -43,7 +44,7 @@ function fromBase64url(str: string): string {
 
 export function signToken(payload: Omit<TokenPayload, 'iat' | 'exp'>): string {
   const iat = Math.floor(Date.now() / 1000);
-  const exp = Math.floor(Date.now() / 1000) + 24 * 60 * 60;
+  const exp = iat + TOKEN_EXPIRY;
 
   const header = base64url(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
   const body = base64url(JSON.stringify({ ...payload, iat, exp }));
@@ -80,6 +81,12 @@ export function verifyToken(token: string): TokenPayload | null {
   }
 }
 
+export function refreshToken(token: string): string | null {
+  const payload = verifyToken(token);
+  if (!payload) return null;
+  return signToken({ username: payload.username, role: payload.role });
+}
+
 // ===== COOKIE HELPERS =====
 
 export async function setSessionCookie(token: string) {
@@ -88,7 +95,7 @@ export async function setSessionCookie(token: string) {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
-    maxAge: 24 * 60 * 60, // 24 hours in seconds
+    maxAge: TOKEN_EXPIRY,
     path: '/',
   });
 }

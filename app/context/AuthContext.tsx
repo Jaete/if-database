@@ -43,6 +43,9 @@ export default function AuthProvider({
       if (res.ok) {
         const data = await res.json();
         setUser(data.user);
+        if (data.token) {
+          localStorage.setItem(STORAGE_KEY, data.token);
+        }
         return true;
       }
 
