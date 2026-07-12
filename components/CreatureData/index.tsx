@@ -9,6 +9,7 @@ import SensesBlock from '@/components/SensesBlock';
 import DropsBlock from '@/components/DropsBlock';
 import LevelProgressionModal from '@/components/LevelProgressionModal';
 import CreatureDataHandles from './handles';
+import '@/styles/components/creatureData.scss';
 import IMonster from '@/db/monsters/monster';
 
 interface IProps {

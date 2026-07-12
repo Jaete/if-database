@@ -1,5 +1,6 @@
 import { useCssHandles } from '@/hooks/useCssHandles';
 import AbilitiesBlockHandles from './handles';
+import '@/styles/components/abilitiesBlock.scss';
 import { ITrait, IAction } from '@/db/creatures/creatures.d';
 
 interface IProps {

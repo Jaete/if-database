@@ -1,6 +1,6 @@
 @use '../../styles/globals' as *;
 
-.mgContainer {
+.crgContainer {
   min-height: 100dvh;
   padding: $spacing-10 $spacing-5 calc($spacing-10 + 3.5rem);
   @include flex-col-start();
@@ -17,18 +17,18 @@
   }
 
   &--viewOnly {
-    .mgHeader {
+    .crgHeader {
       margin-bottom: 0;
     }
   }
 }
 
-.mgHeaderSentinel {
+.crgHeaderSentinel {
   height: 1px;
   pointer-events: none;
 }
 
-.mgHeader {
+.crgHeader {
   text-align: center;
   margin-bottom: $spacing-8;
   @include flex-col-start();
@@ -65,8 +65,8 @@
     width: 100dvw;
     z-index: 11;
 
-    .mgTitle,
-    .mgSubtitle {
+    .crgTitle,
+    .crgSubtitle {
       opacity: 0;
       height: 0;
       margin: 0;
@@ -75,23 +75,23 @@
       pointer-events: none;
     }
 
-    .mgNavButtons {
+    .crgNavButtons {
       display: none;
     }
 
-    .mgCompactSearchBar {
+    .crgCompactSearchBar {
       display: flex;
     }
   }
 }
 
-.mgTitle {
+.crgTitle {
   @include cinzel-3xl($gold-100, bold, 1.2, 2px);
   margin: 0;
   text-shadow: 0 0 20px rgba($gold-100, 0.1);
 }
 
-.mgSubtitle {
+.crgSubtitle {
   @include main-sm($neutral-2100, normal);
   max-width: 600px;
   margin: 0;
@@ -101,7 +101,7 @@
   }
 }
 
-.mgNavButtons {
+.crgNavButtons {
   margin-top: $spacing-5;
   @include flex-row-center();
   gap: $spacing-4;
@@ -112,8 +112,8 @@
   }
 }
 
-.mgNavButton {
-  @include main-xs(#ffffff, bold);
+.crgNavButton {
+  @include main-xs($color-text, $font-weight-bold);
   background: linear-gradient(135deg, $gold-300, $primary-200);
   border: none;
   padding: $spacing-3 $spacing-6;
@@ -123,6 +123,7 @@
     all 0.2s ease,
     transform 0.15s ease;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  @include focus-ring();
 
   &:hover {
     background: linear-gradient(135deg, $gold-200, $primary-100);
@@ -141,7 +142,7 @@
   }
 }
 
-.mgSearchContainer {
+.crgSearchContainer {
   width: 100%;
   max-width: 600px;
   margin-bottom: $spacing-10;
@@ -152,14 +153,13 @@
   }
 }
 
-.mgSearchInput {
+.crgSearchInput {
   width: 100%;
   background-color: rgba(0, 0, 0, 0.2);
   border: 1px solid $neutral-400;
   border-radius: $radius-full;
   padding: $spacing-3 $spacing-6;
-  color: #ffffff;
-  @include main-md(#ffffff, normal);
+  @include main-md($color-text, $font-weight-regular);
   outline: none;
   transition:
     border-color 0.2s,
@@ -175,7 +175,7 @@
   }
 
   @include light {
-    background-color: #ffffff;
+    background-color: $color-bg-inverse;
     color: $neutral-200;
     border-color: $neutral-2700;
 
@@ -192,7 +192,7 @@
   }
 }
 
-.mgResultsCount {
+.crgResultsCount {
   position: absolute;
   right: $spacing-5;
   top: 50%;
@@ -201,7 +201,7 @@
   pointer-events: none;
 }
 
-.mgCompactSearchBar {
+.crgCompactSearchBar {
   display: none;
   width: 100%;
   max-width: 700px;
@@ -216,12 +216,12 @@
   }
 }
 
-.mgCompactSearchInput {
+.crgCompactSearchInput {
   flex: 1;
   position: relative;
 }
 
-.mgCompactActionBtn {
+.crgCompactActionBtn {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -231,10 +231,11 @@
   background: linear-gradient(135deg, $gold-300, $primary-200);
   border: none;
   cursor: pointer;
-  color: #ffffff;
+  color: $color-text;
   flex-shrink: 0;
   transition: all 0.2s ease;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  @include focus-ring();
 
   &:hover {
     background: linear-gradient(135deg, $gold-200, $primary-100);
@@ -249,7 +250,7 @@
   }
 }
 
-.mgGrid {
+.crgGrid {
   width: 100%;
   max-width: 1200px;
   display: grid;
@@ -269,14 +270,14 @@
   }
 }
 
-.mgEmptyState {
+.crgEmptyState {
   grid-column: 1 / -1;
   text-align: center;
   padding: $spacing-10;
   @include main-md($neutral-400, normal);
 }
 
-.mgGridLoading {
+.crgGridLoading {
   grid-column: 1 / -1;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
@@ -284,9 +285,9 @@
   width: 100%;
 }
 
-.mgGridSkeleton {
+.crgGridSkeleton {
   height: 160px;
-  border-radius: 12px;
+  border-radius: $radius-lg;
   background: linear-gradient(
     90deg,
     rgba(255, 255, 255, 0.03) 25%,

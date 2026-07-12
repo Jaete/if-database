@@ -2,16 +2,16 @@
 
 import { ReactNode, useEffect, useState } from 'react';
 import { useCssHandles } from '@/hooks/useCssHandles';
-import CreatureDrawerHandles from './handles';
-import '@/styles/components/creatureDrawer.scss';
+import DrawerHandles from './handles';
+import '@/styles/components/drawer.scss';
 
 interface IProps {
   children: ReactNode;
 }
 
-const CreatureDrawer = ({ children }: IProps) => {
+const Drawer = ({ children }: IProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  const handles = useCssHandles(CreatureDrawerHandles);
+  const handles = useCssHandles(DrawerHandles);
   useEffect(() => {
     const handleOpen = () => setIsOpen(true);
     const handleClose = () => setIsOpen(false);
@@ -46,4 +46,4 @@ const CreatureDrawer = ({ children }: IProps) => {
   );
 };
 
-export default CreatureDrawer;
+export default Drawer;

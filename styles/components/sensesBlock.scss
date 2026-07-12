@@ -1,0 +1,8 @@
+@use '../globals' as *;
+@use './statSectionBase' as *;
+
+.sensesList {
+  @include flex-col-start();
+  gap: $spacing-2;
+  width: 100%;
+}

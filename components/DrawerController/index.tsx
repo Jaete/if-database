@@ -1,13 +1,15 @@
+'use client';
+
 import { ReactNode } from 'react';
 import { useCssHandles } from '@/hooks/useCssHandles';
-import CreatureDrawerHandles from '../handles';
+import DrawerControllerHandles from './handles';
 
 interface IProps {
   children: ReactNode;
 }
 
 const DrawerController = ({ children }: IProps) => {
-  const handles = useCssHandles(CreatureDrawerHandles);
+  const handles = useCssHandles(DrawerControllerHandles);
 
   const handleOpenDrawer = () => {
     window.dispatchEvent(new CustomEvent('drawer:open', { bubbles: true }));

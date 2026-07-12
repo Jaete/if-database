@@ -1,6 +1,7 @@
 import { type IStats } from '@/db/creatures/creatures.d';
 import { useCssHandles } from '@/hooks/useCssHandles';
 import StatBlockHandles from './handles';
+import '@/styles/components/statsBlock.scss';
 
 interface IProps {
   stats: IStats;

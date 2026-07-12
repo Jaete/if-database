@@ -1,0 +1,56 @@
+@use '../globals' as *;
+@use './statSectionBase' as *;
+
+.dropsTable {
+  width: 100%;
+  border-collapse: collapse;
+
+  td {
+    padding: $spacing-2;
+    border-bottom: 1px solid $neutral-400;
+    @include main-sm($neutral-2100, normal);
+
+    @include light {
+      border-bottom-color: $neutral-2700;
+      color: $neutral-400;
+    }
+  }
+}
+
+.dropDiceInfo {
+  @include main-md($neutral-2000, normal, 1.5);
+  margin-bottom: $spacing-3;
+  padding: $spacing-2;
+  background: $neutral-300;
+  border-radius: $radius-sm;
+  border: 1px solid $neutral-400;
+  display: inline-block;
+
+  strong {
+    color: $primary-100;
+  }
+
+  @include light {
+    color: $neutral-300;
+    background: $neutral-2300;
+    border-color: $neutral-2700;
+  }
+}
+
+.dropRange {
+  color: $primary-100;
+  font-weight: bold;
+  width: 80px;
+
+  @include light {
+    color: $primary-200;
+  }
+}
+
+.dropItem {
+  color: $neutral-2100;
+
+  @include light {
+    color: $neutral-200;
+  }
+}

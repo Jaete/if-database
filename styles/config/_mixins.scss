@@ -176,3 +176,13 @@
   }
 }
 
+/// Accessible keyboard-focus ring for any interactive element (buttons,
+/// links, cards) — generalizes premium-input-focus beyond form inputs.
+/// Uses :focus-visible so it never shows on mouse click, only keyboard nav.
+@mixin focus-ring($color: $primary-100) {
+  &:focus-visible {
+    outline: 2px solid rgba($color, 0.6);
+    outline-offset: 2px;
+  }
+}
+

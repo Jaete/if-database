@@ -37,14 +37,44 @@ $info: #2196f3;
 $warning: #ff9800;
 $error: #f44336;
 
-// Semantic
+// Semantic — surfaces (elevation ladder: pair each step with the matching
+// `elevation($level)` mixin in _mixins.scss — surface = 1, raised = 2, etc.)
 $overlay: rgba(0, 0, 0, 0.6);
-$surface: #151515;
-$surface-raised: #1e1e1e;
-$surface-elevated: #262626;
-$surface-float: #2e2e2e;
+$surface: $neutral-200; // elevation 1 — cards, panels
+$surface-raised: $neutral-300; // elevation 2 — nested cards, popovers
+$surface-elevated: #262626; // elevation 3 — dropdowns, tooltips
+$surface-float: #2e2e2e; // elevation 4 — modals, topmost overlays
 $accent-overlay: rgba(#9c841c, 0.04);
 $accent-overlay-hover: rgba(#9c841c, 0.08);
 $glow-gold: 0 0 15px rgba(#d4a843, 0.15);
 $glow-gold-strong: 0 0 25px rgba(#d4a843, 0.25);
 $glow-primary: 0 0 20px rgba($primary-100, 0.12);
+
+// Semantic — text & borders (dark mode is the default; the "-inverse" variants
+// are for use inside `@include light { }` overrides). Reach for these instead
+// of a raw $neutral-* step or a hardcoded hex whenever styling text/borders —
+// this is the single most-violated rule in the codebase today (see
+// CLAUDE.md's "Known Naming Quirks" / the refactor-component worklist).
+$color-bg: $neutral-100; // page background
+$color-text: $neutral-2000; // primary text on dark surfaces — off-white, not pure #fff (reduces glare on long reads)
+$color-text-muted: $neutral-1000; // secondary text
+$color-text-subtle: $neutral-800; // least-emphasis text (captions, disabled)
+$color-border: $neutral-400; // default subtle border on dark surfaces
+$color-border-strong: $neutral-600; // more visible border/divider
+
+$color-bg-inverse: $neutral-2100; // light-mode page background (warm parchment, not plain white)
+$color-text-inverse: $neutral-100; // light-mode primary text
+$color-text-muted-inverse: $neutral-700; // light-mode secondary text
+$color-border-inverse: $neutral-2600; // light-mode subtle border
+
+// Semantic — state tints (for alert/badge backgrounds & borders, same
+// rgba-tinted-overlay pattern as $accent-overlay above, applied to each
+// semantic state color instead of only primary)
+$success-bg: rgba($success, 0.12);
+$success-border: rgba($success, 0.35);
+$warning-bg: rgba($warning, 0.12);
+$warning-border: rgba($warning, 0.35);
+$error-bg: rgba($error, 0.12);
+$error-border: rgba($error, 0.35);
+$info-bg: rgba($info, 0.12);
+$info-border: rgba($info, 0.35);

@@ -1,3 +1,11 @@
+// Font-weight tokens — pass these instead of raw numbers/strings ('bold', 600...)
+// so weight usage stays consistent across every mixin call site.
+$font-weight-light: 300;
+$font-weight-regular: 400;
+$font-weight-medium: 500;
+$font-weight-semibold: 600;
+$font-weight-bold: 700;
+
 @mixin mono-xs ($color, $weight, $line-height: 1.5, $spacing: 0, $align: left) {
     font-family: 'Consolas', monospace;
     font-size: 12px;

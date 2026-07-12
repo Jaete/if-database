@@ -1,5 +1,6 @@
 import { useCssHandles } from '@/hooks/useCssHandles';
 import SensesBlockHandles from './handles';
+import '@/styles/components/sensesBlock.scss';
 import { ISenses } from '@/db/creatures/creatures.d';
 
 interface IProps {

@@ -1,8 +1,10 @@
+'use client';
+
 import { useCssHandles } from '@/hooks/useCssHandles';
-import CreatureDrawerHandles from '../handles';
+import DrawerHeaderHandles from './handles';
 
 const DrawerHeader = () => {
-  const handles = useCssHandles(CreatureDrawerHandles);
+  const handles = useCssHandles(DrawerHeaderHandles);
 
   const handleClose = () => {
     window.dispatchEvent(new CustomEvent('drawer:close', { bubbles: true }));

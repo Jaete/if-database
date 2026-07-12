@@ -1,5 +1,6 @@
 import { useCssHandles } from '@/hooks/useCssHandles';
 import DropsBlockHandles from './handles';
+import '@/styles/components/dropsBlock.scss';
 import { IDrop } from '@/db/monsters/monster';
 
 interface IProps {

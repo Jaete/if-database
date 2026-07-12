@@ -1,5 +1,6 @@
 import { useCssHandles } from '@/hooks/useCssHandles';
 import CombatInfoHandles from './handles';
+import '@/styles/components/combatInfo.scss';
 import { ICombat, ISpeed } from '@/db/creatures/creatures.d';
 
 interface IProps {

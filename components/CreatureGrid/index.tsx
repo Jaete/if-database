@@ -5,7 +5,10 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import type ICreature from '@/db/creatures/creatures.d';
 import { useCssHandles, applyModifiers } from '@/hooks/useCssHandles';
 import CreatureCard from '../CreatureCard';
-import CreatureDrawer from '../CreatureDrawer';
+import Drawer from '../Drawer';
+import DrawerController from '../DrawerController';
+import DrawerHeader from '../DrawerHeader';
+import DrawerContent from '../DrawerContent';
 import CreatureData from '../CreatureData';
 import Modal from '../Modal';
 import CreatureEditForm, {
@@ -15,9 +18,7 @@ import CreatureEditForm, {
 import ConfirmModal from '../ConfirmModal';
 import CreatureGridHandles from './handles';
 import '@/styles/components/creatureGrid.scss';
-import DrawerController from '../CreatureDrawer/sections/DrawerController';
-import DrawerHeader from '../CreatureDrawer/sections/DrawerHeader';
-import DrawerContent from '../CreatureDrawer/sections/DrawerContent';
+import { PlusIcon, TreeIcon } from '../Icons';
 import { useMonsters } from '@/app/context/MonstersContext';
 import { useAuth } from '@/app/context/AuthContext';
 import { useTabs } from '@/app/context/TabContext';
@@ -123,17 +124,17 @@ const CreatureGrid = () => {
 
   return (
     <div
-      className={`${handles.mgContainer}${!canEdit ? ` ${applyModifiers(handles.mgContainer, 'viewOnly')}` : ''}`}
+      className={`${handles.crgContainer}${!canEdit ? ` ${applyModifiers(handles.crgContainer, 'viewOnly')}` : ''}`}
     >
       <header
-        className={`${handles.mgHeader}${isSticky ? ` ${applyModifiers(handles.mgHeader, 'compact')}` : ''}`}
+        className={`${handles.crgHeader}${isSticky ? ` ${applyModifiers(handles.crgHeader, 'compact')}` : ''}`}
       >
-        <h1 className={handles.mgTitle}>BESTIÁRIO DE TERRALÉM</h1>
-        <p className={handles.mgSubtitle}>Lista dos monstros disponíveis.</p>
-        <div className={handles.mgNavButtons}>
+        <h1 className={handles.crgTitle}>BESTIÁRIO DE TERRALÉM</h1>
+        <p className={handles.crgSubtitle}>Lista dos monstros disponíveis.</p>
+        <div className={handles.crgNavButtons}>
           {canEdit && (
             <button
-              className={handles.mgNavButton}
+              className={handles.crgNavButton}
               onClick={handleCreateClick}
               aria-label="Criar nova criatura"
             >
@@ -142,7 +143,7 @@ const CreatureGrid = () => {
           )}
           {canEdit && (
             <button
-              className={handles.mgNavButton}
+              className={handles.crgNavButton}
               onClick={handleTreeModalOpen}
               aria-label="Gerar arvore de criaturas"
             >
@@ -151,17 +152,17 @@ const CreatureGrid = () => {
           )}
         </div>
 
-        <div className={handles.mgCompactSearchBar}>
-          <div className={handles.mgCompactSearchInput}>
+        <div className={handles.crgCompactSearchBar}>
+          <div className={handles.crgCompactSearchInput}>
             <input
               type="text"
-              className={handles.mgSearchInput}
+              className={handles.crgSearchInput}
               placeholder="Buscar criatura pelo nome..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
             {searchTerm.length > 0 && (
-              <span className={handles.mgResultsCount}>
+              <span className={handles.crgResultsCount}>
                 {filteredCreatures.length} resultado
                 {filteredCreatures.length !== 1 ? 's' : ''}
               </span>
@@ -169,76 +170,48 @@ const CreatureGrid = () => {
           </div>
           {canEdit && (
             <button
-              className={handles.mgCompactActionBtn}
+              className={handles.crgCompactActionBtn}
               onClick={handleCreateClick}
               aria-label="Criar nova criatura"
             >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <line x1="12" y1="5" x2="12" y2="19" />
-                <line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
+              <PlusIcon />
             </button>
           )}
           {canEdit && (
             <button
-              className={handles.mgCompactActionBtn}
+              className={handles.crgCompactActionBtn}
               onClick={handleTreeModalOpen}
               aria-label="Gerar árvore de criaturas"
             >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <circle cx="12" cy="5" r="2" />
-                <path d="M5 22l5-10" />
-                <path d="M19 22l-5-10" />
-                <circle cx="12" cy="19" r="2" />
-                <circle cx="5" cy="19" r="2" />
-                <circle cx="19" cy="19" r="2" />
-              </svg>
+              <TreeIcon />
             </button>
           )}
         </div>
       </header>
 
       <div
-        className={`${handles.mgSearchContainer}${isSticky ? ` ${applyModifiers(handles.mgSearchContainer, 'hidden')}` : ''}`}
+        className={`${handles.crgSearchContainer}${isSticky ? ` ${applyModifiers(handles.crgSearchContainer, 'hidden')}` : ''}`}
       >
         <input
           type="text"
-          className={handles.mgSearchInput}
+          className={handles.crgSearchInput}
           placeholder="Buscar criatura pelo nome..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
         {searchTerm.length > 0 && (
-          <span className={handles.mgResultsCount}>
+          <span className={handles.crgResultsCount}>
             {filteredCreatures.length} resultado
             {filteredCreatures.length !== 1 ? 's' : ''}
           </span>
         )}
       </div>
 
-      <div className={handles.mgGrid}>
+      <div className={handles.crgGrid}>
         {loading ? (
-          <div className={handles.mgGridLoading}>
+          <div className={handles.crgGridLoading}>
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className={handles.mgGridSkeleton} />
+              <div key={i} className={handles.crgGridSkeleton} />
             ))}
           </div>
         ) : (
@@ -256,20 +229,20 @@ const CreatureGrid = () => {
           ))
         )}
         {!loading && filteredCreatures.length === 0 && (
-          <div className={handles.mgEmptyState}>
+          <div className={handles.crgEmptyState}>
             Nenhuma criatura encontrada.
           </div>
         )}
       </div>
 
-      <CreatureDrawer>
+      <Drawer>
         <DrawerHeader />
         <DrawerContent>
           {selectedCreature && !activeTab && !directEditCreature && (
             <CreatureData creature={selectedCreature} />
           )}
         </DrawerContent>
-      </CreatureDrawer>
+      </Drawer>
 
       {/* Direct edit modal (left-click edit, no tab) */}
       <Modal

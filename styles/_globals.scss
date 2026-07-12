@@ -5,7 +5,31 @@
 @forward './config/spacing';
 @forward './config/animations';
 
+@use './config/colors' as *;
 @use './config/mixins' as *;
+
+// Bridge a small set of semantic color tokens to real CSS custom properties,
+// for the rare plain-.css file (e.g. app/globals.css) that can't @use Sass
+// variables directly. Component .scss files should keep reaching for the
+// $color-* Sass tokens directly — this block is generated from those same
+// tokens, not a second source of truth.
+:root {
+  --color-bg: #{$color-bg};
+  --color-surface: #{$surface};
+  --color-text: #{$color-text};
+  --color-border: #{$color-border};
+  --color-primary: #{$primary-100};
+}
+
+@include light {
+  :root {
+    --color-bg: #{$color-bg-inverse};
+    --color-surface: #{$neutral-2000};
+    --color-text: #{$color-text-inverse};
+    --color-border: #{$color-border-inverse};
+    --color-primary: #{$primary-100};
+  }
+}
 
 html {
   scroll-behavior: smooth;
@@ -13,8 +37,8 @@ html {
 }
 
 ::selection {
-  background-color: #9c841c;
-  color: #ffffff;
+  background-color: $primary-100;
+  color: $color-text;
 }
 
 /* Hide number input spinners */

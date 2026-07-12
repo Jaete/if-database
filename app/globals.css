@@ -9,7 +9,8 @@ html {
 }
 
 body {
-  background-color: var(--neutral-100);
+  background-color: var(--color-bg);
+  color: var(--color-text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

@@ -5,7 +5,10 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import type ICitizen from '@/db/citizens/citizen.d';
 import { useCssHandles, applyModifiers } from '@/hooks/useCssHandles';
 import CitizenCard from '../CitizenCard';
-import CreatureDrawer from '../CreatureDrawer';
+import Drawer from '../Drawer';
+import DrawerController from '../DrawerController';
+import DrawerHeader from '../DrawerHeader';
+import DrawerContent from '../DrawerContent';
 import Modal from '../Modal';
 import CitizenEditForm, {
   citizenToFormData,
@@ -15,9 +18,6 @@ import CitizenEditForm, {
 import ConfirmModal from '../ConfirmModal';
 import CitizenGridHandles from './handles';
 import '@/styles/components/citizenGrid.scss';
-import DrawerController from '../CreatureDrawer/sections/DrawerController';
-import DrawerHeader from '../CreatureDrawer/sections/DrawerHeader';
-import DrawerContent from '../CreatureDrawer/sections/DrawerContent';
 import CitizenData from '../CitizenDrawer/CitizenData';
 import { useCitizens } from '@/app/context/CitizensContext';
 import { useAuth } from '@/app/context/AuthContext';
@@ -221,14 +221,14 @@ const CitizenGrid = () => {
         )}
       </div>
 
-      <CreatureDrawer>
+      <Drawer>
         <DrawerHeader />
         <DrawerContent>
           {selectedCitizen && !activeTab && !directEditCitizen && (
             <CitizenData citizen={selectedCitizen} />
           )}
         </DrawerContent>
-      </CreatureDrawer>
+      </Drawer>
 
       {/* Direct edit modal (left-click edit, no tab) */}
       <Modal
