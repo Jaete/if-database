@@ -13,6 +13,8 @@ import StatBlock from '@/components/StatsBlock';
 import AbilitiesBlock from '@/components/AbilitiesBlock';
 import SensesBlock from '@/components/SensesBlock';
 import DropsBlock from '@/components/DropsBlock';
+import StatSection from '@/components/StatSection';
+import InfoRow from '@/components/InfoRow';
 import LevelProgressionModal from '@/components/LevelProgressionModal';
 import CreatureDataHandles from './handles';
 import '@/styles/components/creatureData.scss';
@@ -31,7 +33,11 @@ const CreatureData = ({ creature }: IProps) => {
   return (
     <div key={creature.slug} className={handles.creatureData}>
       <EntityTitle>{creature.name}</EntityTitle>
-      <EntityImage src={creature.image ?? ''} alt={creature.name} />
+      <EntityImage
+        src={creature.image ?? ''}
+        alt={creature.name}
+        iconSrc={creature.icon}
+      />
       <EntityDescription>{creature.description}</EntityDescription>
 
       {hasLevels && (
@@ -47,6 +53,13 @@ const CreatureData = ({ creature }: IProps) => {
         onClose={() => setShowLevels(false)}
         monster={monster}
       />
+
+      {monster && (monster.cr || monster.xp != null) && (
+        <StatSection title="Nível de Desafio">
+          <InfoRow label="ND (CR):">{monster.cr || '---'}</InfoRow>
+          <InfoRow label="EXP (XP):">{monster.xp ?? '---'}</InfoRow>
+        </StatSection>
+      )}
 
       <StatBlock stats={creature.stats ?? {}} />
       <CombatInfo combat={creature.combat ?? {}} />
@@ -65,6 +78,11 @@ const CreatureData = ({ creature }: IProps) => {
         />
       )}
       <SensesBlock senses={creature.senses ?? {}} />
+      {creature.languages && creature.languages.length > 0 && (
+        <StatSection title="Idiomas">
+          <InfoRow label="">{creature.languages.join(', ')}</InfoRow>
+        </StatSection>
+      )}
       {'drops' in creature && (creature as IMonster).drops && (
         <DropsBlock
           drops={(creature as IMonster).drops ?? []}

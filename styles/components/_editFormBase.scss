@@ -27,7 +27,6 @@
 
 @mixin edit-form-section-title {
   @include cinzel-md($gold-100, bold, 1.2);
-  @include gold-decorative-line;
   padding-bottom: $spacing-1;
   margin-bottom: $spacing-3;
   width: 100%;

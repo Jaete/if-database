@@ -51,6 +51,7 @@ const CreatureEditForm = ({
     handleChange,
     handleNestedChange,
     handleDoubleNestedChange,
+    handleLanguagesChange,
     handleArrayChange,
     addArrayItem,
     removeArrayItem,
@@ -575,6 +576,16 @@ const CreatureEditForm = ({
               />
             ))}
           </div>
+        </div>
+
+        {/* Idiomas (Languages) */}
+        <div className={handles.section}>
+          <h3 className={handles.sectionTitle}>Idiomas</h3>
+          <FormField
+            label="Idiomas (separados por vírgula)"
+            value={(formData.languages || []).join(', ')}
+            onChange={(e) => handleLanguagesChange(e.target.value)}
+          />
         </div>
 
         {/* Habilidades (Traits) */}

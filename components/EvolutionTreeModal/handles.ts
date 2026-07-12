@@ -33,6 +33,7 @@ const EvolutionTreeModalHandles = [
   'deleteTreeBtn',
   'newTreeBtn',
   'sectionTitle',
+  'listFooter',
 ] as const;
 
 export default EvolutionTreeModalHandles;

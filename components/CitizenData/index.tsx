@@ -77,7 +77,13 @@ const CitizenData = ({ citizen }: IProps) => {
     <div key={citizen.slug} className={handles.citizenData}>
       <EntityTitle>{citizen.name}</EntityTitle>
 
-      {citizen.image && <EntityImage src={citizen.image} alt={citizen.name} />}
+      {citizen.image && (
+        <EntityImage
+          src={citizen.image}
+          alt={citizen.name}
+          iconSrc={citizen.icon}
+        />
+      )}
 
       {/* Identity Info */}
       <div className={handles.citizenInfoList}>

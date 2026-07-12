@@ -180,11 +180,6 @@ const EvolutionTreeModal = ({ isOpen, onClose, monsters }: IProps) => {
                   </div>
                 );
               })}
-              {canEdit && (
-                <button className={handles.newTreeBtn} onClick={handleNewTree}>
-                  + Nova Arvore
-                </button>
-              )}
             </div>
           )}
 
@@ -301,6 +296,14 @@ const EvolutionTreeModal = ({ isOpen, onClose, monsters }: IProps) => {
             </div>
           )}
         </div>
+
+        {canEdit && !showCanvas && treeNodes.length === 0 && (
+          <div className={handles.listFooter}>
+            <button className={handles.newTreeBtn} onClick={handleNewTree}>
+              + Nova Arvore
+            </button>
+          </div>
+        )}
       </div>
 
       <AlertModal

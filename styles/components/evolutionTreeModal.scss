@@ -319,6 +319,15 @@
     padding: $spacing-4;
   }
 
+  .listFooter {
+    width: 100%;
+    flex-shrink: 0;
+    padding: $spacing-3 $spacing-6;
+    border-top: 1px solid $neutral-400;
+    background-color: $neutral-300;
+    @include flex-row-center;
+  }
+
   .sectionTitle {
     @include cinzel-md($primary-100, bold, 1.2);
     margin: 0 0 $spacing-2;
@@ -410,8 +419,6 @@
 
   .newTreeBtn {
     background-color: $primary-100;
-    margin-top: $spacing-3;
-    align-self: center;
     padding: $spacing-2 $spacing-6;
 
     &:hover {

@@ -48,3 +48,31 @@
   object-fit: cover;
   object-position: center 20%;
 }
+
+.copyLinkActions {
+  position: absolute;
+  bottom: $spacing-2;
+  right: $spacing-2;
+  z-index: 7;
+  @include flex-row-center;
+  gap: $spacing-2;
+}
+
+.copyLinkButton {
+  @include main-xs($color-text, $font-weight-bold);
+  @include flex-row-center;
+  gap: $spacing-1;
+  background-color: rgba($neutral-100, 0.65);
+  border: 1px solid rgba($gold-100, 0.4);
+  border-radius: $radius-sm;
+  padding: $spacing-1 $spacing-2;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: rgba($neutral-100, 0.85);
+  }
+
+  @include focus-ring($primary-100);
+}

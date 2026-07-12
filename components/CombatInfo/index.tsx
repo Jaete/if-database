@@ -8,6 +8,12 @@ interface IProps {
   combat: ICombat;
 }
 
+const getHitDice = (formula?: string) => {
+  if (!formula) return null;
+  const match = formula.match(/\d+d\d+(?:\s*[+-]\s*\d+)?/i);
+  return match ? match[0] : null;
+};
+
 const getSpeedText = (speed?: ISpeed) => {
   if (!speed) return '---';
   const parts = [];
@@ -20,18 +26,27 @@ const getSpeedText = (speed?: ISpeed) => {
   return parts.join(', ') || '---';
 };
 
-const CombatInfo = ({ combat }: IProps) => (
-  <StatSection title="Informações de Combate">
-    <InfoRow label="Classe de Armadura:" valueId="armor-class">
-      {combat.ac?.formula || combat.ac?.value || '---'}
-    </InfoRow>
-    <InfoRow label="Pontos de Vida:" valueId="hit-points">
-      {combat.hp?.formula || combat.hp?.value || '---'}
-    </InfoRow>
-    <InfoRow label="Deslocamento:" valueId="speed">
-      {getSpeedText(combat.speed)}
-    </InfoRow>
-  </StatSection>
-);
+const CombatInfo = ({ combat }: IProps) => {
+  const hitDice = getHitDice(combat.hp?.formula);
+
+  return (
+    <StatSection title="Informações de Combate">
+      <InfoRow label="Classe de Armadura:" valueId="armor-class">
+        {combat.ac?.formula || combat.ac?.value || '---'}
+      </InfoRow>
+      <InfoRow label="Pontos de Vida:" valueId="hit-points">
+        {combat.hp?.formula || combat.hp?.value || '---'}
+      </InfoRow>
+      {hitDice && (
+        <InfoRow label="Dado de Vida:" valueId="hit-dice">
+          {hitDice}
+        </InfoRow>
+      )}
+      <InfoRow label="Deslocamento:" valueId="speed">
+        {getSpeedText(combat.speed)}
+      </InfoRow>
+    </StatSection>
+  );
+};
 
 export default CombatInfo;

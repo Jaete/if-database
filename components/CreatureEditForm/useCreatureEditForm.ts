@@ -276,6 +276,14 @@ export const useCreatureEditForm = ({
     );
   };
 
+  const handleLanguagesChange = (value: string) => {
+    const languages = value
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+    setFormData((prev) => ({ ...prev, languages }) as IFormData);
+  };
+
   // === Level handlers ===
 
   const addLevel = () => {
@@ -414,6 +422,7 @@ export const useCreatureEditForm = ({
     handleChange,
     handleNestedChange,
     handleDoubleNestedChange,
+    handleLanguagesChange,
     handleArrayChange,
     addArrayItem,
     removeArrayItem,
