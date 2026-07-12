@@ -1,28 +1,7 @@
 @use '../globals' as *;
-@use './statSectionBase' as *;
 
 .abilitiesContainer {
   @include flex-col-start();
   gap: $spacing-3;
   width: 100%;
-}
-
-.ability {
-  @include main-md($neutral-2300 normal, 1.5);
-
-  @include light {
-    color: $neutral-300;
-  }
-
-  &Name {
-    @include main-md($neutral-2000, bold, 1.5, 0, center);
-  }
-
-  &Description {
-    color: $neutral-2100;
-
-    @include light {
-      color: $neutral-400;
-    }
-  }
 }

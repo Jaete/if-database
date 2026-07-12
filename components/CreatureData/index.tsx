@@ -1,7 +1,13 @@
+'use client';
+
 import { useState } from 'react';
 import type ICreature from '@/db/creatures/creatures.d';
+import type IMonster from '@/db/monsters/monster';
 import { useCssHandles } from '@/hooks/useCssHandles';
 
+import EntityTitle from '@/components/EntityTitle';
+import EntityImage from '@/components/EntityImage';
+import EntityDescription from '@/components/EntityDescription';
 import CombatInfo from '@/components/CombatInfo';
 import StatBlock from '@/components/StatsBlock';
 import AbilitiesBlock from '@/components/AbilitiesBlock';
@@ -10,7 +16,6 @@ import DropsBlock from '@/components/DropsBlock';
 import LevelProgressionModal from '@/components/LevelProgressionModal';
 import CreatureDataHandles from './handles';
 import '@/styles/components/creatureData.scss';
-import IMonster from '@/db/monsters/monster';
 
 interface IProps {
   creature: ICreature;
@@ -25,29 +30,17 @@ const CreatureData = ({ creature }: IProps) => {
 
   return (
     <div key={creature.slug} className={handles.creatureData}>
-      <div className={handles.creatureHeader}>
-        <h2 className={handles.creatureName}>{creature.name}</h2>
-      </div>
-      <div className={handles.creatureImageContainer}>
-        <div className={handles.creatureImageLoader} />
-        <img
-          src={creature.image ?? ''}
-          alt={creature.name}
-          onLoad={(e) => e.currentTarget.classList.add('loaded')}
-          className={handles.creatureImage}
-        />
-      </div>
-      <p className={handles.creatureDescription}>{creature.description}</p>
+      <EntityTitle>{creature.name}</EntityTitle>
+      <EntityImage src={creature.image ?? ''} alt={creature.name} />
+      <EntityDescription>{creature.description}</EntityDescription>
 
       {hasLevels && (
-        <>
-          <button
-            className={handles.levelButton}
-            onClick={() => setShowLevels(true)}
-          >
-            Ver Progressão de Níveis
-          </button>
-        </>
+        <button
+          className={handles.levelButton}
+          onClick={() => setShowLevels(true)}
+        >
+          Ver Progressão de Níveis
+        </button>
       )}
       <LevelProgressionModal
         isOpen={showLevels}

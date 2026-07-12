@@ -6,11 +6,7 @@
   left: 0;
   right: 0;
   z-index: 1100;
-  background: linear-gradient(
-    180deg,
-    $surface-elevated 0%,
-    $surface 100%
-  );
+  background: linear-gradient(180deg, $surface-elevated 0%, $surface 100%);
   border-top: 1px solid $neutral-400;
   box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.4);
   padding: $spacing-2 $spacing-4;

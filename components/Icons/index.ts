@@ -1,2 +1,9 @@
+export { default as DotsVerticalIcon } from './DotsVerticalIcon';
+export { default as DownloadIcon } from './DownloadIcon';
+export { default as ExternalLinkIcon } from './ExternalLinkIcon';
+export { default as EyeIcon } from './EyeIcon';
+export { default as FilePlusIcon } from './FilePlusIcon';
+export { default as PencilIcon } from './PencilIcon';
 export { default as PlusIcon } from './PlusIcon';
+export { default as TrashIcon } from './TrashIcon';
 export { default as TreeIcon } from './TreeIcon';

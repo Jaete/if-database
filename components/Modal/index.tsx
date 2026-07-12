@@ -1,6 +1,8 @@
-import { useEffect } from 'react';
+'use client';
+
 import { createPortal } from 'react-dom';
 import { useCssHandles, applyModifiers } from '@/hooks/useCssHandles';
+import { useModal } from './useModal';
 import ModalHandles from './handles';
 import '@/styles/components/modal.scss';
 
@@ -13,26 +15,7 @@ interface IProps {
 
 const Modal = ({ isOpen, onClose, title, children }: IProps) => {
   const handles = useCssHandles(ModalHandles);
-
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+  useModal(isOpen, onClose);
 
   const overlayClass = isOpen
     ? `${handles.overlay} ${applyModifiers(handles.overlay, 'visible')}`

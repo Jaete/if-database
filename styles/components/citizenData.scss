@@ -1,0 +1,31 @@
+@use '../globals' as *;
+
+.citizenData {
+  @include flex-col-start();
+  width: 100%;
+  color: $color-text;
+
+  @include light {
+    color: $color-text-inverse;
+  }
+}
+
+// Identity card at the top of the citizen sheet
+.citizenInfoList {
+  @include premium-card($spacing-4);
+  @include flex-col-start();
+  gap: 0;
+  width: 100%;
+  position: relative;
+  @include corner-ornament(8px, $gold-100, 0.35);
+}
+
+.citizenAbilities {
+  @include flex-col-start();
+  gap: $spacing-3;
+  width: 100%;
+}
+
+.citizenCantrips {
+  margin-top: $spacing-2;
+}

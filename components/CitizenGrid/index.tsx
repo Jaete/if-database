@@ -1,117 +1,47 @@
 'use client';
 
-import { useState, useMemo, useEffect, useRef } from 'react';
-
-import type ICitizen from '@/db/citizens/citizen.d';
 import { useCssHandles, applyModifiers } from '@/hooks/useCssHandles';
+import { useCitizenGrid } from './useCitizenGrid';
 import CitizenCard from '../CitizenCard';
 import Drawer from '../Drawer';
 import DrawerController from '../DrawerController';
 import DrawerHeader from '../DrawerHeader';
 import DrawerContent from '../DrawerContent';
 import Modal from '../Modal';
-import CitizenEditForm, {
-  citizenToFormData,
-  emptyCitizen,
-  type FormDataType,
-} from '../CitizenEditForm';
+import CitizenEditForm from '../CitizenEditForm';
 import ConfirmModal from '../ConfirmModal';
+import CitizenData from '../CitizenData';
+import { PlusIcon } from '../Icons';
 import CitizenGridHandles from './handles';
 import '@/styles/components/citizenGrid.scss';
-import CitizenData from '../CitizenDrawer/CitizenData';
-import { useCitizens } from '@/app/context/CitizensContext';
-import { useAuth } from '@/app/context/AuthContext';
-import { useTabs } from '@/app/context/TabContext';
 
 const CitizenGrid = () => {
-  const { citizens, loading, erase } = useCitizens();
-  const { canEdit } = useAuth();
   const handles = useCssHandles(CitizenGridHandles);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCitizen, setSelectedCitizen] = useState<ICitizen | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<ICitizen | null>(null);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [isSticky, setIsSticky] = useState(false);
-  const sentinelRef = useRef<HTMLDivElement>(null);
-
-  const { activeTab, openTab, openTabSilently, closeTab, updateTabFormData } =
-    useTabs<FormDataType>();
-  const [directEditCitizen, setDirectEditCitizen] = useState<ICitizen | null>(
-    null
-  );
-  const [isDirectModalOpen, setIsDirectModalOpen] = useState(false);
-
-  const filteredCitizens = useMemo(() => {
-    return citizens.filter((citizen) =>
-      citizen.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [citizens, searchTerm]);
-
-  useEffect(() => {
-    const handleClose = () => {
-      if (!activeTab) {
-        setSelectedCitizen(null);
-      }
-    };
-    window.addEventListener('drawer:close', handleClose);
-
-    return () => {
-      window.removeEventListener('drawer:close', handleClose);
-    };
-  }, [activeTab]);
-
-  useEffect(() => {
-    const sentinel = sentinelRef.current;
-    if (!sentinel) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsSticky(!entry.isIntersecting);
-      },
-      { threshold: 0 }
-    );
-
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-  }, []);
-
-  const handleEditClick = (citizen: ICitizen) => {
-    setDirectEditCitizen(citizen);
-    setIsDirectModalOpen(true);
-  };
-
-  const handleEditInNewTabClick = (citizen: ICitizen) => {
-    openTabSilently({
-      mode: 'edit',
-      slug: citizen.slug,
-      label: `Editando: ${citizen.name}`,
-      formData: citizenToFormData(citizen),
-    });
-  };
-
-  const handleCreateClick = () => {
-    openTab({
-      mode: 'create',
-      label: 'Novo Cidadão',
-      formData: emptyCitizen,
-    });
-  };
-
-  const handleViewClick = (citizen: ICitizen) => {
-    setSelectedCitizen(citizen);
-  };
-
-  const handleDeleteClick = (citizen: ICitizen) => {
-    setDeleteTarget(citizen);
-    setIsDeleteModalOpen(true);
-  };
-
-  const handleConfirmDelete = async () => {
-    if (deleteTarget) {
-      await erase(deleteTarget);
-    }
-    setDeleteTarget(null);
-  };
+  const {
+    loading,
+    canEdit,
+    searchTerm,
+    setSearchTerm,
+    selectedCitizen,
+    deleteTarget,
+    isDeleteModalOpen,
+    isSticky,
+    sentinelRef,
+    activeTab,
+    directEditCitizen,
+    isDirectModalOpen,
+    filteredCitizens,
+    handleEditClick,
+    handleEditInNewTabClick,
+    handleCreateClick,
+    handleViewClick,
+    handleDeleteClick,
+    handleConfirmDelete,
+    handleDirectModalClose,
+    handleTabModalClose,
+    handleTabFormDataChange,
+    handleDeleteModalClose,
+  } = useCitizenGrid();
 
   return (
     <div
@@ -159,19 +89,7 @@ const CitizenGrid = () => {
               onClick={handleCreateClick}
               aria-label="Criar novo cidadão"
             >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <line x1="12" y1="5" x2="12" y2="19" />
-                <line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
+              <PlusIcon />
             </button>
           )}
         </div>
@@ -233,19 +151,14 @@ const CitizenGrid = () => {
       {/* Direct edit modal (left-click edit, no tab) */}
       <Modal
         isOpen={isDirectModalOpen && !!directEditCitizen}
-        onClose={() => {
-          setIsDirectModalOpen(false);
-          setDirectEditCitizen(null);
-        }}
+        onClose={handleDirectModalClose}
         title={`Editando: ${directEditCitizen?.name || ''}`}
       >
         {directEditCitizen && (
           <CitizenEditForm
+            citizen={directEditCitizen}
             mode="edit"
-            onClose={() => {
-              setIsDirectModalOpen(false);
-              setDirectEditCitizen(null);
-            }}
+            onClose={handleDirectModalClose}
           />
         )}
       </Modal>
@@ -253,27 +166,22 @@ const CitizenGrid = () => {
       {/* Tab-based edit modal */}
       <Modal
         isOpen={!!activeTab}
-        onClose={() => {
-          if (activeTab) closeTab(activeTab.id);
-        }}
+        onClose={handleTabModalClose}
         title={activeTab?.label || 'Formulário'}
       >
         {activeTab && (
           <CitizenEditForm
             mode={activeTab.mode}
             externalFormData={activeTab.formData}
-            onFormDataChange={(data) => updateTabFormData(activeTab.id, data)}
-            onClose={() => closeTab(activeTab.id)}
+            onFormDataChange={handleTabFormDataChange}
+            onClose={handleTabModalClose}
           />
         )}
       </Modal>
 
       <ConfirmModal
         isOpen={isDeleteModalOpen}
-        onClose={() => {
-          setIsDeleteModalOpen(false);
-          setDeleteTarget(null);
-        }}
+        onClose={handleDeleteModalClose}
         onConfirm={handleConfirmDelete}
         title="Excluir Cidadão"
         message={

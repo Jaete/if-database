@@ -1,0 +1,13 @@
+@use '../globals' as *;
+
+.entityHeader {
+  width: 100%;
+  margin-bottom: $spacing-5;
+}
+
+.entityTitle {
+  margin: 0;
+  @include cinzel-3xl($gold-100, $font-weight-bold, 1.2, 1px);
+  @include gold-gradient-text;
+  @include gold-decorative-line(64px, 2px);
+}

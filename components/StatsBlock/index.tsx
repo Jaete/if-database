@@ -1,7 +1,9 @@
+'use client';
+
 import { type IStats } from '@/db/creatures/creatures.d';
-import { useCssHandles } from '@/hooks/useCssHandles';
-import StatBlockHandles from './handles';
-import '@/styles/components/statsBlock.scss';
+import { statModifier } from '@/lib/stats';
+import StatSection from '@/components/StatSection';
+import AttributesGrid from '@/components/AttributesGrid';
 
 interface IProps {
   stats: IStats;
@@ -16,33 +18,18 @@ const statLabels: Record<keyof IStats, string> = {
   cha: 'CAR',
 };
 
-const getModifierText = (value?: number) => {
-  if (value === undefined) return '';
-  const mod = Math.floor((value - 10) / 2);
-  return mod >= 0 ? `(+${mod})` : `(${mod})`;
-};
-
-const StatBlock = ({ stats }: IProps) => {
-  const handles = useCssHandles(StatBlockHandles);
-
-  return (
-    <div className={handles.statSection}>
-      <h3>Atributos</h3>
-      <div className={handles.attributesGrid}>
-        {stats &&
-          (Object.keys(statLabels) as Array<keyof IStats>).map((key) => (
-            <div key={key} className={handles.attrItem}>
-              <span className={handles.attrLabel}>{statLabels[key]}</span>
-              <span id={`stat-${key}`} className={handles.attrValue}>
-                {stats?.[key] !== undefined
-                  ? `${stats[key]} ${getModifierText(stats[key])}`
-                  : '---'}
-              </span>
-            </div>
-          ))}
-      </div>
-    </div>
-  );
-};
+const StatBlock = ({ stats }: IProps) => (
+  <StatSection title="Atributos">
+    <AttributesGrid
+      items={(Object.keys(statLabels) as Array<keyof IStats>).map((key) => ({
+        key,
+        label: statLabels[key],
+        valueId: `stat-${key}`,
+        value: stats?.[key] !== undefined ? statModifier(stats[key]) : '---',
+        sub: stats?.[key] !== undefined ? stats[key] : undefined,
+      }))}
+    />
+  </StatSection>
+);
 
 export default StatBlock;

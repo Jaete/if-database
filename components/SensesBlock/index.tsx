@@ -1,50 +1,39 @@
-import { useCssHandles } from '@/hooks/useCssHandles';
-import SensesBlockHandles from './handles';
-import '@/styles/components/sensesBlock.scss';
-import { ISenses } from '@/db/creatures/creatures.d';
+'use client';
+
+import { type ISenses } from '@/db/creatures/creatures.d';
+import StatSection from '@/components/StatSection';
+import InfoRow from '@/components/InfoRow';
 
 interface IProps {
   senses: ISenses;
 }
 
-const SensesBlock = ({ senses }: IProps) => {
-  const handles = useCssHandles(SensesBlockHandles);
-
-  return (
-    <div className={handles.statSection}>
-      <h3>Sentidos</h3>
-      <div className={handles.sensesList}>
-        <div className={handles.infoRow}>
-          <span className={handles.infoLabel}>Percepção passiva:</span>{' '}
-          <span id="sense-perception">{senses.passivePerception ?? '---'}</span>
-        </div>
-        {senses.darkvision != null && senses.darkvision > 0 && (
-          <div className={handles.infoRow}>
-            <span className={handles.infoLabel}>Visão no escuro:</span>{' '}
-            <span id="sense-darkvision">{senses.darkvision} m</span>
-          </div>
-        )}
-        {senses.blindsight != null && senses.blindsight > 0 && (
-          <div className={handles.infoRow}>
-            <span className={handles.infoLabel}>Visão às cegas:</span>{' '}
-            <span id="sense-blindsight">{senses.blindsight} m</span>
-          </div>
-        )}
-        {senses.tremorsense != null && senses.tremorsense > 0 && (
-          <div className={handles.infoRow}>
-            <span className={handles.infoLabel}>Percepção sísmica:</span>{' '}
-            <span id="sense-tremorsense">{senses.tremorsense} m</span>
-          </div>
-        )}
-        {senses.truesight != null && senses.truesight > 0 && (
-          <div className={handles.infoRow}>
-            <span className={handles.infoLabel}>Visão verdadeira:</span>{' '}
-            <span id="sense-truesight">{senses.truesight} m</span>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
+const SensesBlock = ({ senses }: IProps) => (
+  <StatSection title="Sentidos">
+    <InfoRow label="Percepção passiva:" valueId="sense-perception">
+      {senses.passivePerception ?? '---'}
+    </InfoRow>
+    {senses.darkvision != null && senses.darkvision > 0 && (
+      <InfoRow label="Visão no escuro:" valueId="sense-darkvision">
+        {senses.darkvision} m
+      </InfoRow>
+    )}
+    {senses.blindsight != null && senses.blindsight > 0 && (
+      <InfoRow label="Visão às cegas:" valueId="sense-blindsight">
+        {senses.blindsight} m
+      </InfoRow>
+    )}
+    {senses.tremorsense != null && senses.tremorsense > 0 && (
+      <InfoRow label="Percepção sísmica:" valueId="sense-tremorsense">
+        {senses.tremorsense} m
+      </InfoRow>
+    )}
+    {senses.truesight != null && senses.truesight > 0 && (
+      <InfoRow label="Visão verdadeira:" valueId="sense-truesight">
+        {senses.truesight} m
+      </InfoRow>
+    )}
+  </StatSection>
+);
 
 export default SensesBlock;

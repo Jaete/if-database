@@ -1,13 +1,3 @@
-const CreatureDataHandles = [
-  'creatureData',
-  'creatureHeader',
-  'creatureName',
-  'creatureImageContainer',
-  'creatureImage',
-  'creatureDescription',
-  'creatureImageLoader',
-  'creatureImageSpinner',
-  'levelButton',
-] as const;
+const CreatureDataHandles = ['creatureData', 'levelButton'] as const;
 
 export default CreatureDataHandles;

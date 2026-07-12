@@ -24,7 +24,7 @@
 }
 
 .okButton {
-  @include main-xs(#ffffff, bold);
+  @include main-xs($color-text, $font-weight-bold);
   background-color: $primary-100;
   border: none;
   padding: $spacing-2 $spacing-8;

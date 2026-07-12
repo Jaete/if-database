@@ -1,0 +1,74 @@
+@use '../globals' as *;
+
+.attributesGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: $spacing-3;
+  width: 100%;
+
+  @include mobile {
+    gap: $spacing-2;
+  }
+}
+
+.attrItem {
+  @include flex-col-center();
+  gap: $spacing-1;
+  padding: $spacing-3 $spacing-2;
+  background: linear-gradient(180deg, $surface-raised 0%, $surface 100%);
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  text-align: center;
+  @include elevation(1);
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    transform 0.25s ease;
+
+  &:hover {
+    border-color: rgba($gold-100, 0.4);
+    box-shadow: $glow-gold;
+    transform: translateY(-2px);
+  }
+
+  @include mobile {
+    padding: $spacing-2 $spacing-1;
+  }
+
+  @include light {
+    background: linear-gradient(180deg, $neutral-2100 0%, $neutral-2300 100%);
+    border-color: $color-border-inverse;
+  }
+}
+
+.attrLabel {
+  @include caption($gold-200, $font-weight-bold);
+
+  @include mobile {
+    font-size: 10px;
+  }
+
+  @include light {
+    color: $gold-500;
+  }
+}
+
+.attrValue {
+  @include stat-value($color-text);
+
+  @include mobile {
+    font-size: 16px;
+  }
+
+  @include light {
+    color: $color-text-inverse;
+  }
+}
+
+.attrSub {
+  @include mono-sm($color-text-muted, $font-weight-regular, 1.3, 0, center);
+
+  @include light {
+    color: $color-text-muted-inverse;
+  }
+}

@@ -1,9 +1,3 @@
-const AbilitiesBlockHandles = [
-  'statSection',
-  'abilitiesContainer',
-  'ability',
-  'abilityName',
-  'abilityDescription',
-] as const;
+const AbilitiesBlockHandles = ['abilitiesContainer'] as const;
 
 export default AbilitiesBlockHandles;

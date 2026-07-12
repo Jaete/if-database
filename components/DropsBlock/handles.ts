@@ -1,9 +1,3 @@
-const DropsBlockHandles = [
-  'statSection',
-  'dropsTable',
-  'dropRange',
-  'dropItem',
-  'dropDiceInfo',
-] as const;
+const DropsBlockHandles = ['dropDiceInfo'] as const;
 
 export default DropsBlockHandles;

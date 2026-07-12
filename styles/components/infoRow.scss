@@ -1,0 +1,42 @@
+@use '../globals' as *;
+
+.infoRow {
+  display: flex;
+  align-items: baseline;
+  gap: $spacing-2;
+  width: 100%;
+  padding: $spacing-1 0;
+
+  & + & {
+    border-top: 1px solid rgba($gold-100, 0.08);
+
+    @include light {
+      border-top-color: $color-border-inverse;
+    }
+  }
+}
+
+.infoLabel {
+  flex-shrink: 0;
+  @include caption($gold-200, $font-weight-semibold);
+
+  @include light {
+    color: $gold-500;
+  }
+}
+
+.infoValue {
+  @include main-sm($color-text, $font-weight-regular, 1.6);
+
+  @include mobile {
+    font-size: 13px;
+  }
+
+  @include light {
+    color: $color-text-inverse;
+  }
+}
+
+.infoValuePre {
+  white-space: pre-wrap;
+}

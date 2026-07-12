@@ -1,0 +1,49 @@
+@use '../globals' as *;
+
+.abilityCard {
+  width: 100%;
+  padding: $spacing-3 $spacing-4;
+  background: linear-gradient(135deg, $surface, rgba($surface-raised, 0.8));
+  border: 1px solid $color-border;
+  border-left: 3px solid $gold-300;
+  border-radius: $radius-md;
+  @include elevation(1);
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+
+  &:hover {
+    border-color: rgba($gold-100, 0.3);
+    border-left-color: $gold-100;
+    box-shadow: $glow-gold;
+  }
+
+  @include light {
+    background: linear-gradient(
+      135deg,
+      $neutral-2100,
+      rgba($neutral-2300, 0.8)
+    );
+    border-color: $color-border-inverse;
+    border-left-color: $gold-400;
+  }
+}
+
+.abilityCardName {
+  display: block;
+  margin-bottom: $spacing-1;
+  @include cinzel-sm($gold-100, $font-weight-bold, 1.4, 0.5px);
+
+  @include light {
+    color: $gold-500;
+  }
+}
+
+.abilityCardDescription {
+  margin: 0;
+  @include main-sm($color-text-muted, $font-weight-regular, 1.6);
+
+  @include light {
+    color: $color-text-muted-inverse;
+  }
+}

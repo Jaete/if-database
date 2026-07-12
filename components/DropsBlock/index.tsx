@@ -1,7 +1,11 @@
+'use client';
+
+import { type IDrop } from '@/db/monsters/monster';
 import { useCssHandles } from '@/hooks/useCssHandles';
+import StatSection from '@/components/StatSection';
+import StatTable from '@/components/StatTable';
 import DropsBlockHandles from './handles';
 import '@/styles/components/dropsBlock.scss';
-import { IDrop } from '@/db/monsters/monster';
 
 interface IProps {
   drops: IDrop[];
@@ -12,24 +16,20 @@ const DropsBlock = ({ drops, dice }: IProps) => {
   const handles = useCssHandles(DropsBlockHandles);
 
   return (
-    <div className={handles.statSection}>
-      <h3>Itens de Drop</h3>
+    <StatSection title="Itens de Drop">
       {dice && (
         <div className={handles.dropDiceInfo}>
           Dado: <strong>{dice}</strong>
         </div>
       )}
-      <table className={handles.dropsTable}>
-        <tbody id="creature-drops">
-          {drops?.map((drop, index) => (
-            <tr key={`${drop.item || 'item'}-${index}`}>
-              <td className={handles.dropRange}>{drop.range ?? '---'}</td>
-              <td className={handles.dropItem}>{drop.item ?? '---'}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+      <StatTable
+        bodyId="creature-drops"
+        rows={(drops ?? []).map((drop, index) => ({
+          key: `${drop.item || 'item'}-${index}`,
+          cells: [drop.range ?? '---', drop.item ?? '---'],
+        }))}
+      />
+    </StatSection>
   );
 };
 

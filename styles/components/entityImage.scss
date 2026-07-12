@@ -1,0 +1,50 @@
+@use '../globals' as *;
+
+.entityImageContainer {
+  position: relative;
+  width: 100%;
+  margin-bottom: $spacing-5;
+  border-radius: $radius-lg;
+  overflow: hidden;
+  @include gold-border(1px, 0.35);
+  @include elevation(2);
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 55%, $neutral-200 100%);
+    z-index: 6;
+    pointer-events: none;
+
+    @include light {
+      background: linear-gradient(180deg, transparent 55%, $neutral-2100 100%);
+    }
+  }
+}
+
+.entityImageLoader {
+  position: absolute;
+  inset: 0;
+  opacity: 0.3;
+  background: linear-gradient(
+    90deg,
+    $neutral-2000 25%,
+    $neutral-2600 75%,
+    $neutral-2000 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  z-index: 1;
+}
+
+.entityImage {
+  position: relative;
+  z-index: 5;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 1 / 1;
+  display: block;
+  object-fit: cover;
+  object-position: center 20%;
+}

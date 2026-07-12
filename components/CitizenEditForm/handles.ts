@@ -6,6 +6,7 @@ const CitizenEditFormHandles = [
   'textarea',
   'select',
   'sectionTitle',
+  'sectionSubheading',
   'section',
   'grid2',
   'grid3',
@@ -14,8 +15,6 @@ const CitizenEditFormHandles = [
   'actions',
   'submitButton',
   'cancelButton',
-  'arrayItem',
-  'removeButton',
   'addButton',
   'headerActions',
   'importMarkdownButton',
@@ -25,8 +24,11 @@ const CitizenEditFormHandles = [
   'inlineFields',
   'slotTable',
   'slotTableInput',
+  'slotTableEmpty',
+  'slotLevelLabel',
   'statTable',
   'statTableRow',
+  'statTableValue',
   'gilField',
 ] as const;
 

@@ -1,6 +1,7 @@
 const CitizenCardHandles = [
   'ccCard',
   'ccCardImage',
+  'ccCardImg',
   'ccCardImageOverlay',
   'ccCardInfo',
   'ccCardName',

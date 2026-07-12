@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, useMemo, useEffect, useRef } from 'react';
-
 import type ICreature from '@/db/creatures/creatures.d';
 import { useCssHandles, applyModifiers } from '@/hooks/useCssHandles';
+import { useCreatureGrid } from './useCreatureGrid';
 import CreatureCard from '../CreatureCard';
 import Drawer from '../Drawer';
 import DrawerController from '../DrawerController';
@@ -11,116 +10,43 @@ import DrawerHeader from '../DrawerHeader';
 import DrawerContent from '../DrawerContent';
 import CreatureData from '../CreatureData';
 import Modal from '../Modal';
-import CreatureEditForm, {
-  emptyMonster,
-  type IFormData,
-} from '../CreatureEditForm';
+import CreatureEditForm from '../CreatureEditForm';
 import ConfirmModal from '../ConfirmModal';
+import EvolutionTreeModal from '../EvolutionTreeModal';
+import { PlusIcon, TreeIcon } from '../Icons';
 import CreatureGridHandles from './handles';
 import '@/styles/components/creatureGrid.scss';
-import { PlusIcon, TreeIcon } from '../Icons';
-import { useMonsters } from '@/app/context/MonstersContext';
-import { useAuth } from '@/app/context/AuthContext';
-import { useTabs } from '@/app/context/TabContext';
-import EvolutionTreeModal from '../EvolutionTreeModal';
 
 const CreatureGrid = () => {
-  const { monsters, loading, erase } = useMonsters();
-  const { canEdit } = useAuth();
   const handles = useCssHandles(CreatureGridHandles);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCreature, setSelectedCreature] = useState<ICreature | null>(
-    null
-  );
-  const [deleteTarget, setDeleteTarget] = useState<ICreature | null>(null);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [isSticky, setIsSticky] = useState(false);
-  const [isTreeModalOpen, setIsTreeModalOpen] = useState(false);
-  const lastScrollYRef = useRef(0);
-
-  const { activeTab, openTab, openTabSilently, closeTab, updateTabFormData } =
-    useTabs<IFormData>();
-  const [directEditCreature, setDirectEditCreature] =
-    useState<ICreature | null>(null);
-  const [isDirectModalOpen, setIsDirectModalOpen] = useState(false);
-
-  const filteredCreatures = useMemo(() => {
-    return monsters.filter((monster) =>
-      monster.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [monsters, searchTerm]);
-
-  useEffect(() => {
-    const handleClose = () => {
-      if (!activeTab) {
-        setSelectedCreature(null);
-      }
-    };
-    window.addEventListener('drawer:close', handleClose);
-
-    return () => {
-      window.removeEventListener('drawer:close', handleClose);
-    };
-  }, [activeTab]);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-
-      if (currentScrollY <= 0) {
-        setIsSticky(false);
-      } else if (currentScrollY > lastScrollYRef.current) {
-        setIsSticky(true);
-      }
-
-      lastScrollYRef.current = currentScrollY;
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const handleEditClick = (creature: ICreature) => {
-    setDirectEditCreature(creature);
-    setIsDirectModalOpen(true);
-  };
-
-  const handleEditInNewTabClick = (creature: ICreature) => {
-    openTabSilently({
-      mode: 'edit',
-      slug: creature.slug,
-      label: `Editando: ${creature.name}`,
-      formData: creature as IFormData,
-    });
-  };
-
-  const handleCreateClick = () => {
-    openTab({
-      mode: 'create',
-      label: 'Nova Criatura',
-      formData: emptyMonster,
-    });
-  };
-
-  const handleTreeModalOpen = () => {
-    setIsTreeModalOpen(true);
-  };
-
-  const handleViewClick = (creature: ICreature) => {
-    setSelectedCreature(creature);
-  };
-
-  const handleDeleteClick = (creature: ICreature) => {
-    setDeleteTarget(creature);
-    setIsDeleteModalOpen(true);
-  };
-
-  const handleConfirmDelete = async () => {
-    if (deleteTarget) {
-      await erase(deleteTarget);
-    }
-    setDeleteTarget(null);
-  };
+  const {
+    monsters,
+    loading,
+    canEdit,
+    searchTerm,
+    setSearchTerm,
+    selectedCreature,
+    deleteTarget,
+    isDeleteModalOpen,
+    isSticky,
+    isTreeModalOpen,
+    activeTab,
+    directEditCreature,
+    isDirectModalOpen,
+    filteredCreatures,
+    handleEditClick,
+    handleEditInNewTabClick,
+    handleCreateClick,
+    handleTreeModalOpen,
+    handleTreeModalClose,
+    handleViewClick,
+    handleDeleteClick,
+    handleConfirmDelete,
+    handleDirectModalClose,
+    handleTabModalClose,
+    handleTabFormDataChange,
+    handleDeleteModalClose,
+  } = useCreatureGrid();
 
   return (
     <div
@@ -247,20 +173,14 @@ const CreatureGrid = () => {
       {/* Direct edit modal (left-click edit, no tab) */}
       <Modal
         isOpen={isDirectModalOpen && !!directEditCreature}
-        onClose={() => {
-          setIsDirectModalOpen(false);
-          setDirectEditCreature(null);
-        }}
+        onClose={handleDirectModalClose}
         title={`Editando: ${directEditCreature?.name || ''}`}
       >
         {directEditCreature && (
           <CreatureEditForm
             creature={directEditCreature}
             mode="edit"
-            onClose={() => {
-              setIsDirectModalOpen(false);
-              setDirectEditCreature(null);
-            }}
+            onClose={handleDirectModalClose}
           />
         )}
       </Modal>
@@ -268,9 +188,7 @@ const CreatureGrid = () => {
       {/* Tab-based edit modal */}
       <Modal
         isOpen={!!activeTab}
-        onClose={() => {
-          if (activeTab) closeTab(activeTab.id);
-        }}
+        onClose={handleTabModalClose}
         title={activeTab?.label || 'Formulário'}
       >
         {activeTab && (
@@ -278,18 +196,15 @@ const CreatureGrid = () => {
             creature={{} as ICreature}
             mode={activeTab.mode}
             externalFormData={activeTab.formData}
-            onFormDataChange={(data) => updateTabFormData(activeTab.id, data)}
-            onClose={() => closeTab(activeTab.id)}
+            onFormDataChange={handleTabFormDataChange}
+            onClose={handleTabModalClose}
           />
         )}
       </Modal>
 
       <ConfirmModal
         isOpen={isDeleteModalOpen}
-        onClose={() => {
-          setIsDeleteModalOpen(false);
-          setDeleteTarget(null);
-        }}
+        onClose={handleDeleteModalClose}
         onConfirm={handleConfirmDelete}
         title="Excluir Criatura"
         message={
@@ -303,7 +218,7 @@ const CreatureGrid = () => {
 
       <EvolutionTreeModal
         isOpen={isTreeModalOpen}
-        onClose={() => setIsTreeModalOpen(false)}
+        onClose={handleTreeModalClose}
         monsters={monsters}
       />
     </div>

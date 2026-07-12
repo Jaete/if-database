@@ -113,7 +113,7 @@
 }
 
 .cgNavButton {
-  @include main-xs(#ffffff, bold);
+  @include main-xs($color-text, $font-weight-bold);
   background: linear-gradient(135deg, $gold-300, $primary-200);
   border: none;
   padding: $spacing-3 $spacing-6;
@@ -158,8 +158,8 @@
   border: 1px solid $neutral-400;
   border-radius: $radius-full;
   padding: $spacing-3 $spacing-6;
-  color: #ffffff;
-  @include main-md(#ffffff, normal);
+  color: $color-text;
+  @include main-md($color-text, $font-weight-regular);
   outline: none;
   transition:
     border-color 0.2s,
@@ -175,7 +175,7 @@
   }
 
   @include light {
-    background-color: #ffffff;
+    background-color: $color-text;
     color: $neutral-200;
     border-color: $neutral-2700;
 
@@ -231,7 +231,7 @@
   background: linear-gradient(135deg, $gold-300, $primary-200);
   border: none;
   cursor: pointer;
-  color: #ffffff;
+  color: $color-text;
   flex-shrink: 0;
   transition: all 0.2s ease;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
@@ -301,9 +301,9 @@
   border-radius: 12px;
   background: linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0.03) 25%,
-    rgba(255, 255, 255, 0.08) 50%,
-    rgba(255, 255, 255, 0.03) 75%
+    rgba($neutral-2000, 0.03) 25%,
+    rgba($neutral-2000, 0.08) 50%,
+    rgba($neutral-2000, 0.03) 75%
   );
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;

@@ -73,7 +73,11 @@
     border-bottom: 1px solid $neutral-400;
     @include flex-row-between;
     align-items: center;
-    background: linear-gradient(180deg, rgba($surface-float, 0.5) 0%, $surface-elevated 100%);
+    background: linear-gradient(
+      180deg,
+      rgba($surface-float, 0.5) 0%,
+      $surface-elevated 100%
+    );
   }
 
   .title {

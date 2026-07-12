@@ -1,0 +1,19 @@
+@use '../globals' as *;
+
+.entityDescription {
+  @include main-md($color-text-muted, $font-weight-regular, 1.7);
+  margin: $spacing-5 0 0;
+  padding-left: $spacing-4;
+  border-left: 2px solid rgba($gold-100, 0.35);
+  word-wrap: break-word;
+  width: 100%;
+  font-style: italic;
+
+  @include mobile {
+    font-size: 13px;
+  }
+
+  @include light {
+    color: $color-text-muted-inverse;
+  }
+}

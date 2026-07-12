@@ -1,7 +1,8 @@
-import { useCssHandles } from '@/hooks/useCssHandles';
-import CombatInfoHandles from './handles';
-import '@/styles/components/combatInfo.scss';
-import { ICombat, ISpeed } from '@/db/creatures/creatures.d';
+'use client';
+
+import { type ICombat, type ISpeed } from '@/db/creatures/creatures.d';
+import StatSection from '@/components/StatSection';
+import InfoRow from '@/components/InfoRow';
 
 interface IProps {
   combat: ICombat;
@@ -19,32 +20,18 @@ const getSpeedText = (speed?: ISpeed) => {
   return parts.join(', ') || '---';
 };
 
-const CombatInfo = ({ combat }: IProps) => {
-  const handles = useCssHandles(CombatInfoHandles);
-
-  return (
-    <div className={handles.statSection}>
-      <h3>Informações de Combate</h3>
-      <div className={handles.combatInfo}>
-        <div className={handles.infoRow}>
-          <span className={handles.infoLabel}>Classe de Armadura:</span>{' '}
-          <span id="armor-class">
-            {combat.ac?.formula || combat.ac?.value || '---'}
-          </span>
-        </div>
-        <div className={handles.infoRow}>
-          <span className={handles.infoLabel}>Pontos de Vida:</span>{' '}
-          <span id="hit-points">
-            {combat.hp?.formula || combat.hp?.value || '---'}
-          </span>
-        </div>
-        <div className={handles.infoRow}>
-          <span className={handles.infoLabel}>Deslocamento:</span>{' '}
-          <span id="speed">{getSpeedText(combat.speed)}</span>
-        </div>
-      </div>
-    </div>
-  );
-};
+const CombatInfo = ({ combat }: IProps) => (
+  <StatSection title="Informações de Combate">
+    <InfoRow label="Classe de Armadura:" valueId="armor-class">
+      {combat.ac?.formula || combat.ac?.value || '---'}
+    </InfoRow>
+    <InfoRow label="Pontos de Vida:" valueId="hit-points">
+      {combat.hp?.formula || combat.hp?.value || '---'}
+    </InfoRow>
+    <InfoRow label="Deslocamento:" valueId="speed">
+      {getSpeedText(combat.speed)}
+    </InfoRow>
+  </StatSection>
+);
 
 export default CombatInfo;

@@ -1,0 +1,28 @@
+@use '../globals' as *;
+
+.statSection {
+  margin-top: $spacing-6;
+  width: 100%;
+  animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0;
+
+  h3 {
+    margin: 0 0 $spacing-3;
+    padding-bottom: $spacing-2;
+    border-bottom: 1px solid rgba($gold-100, 0.15);
+    text-transform: uppercase;
+    @include cinzel-md($gold-100, $font-weight-bold, 1.5, 1.5px);
+    @include gold-decorative-line(40px, 2px);
+
+    @include light {
+      color: $gold-500;
+      border-bottom-color: rgba($gold-500, 0.25);
+    }
+  }
+
+  @for $i from 1 through 14 {
+    &:nth-child(#{$i}) {
+      animation-delay: #{$i * 0.06}s + 0.2s;
+    }
+  }
+}
