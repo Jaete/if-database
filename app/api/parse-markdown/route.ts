@@ -99,6 +99,10 @@ export async function POST(request: Request) {
     // For defenses list items
     let defenseSubSection = '';
 
+    // For drops table extracted from a native docx table (no pipes)
+    let lastDropItem = '';
+    let expectDropRange = false;
+
     // For vertical stats format (docx)
     const STAT_NAMES = [
       'Força',
@@ -195,6 +199,8 @@ export async function POST(request: Request) {
         lastProfName = '';
         spellLevelSection = '';
         currentArrayIndex = -1;
+        lastDropItem = '';
+        expectDropRange = false;
         continue;
       }
 
@@ -255,6 +261,8 @@ export async function POST(request: Request) {
         }
 
         currentSubSection = subTitle;
+        lastDropItem = '';
+        expectDropRange = false;
         continue;
       }
 
@@ -304,6 +312,8 @@ export async function POST(request: Request) {
           spellLevelSection = '';
           currentArrayIndex = -1;
           pendingStatNames = [];
+          lastDropItem = '';
+          expectDropRange = false;
           continue;
         }
 
@@ -575,6 +585,29 @@ export async function POST(request: Request) {
             continue;
           if (itemText) {
             parsedData.drops?.push({ item: itemText, range: rangeVal });
+          }
+          continue;
+        }
+
+        // Drops from a native docx table: mammoth flattens table cells into
+        // one bare line each (no pipes, no leading digits), in row-major
+        // order — Item, Range, Item, Range, ...
+        if (
+          currentSubSection.includes('Espólios') &&
+          line.trim() &&
+          !line.startsWith('-') &&
+          !line.startsWith('#')
+        ) {
+          const trimmed = line.trim();
+          if (!['Item', 'Range', 'Espólios', 'Drops'].includes(trimmed)) {
+            if (!expectDropRange) {
+              lastDropItem = trimmed;
+              expectDropRange = true;
+            } else {
+              parsedData.drops?.push({ item: lastDropItem, range: trimmed });
+              lastDropItem = '';
+              expectDropRange = false;
+            }
           }
           continue;
         }
