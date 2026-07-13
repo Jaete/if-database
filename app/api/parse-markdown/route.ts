@@ -369,6 +369,18 @@ export async function POST(request: Request) {
           }
         }
 
+        // Detect drops sub-section (docx heading styles drop the "###"
+        // prefix, so this can't rely on the subMatch branch above)
+        if (currentSection === 'Dados Específicos de Monstro') {
+          const lc = cleanedTitle.toLowerCase();
+          if (lc.includes('espólio') || lc.includes('espolio')) {
+            currentSubSection = 'Espólios (Drops)';
+            lastDropItem = '';
+            expectDropRange = false;
+            continue;
+          }
+        }
+
         // Detect spellcasting sub-sections
         if (currentSection === 'Conjuração de Magias') {
           const lc = cleanedTitle.toLowerCase();
@@ -589,6 +601,20 @@ export async function POST(request: Request) {
           continue;
         }
 
+        // "Dado (ex: 1d4, 1d6, 1d20):" — the label itself contains a colon,
+        // so take the value after the LAST colon rather than the first.
+        if (/^-?\s*\*{0,2}Dado\b/i.test(line.trim())) {
+          const lastColonIdx = line.lastIndexOf(':');
+          if (lastColonIdx !== -1) {
+            const value = line
+              .slice(lastColonIdx + 1)
+              .replace(/^\*+|\*+$/g, '')
+              .trim();
+            if (value) parsedData.dice = value;
+          }
+          continue;
+        }
+
         // Drops from a native docx table: mammoth flattens table cells into
         // one bare line each (no pipes, no leading digits), in row-major
         // order — Item, Range, Item, Range, ...
@@ -596,7 +622,8 @@ export async function POST(request: Request) {
           currentSubSection.includes('Espólios') &&
           line.trim() &&
           !line.startsWith('-') &&
-          !line.startsWith('#')
+          !line.startsWith('#') &&
+          !line.includes(':')
         ) {
           const trimmed = line.trim();
           if (!['Item', 'Range', 'Espólios', 'Drops'].includes(trimmed)) {
