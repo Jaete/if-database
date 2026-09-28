@@ -32,6 +32,7 @@ const seedAdmin = async () => {
       username: ADMIN_USERNAME,
       password: hashedPassword,
       role: 'admin',
+      provider: 'local',
     });
 
     console.log(`✅ Usuário admin "${ADMIN_USERNAME}" criado com sucesso!`);

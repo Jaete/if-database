@@ -5,7 +5,7 @@ import User from '@/db/users/users';
 import Time from '@/lib/time';
 
 const TOKEN_SECRET = process.env.JWT_SECRET || 'fallback-dev-secret';
-const COOKIE_NAME = 'session';
+export const COOKIE_NAME = 'session';
 const TOKEN_EXPIRY = Time.days(3);
 
 // ===== PASSWORD HASHING =====
@@ -27,9 +27,10 @@ export function verifyPassword(password: string, stored: string): boolean {
 
 // ===== TOKEN MANAGEMENT =====
 
-interface TokenPayload {
+export interface TokenPayload {
   username: string;
   role: string;
+  provider: string;
   iat: number;
   exp: number;
 }
@@ -84,20 +85,28 @@ export function verifyToken(token: string): TokenPayload | null {
 export function refreshToken(token: string): string | null {
   const payload = verifyToken(token);
   if (!payload) return null;
-  return signToken({ username: payload.username, role: payload.role });
+  return signToken({
+    username: payload.username,
+    role: payload.role,
+    provider: payload.provider,
+  });
 }
 
 // ===== COOKIE HELPERS =====
 
-export async function setSessionCookie(token: string) {
-  const cookieStore = await cookies();
-  cookieStore.set(COOKIE_NAME, token, {
+export function sessionCookieOptions() {
+  return {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    sameSite: 'lax' as const,
     maxAge: TOKEN_EXPIRY,
     path: '/',
-  });
+  };
+}
+
+export async function setSessionCookie(token: string) {
+  const cookieStore = await cookies();
+  cookieStore.set(COOKIE_NAME, token, sessionCookieOptions());
 }
 
 export async function clearSessionCookie() {
@@ -120,7 +129,7 @@ export async function authenticateUser(
 ): Promise<{
   success: boolean;
   token?: string;
-  user?: { username: string; role: string };
+  user?: { username: string; role: string; provider: string };
   error?: string;
 }> {
   try {
@@ -131,16 +140,28 @@ export async function authenticateUser(
       return { success: false, error: 'Credenciais inválidas' };
     }
 
+    if (!user.password) {
+      return {
+        success: false,
+        error: 'Esta conta entra pelo fórum',
+      };
+    }
+
     const isValid = verifyPassword(password, user.password);
     if (!isValid) {
       return { success: false, error: 'Credenciais inválidas' };
     }
 
-    const token = signToken({ username: user.username, role: user.role });
+    const provider = user.provider ?? 'local';
+    const token = signToken({
+      username: user.username,
+      role: user.role,
+      provider,
+    });
     return {
       success: true,
       token,
-      user: { username: user.username, role: user.role },
+      user: { username: user.username, role: user.role, provider },
     };
   } catch (error) {
     console.error('Auth error:', error);

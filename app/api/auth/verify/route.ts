@@ -3,10 +3,9 @@ import {
   getSessionFromCookie,
   setSessionCookie,
   refreshToken,
+  COOKIE_NAME,
 } from '@/services/auth.service';
 import { cookies } from 'next/headers';
-
-const COOKIE_NAME = 'session';
 
 export async function GET() {
   try {
@@ -25,14 +24,22 @@ export async function GET() {
       if (newToken) {
         await setSessionCookie(newToken);
         return NextResponse.json({
-          user: { username: session.username, role: session.role },
+          user: {
+            username: session.username,
+            role: session.role,
+            provider: session.provider,
+          },
           token: newToken,
         });
       }
     }
 
     return NextResponse.json({
-      user: { username: session.username, role: session.role },
+      user: {
+        username: session.username,
+        role: session.role,
+        provider: session.provider,
+      },
     });
   } catch (error) {
     console.error('Verify error:', error);

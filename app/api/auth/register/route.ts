@@ -36,6 +36,15 @@ export async function POST(request: NextRequest) {
 
     const existing = await User.findOne({ username }).lean();
     if (existing) {
+      if (!existing.password) {
+        return NextResponse.json(
+          {
+            error: 'Este usuário já está vinculado ao fórum',
+            code: 'FORUM_ACCOUNT',
+          },
+          { status: 409 }
+        );
+      }
       return NextResponse.json({ error: 'Usuário já existe' }, { status: 409 });
     }
 
@@ -45,15 +54,16 @@ export async function POST(request: NextRequest) {
       username,
       password: hashed,
       role: 'viewer',
+      provider: 'local',
     });
 
     // Auto-login after registration
-    const token = signToken({ username, role: 'viewer' });
+    const token = signToken({ username, role: 'viewer', provider: 'local' });
     await setSessionCookie(token);
 
     return NextResponse.json({
       token,
-      user: { username, role: 'viewer' },
+      user: { username, role: 'viewer', provider: 'local' },
     });
   } catch (error) {
     console.error('Register error:', error);

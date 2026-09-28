@@ -12,6 +12,7 @@
     "type-check": "tsc --noEmit",
     "seed:monsters": "npx tsx ./scripts/seedMonsters.ts",
     "seed:admin": "npx tsx ./scripts/seedAdmin.ts",
+    "backfill:provider": "npx tsx ./scripts/backfillUserProvider.ts",
     "check-db": "npx tsx ./scripts/checkDb.ts",
     "prepare": "husky"
   },

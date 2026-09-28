@@ -11,6 +11,9 @@ const LoginModalHandles = [
   'loadingSpinner',
   'toggleLink',
   'toggleText',
+  'divider',
+  'dividerText',
+  'forumBtn',
 ] as const;
 
 export default LoginModalHandles;

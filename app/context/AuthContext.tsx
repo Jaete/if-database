@@ -11,6 +11,7 @@ import {
 interface IUser {
   username: string;
   role: string;
+  provider: string;
 }
 
 interface IAuthContext {
@@ -18,13 +19,16 @@ interface IAuthContext {
   isAuthenticated: boolean;
   isLoading: boolean;
   canEdit: boolean;
+  forumLink: string | null;
   login: (username: string, password: string) => Promise<void>;
+  loginWithForum: (path?: string) => void;
   logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<IAuthContext | null>(null);
 
 const STORAGE_KEY = 'auth_token';
+const FORUM_LINK_KEY = 'forum_link';
 
 export default function AuthProvider({
   children,
@@ -33,6 +37,7 @@ export default function AuthProvider({
 }) {
   const [user, setUser] = useState<IUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [forumLink, setForumLink] = useState<string | null>(null);
 
   const verifySession = useCallback(async () => {
     try {
@@ -45,6 +50,10 @@ export default function AuthProvider({
         setUser(data.user);
         if (data.token) {
           localStorage.setItem(STORAGE_KEY, data.token);
+        }
+        if (data.user?.provider === 'forum') {
+          localStorage.setItem(FORUM_LINK_KEY, data.user.username);
+          setForumLink(data.user.username);
         }
         return true;
       }
@@ -62,13 +71,9 @@ export default function AuthProvider({
 
   useEffect(() => {
     const init = async () => {
-      const storedToken = localStorage.getItem(STORAGE_KEY);
-
-      if (!storedToken) {
-        setIsLoading(false);
-        return;
-      }
-
+      // Always verify: the session cookie is httpOnly and can be set by the
+      // forum SSO callback without anything landing in localStorage first.
+      setForumLink(localStorage.getItem(FORUM_LINK_KEY));
       await verifySession();
       setIsLoading(false);
     };
@@ -94,6 +99,18 @@ export default function AuthProvider({
     setUser(data.user);
   }, []);
 
+  const loginWithForum = useCallback((path?: string) => {
+    const ssoUrl = process.env.NEXT_PUBLIC_FORUM_SSO_URL;
+    if (!ssoUrl) {
+      throw new Error(
+        'Login pelo fórum não está configurado (NEXT_PUBLIC_FORUM_SSO_URL).'
+      );
+    }
+    const target = path ?? window.location.pathname;
+    const separator = ssoUrl.includes('?') ? '&' : '?';
+    window.location.href = `${ssoUrl}${separator}path=${encodeURIComponent(target)}`;
+  }, []);
+
   const logout = useCallback(async () => {
     try {
       await fetch('/api/auth/logout', {
@@ -104,6 +121,8 @@ export default function AuthProvider({
       // Even if logout API fails, clear local state
     }
     localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(FORUM_LINK_KEY);
+    setForumLink(null);
     setUser(null);
   }, []);
 
@@ -114,7 +133,9 @@ export default function AuthProvider({
         isAuthenticated: !!user,
         isLoading,
         canEdit: user?.role === 'admin' || user?.role === 'editor',
+        forumLink,
         login,
+        loginWithForum,
         logout,
       }}
     >

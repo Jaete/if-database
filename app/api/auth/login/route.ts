@@ -25,7 +25,11 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       token: result.token,
-      user: { username: result.user.username, role: result.user.role },
+      user: {
+        username: result.user.username,
+        role: result.user.role,
+        provider: result.user.provider,
+      },
     });
   } catch (error) {
     console.error('Login error:', error);
