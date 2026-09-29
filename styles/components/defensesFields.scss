@@ -1,0 +1,70 @@
+@use '../globals' as *;
+
+// Uma linha por campo, ocupando a largura toda: os valores são longos
+// ("Perfurante e Cortante de armas não mágicas") e não cabem em duas colunas.
+.defensesFields {
+  @include flex-col-start();
+  gap: $spacing-5;
+  width: 100%;
+}
+
+.defensesField {
+  @include flex-col-start();
+  gap: $spacing-2;
+  width: 100%;
+  min-width: 0;
+}
+
+.elementPicker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-2;
+  width: 100%;
+}
+
+.elementPickerLabel {
+  @include caption($color-text-subtle, $font-weight-semibold);
+
+  @include light {
+    color: $color-text-muted-inverse;
+  }
+}
+
+.elementPill {
+  padding: $spacing-1 $spacing-3;
+  border: 1px solid $color-border-strong;
+  border-radius: $radius-full;
+  background-color: $surface;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+  @include main-xs($color-text-muted, $font-weight-medium);
+  @include focus-ring();
+
+  &:hover {
+    border-color: rgba($gold-100, 0.5);
+    color: $gold-100;
+  }
+
+  &--active {
+    border-color: rgba($gold-100, 0.6);
+    background-color: rgba($primary-100, 0.18);
+    color: $gold-100;
+    font-weight: $font-weight-semibold;
+  }
+
+  @include light {
+    background-color: $neutral-2100;
+    border-color: $color-border-inverse;
+    color: $color-text-muted-inverse;
+
+    &:hover,
+    &.elementPill--active {
+      color: $gold-600;
+      border-color: rgba($gold-600, 0.5);
+    }
+  }
+}

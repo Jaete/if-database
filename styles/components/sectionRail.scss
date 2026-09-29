@@ -1,0 +1,96 @@
+@use '../globals' as *;
+
+// Quanto da aba fica escondido atrás do modal. É esse encaixe, somado à borda
+// esquerda ausente e ao arredondamento só do lado direito, que dá o efeito de
+// botão saindo de dentro do formulário em vez de flutuar ao lado dele.
+$tuck: 10px;
+
+.sectionRail {
+  position: absolute;
+  top: $spacing-16;
+  left: calc(100% - #{$tuck});
+  // Abaixo do modal para o encaixe ficar escondido.
+  z-index: 0;
+  width: $section-rail-width;
+  max-height: calc(85dvh - #{$spacing-20});
+  overflow-y: auto;
+  @include flex-col-start();
+  gap: $spacing-1;
+
+  // Sem barra de rolagem visível: a régua é um atalho, não um painel.
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  // Abaixo daqui não sobra espaço lateral, e um rodapé de abas disputaria
+  // lugar com a barra fixa de Salvar/Cancelar.
+  @include mobile {
+    display: none;
+  }
+}
+
+.sectionRailTab {
+  width: 100%;
+  box-sizing: border-box;
+  padding: $spacing-2 $spacing-3 $spacing-2 calc(#{$spacing-3} + #{$tuck});
+  border: 1px solid $color-border-strong;
+  border-left: none;
+  border-radius: 0 $radius-md $radius-md 0;
+  background-color: $surface-raised;
+  cursor: pointer;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+  @include main-xs($color-text-muted, $font-weight-medium, 1.4, 0.4px);
+  @include focus-ring();
+
+  &:hover {
+    color: $gold-100;
+    border-color: rgba($gold-100, 0.45);
+    transform: translateX(3px);
+  }
+
+  &--active {
+    background: linear-gradient(
+      90deg,
+      $surface-float,
+      rgba($primary-100, 0.22)
+    );
+    border-color: rgba($gold-100, 0.6);
+    color: $gold-100;
+    font-weight: $font-weight-semibold;
+    transform: translateX(4px);
+  }
+
+  @include light {
+    background-color: $neutral-2100;
+    border-color: $color-border-inverse;
+    color: $color-text-muted-inverse;
+
+    &:hover,
+    &.sectionRailTab--active {
+      color: $gold-600;
+      border-color: rgba($gold-600, 0.5);
+    }
+
+    &--active {
+      background: $neutral-2300;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+
+    &:hover,
+    &--active {
+      transform: none;
+    }
+  }
+}

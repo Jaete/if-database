@@ -10,6 +10,7 @@ import { DownloadIcon, FilePlusIcon } from '../Icons';
 import ArrayItemWrapper from '../ArrayItemWrapper';
 import { attrMapping } from '@/db/l10n/attributesMapping';
 import AlertModal from '../AlertModal';
+import DefensesFields from '../DefensesFields';
 import '@/styles/components/citizenEditForm.scss';
 
 export {
@@ -911,35 +912,10 @@ const CitizenEditForm = ({
         {/* ── Defesas ──────────────────────────────────── */}
         <div className={handles.section}>
           <h3 className={handles.sectionTitle}>Defesas</h3>
-          <div className={handles.grid2}>
-            {(
-              [
-                'vulnerabilities',
-                'resistances',
-                'damageImmunities',
-                'conditionImmunities',
-              ] as const
-            ).map((cat) => {
-              const labels: Record<string, string> = {
-                vulnerabilities: 'Vulnerabilidades',
-                resistances: 'Resistências',
-                damageImmunities: 'Imunidades a Dano',
-                conditionImmunities: 'Imunidades a Condição',
-              };
-              const defenses = (formData.defenses || {}) as Record<
-                string,
-                string[]
-              >;
-              return (
-                <FormField
-                  key={cat}
-                  label={labels[cat]}
-                  value={(defenses[cat] || []).join(', ')}
-                  onChange={(e) => handleDefensesChange(cat, e.target.value)}
-                />
-              );
-            })}
-          </div>
+          <DefensesFields
+            defenses={(formData.defenses || {}) as Record<string, string[]>}
+            onChange={handleDefensesChange}
+          />
         </div>
 
         {/* ── Sentidos ─────────────────────────────────── */}

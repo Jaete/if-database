@@ -16,6 +16,7 @@ import ArrayItemWrapper from '../ArrayItemWrapper';
 import '@/styles/components/creatureEditForm.scss';
 import { attrMapping, sensesMapping } from '@/db/l10n/attributesMapping';
 import AlertModal from '../AlertModal';
+import DefensesFields from '../DefensesFields';
 
 export { emptyMonster } from './useCreatureEditForm';
 export type { IFormData } from './useCreatureEditForm';
@@ -52,6 +53,7 @@ const CreatureEditForm = ({
     handleNestedChange,
     handleDoubleNestedChange,
     handleLanguagesChange,
+    handleDefensesChange,
     handleArrayChange,
     addArrayItem,
     removeArrayItem,
@@ -576,6 +578,15 @@ const CreatureEditForm = ({
               />
             ))}
           </div>
+        </div>
+
+        {/* Defesas (Defenses) */}
+        <div className={handles.section}>
+          <h3 className={handles.sectionTitle}>Defesas</h3>
+          <DefensesFields
+            defenses={(formData.defenses || {}) as Record<string, string[]>}
+            onChange={handleDefensesChange}
+          />
         </div>
 
         {/* Idiomas (Languages) */}

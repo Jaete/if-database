@@ -153,6 +153,7 @@ const CitizenGrid = () => {
         isOpen={isDirectModalOpen && !!directEditCitizen}
         onClose={handleDirectModalClose}
         title={`Editando: ${directEditCitizen?.name || ''}`}
+        sectionRail
       >
         {directEditCitizen && (
           <CitizenEditForm
@@ -168,6 +169,7 @@ const CitizenGrid = () => {
         isOpen={!!activeTab}
         onClose={handleTabModalClose}
         title={activeTab?.label || 'Formulário'}
+        sectionRail
       >
         {activeTab && (
           <CitizenEditForm

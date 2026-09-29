@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import type ICitizen from '@/db/citizens/citizen.d';
 import type { IPlayerSpellLevel } from '@/db/citizens/citizen.d';
 import { useCitizens } from '@/app/context/CitizensContext';
+import { splitList } from '@/lib/listValues';
 
 export type FormDataType = Partial<ICitizen> & {
   spells: string[];
@@ -554,10 +555,7 @@ export const useCitizenEditForm = ({
   };
 
   const handleDefensesChange = (category: string, value: string) => {
-    const items = value
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean);
+    const items = splitList(value);
     setFormData((prev) => {
       const defenses = {
         ...((prev.defenses || {}) as Record<string, string[]>),

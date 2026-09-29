@@ -24,13 +24,38 @@
     pointer-events: auto;
   }
 
+  // Sem overflow e sem transform de propósito: é só o sistema de coordenadas
+  // da régua de seções, que o `overflow: hidden` do modal cortaria.
+  .modalShell {
+    position: relative;
+    width: 90%;
+    max-width: 800px;
+
+    // A reserva de largura só vale para quem tem régua: os outros modais
+    // (alerta, confirmação, progressão de nível) usam este mesmo componente e
+    // não devem encolher por causa dela.
+    &--railed {
+      // Reserva simétrica dos dois lados, para o conjunto modal + régua seguir
+      // centrado — o modal cede largura antes de a régua sumir.
+      max-width: min(
+        800px,
+        calc(100vw - 2 * (#{$section-rail-width} + #{$spacing-4}))
+      );
+
+      @include mobile {
+        // Sem régua, volta a ser exatamente o de antes.
+        max-width: 800px;
+      }
+    }
+  }
+
   .modal {
     background: linear-gradient(180deg, $surface-elevated 0%, $surface 100%);
     border: 1px solid $neutral-400;
     border-radius: $radius-lg;
-    width: 90%;
-    max-width: 800px;
+    width: 100%;
     max-height: 85dvh;
+    z-index: 1;
     @include flex-col-start;
     overflow: hidden;
     @include elevation(3);

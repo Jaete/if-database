@@ -34,7 +34,9 @@
 
 @mixin edit-form-grid($columns) {
   display: grid;
-  grid-template-columns: repeat($columns, 1fr);
+  // minmax(0, 1fr) e não 1fr: o mínimo de uma trilha 1fr é o conteúdo, então um
+  // input com valor longo empurra a coluna e estoura a largura do formulário.
+  grid-template-columns: repeat($columns, minmax(0, 1fr));
   gap: $spacing-4;
   width: 100%;
 }
@@ -144,13 +146,33 @@
   }
 }
 
+// Fica colada no rodapé do modal enquanto os campos rolam por baixo. Os dois
+// formulários só são renderizados dentro de `Modal`, cujo `.content` é o
+// container de rolagem — as margens negativas abaixo sangram a padding dele
+// ($spacing-6 vertical / $spacing-8 horizontal) para a barra encostar nas
+// bordas, do mesmo jeito que o header do modal faz.
 @mixin edit-form-actions {
   @include flex-row-end;
   gap: $spacing-4;
-  margin-top: $spacing-8;
-  padding-top: $spacing-4;
+  // O root do formulário é um flex column com `align-items: flex-start`, então
+  // sem o stretch a barra encolheria até a largura dos botões — e `width: 100%`
+  // somado às margens negativas estouraria para fora do modal.
+  align-self: stretch;
+  width: auto;
+  position: sticky;
+  bottom: -24px;
+  z-index: 2;
+  margin: $spacing-2 (-$spacing-8) (-$spacing-6);
+  padding: $spacing-4 $spacing-8;
   border-top: 1px solid $neutral-400;
-  width: 100%;
+  background: $surface;
+  box-shadow: 0 -8px 20px rgba(0, 0, 0, 0.4);
+
+  @include light {
+    background: $neutral-2100;
+    border-top-color: $color-border-inverse;
+    box-shadow: 0 -8px 20px rgba(0, 0, 0, 0.08);
+  }
 }
 
 @mixin edit-form-submit-button {

@@ -25,3 +25,7 @@ $radius-md: 0.5rem;
 $radius-lg: 0.75rem;
 $radius-xl: 1rem;
 $radius-full: 9999px;
+
+// Largura da régua de seções (components/SectionRail). Fica aqui porque
+// modal.scss também precisa dela, para reservar espaço lateral.
+$section-rail-width: 150px;

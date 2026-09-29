@@ -5,6 +5,7 @@ import type IMonster from '@/db/monsters/monster.d';
 import type ICitizen from '@/db/citizens/citizen.d';
 import type { PerkType, ILevelPerk } from '@/db/monsters/monster.d';
 import { useMonsters } from '@/app/context/MonstersContext';
+import { splitList } from '@/lib/listValues';
 
 export type IFormData = Partial<IMonster & ICitizen> & {
   abilities?: Array<{ name?: string; description?: string }>;
@@ -155,6 +156,7 @@ export const useCreatureEditForm = ({
           stats: result.data.stats || {},
           combat: result.data.combat || {},
           senses: result.data.senses || {},
+          defenses: result.data.defenses || {},
           traits: result.data.traits || [],
           actions: result.data.actions || [],
           bonusActions: result.data.bonusActions || [],
@@ -274,6 +276,17 @@ export const useCreatureEditForm = ({
           ),
         }) as IFormData
     );
+  };
+
+  const handleDefensesChange = (category: string, value: string) => {
+    const items = splitList(value);
+    setFormData((prev) => {
+      const defenses = {
+        ...((prev.defenses || {}) as Record<string, string[]>),
+      };
+      defenses[category] = items;
+      return { ...prev, defenses } as typeof prev;
+    });
   };
 
   const handleLanguagesChange = (value: string) => {
@@ -423,6 +436,7 @@ export const useCreatureEditForm = ({
     handleNestedChange,
     handleDoubleNestedChange,
     handleLanguagesChange,
+    handleDefensesChange,
     handleArrayChange,
     addArrayItem,
     removeArrayItem,

@@ -1,0 +1,38 @@
+@use '../globals' as *;
+
+// Mesma métrica do .infoRow, mas em grade: os chips quebram em várias linhas e
+// o rótulo precisa ficar alinhado ao topo, não à baseline da última linha.
+.defensesRow {
+  display: grid;
+  grid-template-columns: minmax(0, 148px) minmax(0, 1fr);
+  align-items: start;
+  gap: $spacing-2;
+  width: 100%;
+  padding: $spacing-2 0;
+
+  & + & {
+    border-top: 1px solid rgba($gold-100, 0.08);
+
+    @include light {
+      border-top-color: $color-border-inverse;
+    }
+  }
+
+  @include mobile {
+    grid-template-columns: minmax(0, 1fr);
+    gap: $spacing-1;
+  }
+}
+
+.defensesLabel {
+  padding-top: $spacing-1;
+  @include caption($gold-200, $font-weight-semibold);
+
+  @include light {
+    color: $gold-500;
+  }
+}
+
+.defensesValue {
+  min-width: 0;
+}

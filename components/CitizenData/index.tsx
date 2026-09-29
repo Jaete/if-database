@@ -14,6 +14,7 @@ import AttributesGrid from '@/components/AttributesGrid';
 import AbilityCard from '@/components/AbilityCard';
 import StatTable from '@/components/StatTable';
 import SensesBlock from '@/components/SensesBlock';
+import DefensesBlock from '@/components/DefensesBlock';
 import CitizenDataHandles from './handles';
 import '@/styles/components/citizenData.scss';
 
@@ -343,34 +344,7 @@ const CitizenData = ({ citizen }: IProps) => {
       )}
 
       {/* Defenses */}
-      {hasDefenses && (
-        <StatSection title="Defesas">
-          {citizen.defenses?.vulnerabilities &&
-            citizen.defenses.vulnerabilities.length > 0 && (
-              <InfoRow label="Vulnerabilidades: ">
-                {citizen.defenses.vulnerabilities.join(', ')}
-              </InfoRow>
-            )}
-          {citizen.defenses?.resistances &&
-            citizen.defenses.resistances.length > 0 && (
-              <InfoRow label="Resistências: ">
-                {citizen.defenses.resistances.join(', ')}
-              </InfoRow>
-            )}
-          {citizen.defenses?.damageImmunities &&
-            citizen.defenses.damageImmunities.length > 0 && (
-              <InfoRow label="Imunidades a Dano: ">
-                {citizen.defenses.damageImmunities.join(', ')}
-              </InfoRow>
-            )}
-          {citizen.defenses?.conditionImmunities &&
-            citizen.defenses.conditionImmunities.length > 0 && (
-              <InfoRow label="Imunidades a Condições: ">
-                {citizen.defenses.conditionImmunities.join(', ')}
-              </InfoRow>
-            )}
-        </StatSection>
-      )}
+      {hasDefenses && <DefensesBlock defenses={citizen.defenses ?? {}} />}
 
       {/* Senses */}
       {hasSenses && <SensesBlock senses={citizen.senses ?? {}} />}

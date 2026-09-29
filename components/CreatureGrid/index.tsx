@@ -181,6 +181,7 @@ const CreatureGrid = () => {
         isOpen={isDirectModalOpen && !!directEditCreature}
         onClose={handleDirectModalClose}
         title={`Editando: ${directEditCreature?.name || ''}`}
+        sectionRail
       >
         {directEditCreature && (
           <CreatureEditForm
@@ -196,6 +197,7 @@ const CreatureGrid = () => {
         isOpen={!!activeTab}
         onClose={handleTabModalClose}
         title={activeTab?.label || 'Formulário'}
+        sectionRail
       >
         {activeTab && (
           <CreatureEditForm

@@ -60,6 +60,16 @@ const CitizenSchema = new Schema<ICitizen>({
     },
   ],
 
+  // ── Defesas ──
+  // Mesma forma do schema de monstro. Sem esta declaração o Mongoose descartava
+  // em silêncio o que o formulário de cidadão já enviava.
+  defenses: {
+    vulnerabilities: [{ type: String }],
+    resistances: [{ type: String }],
+    damageImmunities: [{ type: String }],
+    conditionImmunities: [{ type: String }],
+  },
+
   // ── Profissões ──
   professions: { type: Schema.Types.Mixed },
 

@@ -1,0 +1,52 @@
+@use '../globals' as *;
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-2;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.chip {
+  display: inline-block;
+  padding: $spacing-1 $spacing-2;
+  border: 1px solid rgba($gold-100, 0.3);
+  border-radius: $radius-sm;
+  background-color: rgba($primary-100, 0.1);
+  white-space: nowrap;
+  @include caption($gold-100, $font-weight-semibold);
+
+  // Vermelho e azul saem dos tokens de estado: vulnerabilidade é o que machuca
+  // mais, resistência o que machuca menos — o par se lê sem depender do rótulo.
+  &--vuln {
+    border-color: $error-border;
+    background-color: $error-bg;
+    color: $error;
+  }
+
+  &--resist {
+    border-color: $info-border;
+    background-color: $info-bg;
+    color: $info;
+  }
+
+  @include light {
+    color: $gold-600;
+    border-color: rgba($gold-600, 0.35);
+  }
+}
+
+.chipsEmpty {
+  border-style: dashed;
+  border-color: $color-border-strong;
+  background: none;
+  color: $color-text-subtle;
+  text-transform: none;
+
+  @include light {
+    color: $color-text-muted-inverse;
+    border-color: $color-border-inverse;
+  }
+}

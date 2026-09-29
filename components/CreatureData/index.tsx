@@ -12,6 +12,7 @@ import CombatInfo from '@/components/CombatInfo';
 import StatBlock from '@/components/StatsBlock';
 import AbilitiesBlock from '@/components/AbilitiesBlock';
 import SensesBlock from '@/components/SensesBlock';
+import DefensesBlock from '@/components/DefensesBlock';
 import DropsBlock from '@/components/DropsBlock';
 import StatSection from '@/components/StatSection';
 import InfoRow from '@/components/InfoRow';
@@ -78,6 +79,7 @@ const CreatureData = ({ creature }: IProps) => {
         />
       )}
       <SensesBlock senses={creature.senses ?? {}} />
+      <DefensesBlock defenses={creature.defenses ?? {}} />
       {creature.languages && creature.languages.length > 0 && (
         <StatSection title="Idiomas">
           <InfoRow label="">{creature.languages.join(', ')}</InfoRow>

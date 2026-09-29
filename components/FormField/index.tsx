@@ -11,6 +11,7 @@ interface IProps {
   onChange: (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => void;
+  onBlur?: () => void;
   required?: boolean;
   isTextarea?: boolean;
   type?: string;
@@ -22,6 +23,7 @@ const FormField = ({
   name,
   value,
   onChange,
+  onBlur,
   required,
   isTextarea,
   type,
@@ -50,6 +52,7 @@ const FormField = ({
           name={name}
           value={value}
           onChange={onChange}
+          onBlur={onBlur}
           required={required}
           onWheel={
             type === 'number'

@@ -1,5 +1,6 @@
 const ModalHandles = [
   'overlay',
+  'modalShell',
   'modal',
   'header',
   'title',
