@@ -16,6 +16,7 @@ const CreatureGridHandles = [
   'crgCompactSearchBar',
   'crgCompactSearchInput',
   'crgCompactActionBtn',
+  'crgSentinel',
 ] as const;
 
 export default CreatureGridHandles;

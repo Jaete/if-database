@@ -17,7 +17,7 @@ export async function createCitizen(data: ICitizen): Promise<Result> {
 }
 
 export async function getAllCitizens(): Promise<ICitizen[]> {
-  const citizens = await CitizenModel.find().select('-__v');
+  const citizens = await CitizenModel.find().select('-__v').lean<ICitizen[]>();
   return citizens;
 }
 

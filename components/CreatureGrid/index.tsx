@@ -34,6 +34,9 @@ const CreatureGrid = () => {
     directEditCreature,
     isDirectModalOpen,
     filteredCreatures,
+    visibleCreatures,
+    hasMore,
+    sentinelRef,
     handleEditClick,
     handleEditInNewTabClick,
     handleCreateClick,
@@ -141,7 +144,7 @@ const CreatureGrid = () => {
             ))}
           </div>
         ) : (
-          filteredCreatures.map((creature) => (
+          visibleCreatures.map((creature) => (
             <DrawerController key={creature.slug}>
               <CreatureCard
                 key={creature.slug + '--card'}
@@ -158,6 +161,9 @@ const CreatureGrid = () => {
           <div className={handles.crgEmptyState}>
             Nenhuma criatura encontrada.
           </div>
+        )}
+        {!loading && hasMore && (
+          <div ref={sentinelRef} className={handles.crgSentinel} />
         )}
       </div>
 

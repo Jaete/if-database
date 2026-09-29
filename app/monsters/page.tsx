@@ -1,19 +1,26 @@
 import { connectDB } from '@/lib/db';
-import { getAllMonsters } from '@/services/monster.service';
+import { getMonsterIndex, getMonstersPage } from '@/services/monster.service';
 import MonstersPageClient from './MonstersPageClient';
 import IMonster from '@/db/monsters/monster';
 
 export const dynamic = 'force-dynamic';
 
+const PREFETCHED = 12;
+
 export default async function MonstersPage() {
-  let serialized: IMonster[] = [];
+  let index: IMonster[] = [];
+  let full: IMonster[] = [];
   try {
     await connectDB();
-    const monsters = await getAllMonsters();
-    serialized = JSON.parse(JSON.stringify(monsters));
+    const [indexRows, fullRows] = await Promise.all([
+      getMonsterIndex(),
+      getMonstersPage(PREFETCHED),
+    ]);
+    index = JSON.parse(JSON.stringify(indexRows));
+    full = JSON.parse(JSON.stringify(fullRows));
   } catch (error) {
     console.error('Failed to load monsters:', error);
   }
 
-  return <MonstersPageClient initialMonsters={serialized} />;
+  return <MonstersPageClient initialMonsters={index} initialFull={full} />;
 }

@@ -17,7 +17,29 @@ export async function createMonster(data: IMonster): Promise<Result> {
 }
 
 export async function getAllMonsters(): Promise<IMonster[]> {
-  const monsters = await MonsterModel.find().select('-__v');
+  const monsters = await MonsterModel.find().select('-__v').lean<IMonster[]>();
+  return monsters;
+}
+
+// Everything CreatureCard renders, plus what MonsterSearch and the evolution
+// tree need. 34 KB for the whole collection against 1.6 MB for the full
+// documents, so the grid never pays for fields only the drawer reads.
+const INDEX_FIELDS = 'slug name image icon rarity';
+
+export async function getMonsterIndex(): Promise<IMonster[]> {
+  const monsters = await MonsterModel.find()
+    .select(INDEX_FIELDS)
+    .sort({ name: 1 })
+    .lean<IMonster[]>();
+  return monsters;
+}
+
+export async function getMonstersPage(limit: number): Promise<IMonster[]> {
+  const monsters = await MonsterModel.find()
+    .select('-__v')
+    .sort({ name: 1 })
+    .limit(limit)
+    .lean<IMonster[]>();
   return monsters;
 }
 export async function getMonsterBySlug(slug: string): Promise<Result> {
@@ -29,9 +51,9 @@ export async function getMonsterBySlug(slug: string): Promise<Result> {
 }
 
 export async function getMonstersBySlugs(slugs: string[]): Promise<IMonster[]> {
-  const monsters = await MonsterModel.find({ slug: { $in: slugs } }).select(
-    '-__v'
-  );
+  const monsters = await MonsterModel.find({ slug: { $in: slugs } })
+    .select('-__v')
+    .lean<IMonster[]>();
   return monsters;
 }
 

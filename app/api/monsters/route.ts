@@ -1,12 +1,18 @@
 import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
-import { getAllMonsters, createMonster } from '@/services/monster.service';
+import {
+  getAllMonsters,
+  getMonsterIndex,
+  createMonster,
+} from '@/services/monster.service';
 import { getSessionFromCookie } from '@/services/auth.service';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     await connectDB();
-    const monsters = await getAllMonsters();
+    const view = new URL(request.url).searchParams.get('view');
+    const monsters =
+      view === 'index' ? await getMonsterIndex() : await getAllMonsters();
     return NextResponse.json(monsters);
   } catch (error) {
     const errorMessage =

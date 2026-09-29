@@ -9,12 +9,17 @@ import IMonster from '@/db/monsters/monster';
 
 export default function MonstersPageClient({
   initialMonsters,
+  initialFull,
 }: {
   initialMonsters: IMonster[];
+  initialFull: IMonster[];
 }) {
   return (
     <main>
-      <MonstersProvider initialMonsters={initialMonsters}>
+      <MonstersProvider
+        initialMonsters={initialMonsters}
+        initialFull={initialFull}
+      >
         <TabProvider<IFormData>>
           <CreatureGrid />
           <TabBar />
