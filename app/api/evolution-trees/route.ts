@@ -4,7 +4,7 @@ import {
   getAllEvolutionTrees,
   createEvolutionTree,
 } from '@/services/evolutionTree.service';
-import { getSessionFromCookie } from '@/services/auth.service';
+import { getAuthorizedSession } from '@/services/auth.service';
 
 export async function GET() {
   try {
@@ -20,7 +20,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const session = await getSessionFromCookie();
+    const session = await getAuthorizedSession();
     if (!session || session.role === 'viewer') {
       return NextResponse.json({ error: 'Nao autorizado' }, { status: 403 });
     }

@@ -5,7 +5,7 @@ import {
   updateEvolutionTree,
   deleteEvolutionTree,
 } from '@/services/evolutionTree.service';
-import { getSessionFromCookie } from '@/services/auth.service';
+import { getAuthorizedSession } from '@/services/auth.service';
 import { corsResponse, corsOptions } from '@/lib/cors';
 
 export async function OPTIONS() {
@@ -36,7 +36,7 @@ export async function PUT(
   { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    const session = await getSessionFromCookie();
+    const session = await getAuthorizedSession();
     if (!session || session.role === 'viewer') {
       return NextResponse.json({ error: 'Nao autorizado' }, { status: 403 });
     }
@@ -59,7 +59,7 @@ export async function DELETE(
   { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    const session = await getSessionFromCookie();
+    const session = await getAuthorizedSession();
     if (!session || session.role === 'viewer') {
       return NextResponse.json({ error: 'Nao autorizado' }, { status: 403 });
     }

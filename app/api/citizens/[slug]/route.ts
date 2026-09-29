@@ -5,7 +5,7 @@ import {
   updateCitizen,
   deleteCitizen,
 } from '@/services/citizen.service';
-import { getSessionFromCookie } from '@/services/auth.service';
+import { getAuthorizedSession } from '@/services/auth.service';
 
 export async function GET(
   _request: Request,
@@ -34,7 +34,7 @@ export async function PUT(
   { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    const session = await getSessionFromCookie();
+    const session = await getAuthorizedSession();
     if (!session || session.role === 'viewer') {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 403 });
     }
@@ -62,7 +62,7 @@ export async function DELETE(
   { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    const session = await getSessionFromCookie();
+    const session = await getAuthorizedSession();
     if (!session || session.role === 'viewer') {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 403 });
     }

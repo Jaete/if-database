@@ -82,16 +82,6 @@ export function verifyToken(token: string): TokenPayload | null {
   }
 }
 
-export function refreshToken(token: string): string | null {
-  const payload = verifyToken(token);
-  if (!payload) return null;
-  return signToken({
-    username: payload.username,
-    role: payload.role,
-    provider: payload.provider,
-  });
-}
-
 // ===== COOKIE HELPERS =====
 
 export function sessionCookieOptions() {
@@ -119,6 +109,31 @@ export async function getSessionFromCookie(): Promise<TokenPayload | null> {
   const token = cookieStore.get(COOKIE_NAME)?.value;
   if (!token) return null;
   return verifyToken(token);
+}
+
+// Authentication comes from the signed JWT (proves who you are, no DB hit);
+// authorization (role) is always read fresh from the DB, so promoting or
+// demoting a user in the database takes effect on their next request instead
+// of being frozen in the token until it expires.
+export async function getAuthorizedSession(): Promise<{
+  username: string;
+  role: string;
+  provider: string;
+} | null> {
+  const session = await getSessionFromCookie();
+  if (!session) return null;
+
+  await connectDB();
+  const user = await User.findOne({ username: session.username })
+    .select('role provider')
+    .lean<{ role: string; provider?: string } | null>();
+  if (!user) return null;
+
+  return {
+    username: session.username,
+    role: user.role,
+    provider: user.provider ?? 'local',
+  };
 }
 
 // ===== AUTH SERVICE =====

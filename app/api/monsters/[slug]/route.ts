@@ -1,14 +1,14 @@
 import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { updateMonster, deleteMonster } from '@/services/monster.service';
-import { getSessionFromCookie } from '@/services/auth.service';
+import { getAuthorizedSession } from '@/services/auth.service';
 
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    const session = await getSessionFromCookie();
+    const session = await getAuthorizedSession();
     if (!session || session.role === 'viewer') {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 403 });
     }
@@ -31,7 +31,7 @@ export async function DELETE(
   { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    const session = await getSessionFromCookie();
+    const session = await getAuthorizedSession();
     if (!session || session.role === 'viewer') {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 403 });
     }

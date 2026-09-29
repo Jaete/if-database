@@ -1,38 +1,29 @@
 import { NextResponse } from 'next/server';
 import {
-  getSessionFromCookie,
+  getAuthorizedSession,
+  signToken,
   setSessionCookie,
-  refreshToken,
-  COOKIE_NAME,
+  clearSessionCookie,
 } from '@/services/auth.service';
-import { cookies } from 'next/headers';
 
 export async function GET() {
   try {
-    const session = await getSessionFromCookie();
+    // Reads the role fresh from the DB, so a promotion/demotion applied in the
+    // database shows up on the next page load instead of being stuck in the JWT.
+    const session = await getAuthorizedSession();
 
     if (!session) {
+      await clearSessionCookie();
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
     }
 
-    // Reset token expiry on every successful verify
-    const cookieStore = await cookies();
-    const rawToken = cookieStore.get(COOKIE_NAME)?.value;
-
-    if (rawToken) {
-      const newToken = refreshToken(rawToken);
-      if (newToken) {
-        await setSessionCookie(newToken);
-        return NextResponse.json({
-          user: {
-            username: session.username,
-            role: session.role,
-            provider: session.provider,
-          },
-          token: newToken,
-        });
-      }
-    }
+    // Re-sign with the current role and reset expiry (sliding session).
+    const token = signToken({
+      username: session.username,
+      role: session.role,
+      provider: session.provider,
+    });
+    await setSessionCookie(token);
 
     return NextResponse.json({
       user: {
@@ -40,6 +31,7 @@ export async function GET() {
         role: session.role,
         provider: session.provider,
       },
+      token,
     });
   } catch (error) {
     console.error('Verify error:', error);
