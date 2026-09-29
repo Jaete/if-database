@@ -14,12 +14,18 @@ function safePath(raw: string | null): string {
   return raw;
 }
 
+// A relative Location keeps the browser on whatever host it already used.
+// Building an absolute URL from request.nextUrl.origin would leak the origin
+// the server sees internally, which behind Render's proxy is localhost:10000.
+function redirectTo(path: string) {
+  return new NextResponse(null, { status: 307, headers: { Location: path } });
+}
+
 export async function GET(request: NextRequest) {
-  const { searchParams, origin } = request.nextUrl;
+  const { searchParams } = request.nextUrl;
   const path = safePath(searchParams.get('path'));
 
-  const fail = (reason: string) =>
-    NextResponse.redirect(new URL(`/?sso_error=${reason}`, origin));
+  const fail = (reason: string) => redirectTo(`/?sso_error=${reason}`);
 
   try {
     const identity = verifyForumTicket(searchParams.get('ticket') ?? '');
@@ -33,7 +39,7 @@ export async function GET(request: NextRequest) {
       role: result.user.role,
       provider: 'forum',
     });
-    const response = NextResponse.redirect(new URL(path, origin));
+    const response = redirectTo(path);
     response.cookies.set(COOKIE_NAME, token, sessionCookieOptions());
 
     return response;
