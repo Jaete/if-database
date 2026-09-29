@@ -180,7 +180,7 @@ const transformMonster = (
     if (!nome || !desc) return;
     const lowerNome = nome.toLowerCase();
     const cleanDesc = desc
-      .split(/[,;e]/)
+      .split(/[,;]/)
       .map((d) => d.trim())
       .filter(Boolean);
 
