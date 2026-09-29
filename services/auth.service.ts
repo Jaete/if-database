@@ -119,20 +119,29 @@ export async function getAuthorizedSession(): Promise<{
   username: string;
   role: string;
   provider: string;
+  avatarUrl?: string;
 } | null> {
   const session = await getSessionFromCookie();
   if (!session) return null;
 
   await connectDB();
   const user = await User.findOne({ username: session.username })
-    .select('role provider')
-    .lean<{ role: string; provider?: string } | null>();
+    .select('role provider avatarUrl')
+    .lean<{
+      role: string;
+      provider?: string;
+      avatarUrl?: string;
+    } | null>();
   if (!user) return null;
 
+  // The avatar rides along with the role rather than the token: it changes on
+  // the forum whenever the user wants, and a JWT would keep serving the old one
+  // until it expired.
   return {
     username: session.username,
     role: user.role,
     provider: user.provider ?? 'local',
+    avatarUrl: user.avatarUrl,
   };
 }
 

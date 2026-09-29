@@ -6,13 +6,16 @@ import DrawerControllerHandles from './handles';
 
 interface IProps {
   children: ReactNode;
+  eventKey?: string;
 }
 
-const DrawerController = ({ children }: IProps) => {
+const DrawerController = ({ children, eventKey = 'drawer' }: IProps) => {
   const handles = useCssHandles(DrawerControllerHandles);
 
   const handleOpenDrawer = () => {
-    window.dispatchEvent(new CustomEvent('drawer:open', { bubbles: true }));
+    window.dispatchEvent(
+      new CustomEvent(`${eventKey}:open`, { bubbles: true })
+    );
   };
 
   return (

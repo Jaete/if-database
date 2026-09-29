@@ -16,6 +16,8 @@ const UserSchema = new Schema<IUser>(
       default: 'local',
     },
     forumUserId: { type: Number, unique: true, sparse: true },
+    // Always a forum-hosted image URL, filtered through sanitizeForumAvatar.
+    avatarUrl: { type: String, required: false },
   },
   {
     timestamps: true,

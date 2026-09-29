@@ -12,6 +12,8 @@ interface IUser {
   username: string;
   role: string;
   provider: string;
+  // Só contas do fórum têm avatar, e ele vem do banco a cada verify.
+  avatarUrl?: string;
 }
 
 interface IAuthContext {

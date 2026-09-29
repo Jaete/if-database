@@ -1,6 +1,9 @@
 import { NextRequest } from 'next/server';
 import { forumCorsResponse, forumCorsOptions } from '@/lib/cors';
-import { resolveForumUser } from '@/services/forumAuth.service';
+import {
+  resolveForumUser,
+  sanitizeForumAvatar,
+} from '@/services/forumAuth.service';
 
 // Passive registration: the forum-side script calls this on every page load
 // for a logged-in user it hasn't seen before (tracked via localStorage), so
@@ -16,7 +19,7 @@ export async function POST(request: NextRequest) {
   const origin = request.headers.get('origin');
 
   try {
-    const { username, forumUserId } = await request.json();
+    const { username, forumUserId, avatar } = await request.json();
 
     if (typeof username !== 'string' || username.trim().length < 1) {
       return forumCorsResponse({ error: 'Usuário inválido' }, origin, 400);
@@ -27,10 +30,12 @@ export async function POST(request: NextRequest) {
       return forumCorsResponse({ error: 'ID inválido' }, origin, 400);
     }
 
-    const result = await resolveForumUser({
-      username: username.trim(),
-      forumUserId: id,
-    });
+    // Anything that is not a forum-hosted image URL is simply dropped: the
+    // account is still worth creating without an avatar.
+    const result = await resolveForumUser(
+      { username: username.trim(), forumUserId: id },
+      sanitizeForumAvatar(avatar)
+    );
 
     if (!result.success) {
       return forumCorsResponse({ error: result.error }, origin, 409);

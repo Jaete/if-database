@@ -1,0 +1,45 @@
+@use '../globals' as *;
+
+.navToggle {
+  position: fixed;
+  top: $spacing-4;
+  left: $spacing-4;
+  z-index: 500;
+  @include flex-center();
+  width: $spacing-11;
+  height: $spacing-11;
+  padding: 0;
+  color: $gold-100;
+  background-color: $surface-raised;
+  border: 1px solid rgba($gold-100, 0.3);
+  border-radius: $radius-md;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+  @include elevation(2);
+  @include focus-ring();
+
+  &:hover {
+    background-color: $accent-overlay-hover;
+    border-color: rgba($gold-100, 0.6);
+    transform: translateY(-1px);
+  }
+
+  @include mobile {
+    top: $spacing-3;
+    left: $spacing-3;
+  }
+
+  @include light {
+    color: $gold-600;
+    background-color: $neutral-2100;
+    border-color: $neutral-2700;
+  }
+}
+
+.navToggleIcon {
+  width: $spacing-6;
+  height: $spacing-6;
+}

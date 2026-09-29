@@ -1,10 +1,15 @@
+export { default as ChevronRightIcon } from './ChevronRightIcon';
+export { default as CloseIcon } from './CloseIcon';
 export { default as CopyIcon } from './CopyIcon';
 export { default as DotsVerticalIcon } from './DotsVerticalIcon';
 export { default as DownloadIcon } from './DownloadIcon';
 export { default as ExternalLinkIcon } from './ExternalLinkIcon';
 export { default as EyeIcon } from './EyeIcon';
 export { default as FilePlusIcon } from './FilePlusIcon';
+export { default as LogOutIcon } from './LogOutIcon';
+export { default as MenuIcon } from './MenuIcon';
 export { default as PencilIcon } from './PencilIcon';
 export { default as PlusIcon } from './PlusIcon';
 export { default as TrashIcon } from './TrashIcon';
 export { default as TreeIcon } from './TreeIcon';
+export { default as UserIcon } from './UserIcon';

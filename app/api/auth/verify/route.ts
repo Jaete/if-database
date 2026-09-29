@@ -30,6 +30,7 @@ export async function GET() {
         username: session.username,
         role: session.role,
         provider: session.provider,
+        avatarUrl: session.avatarUrl,
       },
       token,
     });

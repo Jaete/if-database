@@ -88,12 +88,59 @@ Acesse [http://localhost:3000](http://localhost:3000) no seu navegador.
 | Comando              | Descrição                                       |
 | -------------------- | ----------------------------------------------- |
 | `npm run dev`        | Inicia o servidor de desenvolvimento            |
+| `npm run dev:https`  | Servidor de desenvolvimento em HTTPS (SSO)      |
 | `npm run build`      | Compila o projeto para produção                 |
 | `npm run start`      | Inicia o servidor em modo de produção           |
 | `npm run lint`       | Executa o linter no projeto                     |
 | `npm run format`     | Formata o código com Prettier                   |
 | `npm run type-check` | Verifica tipos TypeScript sem compilar          |
 | `npm run seed`       | Popula o banco de dados com monstros de exemplo |
+
+### Testando o SSO do fórum em localhost
+
+O fórum não precisa alcançar a sua máquina: em todo o fluxo quem faz a viagem de volta é o
+navegador, então o handshake funciona contra o localhost sem túnel. O que aponta para produção é
+o `APP_BASE` cravado no script global do fórum (`.forum-frontend/sso.js`), e ele aceita um
+override de dev restrito a localhost.
+
+1. Suba o app em HTTPS — o fórum é HTTPS, e servir o app em HTTP arrisca bloqueio de mixed
+   content no `fetch` do handshake:
+
+   ```bash
+   npm run dev:https
+   ```
+
+   O Next gera um certificado localmente confiável via `mkcert` e sobe em
+   `https://localhost:3000`.
+
+2. No navegador, **no origin do fórum** e já logado, abra o console e aponte o handshake para a
+   sua máquina:
+
+   ```js
+   localStorage.setItem('ifdb_dev_api_base', 'https://localhost:3000');
+   ```
+
+   Recarregue a página: o console deve mostrar `[FORUM-SSO] Dev override active, ...`.
+
+3. Em `https://localhost:3000`, use **"Entrar com o fórum"**. O fluxo vai ao fórum, escreve o
+   nonce no perfil e volta para o `verify-callback` local, com a sessão criada.
+
+Para desligar:
+
+```js
+localStorage.removeItem('ifdb_dev_api_base');
+```
+
+Detalhes que valem lembrar:
+
+- Só valores `localhost`/`127.0.0.1` são aceitos; qualquer outra coisa é ignorada e o fluxo segue
+  para produção.
+- O override vale apenas para o handshake (modo 1). A interceptação de cliques em links do app
+  dentro do fórum (modo 2), o `collect.js` e o `tree-renderer.js` continuam indo para produção.
+- O teste escreve no MongoDB apontado pelo seu `.env` e grava o nonce no perfil real do fórum —
+  o mesmo que acontece em produção.
+- `FORUM_ORIGIN` precisa ser exatamente o `Origin` do fórum, **sem barra final**: a comparação é
+  por igualdade exata e uma divergência derruba o CORS em silêncio, sem mensagem de erro.
 
 ## 📁 Estrutura do Projeto
 

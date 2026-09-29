@@ -4,6 +4,7 @@ export default interface IUser {
   role: 'admin' | 'editor' | 'viewer';
   provider: 'local' | 'forum';
   forumUserId?: number;
+  avatarUrl?: string;
   createdAt: Date;
   updatedAt: Date;
 }

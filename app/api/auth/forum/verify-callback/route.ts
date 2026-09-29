@@ -38,7 +38,8 @@ export async function GET(request: NextRequest) {
 
     const result = await resolveVerifiedForumUser(
       claim.userId,
-      profile.username
+      profile.username,
+      profile.avatarUrl
     );
     if (!result.success) return fail(result.error);
 

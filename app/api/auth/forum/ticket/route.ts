@@ -21,11 +21,18 @@ export async function POST(request: NextRequest) {
       return forumCorsResponse({ error: 'ID inválido' }, origin, 400);
     }
 
-    const ticket = signForumTicket({ username: username.trim(), forumUserId: id });
+    const ticket = signForumTicket({
+      username: username.trim(),
+      forumUserId: id,
+    });
 
     return forumCorsResponse({ ticket }, origin);
   } catch (error) {
     console.error('Forum ticket error:', error);
-    return forumCorsResponse({ error: 'Erro interno do servidor' }, origin, 500);
+    return forumCorsResponse(
+      { error: 'Erro interno do servidor' },
+      origin,
+      500
+    );
   }
 }

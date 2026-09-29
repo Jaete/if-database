@@ -120,11 +120,46 @@ export function verifyVerifyTicket(
   }
 }
 
-// Lê a página pública do perfil e extrai o username do dono e o valor do campo
-// custom (profile_field_13_5, que renderiza como <dl id="field_id5">).
-export async function readForumProfile(
-  userId: number
-): Promise<{ username: string; fieldValue: string } | null> {
+// ===== AVATAR =====
+
+// O fórum serve todo avatar pelo próprio CDN, inclusive os hospedados fora
+// (imgur vira https://2img.net/i.imgur.com/...). Como a URL pode chegar do
+// collect.js — que é browser JS e portanto não é confiável — só hosts do fórum
+// passam: no pior caso alguém aponta o avatar para outra imagem do próprio
+// fórum, e não para um rastreador de terceiros.
+const AVATAR_HOSTS = ['2img.net', 'illiweb.com', 'i.servimg.com'];
+
+// Placeholder que o fórum devolve para quem não tem avatar — guardar isso só
+// gastaria espaço para mostrar um boneco cinza no lugar do nosso próprio ícone.
+const AVATAR_PLACEHOLDER = '/i/fa/invision/pp-blank-thumb.png';
+
+export function sanitizeForumAvatar(raw: unknown): string | undefined {
+  if (typeof raw !== 'string' || !raw) return undefined;
+
+  try {
+    const url = new URL(raw);
+    if (url.protocol !== 'https:') return undefined;
+
+    const allowed = AVATAR_HOSTS.some(
+      (host) => url.hostname === host || url.hostname.endsWith(`.${host}`)
+    );
+    if (!allowed) return undefined;
+    if (url.pathname === AVATAR_PLACEHOLDER) return undefined;
+
+    return url.toString();
+  } catch {
+    return undefined;
+  }
+}
+
+// Lê a página pública do perfil e extrai o username do dono, o valor do campo
+// custom (profile_field_13_5, que renderiza como <dl id="field_id5">) e o
+// avatar.
+export async function readForumProfile(userId: number): Promise<{
+  username: string;
+  fieldValue: string;
+  avatarUrl?: string;
+} | null> {
   try {
     const res = await fetch(`${FORUM_BASE}/u${userId}`);
     if (!res.ok) return null;
@@ -141,7 +176,13 @@ export async function readForumProfile(
     );
     const fieldValue = fieldMatch ? fieldMatch[1].trim() : '';
 
-    return { username, fieldValue };
+    // O avatar é a primeira <img> do bloco lateral do perfil.
+    const avatarMatch = html
+      .slice(html.indexOf('id="profile-advanced-right"'))
+      .match(/<img[^>]+src="([^"]+)"/i);
+    const avatarUrl = sanitizeForumAvatar(avatarMatch?.[1]);
+
+    return { username, fieldValue, avatarUrl };
   } catch (error) {
     console.error('Forum profile read error:', error);
     return null;
@@ -159,7 +200,8 @@ type ResolveResult =
  * identity may never take over an account that can authenticate on its own.
  */
 export async function resolveForumUser(
-  identity: ForumIdentity
+  identity: ForumIdentity,
+  avatarUrl?: string
 ): Promise<ResolveResult> {
   try {
     await connectDB();
@@ -169,6 +211,11 @@ export async function resolveForumUser(
     if (linked) {
       if (linked.password || linked.role !== 'viewer') {
         return { success: false, error: 'conta_local' };
+      }
+
+      if (avatarUrl && linked.avatarUrl !== avatarUrl) {
+        linked.avatarUrl = avatarUrl;
+        await linked.save();
       }
 
       if (linked.username !== identity.username) {
@@ -196,6 +243,7 @@ export async function resolveForumUser(
 
       byName.forumUserId = identity.forumUserId;
       byName.provider = 'forum';
+      if (avatarUrl) byName.avatarUrl = avatarUrl;
       await byName.save();
 
       return {
@@ -209,6 +257,7 @@ export async function resolveForumUser(
       forumUserId: identity.forumUserId,
       provider: 'forum',
       role: 'viewer',
+      avatarUrl,
     });
 
     return {
@@ -227,13 +276,19 @@ export async function resolveForumUser(
 // lido da página do perfil. Promover continua sendo manual no banco.
 export async function resolveVerifiedForumUser(
   forumUserId: number,
-  username: string
+  username: string,
+  avatarUrl?: string
 ): Promise<ResolveResult> {
   try {
     await connectDB();
 
     const linked = await User.findOne({ forumUserId });
     if (linked) {
+      if (avatarUrl && linked.avatarUrl !== avatarUrl) {
+        linked.avatarUrl = avatarUrl;
+        await linked.save();
+      }
+
       if (linked.username !== username) {
         const taken = await User.findOne({ username }).select('_id').lean();
         if (!taken) {
@@ -251,6 +306,7 @@ export async function resolveVerifiedForumUser(
     if (byName) {
       byName.forumUserId = forumUserId;
       byName.provider = 'forum';
+      if (avatarUrl) byName.avatarUrl = avatarUrl;
       await byName.save();
       return {
         success: true,
@@ -263,6 +319,7 @@ export async function resolveVerifiedForumUser(
       forumUserId,
       provider: 'forum',
       role: 'viewer',
+      avatarUrl,
     });
     return {
       success: true,
