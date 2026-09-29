@@ -107,7 +107,7 @@ export default function AuthProvider({
       );
     }
     const target = path ?? window.location.pathname;
-    const separator = ssoUrl.includes('?') ? '&' : '?';
+    const separator = /[?#]/.test(ssoUrl) ? '&' : '?';
     window.location.href = `${ssoUrl}${separator}path=${encodeURIComponent(target)}`;
   }, []);
 
