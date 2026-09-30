@@ -947,6 +947,7 @@ const CitizenEditForm = ({
           <FormField
             label="Descrição da Aparência"
             id="appearance"
+            name="appearance"
             isTextarea
             value={formData.appearance || ''}
             onChange={handleChange}
@@ -959,6 +960,7 @@ const CitizenEditForm = ({
           <FormField
             label="História / Background"
             id="backstory"
+            name="backstory"
             isTextarea
             value={formData.backstory || ''}
             onChange={handleChange}
