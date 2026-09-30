@@ -1,0 +1,22 @@
+@use '../../../styles/globals' as *;
+
+$rail-width: 9.375rem;
+$ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+$compact-max: 35rem;
+
+// The sheet switches layout by its own width (container query), because inside
+// a 700px iframe the viewport is narrower than the project's `desktop` query.
+@mixin compact {
+  @container playerSheet (max-width: #{$compact-max}) {
+    @content;
+  }
+}
+
+@mixin sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

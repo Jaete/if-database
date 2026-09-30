@@ -1,0 +1,653 @@
+@use '../../../styles/globals' as *;
+@use 'vars' as *;
+
+// ── Status ──
+.sheetIdentity {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: $spacing-3 $spacing-5;
+}
+
+.sheetIdentityItem {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-1;
+  min-width: 0;
+  padding-bottom: $spacing-2;
+  border-bottom: 1px solid $color-border;
+}
+
+.sheetIdentityTerm {
+  text-transform: uppercase;
+  @include caption($color-text-muted, $font-weight-semibold);
+}
+
+.sheetIdentityValue {
+  overflow-wrap: anywhere;
+  @include main-sm($color-text, $font-weight-regular);
+}
+
+.sheetAttrs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: $spacing-2;
+}
+
+.sheetAttr {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  align-items: center;
+  gap: 0 $spacing-3;
+  padding: $spacing-3;
+  border: 1px solid $color-border-strong;
+  border-radius: $radius-md;
+}
+
+.sheetAttrAbbr {
+  @include cinzel-sm($gold-100, $font-weight-semibold, 1.2, 1px);
+}
+
+.sheetAttrMod {
+  grid-row: span 2;
+  justify-self: end;
+  @include stat-value($gold-100, $font-weight-bold, 1.2, 0, right);
+}
+
+.sheetAttrBreakdown {
+  white-space: nowrap;
+  @include mono-xs($color-text-muted, $font-weight-regular);
+
+  b {
+    color: $color-text;
+    font-weight: $font-weight-bold;
+  }
+}
+
+.sheetLegend {
+  @include main-xs($color-text-muted, $font-weight-regular);
+}
+
+.sheetPairs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: $spacing-3 $spacing-5;
+}
+
+// ── Skills ──
+.sheetSaves {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: $spacing-2;
+}
+
+.sheetSave {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $spacing-1;
+  padding: $spacing-2 0;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+
+  &--prof {
+    border-color: $primary-100;
+    background: $accent-overlay-hover;
+  }
+}
+
+.sheetSaveValue {
+  font-variant-numeric: tabular-nums;
+  @include mono-md($color-text, $font-weight-bold, 1.3);
+}
+
+.sheetSkillGroups {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: $spacing-5;
+  align-items: start;
+}
+
+.sheetSkillGroup {
+  display: flex;
+  flex-direction: column;
+}
+
+.sheetSkillGroupHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-bottom: $spacing-1;
+  margin-bottom: $spacing-1;
+  border-bottom: 1px solid $color-border-strong;
+}
+
+.sheetSkillGroupName {
+  text-transform: uppercase;
+  @include cinzel-xs($color-text, $font-weight-semibold, 1.5, 1.5px);
+}
+
+.sheetSkillGroupMod {
+  @include mono-xs($gold-100, $font-weight-regular);
+}
+
+.sheetSkill {
+  display: grid;
+  grid-template-columns: $spacing-3 minmax(0, 1fr) auto;
+  align-items: center;
+  gap: $spacing-2;
+  padding: $spacing-1 0;
+  @include main-sm($color-text, $font-weight-regular);
+
+  & + & {
+    border-top: 1px solid $color-border;
+  }
+
+  &--prof .sheetSkillPip {
+    background: $gold-300;
+    border-color: $gold-300;
+    box-shadow: 0 0 6px rgba($gold-100, 0.5);
+  }
+}
+
+.sheetSkillPip {
+  width: $spacing-2;
+  height: $spacing-2;
+  border-radius: $radius-full;
+  border: 1px solid $color-border-strong;
+}
+
+.sheetSkillBonus {
+  margin-left: $spacing-1;
+  @include main-xs($color-text-muted, $font-weight-regular);
+}
+
+.sheetSkillValue {
+  font-variant-numeric: tabular-nums;
+  @include mono-sm($color-text, $font-weight-bold);
+}
+
+// ── Master-detail list (abilities, equipment) ──
+.sheetMaster {
+  display: grid;
+  grid-template-columns: 11.875rem minmax(0, 1fr);
+  gap: $spacing-4;
+  align-items: start;
+}
+
+.sheetMasterList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-3;
+}
+
+.sheetMasterGroup {
+  display: flex;
+  flex-direction: column;
+
+  .sheetCaption {
+    padding-bottom: $spacing-1;
+  }
+}
+
+.sheetMasterOption {
+  position: relative;
+  padding: $spacing-2 $spacing-2 $spacing-2 $spacing-5;
+  border: 0;
+  border-radius: $radius-sm;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  @include main-sm($color-text, $font-weight-regular);
+  @include focus-ring;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: $spacing-2;
+    top: 50%;
+    width: 0.3125rem;
+    height: 0.3125rem;
+    margin-top: -0.1875rem;
+    transform: rotate(45deg);
+    border: 1px solid $color-border-strong;
+  }
+
+  &:hover {
+    background: $accent-overlay;
+  }
+
+  &[aria-pressed='true'] {
+    background: $accent-overlay-hover;
+    color: $gold-100;
+
+    &::before {
+      background: $gold-300;
+      border-color: $gold-300;
+    }
+  }
+}
+
+// ── Spells ──
+.sheetCastbar {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border: 1px solid $color-border-strong;
+  border-radius: $radius-md;
+}
+
+.sheetCastCell {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-1;
+  padding: $spacing-3;
+
+  &:nth-child(n + 4) {
+    border-top: 1px solid $color-border;
+  }
+
+  &:not(:nth-child(3n + 1)) {
+    border-left: 1px solid $color-border;
+  }
+}
+
+.sheetCastValue {
+  @include mono-lg($color-text, $font-weight-bold, 1.3);
+
+  &--text {
+    @include main-sm($color-text, $font-weight-semibold, 1.6);
+  }
+}
+
+.sheetCircle {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-2;
+}
+
+.sheetCircleHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-3;
+  flex-wrap: wrap;
+  padding-bottom: $spacing-1;
+  border-bottom: 1px solid $color-border-strong;
+}
+
+.sheetCircleTitle {
+  text-transform: uppercase;
+  @include cinzel-sm($color-text, $font-weight-semibold, 1.5, 1px);
+}
+
+.sheetSlots {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+}
+
+.sheetSlot {
+  width: 0.625rem;
+  height: 0.625rem;
+  transform: rotate(45deg);
+  border: 1px solid $gold-300;
+
+  &--free {
+    background: $gold-300;
+    box-shadow: 0 0 6px rgba($gold-100, 0.45);
+  }
+}
+
+.sheetSlotsNote {
+  margin-left: $spacing-1;
+  white-space: nowrap;
+  @include mono-xs($color-text-muted, $font-weight-regular);
+}
+
+.sheetSpells {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: $spacing-1 $spacing-4;
+  list-style: none;
+}
+
+.sheetSpell {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-2;
+  min-width: 0;
+  padding: $spacing-1 0;
+  @include main-sm($color-text, $font-weight-regular);
+
+  &--off {
+    color: $color-text-muted;
+  }
+}
+
+.sheetSpellBadge {
+  flex: none;
+  padding: 0 $spacing-2;
+  border-radius: $radius-sm;
+  text-transform: uppercase;
+  @include caption($color-text-muted, $font-weight-semibold, 1.5);
+
+  &--prepared {
+    color: $gold-100;
+    box-shadow: inset 0 0 0 1px $primary-100;
+  }
+
+  &--known {
+    box-shadow: inset 0 0 0 1px $color-border-strong;
+  }
+}
+
+// ── Equipment ──
+.sheetDoll {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 7.5rem minmax(0, 1fr);
+  gap: $spacing-2 $spacing-3;
+  align-items: stretch;
+}
+
+.sheetDollFigure {
+  grid-column: 2;
+  grid-row: 1 / span 4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $color-border-strong;
+
+  svg {
+    width: 100%;
+    max-width: 7.5rem;
+    height: auto;
+    overflow: visible;
+  }
+
+  [data-zone] {
+    fill: $accent-overlay;
+    transition:
+      stroke 0.2s ease,
+      fill 0.2s ease;
+  }
+
+  [data-zone][data-active='true'] {
+    stroke: $gold-300;
+    fill: rgba($gold-100, 0.14);
+  }
+}
+
+.sheetEquipSlot {
+  grid-column: 1;
+  min-width: 0;
+  padding: $spacing-2 $spacing-3;
+  border-radius: $radius-md;
+  border: 1px solid $color-border;
+  background: none;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-1;
+  justify-content: center;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+  @include focus-ring;
+
+  &:hover {
+    background: $accent-overlay;
+  }
+
+  &[aria-pressed='true'] {
+    border-color: $primary-100;
+    background: $accent-overlay-hover;
+    box-shadow: $glow-primary;
+  }
+
+  &--right {
+    grid-column: 3;
+    text-align: right;
+  }
+
+  &--empty .sheetEquipSlotName {
+    color: $color-text-muted;
+    font-style: italic;
+  }
+}
+
+.sheetEquipSlotName {
+  overflow-wrap: anywhere;
+  @include main-sm($color-text, $font-weight-regular, 1.35);
+}
+
+.sheetPurse {
+  display: grid;
+  grid-template-columns: 8.75rem minmax(0, 1fr);
+  gap: $spacing-4;
+}
+
+.sheetGil {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-1;
+  padding: $spacing-3;
+  border: 1px solid $color-border-strong;
+  border-radius: $radius-md;
+  align-self: start;
+}
+
+.sheetGilValue {
+  @include stat-value($gold-100, $font-weight-bold, 1.2, 0, left);
+}
+
+.sheetPack {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+}
+
+.sheetPackItem {
+  padding: $spacing-1 0;
+  border-bottom: 1px solid $color-border;
+  @include main-sm($color-text, $font-weight-regular);
+}
+
+// ── Professions ──
+.sheetProfessions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: $spacing-4;
+}
+
+.sheetProfession {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-3;
+  padding: $spacing-5;
+  border-radius: $radius-lg;
+  background: $surface-raised;
+  @include elevation(2);
+}
+
+.sheetProfessionTitle {
+  @include cinzel-lg($color-text, $font-weight-semibold, 1.35);
+}
+
+.sheetTree {
+  display: flex;
+  flex-direction: column;
+  padding-left: $spacing-3;
+  list-style: none;
+
+  li {
+    position: relative;
+    padding: $spacing-1 0 $spacing-1 $spacing-4;
+    @include main-sm($color-text, $font-weight-regular);
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background: $color-border-strong;
+    }
+
+    &:last-child::before {
+      bottom: 50%;
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      width: $spacing-3;
+      height: 1px;
+      background: $color-border-strong;
+    }
+  }
+}
+
+// ── Chronicle ──
+.sheetChronicle {
+  display: grid;
+  grid-template-columns: 10rem minmax(0, 1fr);
+  gap: $spacing-5;
+  align-items: start;
+}
+
+.sheetEpithet {
+  @include cinzel-md($gold-100, $font-weight-semibold, 1.4);
+}
+
+.sheetProse {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-3;
+  max-width: 62ch;
+  @include main-md($color-text, $font-weight-regular, 1.65);
+}
+
+.sheetRegistry {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: $spacing-3;
+  padding-top: $spacing-3;
+  border-top: 1px solid $color-border;
+}
+
+.sheetRegistryItem {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-1;
+  min-width: 0;
+}
+
+.sheetRegistryValue {
+  overflow-wrap: anywhere;
+  @include main-xs($color-text, $font-weight-regular);
+}
+
+.sheetRegistryLink {
+  overflow-wrap: anywhere;
+  @include main-xs($gold-100, $font-weight-regular);
+  @include focus-ring;
+}
+
+@include compact {
+  .sheetScreen {
+    padding: $spacing-4 $spacing-4 $spacing-6;
+  }
+
+  .sheetScreenHead {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: $spacing-3;
+  }
+
+  .sheetScreenSub {
+    text-align: left;
+  }
+
+  .sheetBack {
+    display: inline-flex;
+    align-items: center;
+    gap: $spacing-2;
+    min-height: $spacing-8;
+  }
+
+  .sheetAttrs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sheetSaves {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .sheetSkillGroups,
+  .sheetMaster,
+  .sheetSpells,
+  .sheetProfessions,
+  .sheetChronicle,
+  .sheetPurse,
+  .sheetPairs,
+  .sheetRegistry {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sheetDetail {
+    position: static;
+  }
+
+  .sheetDoll {
+    grid-template-columns: minmax(0, 1fr) 4.5rem minmax(0, 1fr);
+  }
+
+  .sheetCastbar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sheetCastCell {
+    &:nth-child(n + 3) {
+      border-top: 1px solid $color-border;
+    }
+
+    &:not(:nth-child(3n + 1)) {
+      border-left: 0;
+    }
+
+    &:nth-child(2n) {
+      border-left: 1px solid $color-border;
+    }
+  }
+}
+
+@container playerSheet (max-width: 22.5rem) {
+  .sheetIdentity {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sheetStripValue {
+    font-size: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheetScreen,
+  .sheetDetailBody,
+  .playerSheetWipe,
+  .sheetBarFill,
+  .sheetEquipSlot,
+  .sheetDollFigure [data-zone],
+  .sheetCursor,
+  .sheetMenuItem {
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+    transition-duration: 0.01ms;
+  }
+}

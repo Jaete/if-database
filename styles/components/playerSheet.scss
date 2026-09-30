@@ -1,0 +1,9 @@
+@use '../../styles/globals' as *;
+
+// The embed frame is always dark (see app/(embed)/layout.tsx): this sheet has
+// no `@include light` overrides on purpose.
+
+@use 'playerSheet/frame';
+@use 'playerSheet/header';
+@use 'playerSheet/menu';
+@use 'playerSheet/panels';

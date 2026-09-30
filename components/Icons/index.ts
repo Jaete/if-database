@@ -1,4 +1,5 @@
 export { default as ChevronRightIcon } from './ChevronRightIcon';
+export { default as CoinIcon } from './CoinIcon';
 export { default as CloseIcon } from './CloseIcon';
 export { default as CopyIcon } from './CopyIcon';
 export { default as DotsVerticalIcon } from './DotsVerticalIcon';
@@ -13,3 +14,6 @@ export { default as PlusIcon } from './PlusIcon';
 export { default as TrashIcon } from './TrashIcon';
 export { default as TreeIcon } from './TreeIcon';
 export { default as UserIcon } from './UserIcon';
+
+export { default as PaperDollIcon } from './PaperDollIcon';
+export { default as PortraitPlaceholderIcon } from './PortraitPlaceholderIcon';

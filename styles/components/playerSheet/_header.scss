@@ -1,0 +1,260 @@
+@use '../../../styles/globals' as *;
+@use 'vars' as *;
+
+$portrait-size: 6.5rem;
+$portrait-size-compact: 4.5rem;
+
+.sheetHud {
+  position: relative;
+  display: grid;
+  grid-template-columns: $portrait-size minmax(0, 1fr) 11rem;
+  gap: $spacing-4 $spacing-5;
+  padding: $spacing-5 $spacing-5 $spacing-4;
+  border-bottom: 1px solid $color-border-strong;
+
+  &::after {
+    content: '◆';
+    position: absolute;
+    top: $spacing-2;
+    right: $spacing-3;
+    font-size: $spacing-3;
+    color: $gold-100;
+    opacity: 0.3;
+  }
+}
+
+// ── Portrait ──
+.sheetPortrait {
+  position: relative;
+  width: $portrait-size;
+  max-width: 100%;
+  aspect-ratio: 1;
+  border-radius: $radius-lg;
+  overflow: hidden;
+  background: $color-bg;
+  color: $gold-100;
+  box-shadow:
+    inset 0 0 0 1px $color-border-strong,
+    $glow-gold;
+
+  &--chronicle {
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    box-shadow: inset 0 0 0 1px $color-border-strong;
+  }
+}
+
+.sheetPortraitImage {
+  object-fit: cover;
+}
+
+.sheetPortraitPlaceholder {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at 50% 35%,
+    rgba($gold-100, 0.18),
+    transparent 70%
+  );
+
+  svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+}
+
+.sheetPortraitBadge {
+  position: absolute;
+  left: 50%;
+  bottom: -1px;
+  transform: translateX(-50%);
+  padding: 0 $spacing-2;
+  border-radius: $radius-sm $radius-sm 0 0;
+  background: $surface;
+  white-space: nowrap;
+  box-shadow: 0 0 0 1px $color-border-strong;
+  @include mono-xs($gold-100, $font-weight-bold);
+}
+
+// ── Identity ──
+.sheetWho {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-1;
+}
+
+.sheetEyebrow {
+  text-transform: uppercase;
+  @include caption($color-text-muted, $font-weight-semibold);
+}
+
+.sheetName {
+  text-wrap: balance;
+  @include cinzel-2xl($color-text, $font-weight-semibold, 1.25, 0.5px);
+}
+
+.sheetLine {
+  @include main-sm($color-text, $font-weight-regular);
+}
+
+.sheetLineMuted {
+  color: $color-text-muted;
+}
+
+.sheetXp {
+  margin-top: $spacing-2;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-1;
+}
+
+.sheetXpRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: $spacing-2;
+  @include main-xs($color-text-muted, $font-weight-regular);
+
+  b {
+    font-variant-numeric: tabular-nums;
+    @include mono-xs($color-text, $font-weight-regular);
+  }
+}
+
+.sheetBar {
+  height: $spacing-1;
+  border-radius: $radius-full;
+  background: $color-border;
+  overflow: hidden;
+}
+
+.sheetBarFill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, $gold-500, $gold-300);
+  transform-origin: left;
+  transition: transform 0.6s $ease-out;
+
+  &--hp {
+    background: $success;
+  }
+}
+
+// ── Resources ──
+.sheetResources {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-3;
+  justify-content: center;
+}
+
+.sheetResource {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: baseline;
+  gap: 0 $spacing-2;
+
+  .sheetBar {
+    grid-column: 1 / -1;
+    margin-top: $spacing-1;
+    height: 0.375rem;
+  }
+}
+
+.sheetResourceKey {
+  text-transform: uppercase;
+  @include caption($color-text-muted, $font-weight-semibold);
+}
+
+.sheetResourceValue {
+  justify-self: end;
+  font-variant-numeric: tabular-nums;
+  @include stat-value($color-text, $font-weight-bold, 1.2, 0, right);
+}
+
+.sheetResourceTotal {
+  @include mono-sm($color-text-muted, $font-weight-regular);
+}
+
+.sheetResourceFormula {
+  grid-column: 1 / -1;
+  @include mono-xs($color-text-muted, $font-weight-regular);
+}
+
+// ── Stat strip ──
+.sheetStrip {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-top: 1px solid $color-border;
+  padding-top: $spacing-3;
+}
+
+.sheetStripCell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $spacing-1;
+  text-align: center;
+  min-width: 0;
+
+  & + & {
+    border-left: 1px solid $color-border;
+  }
+}
+
+.sheetStripKey {
+  text-transform: uppercase;
+  @include caption($color-text-muted, $font-weight-semibold);
+}
+
+.sheetStripValue {
+  font-variant-numeric: tabular-nums;
+  @include mono-lg($color-text, $font-weight-bold, 1.3, 0, center);
+}
+
+.sheetStripNote {
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  @include main-xs($color-text-muted, $font-weight-regular, 1.5, 0, center);
+}
+
+@include compact {
+  .sheetHud {
+    grid-template-columns: $portrait-size-compact minmax(0, 1fr);
+    padding: $spacing-4;
+    gap: $spacing-3;
+  }
+
+  .sheetPortrait {
+    width: $portrait-size-compact;
+
+    &--chronicle {
+      width: 8.75rem;
+    }
+  }
+
+  .sheetName {
+    @include cinzel-xl($color-text, $font-weight-semibold, 1.25, 0.5px);
+  }
+
+  .sheetResources {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: $spacing-4;
+  }
+
+  .sheetResource:only-child {
+    grid-column: 1 / -1;
+  }
+
+  .sheetStripNote {
+    display: none;
+  }
+}

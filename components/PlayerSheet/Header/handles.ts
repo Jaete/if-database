@@ -1,0 +1,25 @@
+const HeaderHandles = [
+  'sheetHud',
+  'sheetWho',
+  'sheetEyebrow',
+  'sheetName',
+  'sheetLine',
+  'sheetLineMuted',
+  'sheetXp',
+  'sheetXpRow',
+  'sheetBar',
+  'sheetBarFill',
+  'sheetResources',
+  'sheetResource',
+  'sheetResourceKey',
+  'sheetResourceValue',
+  'sheetResourceTotal',
+  'sheetResourceFormula',
+  'sheetStrip',
+  'sheetStripCell',
+  'sheetStripKey',
+  'sheetStripValue',
+  'sheetStripNote',
+] as const;
+
+export default HeaderHandles;
