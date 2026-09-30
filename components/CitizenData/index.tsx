@@ -219,8 +219,18 @@ const CitizenData = ({ citizen }: IProps) => {
             citizen.proficiencies.skills.length > 0 && (
               <InfoRow label="Perícias: ">
                 {citizen.proficiencies.skills
-                  .map((sk) => sk.name)
-                  .filter(Boolean)
+                  .filter((sk) => sk.name)
+                  .map((sk) =>
+                    [
+                      sk.name,
+                      sk.value !== undefined
+                        ? ` ${formatModifier(sk.value)}`
+                        : '',
+                      // O asterisco marca proficiência, como nas fichas do
+                      // fórum.
+                      sk.proficient ? ' (*)' : '',
+                    ].join('')
+                  )
                   .join(', ')}
               </InfoRow>
             )}

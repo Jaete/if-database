@@ -47,6 +47,9 @@ export function forumCorsResponse(
 export function forumCorsOptions(origin: string | null) {
   return new NextResponse(null, {
     status: 204,
-    headers: { ...forumOriginHeaders(origin), 'Access-Control-Max-Age': '86400' },
+    headers: {
+      ...forumOriginHeaders(origin),
+      'Access-Control-Max-Age': '86400',
+    },
   });
 }

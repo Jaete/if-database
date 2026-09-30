@@ -1,41 +1,30 @@
 import { NextResponse } from 'next/server';
+import MonsterModel from '@/db/monsters/monsters';
+import type IMonster from '@/db/monsters/monster';
 import { connectDB } from '@/lib/db';
-import {
-  getAllMonsters,
-  getMonsterIndex,
-  createMonster,
-} from '@/services/monster.service';
-import { getAuthorizedSession } from '@/services/auth.service';
+import { createEntityService } from '@/services/createEntityService';
+import { createCollectionHandlers } from '@/app/api/_entity/handlers';
+import { getMonsterIndex } from '@/services/monster.service';
 
+const handlers = createCollectionHandlers({
+  service: createEntityService<IMonster>(MonsterModel),
+  notFoundLabel: 'Monstro não encontrado',
+  createErrorLabel: 'Falha ao criar monstro',
+});
+
+// GET próprio por causa de `?view=index`, que devolve só os campos que o grid
+// usa. O resto é o handler compartilhado.
 export async function GET(request: Request) {
+  const view = new URL(request.url).searchParams.get('view');
+  if (view !== 'index') return handlers.GET();
+
   try {
     await connectDB();
-    const view = new URL(request.url).searchParams.get('view');
-    const monsters =
-      view === 'index' ? await getMonsterIndex() : await getAllMonsters();
-    return NextResponse.json(monsters);
+    return NextResponse.json(await getMonsterIndex());
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : 'Unknown error';
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
-export async function POST(request: Request) {
-  try {
-    const session = await getAuthorizedSession();
-    if (!session || session.role === 'viewer') {
-      return NextResponse.json({ error: 'Não autorizado' }, { status: 403 });
-    }
-
-    await connectDB();
-    const body = await request.json();
-    const result = await createMonster(body);
-    if (!result.success) throw new Error('Falha ao criar monstro');
-    return NextResponse.json(result.data);
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : 'Unknown error';
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
-  }
-}
+export const POST = handlers.POST;

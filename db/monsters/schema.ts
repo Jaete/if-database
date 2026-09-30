@@ -53,6 +53,8 @@ const MonsterSchema = new Schema<IMonster>(
         {
           name: { type: String },
           value: { type: Number },
+          proficient: { type: Boolean },
+          bonus: { type: Number },
         },
       ],
     },

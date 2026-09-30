@@ -47,7 +47,13 @@ export interface ISavingThrow {
 
 export interface ISkill {
   name?: string; // ex: "Percepção"
-  value?: number; // valor base de 0 a 30
+  // Derivado: modificador final do atributo, mais o bônus de proficiência
+  // quando `proficient`, mais `bonus`. Guardado para quem só lê o documento
+  // (o drawer do fórum), mas recalculado pelo formulário a cada edição.
+  value?: number;
+  proficient?: boolean;
+  // Bônus extra da perícia: item, talento, característica racial. Editável.
+  bonus?: number;
 }
 
 export interface IProficiencies {

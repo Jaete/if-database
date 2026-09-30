@@ -1,15 +1,21 @@
 'use client';
 
+import { createContext, useCallback, useContext, useRef } from 'react';
+
 import IMonster from '@/db/monsters/monster';
-import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useCallback,
-  useRef,
-} from 'react';
-import * as api from './monstersUtils';
+import { createEntityContext } from './createEntityContext';
+import { fetchMonsterIndex, fetchMonstersBySlugs } from './monstersUtils';
+
+const entity = createEntityContext<IMonster>({
+  basePath: '/api/monsters',
+  label: 'monstro',
+  providerName: 'MonstersProvider',
+  // Monstros carregam só o índice: 34 KB contra 1,6 MB da coleção completa.
+  fetchList: fetchMonsterIndex,
+  skipInitialLoadWhenSeeded: true,
+});
+
+export const MonstersContext = entity.Context;
 
 interface IProps {
   children: React.ReactNode;
@@ -17,45 +23,30 @@ interface IProps {
   initialFull?: IMonster[];
 }
 
-interface IMonstersContext {
-  /** Light records for every monster — enough to render cards and search. */
-  monsters: IMonster[];
-  loading: boolean;
-  /** Full document for a slug, fetching it if it has not been prefetched. */
+// O cache de documentos completos vive num contexto próprio, por cima do
+// genérico: só monstros separam índice de documento completo.
+interface IFullCache {
   getFull: (slug: string) => Promise<IMonster | undefined>;
-  /** Warms the cache for slugs about to come on screen. */
   prefetch: (slugs: string[]) => void;
-  update: (monster: IMonster) => Promise<void>;
-  erase: (monster: IMonster) => Promise<void>;
-  create: (monster: IMonster) => Promise<void>;
+  remember: (monster: IMonster) => void;
+  forget: (slug: string) => void;
 }
 
-export const MonstersContext = createContext<IMonstersContext | null>(null);
+const FullCacheContext = createContext<IFullCache | null>(null);
 
-export default function MonstersProvider({
+function FullCacheProvider({
   children,
-  initialMonsters,
   initialFull,
-}: IProps) {
-  const [monsters, setMonsters] = useState(initialMonsters ?? []);
-  const [loading, setLoading] = useState(!initialMonsters);
-
+}: {
+  children: React.ReactNode;
+  initialFull?: IMonster[];
+}) {
   const fullRef = useRef(
     new Map<string, IMonster>(
       (initialFull ?? []).map((m) => [m.slug, m] as const)
     )
   );
   const inFlightRef = useRef(new Map<string, Promise<void>>());
-  const monstersRef = useRef(monsters);
-  const loadingRef = useRef(loading);
-
-  useEffect(() => {
-    monstersRef.current = monsters;
-  }, [monsters]);
-
-  useEffect(() => {
-    loadingRef.current = loading;
-  }, [loading]);
 
   const hydrate = useCallback(async (slugs: string[]) => {
     const missing = slugs.filter(
@@ -63,8 +54,7 @@ export default function MonstersProvider({
     );
     if (missing.length === 0) return;
 
-    const request = api
-      .fetchMonstersBySlugs(missing)
+    const request = fetchMonstersBySlugs(missing)
       .then((rows) => {
         for (const row of rows) fullRef.current.set(row.slug, row);
       })
@@ -94,97 +84,77 @@ export default function MonstersProvider({
     [hydrate]
   );
 
-  const update = useCallback(async (monster: IMonster) => {
-    try {
-      const { data } = await api.updateMonster(monster);
-      if (data) {
-        fullRef.current.set(data.slug, data);
-        setMonsters((prev) =>
-          prev.map((m) => (m.slug === data.slug ? data : m))
-        );
-      }
-    } catch (err) {
-      console.error(err);
-    }
+  const remember = useCallback((monster: IMonster) => {
+    fullRef.current.set(monster.slug, monster);
   }, []);
 
-  const erase = useCallback(async (monster: IMonster) => {
-    try {
-      await api.deleteMonster(monster.slug);
-      fullRef.current.delete(monster.slug);
-      setMonsters((prev) => prev.filter((m) => m.slug !== monster.slug));
-    } catch (err) {
-      console.error(err);
-    }
+  const forget = useCallback((slug: string) => {
+    fullRef.current.delete(slug);
   }, []);
-
-  const create = useCallback(async (monster: IMonster) => {
-    try {
-      const { data } = await api.createMonster(monster);
-      if (data) {
-        fullRef.current.set(data.slug, data);
-        setMonsters((prev) => [...prev, data]);
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  }, []);
-
-  useEffect(() => {
-    let mounted = true;
-
-    const loadIndex = async () => {
-      setLoading(true);
-      try {
-        const data = await api.fetchMonsterIndex();
-        if (mounted) setMonsters(data);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    };
-
-    // The server component already handed us the index; re-fetching it on
-    // mount only doubles the work for an identical result.
-    if (!initialMonsters) loadIndex();
-
-    const handlePageShow = (e: PageTransitionEvent) => {
-      if (e.persisted) loadIndex();
-    };
-    window.addEventListener('pageshow', handlePageShow);
-
-    const handleVisibilityChange = () => {
-      if (
-        document.visibilityState === 'visible' &&
-        monstersRef.current.length === 0 &&
-        !loadingRef.current
-      ) {
-        loadIndex();
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-      mounted = false;
-      window.removeEventListener('pageshow', handlePageShow);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [initialMonsters]);
 
   return (
-    <MonstersContext.Provider
-      value={{ monsters, loading, getFull, prefetch, update, erase, create }}
-    >
+    <FullCacheContext.Provider value={{ getFull, prefetch, remember, forget }}>
       {children}
-    </MonstersContext.Provider>
+    </FullCacheContext.Provider>
   );
 }
 
+export default function MonstersProvider({
+  children,
+  initialMonsters,
+  initialFull,
+}: IProps) {
+  return (
+    <entity.Provider initialItems={initialMonsters}>
+      <FullCacheProvider initialFull={initialFull}>
+        {children}
+      </FullCacheProvider>
+    </entity.Provider>
+  );
+}
+
+interface IMonstersContext {
+  /** Light records for every monster — enough to render cards and search. */
+  monsters: IMonster[];
+  loading: boolean;
+  /** Full document for a slug, fetching it if it has not been prefetched. */
+  getFull: (slug: string) => Promise<IMonster | undefined>;
+  /** Warms the cache for slugs about to come on screen. */
+  prefetch: (slugs: string[]) => void;
+  update: (monster: IMonster) => Promise<void>;
+  erase: (monster: IMonster) => Promise<void>;
+  create: (monster: IMonster) => Promise<void>;
+}
+
 export function useMonsters(): IMonstersContext {
-  const context = useContext(MonstersContext);
-  if (!context) {
-    throw new Error('useMonsters must be used within a MonstersProvider');
-  }
-  return context;
+  const base = entity.useEntities();
+  const cache = useContext(FullCacheContext);
+  if (!cache) throw new Error('Hook usado fora de MonstersProvider');
+
+  // As mutações precisam manter o cache de documentos completos alinhado com a
+  // lista; por isso envolvem as da fábrica em vez de usá-las direto.
+  const update = async (monster: IMonster) => {
+    const data = await base.update(monster);
+    if (data) cache.remember(data);
+  };
+
+  const erase = async (monster: IMonster) => {
+    await base.erase(monster);
+    cache.forget(monster.slug);
+  };
+
+  const create = async (monster: IMonster) => {
+    const data = await base.create(monster);
+    if (data) cache.remember(data);
+  };
+
+  return {
+    monsters: base.items,
+    loading: base.loading,
+    getFull: cache.getFull,
+    prefetch: cache.prefetch,
+    update,
+    erase,
+    create,
+  };
 }

@@ -1,7 +1,11 @@
 'use client';
 
 import type ICitizen from '@/db/citizens/citizen.d';
-import type { FormDataType } from './useCitizenEditForm';
+import type {
+  EditFormVariant,
+  FormDataType,
+  IEditFormPersistence,
+} from './useCitizenEditForm';
 import { useCitizenEditForm } from './useCitizenEditForm';
 import { useCssHandles } from '@/hooks/useCssHandles';
 import CitizenEditFormHandles from './handles';
@@ -11,6 +15,8 @@ import ArrayItemWrapper from '../ArrayItemWrapper';
 import { attrMapping } from '@/db/l10n/attributesMapping';
 import AlertModal from '../AlertModal';
 import DefensesFields from '../DefensesFields';
+import { formatModifier } from '@/lib/stats';
+import PlayerFields from '../PlayerFields';
 import '@/styles/components/citizenEditForm.scss';
 
 export {
@@ -23,6 +29,9 @@ interface IProps {
   citizen?: ICitizen;
   onClose: () => void;
   mode?: 'create' | 'edit';
+  // 'player' acrescenta a seção de vínculo e grava os campos de jogador.
+  variant?: EditFormVariant;
+  persist: IEditFormPersistence;
   externalFormData?: FormDataType;
   onFormDataChange?: (data: FormDataType) => void;
 }
@@ -33,6 +42,8 @@ const CitizenEditForm = ({
   citizen,
   onClose,
   mode = 'edit',
+  variant = 'citizen',
+  persist,
   externalFormData,
   onFormDataChange,
 }: IProps) => {
@@ -54,9 +65,9 @@ const CitizenEditForm = ({
     handleSavingThrowChange,
     addSavingThrow,
     removeSavingThrow,
-    handleSkillChange,
-    addSkill,
-    removeSkill,
+    skillRows,
+    toggleSkillProficiency,
+    handleSkillBonusChange,
     handleAbilityChange,
     addAbility,
     removeAbility,
@@ -74,11 +85,17 @@ const CitizenEditForm = ({
     removeCantrip,
     handleDefensesChange,
     handleLanguagesChange,
+    isImportingSheet,
+    handleOwnerChange,
+    handleTopicUrlChange,
+    handleImportSheet,
     handleSubmit,
   } = useCitizenEditForm({
     citizen,
     onClose,
     mode,
+    variant,
+    persist,
     externalFormData,
     onFormDataChange,
   });
@@ -113,6 +130,20 @@ const CitizenEditForm = ({
             Baixar Modelo
           </button>
         </div>
+
+        {variant === 'player' && (
+          <div className={handles.section}>
+            <h3 className={handles.sectionTitle}>Jogador</h3>
+            <PlayerFields
+              ownerUsername={formData.ownerUsername}
+              forumTopicUrl={formData.forumTopicUrl}
+              onOwnerChange={handleOwnerChange}
+              onTopicUrlChange={handleTopicUrlChange}
+              onImport={handleImportSheet}
+              isImporting={isImportingSheet}
+            />
+          </div>
+        )}
 
         {/* ── Informações Básicas ──────────────────────── */}
         <div className={handles.section}>
@@ -618,32 +649,57 @@ const CitizenEditForm = ({
           </button>
 
           <h4 className={handles.sectionSubheading}>Perícias</h4>
-          {(formData.profSkills || []).map((sk, i) => (
-            <ArrayItemWrapper key={i} onRemove={() => removeSkill(i)}>
-              <div className={handles.inlineFields}>
-                <FormField
-                  label="Nome"
-                  value={sk.name}
-                  onChange={(e) => handleSkillChange(i, 'name', e.target.value)}
-                />
-                <FormField
-                  label="Valor"
-                  type="number"
-                  value={String(sk.value || '')}
-                  onChange={(e) =>
-                    handleSkillChange(i, 'value', e.target.value)
-                  }
-                />
-              </div>
-            </ArrayItemWrapper>
-          ))}
-          <button
-            type="button"
-            className={handles.addButton}
-            onClick={addSkill}
-          >
-            + Adicionar Perícia
-          </button>
+          {/* A lista é fixa e o valor é calculado: o usuário escolhe a
+              proficiência e o bônus extra. Dividida em duas metades para o
+              cabeçalho se repetir em cada coluna. */}
+          <div className={handles.skillColumns}>
+            {[
+              skillRows.slice(0, Math.ceil(skillRows.length / 2)),
+              skillRows.slice(Math.ceil(skillRows.length / 2)),
+            ].map((column, columnIndex) => (
+              <ul key={columnIndex} className={handles.skillList}>
+                <li className={handles.skillHeader} aria-hidden="true">
+                  <span>Prof.</span>
+                  <span>Perícia</span>
+                  <span>Bônus</span>
+                  <span>Total</span>
+                </li>
+                {column.map((skill) => (
+                  <li key={skill.name} className={handles.skillRow}>
+                    <input
+                      type="checkbox"
+                      id={`skill-${skill.name}`}
+                      className={handles.skillCheckbox}
+                      checked={skill.proficient}
+                      onChange={(e) =>
+                        toggleSkillProficiency(skill.name, e.target.checked)
+                      }
+                    />
+                    <label
+                      className={handles.skillLabel}
+                      htmlFor={`skill-${skill.name}`}
+                    >
+                      {skill.name}
+                    </label>
+                    <input
+                      type="number"
+                      className={handles.skillBonus}
+                      aria-label={`Bônus extra em ${skill.name}`}
+                      value={skill.bonus || ''}
+                      placeholder="0"
+                      onChange={(e) =>
+                        handleSkillBonusChange(skill.name, e.target.value)
+                      }
+                      onWheel={(e) => (e.target as HTMLInputElement).blur()}
+                    />
+                    <span className={handles.skillValue}>
+                      {formatModifier(skill.value)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ))}
+          </div>
         </div>
 
         {/* ── Habilidades ──────────────────────────────── */}

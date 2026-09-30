@@ -1,35 +1,16 @@
-import { NextResponse } from 'next/server';
-import { connectDB } from '@/lib/db';
-import { getAllCitizens, createCitizen } from '@/services/citizen.service';
-import { getAuthorizedSession } from '@/services/auth.service';
+import CitizenModel from '@/db/citizens/citizens';
+import type ICitizen from '@/db/citizens/citizen.d';
+import { createEntityService } from '@/services/createEntityService';
+import { createCollectionHandlers } from '@/app/api/_entity/handlers';
 
-export async function GET() {
-  try {
-    await connectDB();
-    const citizens = await getAllCitizens();
-    return NextResponse.json(citizens);
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : 'Unknown error';
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
-  }
-}
+// O service é montado aqui, e não importado de `citizen.service.ts`, porque
+// aquele módulo é 'use server': exportar dele um objeto com funções faria o
+// Next tratá-lo como server action e falhar ao serializar.
+const handlers = createCollectionHandlers({
+  service: createEntityService<ICitizen>(CitizenModel),
+  notFoundLabel: 'Cidadão não encontrado',
+  createErrorLabel: 'Falha ao criar cidadão',
+});
 
-export async function POST(request: Request) {
-  try {
-    const session = await getAuthorizedSession();
-    if (!session || session.role === 'viewer') {
-      return NextResponse.json({ error: 'Não autorizado' }, { status: 403 });
-    }
-
-    await connectDB();
-    const body = await request.json();
-    const result = await createCitizen(body);
-    if (!result.success) throw new Error('Falha ao criar cidadão');
-    return NextResponse.json(result.data);
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : 'Unknown error';
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
-  }
-}
+export const GET = handlers.GET;
+export const POST = handlers.POST;

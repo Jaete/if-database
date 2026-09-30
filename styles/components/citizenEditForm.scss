@@ -289,4 +289,122 @@
       flex-direction: column;
     }
   }
+
+  // Perícias: duas colunas de lista, cada uma com seu próprio cabeçalho.
+  .skillColumns {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: $spacing-2 $spacing-6;
+    width: 100%;
+
+    @include mobile {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  .skillList {
+    @include flex-col-start();
+    gap: 0;
+    width: 100%;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  // Colunas: check, nome, bônus, valor. O cabeçalho usa a mesma grade para os
+  // rótulos caírem exatamente sobre os campos, e as colunas das pontas são
+  // dimensionadas pelos rótulos ("Prof." e "Valor"), não pelo controle — com
+  // a largura do checkbox os dois saíam cortados.
+  .skillHeader,
+  .skillRow {
+    display: grid;
+    grid-template-columns: 2.75rem minmax(0, 1fr) 3.25rem 3rem;
+    align-items: center;
+    gap: $spacing-2;
+    width: 100%;
+    min-width: 0;
+    padding: $spacing-1 0;
+  }
+
+  .skillHeader {
+    border-bottom: 1px solid rgba($gold-100, 0.25);
+    margin-bottom: $spacing-1;
+
+    span {
+      @include caption($color-text-subtle, $font-weight-semibold);
+      white-space: nowrap;
+    }
+
+    // Cada rótulo segue o alinhamento do campo que encabeça.
+    span:first-child,
+    span:nth-child(3),
+    span:nth-child(4) {
+      text-align: center;
+    }
+
+    @include light {
+      span {
+        color: $color-text-muted-inverse;
+      }
+    }
+  }
+
+  .skillRow {
+    border-bottom: 1px solid rgba($gold-100, 0.08);
+  }
+
+  .skillLabel {
+    min-width: 0;
+    cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    @include main-sm($color-text-muted, $font-weight-regular);
+
+    @include light {
+      color: $color-text-muted-inverse;
+    }
+  }
+
+  .skillCheckbox {
+    width: $spacing-4;
+    height: $spacing-4;
+    // Centralizado na coluna, que é mais larga que ele por causa do rótulo.
+    margin: 0 auto;
+    accent-color: $gold-300;
+    cursor: pointer;
+    @include focus-ring();
+  }
+
+  .skillBonus {
+    width: 100%;
+    box-sizing: border-box;
+    padding: $spacing-1;
+    background-color: $surface;
+    border: 1px solid $color-border-strong;
+    border-radius: $radius-sm;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    @include mono-sm($color-text, $font-weight-regular);
+    @include premium-input-focus;
+
+    // As setinhas roubam espaço num campo desta largura.
+    appearance: textfield;
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+      appearance: none;
+      margin: 0;
+    }
+
+    @include light {
+      background-color: $neutral-2100;
+      border-color: $color-border-inverse;
+      color: $color-text-inverse;
+    }
+  }
+
+  .skillValue {
+    font-variant-numeric: tabular-nums;
+    @include mono-sm($gold-100, $font-weight-semibold, $align: center);
+  }
 }

@@ -1,0 +1,17 @@
+@use '../globals' as *;
+
+.playerOwnerLink {
+  color: $gold-100;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.2s ease;
+  @include focus-ring();
+
+  &:hover {
+    color: $gold-200;
+  }
+
+  @include light {
+    color: $gold-600;
+  }
+}

@@ -3,14 +3,25 @@
 import { useState, useRef, useEffect } from 'react';
 import type ICitizen from '@/db/citizens/citizen.d';
 import type { IPlayerSpellLevel } from '@/db/citizens/citizen.d';
-import { useCitizens } from '@/app/context/CitizensContext';
 import { splitList } from '@/lib/listValues';
+import SKILLS, { findSkill } from '@/db/l10n/skills';
+import { modifierOf, skillValue } from '@/lib/stats';
 
 export type FormDataType = Partial<ICitizen> & {
+  // Campos de jogador. Ficam aqui, e não num tipo separado, porque o mesmo
+  // formulário serve às duas entidades e o `variant` decide se são gravados.
+  ownerUsername?: string;
+  ownerForumUserId?: number;
+  forumTopicUrl?: string;
   spells: string[];
   cantrips: string[];
   profSavingThrows: Array<{ attribute: string; value: number }>;
-  profSkills: Array<{ name: string; value: number }>;
+  profSkills: Array<{
+    name: string;
+    value: number;
+    proficient?: boolean;
+    bonus?: number;
+  }>;
   spellSlots: Array<{ level: number; slotsTotal: number; slotsUsed: number }>;
   subProfessions: string[];
   backpackText: string;
@@ -128,10 +139,24 @@ export const citizenToFormData = (citizen: ICitizen) => {
   };
 };
 
+export type EditFormVariant = 'citizen' | 'player';
+
+/**
+ * A persistência entra por prop em vez de sair de `useCitizens()` aqui dentro:
+ * o mesmo formulário roda na página de cidadãos e na de jogadores, e cada uma
+ * tem o seu provider. Chamar o hook errado quebraria a outra tela.
+ */
+export interface IEditFormPersistence {
+  create: (data: ICitizen) => Promise<unknown>;
+  update: (data: ICitizen) => Promise<unknown>;
+}
+
 interface IUseCitizenEditFormProps {
   citizen?: ICitizen;
   onClose: () => void;
   mode?: 'create' | 'edit';
+  variant?: EditFormVariant;
+  persist: IEditFormPersistence;
   externalFormData?: FormDataType;
   onFormDataChange?: (data: FormDataType) => void;
 }
@@ -140,10 +165,12 @@ export const useCitizenEditForm = ({
   citizen,
   onClose,
   mode = 'edit',
+  variant = 'citizen',
+  persist,
   externalFormData,
   onFormDataChange,
 }: IUseCitizenEditFormProps) => {
-  const { update, create } = useCitizens();
+  const { update, create } = persist;
   const isCreate = mode === 'create';
 
   const [formData, setFormData] = useState<FormDataType>(
@@ -397,6 +424,101 @@ export const useCitizenEditForm = ({
       ),
     }));
   };
+
+  /**
+   * O modificador final do atributo que governa a perícia. Usa o total já
+   * calculado em `playerStats` quando existe; senão deriva do valor base.
+   */
+  const attributeModifier = (attribute: string): number => {
+    const detail = (
+      formData.playerStats as Record<string, { modifier?: number }> | undefined
+    )?.[attribute];
+    if (detail?.modifier !== undefined) return detail.modifier;
+
+    const score = (formData.stats as Record<string, number> | undefined)?.[
+      attribute
+    ];
+    return modifierOf(score);
+  };
+
+  // A lista de perícias é fixa; o que o usuário edita é a proficiência e o
+  // bônus extra. O valor sai dos dois mais o modificador do atributo.
+  const skillRows = SKILLS.map((skill) => {
+    const stored = (formData.profSkills || []).find(
+      (row) => findSkill(row.name)?.name === skill.name
+    );
+    const proficient = stored?.proficient ?? false;
+    const bonus = stored?.bonus ?? 0;
+
+    return {
+      ...skill,
+      proficient,
+      bonus,
+      value: skillValue(
+        attributeModifier(skill.attribute),
+        proficient,
+        formData.proficiencyBonus ?? 0,
+        bonus
+      ),
+    };
+  });
+
+  /**
+   * Reescreve a lista inteira a cada mudança. É a forma mais simples de manter
+   * os valores coerentes: qualquer edição — check, bônus, ou um atributo que
+   * mudou em outra seção — recalcula tudo a partir das mesmas entradas.
+   */
+  const updateSkill = (
+    name: string,
+    patch: { proficient?: boolean; bonus?: number }
+  ) => {
+    setFormData((prev) => {
+      const rows = SKILLS.map((skill) => {
+        const stored = (prev.profSkills || []).find(
+          (row) => findSkill(row.name)?.name === skill.name
+        );
+        const isTarget = skill.name === name;
+
+        const proficient = isTarget
+          ? (patch.proficient ?? stored?.proficient ?? false)
+          : (stored?.proficient ?? false);
+        const bonus = isTarget
+          ? (patch.bonus ?? stored?.bonus ?? 0)
+          : (stored?.bonus ?? 0);
+
+        const detail = (
+          prev.playerStats as Record<string, { modifier?: number }> | undefined
+        )?.[skill.attribute];
+        const modifier =
+          detail?.modifier ??
+          modifierOf(
+            (prev.stats as Record<string, number> | undefined)?.[
+              skill.attribute
+            ]
+          );
+
+        return {
+          name: skill.name,
+          proficient,
+          bonus,
+          value: skillValue(
+            modifier,
+            proficient,
+            prev.proficiencyBonus ?? 0,
+            bonus
+          ),
+        };
+      });
+
+      return { ...prev, profSkills: rows };
+    });
+  };
+
+  const toggleSkillProficiency = (name: string, proficient: boolean) =>
+    updateSkill(name, { proficient });
+
+  const handleSkillBonusChange = (name: string, raw: string) =>
+    updateSkill(name, { bonus: parseInt(raw, 10) || 0 });
 
   const handleSkillChange = (index: number, field: string, value: string) => {
     setFormData((prev) => {
@@ -673,7 +795,62 @@ export const useCitizenEditForm = ({
       equipment: { ...eq, backpack: backpackText, gil: eq.gil || 0 },
       appearance: formData.appearance || undefined,
       backstory: formData.backstory || undefined,
+      // Só a variante de jogador grava vínculo e procedência; em cidadão estes
+      // campos nem existem no schema e seriam descartados.
+      ...(variant === 'player'
+        ? {
+            ownerUsername: formData.ownerUsername || undefined,
+            ownerForumUserId: formData.ownerForumUserId ?? undefined,
+            forumTopicUrl: formData.forumTopicUrl || undefined,
+          }
+        : {}),
     } as ICitizen;
+  };
+
+  // ─── Jogador ─────────────────────────────────────────
+  const [isImportingSheet, setIsImportingSheet] = useState(false);
+
+  const handleOwnerChange = (username: string, forumUserId?: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      ownerUsername: username || undefined,
+      ownerForumUserId: forumUserId,
+    }));
+  };
+
+  const handleTopicUrlChange = (url: string) => {
+    setFormData((prev) => ({ ...prev, forumTopicUrl: url }));
+  };
+
+  // Preenche o formulário a partir do tópico, sem salvar: o usuário revisa
+  // antes, igual ao import de markdown.
+  const handleImportSheet = async () => {
+    if (!formData.forumTopicUrl) return;
+    setIsImportingSheet(true);
+
+    try {
+      const res = await fetch('/api/players/import-forum', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: formData.forumTopicUrl }),
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || 'Erro ao importar ficha');
+
+      setFormData((prev) => ({
+        ...prev,
+        ...(citizenToFormData(result.data as ICitizen) as FormDataType),
+        // O que o usuário já escolheu aqui não é sobrescrito pela ficha.
+        ownerUsername: prev.ownerUsername,
+        ownerForumUserId: prev.ownerForumUserId,
+        forumTopicUrl: prev.forumTopicUrl,
+      }));
+      setAlertMsg('Ficha importada. Revise os campos antes de salvar.');
+    } catch (err) {
+      setAlertMsg(err instanceof Error ? err.message : 'Erro desconhecido');
+    } finally {
+      setIsImportingSheet(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -681,7 +858,11 @@ export const useCitizenEditForm = ({
     setIsSubmitting(true);
 
     if (!formData.name) {
-      setAlertMsg('Nome é obrigatório para criar um cidadão.');
+      setAlertMsg(
+        variant === 'player'
+          ? 'Nome é obrigatório para criar um personagem.'
+          : 'Nome é obrigatório para criar um cidadão.'
+      );
       setIsSubmitting(false);
       return;
     }
@@ -711,6 +892,7 @@ export const useCitizenEditForm = ({
 
   return {
     isCreate,
+    variant,
     formData,
     setFormData,
     isSubmitting,
@@ -729,6 +911,9 @@ export const useCitizenEditForm = ({
     handleSkillChange,
     addSkill,
     removeSkill,
+    skillRows,
+    toggleSkillProficiency,
+    handleSkillBonusChange,
     handleAbilityChange,
     addAbility,
     removeAbility,
@@ -746,6 +931,10 @@ export const useCitizenEditForm = ({
     removeCantrip,
     handleDefensesChange,
     handleLanguagesChange,
+    isImportingSheet,
+    handleOwnerChange,
+    handleTopicUrlChange,
+    handleImportSheet,
     handleSubmit,
   };
 };

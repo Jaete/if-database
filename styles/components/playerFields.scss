@@ -1,0 +1,68 @@
+@use '../globals' as *;
+
+.playerFields {
+  @include flex-col-start();
+  gap: $spacing-4;
+  width: 100%;
+}
+
+.playerOwnerSelect {
+  width: 100%;
+  box-sizing: border-box;
+  padding: $spacing-3;
+  background-color: $surface;
+  border: 1px solid $color-border-strong;
+  border-radius: $radius-sm;
+  @include main-sm($color-text, $font-weight-regular);
+  @include premium-input-focus;
+
+  @include light {
+    background-color: $neutral-2100;
+    border-color: $color-border-inverse;
+    color: $color-text-inverse;
+  }
+}
+
+// O campo cresce, o botão fica do tamanho do próprio texto.
+.playerImportRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: $spacing-3;
+  width: 100%;
+
+  @include mobile {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.playerImportButton {
+  padding: $spacing-3 $spacing-5;
+  background: linear-gradient(135deg, $gold-300, $primary-200);
+  border: none;
+  border-radius: $radius-sm;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.2s ease;
+  @include cinzel-sm($neutral-100, $font-weight-bold, 1.2);
+  @include focus-ring();
+
+  &:hover:not(:disabled) {
+    opacity: 0.9;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+}
+
+.playerImportHint {
+  @include caption($color-text-subtle, $font-weight-regular);
+  text-transform: none;
+  letter-spacing: 0;
+
+  @include light {
+    color: $color-text-muted-inverse;
+  }
+}

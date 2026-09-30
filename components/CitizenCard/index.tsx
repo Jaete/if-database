@@ -22,6 +22,8 @@ interface IProps {
   onEdit?: (citizen: ICitizen) => void;
   onDelete?: (citizen: ICitizen) => void;
   onEditInNewTab?: (citizen: ICitizen) => void;
+  // Sobrescreve o "raça · classe" padrão. Jogadores usam para mostrar o dono.
+  subtitle?: string;
 }
 
 const CitizenCard = ({
@@ -30,6 +32,7 @@ const CitizenCard = ({
   onEdit,
   onDelete,
   onEditInNewTab,
+  subtitle: subtitleOverride,
 }: IProps) => {
   const handles = useCssHandles(CitizenCardHandles);
   const { canEdit } = useAuth();
@@ -92,7 +95,9 @@ const CitizenCard = ({
         <div className={handles.ccCardImageOverlay} />
       </div>
       <div className={handles.ccCardInfo}>
-        <div className={handles.ccCardSubtitle}>{subtitle}</div>
+        <div className={handles.ccCardSubtitle}>
+          {subtitleOverride ?? subtitle}
+        </div>
         <h3 className={handles.ccCardName}>{citizen.name}</h3>
         <div className={handles.ccCardActions}>
           {canEdit && (

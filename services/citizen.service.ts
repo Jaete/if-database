@@ -2,58 +2,35 @@
 
 import CitizenModel from '../db/citizens/citizens';
 import ICitizen from '../db/citizens/citizen.d';
+import { createEntityService } from './createEntityService';
 
-interface Result {
-  success: boolean;
-  data?: ICitizen;
+const service = createEntityService<ICitizen>(CitizenModel);
+
+// Delegações finas: a diretiva 'use server' exige que este módulo exporte
+// apenas funções async, então a fábrica não pode ser exposta diretamente.
+export async function createCitizen(data: ICitizen) {
+  return service.create(data);
 }
 
-export async function createCitizen(data: ICitizen): Promise<Result> {
-  const citizen = await CitizenModel.create(data);
-  if (!citizen) {
-    return { success: false };
-  }
-  return { success: true, data: citizen };
+export async function getAllCitizens() {
+  return service.getAll();
 }
 
-export async function getAllCitizens(): Promise<ICitizen[]> {
-  const citizens = await CitizenModel.find().select('-__v').lean<ICitizen[]>();
-  return citizens;
+export async function getCitizenBySlug(slug: string) {
+  return service.getBySlug(slug);
 }
 
-export async function getCitizenBySlug(slug: string): Promise<Result> {
-  const citizen = await CitizenModel.findOne({ slug });
-  if (!citizen) {
-    return { success: false };
-  }
-  return { success: true, data: citizen };
-}
-
-export async function getCitizensBySlugs(slugs: string[]): Promise<ICitizen[]> {
-  const citizens = await CitizenModel.find({
-    slug: { $in: slugs },
-  }).select('-__v');
-  return citizens;
+export async function getCitizensBySlugs(slugs: string[]) {
+  return service.getBySlugs(slugs);
 }
 
 export async function updateCitizen(
   slug: string,
   updateData: Partial<ICitizen>
-): Promise<Result> {
-  const citizen = await CitizenModel.findOneAndUpdate({ slug }, updateData, {
-    new: true,
-    runValidators: true,
-  });
-  if (!citizen) {
-    return { success: false };
-  }
-  return { success: true, data: citizen };
+) {
+  return service.update(slug, updateData);
 }
 
-export async function deleteCitizen(slug: string): Promise<Result> {
-  const citizen = await CitizenModel.findOneAndDelete({ slug });
-  if (!citizen) {
-    return { success: false };
-  }
-  return { success: true };
+export async function deleteCitizen(slug: string) {
+  return service.remove(slug);
 }
