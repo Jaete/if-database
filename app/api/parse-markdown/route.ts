@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import type IMonster from '@/db/monsters/monster.d';
+import type { ILevelPerk, PerkType } from '@/db/monsters/monster.d';
 import * as mammoth from 'mammoth';
 
 type IStats = NonNullable<IMonster['stats']>;
@@ -13,6 +14,16 @@ const getNum = (v: string) => {
 function sectionTitle(raw: string): string {
   // Strip emoji, keep text, accents, and common symbols
   return raw.replace(/[^\w\sáéíóúâêôãõçàèìòùäëïöüñ/\-(),']/gi, '').trim();
+}
+
+// "Tipo de ganho" free text → PerkType
+function perkTypeFrom(raw: string): PerkType {
+  const t = raw.toLowerCase();
+  if (t.includes('atributo')) return 'atributo';
+  if (t.includes('classe')) return 'classe';
+  if (t.includes('ação') || t.includes('acao') || t.includes('reação'))
+    return 'acao';
+  return 'habilidade';
 }
 
 function cleanKey(raw: string): string {
@@ -78,6 +89,7 @@ export async function POST(request: Request) {
       reactions: [],
       legendaryActions: [],
       drops: [],
+      levels: [],
       spellcasting: {},
       source: {},
     };
@@ -121,6 +133,13 @@ export async function POST(request: Request) {
       'cha',
     ];
     let pendingStatNames: string[] = [];
+
+    // For "Evoluções de Nível" entries: "Nível 6 (CR 6) — Tipo: Nome"
+    let currentPerk: ILevelPerk | null = null;
+    const LEVEL_SECTIONS = [
+      'Dados Específicos de Monstro',
+      'Evoluções de Nível',
+    ];
 
     // Helper: push to the correct array based on section
     const pushArrayItem = (name: string, description: string) => {
@@ -186,6 +205,42 @@ export async function POST(request: Request) {
     for (let i = 0; i < lines.length; i++) {
       const raw = lines[i];
       const line = raw.trimEnd();
+
+      // ─── Level evolutions ───────────────────────────────
+      // Accepts "Nível 6 (CR 6) — Título", optionally prefixed by #'s/** in .md
+      if (LEVEL_SECTIONS.includes(currentSection)) {
+        const plain = line
+          .replace(/^[#\s]+/, '')
+          .replace(/\*\*/g, '')
+          .trim();
+        const levelMatch = plain.match(/^Nível\s+(\d+)\b[^—–-]*[—–-]\s*(.+)$/i);
+        if (levelMatch) {
+          const title = levelMatch[2].trim();
+          const colon = title.indexOf(':');
+          currentPerk = {
+            type: perkTypeFrom(colon >= 0 ? title.slice(0, colon) : title),
+            name: colon >= 0 ? title.slice(colon + 1).trim() : title,
+          };
+          parsedData.levels?.push({
+            level: parseInt(levelMatch[1], 10),
+            acquiredPerks: [currentPerk],
+          });
+          lastDropItem = '';
+          expectDropRange = false;
+          continue;
+        }
+        const kv = plain
+          .replace(/^-\s*/, '')
+          .match(/^(Tipo de ganho|Descrição):\s*(.*)$/i);
+        if (currentPerk && kv) {
+          if (kv[1].toLowerCase() === 'tipo de ganho') {
+            currentPerk.type = perkTypeFrom(kv[2]);
+          } else {
+            currentPerk.description = kv[2].trim();
+          }
+          continue;
+        }
+      }
 
       // ─── Section Headers (## ...) ───────────────────────
       const sectionMatch = line.match(/^##\s+(.+)/);
@@ -297,6 +352,7 @@ export async function POST(request: Request) {
           'Conjuração de Magias',
           'Fonte',
           'Dados Específicos de Monstro',
+          'Evoluções de Nível',
         ];
         const matchedSection = knownSections.find(
           (s) => s.toLowerCase() === cleanedTitle.toLowerCase()
@@ -1076,6 +1132,38 @@ export async function POST(request: Request) {
         continue;
       }
     }
+
+    // Attribute perks: "Sua Sabedoria aumenta para 20" → { attribute, value: delta }
+    // Uses the base stats, accumulated across levels. One perk per attribute.
+    const runningStats: Partial<Record<keyof IStats, number>> = {
+      ...parsedData.stats,
+    } as Partial<Record<keyof IStats, number>>;
+    parsedData.levels?.forEach((lvl) => {
+      const base = lvl.acquiredPerks[0];
+      if (base?.type !== 'atributo' || !base.description) return;
+      const perks: ILevelPerk[] = [];
+      const re = new RegExp(
+        `(${STAT_NAMES.join('|')})\\s+(?:aumenta|sobe|passa)\\s+para\\s+(\\d+)`,
+        'gi'
+      );
+      for (const m of base.description.matchAll(re)) {
+        const idx = STAT_NAMES.findIndex(
+          (n) => n.toLowerCase() === m[1].toLowerCase()
+        );
+        const key = STAT_KEYS[idx];
+        const target = parseInt(m[2], 10);
+        const current = Number(runningStats[key]) || 0;
+        perks.push({
+          type: 'atributo',
+          attribute: key,
+          value: current ? target - current : target,
+          name: base.name,
+          description: base.description,
+        });
+        runningStats[key] = target;
+      }
+      if (perks.length) lvl.acquiredPerks = perks;
+    });
 
     return NextResponse.json({ success: true, data: parsedData });
   } catch (error) {
