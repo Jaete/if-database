@@ -10,8 +10,12 @@ const EvolutionTreeViewHandles = [
   'treeNodeIcon',
   'treeNodeName',
   'treeNodeToggle',
+  'treeZoomControls',
+  'treeZoomButton',
   'treeHints',
+  'treeHintGroup',
   'treeHint',
+  'treeHintIcon',
 ] as const;
 
 export default EvolutionTreeViewHandles;

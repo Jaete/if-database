@@ -120,11 +120,68 @@
   padding: $spacing-1 $spacing-1 0;
 }
 
+.treeHintGroup {
+  @include flex-row-end;
+  align-items: center;
+  gap: $spacing-4;
+}
+
 .treeHint {
+  @include flex-row-start;
+  align-items: center;
+  gap: $spacing-1;
   @include main-xs($gold-400, $font-weight-regular);
   transition: opacity 0.3s;
 
   &--hidden {
     opacity: 0;
   }
+}
+
+.treeZoomControls {
+  @include flex-col-center;
+  position: absolute;
+  top: $spacing-3;
+  right: $spacing-3;
+  z-index: 2;
+  overflow: hidden;
+  background-color: $surface-elevated;
+  border: 1px solid $color-border-strong;
+  border-radius: $radius-md;
+  @include elevation(3);
+}
+
+.treeZoomButton {
+  @include flex-center;
+  width: $spacing-8;
+  height: $spacing-8;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  @include main-lg($gold-100, $font-weight-bold, 1);
+  transition: background-color 0.2s;
+  @include focus-ring($gold-100);
+
+  & + & {
+    border-top: 1px solid $color-border;
+  }
+
+  &:hover:not(:disabled) {
+    background-color: $accent-overlay-hover;
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.35;
+  }
+
+  &--level {
+    @include caption($color-text-muted, $font-weight-semibold, 1, 0, center);
+    text-transform: none;
+  }
+}
+
+.treeHintIcon {
+  flex-shrink: 0;
+  --icon-accent: #{$gold-100};
 }

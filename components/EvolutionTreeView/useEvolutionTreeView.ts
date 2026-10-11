@@ -24,6 +24,14 @@ const NODE_CHROME_WIDTH = 32 + 8 + 24 + 2 + 8;
 const PAN_DURATION_MS = 400;
 const DRAG_THRESHOLD = 5;
 const MSG_SOURCE = 'ifdb-embed';
+const MIN_SCALE = 0.4;
+const MAX_SCALE = 2;
+const BUTTON_ZOOM_STEP = 1.2;
+// Wheel deltas are in px (or ~lines on some mice); this keeps one notch ≈ 10%.
+const WHEEL_ZOOM_SENSITIVITY = 0.0015;
+
+const clampScale = (scale: number) =>
+  Math.min(MAX_SCALE, Math.max(MIN_SCALE, scale));
 
 const noopSubscribe = () => () => {};
 
@@ -67,7 +75,9 @@ export function useEvolutionTreeView(
     [structure, expanded, widths]
   );
 
-  const [pan, setPan] = useState({ x: 0, y: 0 });
+  // Pan and scale live together so zooming around a point updates both in a
+  // single, consistent step (the native wheel listener only sees `prev`).
+  const [view, setView] = useState({ x: 0, y: 0, scale: 1 });
   const [isPanAnimating, setIsPanAnimating] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [viewport, setViewport] = useState({ width: 0, height: 0 });
@@ -100,7 +110,7 @@ export function useEvolutionTreeView(
       if (!dragMoved.current && Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
       dragMoved.current = true;
       setIsDragging(true);
-      setPan({ x: d.panX + dx, y: d.panY + dy });
+      setView((prev) => ({ ...prev, x: d.panX + dx, y: d.panY + dy }));
     };
     const onUp = () => {
       drag.current = null;
@@ -125,8 +135,8 @@ export function useEvolutionTreeView(
     drag.current = {
       startX: e.clientX,
       startY: e.clientY,
-      panX: pan.x,
-      panY: pan.y,
+      panX: view.x,
+      panY: view.y,
     };
   };
 
@@ -135,12 +145,61 @@ export function useEvolutionTreeView(
     if (!el) return;
     window.clearTimeout(panTimer.current);
     setIsPanAnimating(true);
-    setPan({ x: el.clientWidth / 2 - x, y: el.clientHeight / 2 - y });
+    setView((prev) => ({
+      ...prev,
+      x: el.clientWidth / 2 - x * prev.scale,
+      y: el.clientHeight / 2 - y * prev.scale,
+    }));
     panTimer.current = window.setTimeout(
       () => setIsPanAnimating(false),
       PAN_DURATION_MS
     );
   };
+
+  // Zooms keeping the content point under (px, py) — viewport coordinates —
+  // fixed on screen.
+  const zoomAt = (factor: number, px: number, py: number) => {
+    setView((prev) => {
+      const scale = clampScale(prev.scale * factor);
+      const ratio = scale / prev.scale;
+      return {
+        scale,
+        x: px - (px - prev.x) * ratio,
+        y: py - (py - prev.y) * ratio,
+      };
+    });
+  };
+
+  const zoomFromCenter = (factor: number) => {
+    const el = viewportRef.current;
+    if (!el) return;
+    zoomAt(factor, el.clientWidth / 2, el.clientHeight / 2);
+  };
+
+  const zoomIn = () => zoomFromCenter(BUTTON_ZOOM_STEP);
+  const zoomOut = () => zoomFromCenter(1 / BUTTON_ZOOM_STEP);
+  const resetZoom = () => zoomFromCenter(1 / view.scale);
+
+  // Ctrl/⌘ + wheel (also what a trackpad pinch sends) zooms; a plain wheel is
+  // left alone so scrolling the forum post over the iframe keeps working.
+  // Registered natively because React's onWheel is passive and can't
+  // preventDefault the browser's own page zoom.
+  useEffect(() => {
+    const el = viewportRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      if (!e.ctrlKey && !e.metaKey) return;
+      e.preventDefault();
+      const rect = el.getBoundingClientRect();
+      zoomAt(
+        Math.exp(-e.deltaY * WHEEL_ZOOM_SENSITIVITY),
+        e.clientX - rect.left,
+        e.clientY - rect.top
+      );
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, []);
 
   const toggle = (id: string) => {
     if (dragMoved.current) return;
@@ -189,13 +248,19 @@ export function useEvolutionTreeView(
   };
 
   const overflows =
-    positions.width > viewport.width || positions.height > viewport.height;
+    positions.width * view.scale > viewport.width ||
+    positions.height * view.scale > viewport.height;
 
   return {
     structure,
     positions,
     expanded,
-    pan,
+    view,
+    canZoomIn: view.scale < MAX_SCALE,
+    canZoomOut: view.scale > MIN_SCALE,
+    zoomIn,
+    zoomOut,
+    resetZoom,
     isPanAnimating,
     isDragging,
     overflows,

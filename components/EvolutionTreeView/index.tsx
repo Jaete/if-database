@@ -5,6 +5,7 @@ import type { ITreeNode } from '@/db/evolutionTrees/evolutionTree';
 import { useCssHandles } from '@/hooks/useCssHandles';
 import { useEvolutionTreeView, getMonsterName } from './useEvolutionTreeView';
 import { NODE_HEIGHT } from './layout';
+import { MouseIcon } from '../Icons';
 import EvolutionTreeViewHandles from './handles';
 import '@/styles/components/evolutionTreeView.scss';
 
@@ -20,7 +21,12 @@ const EvolutionTreeView = ({ nodes, monsters, forumOrigin }: IProps) => {
     structure,
     positions,
     expanded,
-    pan,
+    view,
+    canZoomIn,
+    canZoomOut,
+    zoomIn,
+    zoomOut,
+    resetZoom,
     isPanAnimating,
     isDragging,
     overflows,
@@ -42,7 +48,7 @@ const EvolutionTreeView = ({ nodes, monsters, forumOrigin }: IProps) => {
           style={{
             width: positions.width,
             height: positions.height,
-            transform: `translate(${pan.x}px, ${pan.y}px)`,
+            transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})`,
           }}
         >
           <svg className={handles.treeLinks} aria-hidden="true">
@@ -129,17 +135,58 @@ const EvolutionTreeView = ({ nodes, monsters, forumOrigin }: IProps) => {
             );
           })}
         </div>
+
+        <div
+          className={handles.treeZoomControls}
+          onPointerDown={(e) => e.stopPropagation()}
+        >
+          <button
+            type="button"
+            className={handles.treeZoomButton}
+            onClick={zoomIn}
+            disabled={!canZoomIn}
+            aria-label="Aproximar"
+            title="Aproximar (Ctrl + roda do mouse)"
+          >
+            +
+          </button>
+          <button
+            type="button"
+            className={`${handles.treeZoomButton} ${handles.treeZoomButton}--level`}
+            onClick={resetZoom}
+            aria-label="Restaurar zoom"
+            title="Restaurar zoom"
+          >
+            {Math.round(view.scale * 100)}%
+          </button>
+          <button
+            type="button"
+            className={handles.treeZoomButton}
+            onClick={zoomOut}
+            disabled={!canZoomOut}
+            aria-label="Afastar"
+            title="Afastar (Ctrl + roda do mouse)"
+          >
+            −
+          </button>
+        </div>
       </div>
 
       <div className={handles.treeHints}>
         <span className={handles.treeHint}>
           Clique no monstro para ver mais
         </span>
-        <span
-          className={`${handles.treeHint}${overflows ? '' : ` ${handles.treeHint}--hidden`}`}
-        >
-          Arraste para visualizar
-        </span>
+        <div className={handles.treeHintGroup}>
+          <span
+            className={`${handles.treeHint}${overflows ? '' : ` ${handles.treeHint}--hidden`}`}
+          >
+            Arraste para visualizar
+          </span>
+          <span className={handles.treeHint}>
+            <MouseIcon className={handles.treeHintIcon} />
+            Ctrl + scroll para zoom
+          </span>
+        </div>
       </div>
     </div>
   );

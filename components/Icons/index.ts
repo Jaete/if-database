@@ -9,6 +9,7 @@ export { default as EyeIcon } from './EyeIcon';
 export { default as FilePlusIcon } from './FilePlusIcon';
 export { default as LogOutIcon } from './LogOutIcon';
 export { default as MenuIcon } from './MenuIcon';
+export { default as MouseIcon } from './MouseIcon';
 export { default as PencilIcon } from './PencilIcon';
 export { default as PlusIcon } from './PlusIcon';
 export { default as TrashIcon } from './TrashIcon';
