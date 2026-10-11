@@ -28,6 +28,9 @@
   position: absolute;
   top: 0;
   left: 0;
+  // Pan/zoom math in useEvolutionTreeView assumes scaling from the top-left
+  // corner; the default (center) would shift with the canvas size.
+  transform-origin: 0 0;
 
   &--animated {
     transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
