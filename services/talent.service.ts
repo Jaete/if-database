@@ -2,7 +2,6 @@
 
 import CharacterClassModel from '../db/classes/classes';
 import type ICharacterClass from '../db/classes/class.d';
-import type { ITalent } from '../db/classes/class.d';
 import TalentModel from '../db/talents/talents';
 import type ITalentDoc from '../db/talents/talent.d';
 import { classSlug } from '../db/l10n/classes';
@@ -198,5 +197,3 @@ export async function importTalentTopic(
 
   return { created, updated, names };
 }
-
-export type { ITalent };
