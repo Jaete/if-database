@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { getAuthorizedSession } from '@/services/auth.service';
+import { stripUnsafeKeys } from '@/lib/sanitize';
 import type { IEntityService } from '@/services/createEntityService';
 
 /**
@@ -17,6 +18,19 @@ interface IOptions<T> {
   // Aparece nas mensagens de erro: "Cidadão não encontrado".
   notFoundLabel: string;
   createErrorLabel: string;
+  /**
+   * Regra de negócio conferida antes de gravar; devolver uma mensagem recusa
+   * a escrita com 409.
+   *
+   * Existe para a classe única: esconder a opção na lista é interface, e
+   * interface não é controle — a página pode estar aberta desde antes de
+   * alguém mais pegar a classe. `slug` é o documento sendo alterado, ausente
+   * na criação.
+   */
+  validate?: (
+    body: Record<string, unknown>,
+    context: { slug?: string }
+  ) => Promise<string | null>;
 }
 
 type SlugContext = { params: Promise<{ slug: string }> };
@@ -39,6 +53,7 @@ async function denyIfNotEditor() {
 export function createCollectionHandlers<T>({
   service,
   createErrorLabel,
+  validate,
 }: IOptions<T>) {
   return {
     async GET() {
@@ -56,7 +71,13 @@ export function createCollectionHandlers<T>({
         if (denied) return denied;
 
         await connectDB();
-        const body = await request.json();
+        const body = stripUnsafeKeys(await request.json());
+
+        const refused = await validate?.(body, {});
+        if (refused) {
+          return NextResponse.json({ error: refused }, { status: 409 });
+        }
+
         const result = await service.create(body);
         if (!result.success) throw new Error(createErrorLabel);
         return NextResponse.json(result.data);
@@ -68,7 +89,11 @@ export function createCollectionHandlers<T>({
 }
 
 /** Handlers de `/api/<entidade>/[slug]`. */
-export function createSlugHandlers<T>({ service, notFoundLabel }: IOptions<T>) {
+export function createSlugHandlers<T>({
+  service,
+  notFoundLabel,
+  validate,
+}: IOptions<T>) {
   const notFound = () =>
     NextResponse.json({ error: notFoundLabel }, { status: 404 });
 
@@ -92,7 +117,13 @@ export function createSlugHandlers<T>({ service, notFoundLabel }: IOptions<T>) {
 
         await connectDB();
         const { slug } = await params;
-        const body = await request.json();
+        const body = stripUnsafeKeys(await request.json());
+
+        const refused = await validate?.(body, { slug });
+        if (refused) {
+          return NextResponse.json({ error: refused }, { status: 409 });
+        }
+
         const result = await service.update(slug, body);
         if (!result.success) return notFound();
         return NextResponse.json(result.data);

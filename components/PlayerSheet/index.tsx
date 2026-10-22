@@ -1,15 +1,20 @@
 'use client';
 
 import type { IPublicPlayer } from '@/db/players/publicFields';
-import { useCssHandles } from '@/hooks/useCssHandles';
+import { useCssHandles, applyModifiers } from '@/hooks/useCssHandles';
 import { usePlayerSheet } from './usePlayerSheet';
+import { useSheetEditing } from './useSheetEditing';
+import { EditingProvider } from './EditingContext';
+import SaveBar from './SaveBar';
 import Header from './Header';
+import NarrationStyle from './NarrationStyle';
 import CommandMenu from './CommandMenu';
 import Hints from './Hints';
 import Screen from './Screen';
 import StatusPanel from './StatusPanel';
 import SkillsPanel from './SkillsPanel';
 import AbilitiesPanel from './AbilitiesPanel';
+import ArchetypePanel from './ArchetypePanel';
 import SpellsPanel from './SpellsPanel';
 import EquipmentPanel from './EquipmentPanel';
 import ProfessionsPanel from './ProfessionsPanel';
@@ -19,6 +24,7 @@ import { formatModifier } from '@/lib/stats';
 import {
   countEquipped,
   EQUIPMENT_SLOTS,
+  readArchetype,
   readProfessions,
   tabId,
 } from './sheetData';
@@ -27,10 +33,33 @@ import '@/styles/components/playerSheet.scss';
 
 interface IProps {
   player: IPublicPlayer;
+  /** Origem do fórum autorizada a falar com este iframe. Vazia = sem edição. */
+  forumOrigin: string;
 }
 
-const PlayerSheet = ({ player }: IProps) => {
+const PlayerSheet = ({ player: initialPlayer, forumOrigin }: IProps) => {
   const handles = useCssHandles(PlayerSheetHandles);
+  const {
+    player,
+    permission,
+    isEditing,
+    setIsEditing,
+    isDirty,
+    dirtyCount,
+    isSaving,
+    status,
+    error: saveError,
+    value,
+    list,
+    objects,
+    setField,
+    isFieldDirty,
+    save,
+    cancel,
+  } = useSheetEditing(initialPlayer, forumOrigin);
+
+  const canEdit = permission === 'granted';
+
   const {
     uid,
     menu,
@@ -50,7 +79,7 @@ const PlayerSheet = ({ player }: IProps) => {
     handleMenuHover,
     handleMenuKeyDown,
     handlePanelKeyDown,
-  } = usePlayerSheet(player);
+  } = usePlayerSheet(player, canEdit && isEditing);
 
   const panelId = `${uid}-panel`;
   const current = menu[active];
@@ -87,13 +116,23 @@ const PlayerSheet = ({ player }: IProps) => {
         return {
           title: 'Habilidades',
           sub: 'Selecione para ler a descrição',
-          body: <AbilitiesPanel player={player} />,
+          body: <AbilitiesPanel />,
         };
+      case 'arquetipo': {
+        const archetype = readArchetype(player);
+        return {
+          title: 'Arquétipo',
+          sub: archetype
+            ? `${archetype.chosen} de ${archetype.slots} habilidades escolhidas`
+            : undefined,
+          body: <ArchetypePanel />,
+        };
+      }
       case 'magias':
         return {
           title: 'Magias',
           sub: `${preparedSpells} preparadas · losango cheio = espaço livre`,
-          body: <SpellsPanel player={player} />,
+          body: <SpellsPanel />,
         };
       case 'equipamento':
         return {
@@ -119,57 +158,89 @@ const PlayerSheet = ({ player }: IProps) => {
   const screen = renderScreen(current.id);
 
   return (
-    <div className={handles.playerSheetStage}>
-      <article
-        ref={sheetRef}
-        className={handles.playerSheet}
-        data-view={view}
-        aria-label={`Ficha de ${player.name}`}
-      >
-        <Header player={player} />
-        <div className={handles.playerSheetBody}>
-          <CommandMenu
-            player={player}
-            uid={uid}
-            panelId={panelId}
-            items={menu}
-            active={active}
-            cursorAt={cursorAt}
-            menuRef={menuRef}
-            cursorRef={cursorRef}
-            registerItem={registerItem}
-            onClick={handleMenuClick}
-            onHover={handleMenuHover}
-            onKeyDown={handleMenuKeyDown}
-          />
-          <div
-            ref={panelRef}
-            className={handles.playerSheetPanel}
-            onKeyDown={handlePanelKeyDown}
-          >
-            {transition !== 'none' && (
-              <div
-                key={`wipe-${screenSeq}`}
-                className={handles.playerSheetWipe}
-                aria-hidden="true"
-              />
-            )}
-            <Screen
-              key={screenSeq}
-              id={panelId}
-              labelledBy={tabId(uid, current.id)}
-              title={screen.title}
-              sub={screen.sub}
-              transition={transition}
-              onBack={backToMenu}
+    <EditingProvider
+      editable={canEdit && isEditing}
+      value={value}
+      list={list}
+      objects={objects}
+      setField={setField}
+      isFieldDirty={isFieldDirty}
+    >
+      <div className={handles.playerSheetStage}>
+        <article
+          ref={sheetRef}
+          className={handles.playerSheet}
+          data-view={view}
+          aria-label={`Ficha de ${player.name}`}
+        >
+          {canEdit && (
+            <button
+              type="button"
+              className={`${handles.sheetEditToggle}${
+                isEditing
+                  ? ` ${applyModifiers(handles.sheetEditToggle, 'editing')}`
+                  : ''
+              }`}
+              onClick={() => (isEditing ? cancel() : setIsEditing(true))}
+              aria-pressed={isEditing}
             >
-              {screen.body}
-            </Screen>
+              {isEditing ? 'Concluir edição' : 'Editar ficha'}
+            </button>
+          )}
+          <Header player={player} />
+          <NarrationStyle player={player} />
+          <div className={handles.playerSheetBody}>
+            <CommandMenu
+              player={player}
+              uid={uid}
+              panelId={panelId}
+              items={menu}
+              active={active}
+              cursorAt={cursorAt}
+              menuRef={menuRef}
+              cursorRef={cursorRef}
+              registerItem={registerItem}
+              onClick={handleMenuClick}
+              onHover={handleMenuHover}
+              onKeyDown={handleMenuKeyDown}
+            />
+            <div
+              ref={panelRef}
+              className={handles.playerSheetPanel}
+              onKeyDown={handlePanelKeyDown}
+            >
+              {transition !== 'none' && (
+                <div
+                  key={`wipe-${screenSeq}`}
+                  className={handles.playerSheetWipe}
+                  aria-hidden="true"
+                />
+              )}
+              <Screen
+                key={screenSeq}
+                id={panelId}
+                labelledBy={tabId(uid, current.id)}
+                title={screen.title}
+                sub={screen.sub}
+                transition={transition}
+                onBack={backToMenu}
+              >
+                {screen.body}
+              </Screen>
+            </div>
           </div>
-        </div>
-        <Hints message={message} />
-      </article>
-    </div>
+          <Hints message={status || message} />
+          <SaveBar
+            visible={isDirty}
+            count={dirtyCount}
+            isSaving={isSaving}
+            error={saveError}
+            onSave={save}
+            onDiscard={cancel}
+          />
+        </article>
+      </div>
+    </EditingProvider>
   );
 };
 

@@ -11,6 +11,10 @@ import { useCssHandles } from '@/hooks/useCssHandles';
 import CitizenEditFormHandles from './handles';
 import FormField from '../FormField';
 import { DownloadIcon, FilePlusIcon } from '../Icons';
+import SpellList from './SpellList';
+import SpellLinkList from './SpellLinkList';
+import ArchetypeSelect from './ArchetypeSelect';
+import ClassSelect from './ClassSelect';
 import ArrayItemWrapper from '../ArrayItemWrapper';
 import { attrMapping } from '@/db/l10n/attributesMapping';
 import AlertModal from '../AlertModal';
@@ -77,12 +81,11 @@ const CitizenEditForm = ({
     handleSpellSlotChange,
     addSpellSlot,
     removeSpellSlot,
-    addSpell,
-    handleSpellChange,
-    removeSpell,
-    addCantrip,
-    handleCantripChange,
-    removeCantrip,
+    setSpellAt,
+    setSpellRefs,
+    setCharacterClass,
+    setArchetype,
+    removeSpellAt,
     handleDefensesChange,
     handleLanguagesChange,
     isImportingSheet,
@@ -182,12 +185,11 @@ const CitizenEditForm = ({
               value={formData.race || ''}
               onChange={handleChange}
             />
-            <FormField
-              label="Classe"
-              id="class"
-              name="class"
+            <ClassSelect
+              classId={formData.classId}
               value={formData.class || ''}
-              onChange={handleChange}
+              holderId={citizen?._id ? String(citizen._id) : undefined}
+              onChange={setCharacterClass}
             />
           </div>
           <div className={handles.grid4}>
@@ -422,22 +424,16 @@ const CitizenEditForm = ({
 
           {/* Truques (Cantrips) - Level 0 */}
           <h4 className={handles.sectionSubheading}>Truques</h4>
-          {(formData.cantrips || []).map((cantrip, i) => (
-            <ArrayItemWrapper key={i} onRemove={() => removeCantrip(i)}>
-              <FormField
-                label={`Truque ${i + 1}`}
-                value={cantrip}
-                onChange={(e) => handleCantripChange(i, e.target.value)}
-              />
-            </ArrayItemWrapper>
-          ))}
-          <button
-            type="button"
-            className={handles.addButton}
-            onClick={addCantrip}
-          >
-            + Adicionar Truque
-          </button>
+          <SpellList
+            spells={formData.cantrips || []}
+            onChange={(i, spell) => setSpellAt('cantrips', i, spell)}
+            onRemove={(i) => removeSpellAt('cantrips', i)}
+            noun="Truque"
+            newTitle="Novo truque"
+            editTitle="Editar truque"
+            emptyLabel="Nenhum truque registrado."
+            addLabel="Adicionar Truque"
+          />
 
           {/* Spell Slots - Dynamic Array */}
           <h4 className={handles.sectionSubheading}>Slots de Magia</h4>
@@ -484,7 +480,7 @@ const CitizenEditForm = ({
               className={handles.addButton}
               onClick={addSpellSlot}
             >
-              + Adicionar Círculo
+              Adicionar Círculo
             </button>
           </div>
         </div>
@@ -645,7 +641,7 @@ const CitizenEditForm = ({
             className={handles.addButton}
             onClick={addSavingThrow}
           >
-            + Adicionar Resistência
+            Adicionar Resistência
           </button>
 
           <h4 className={handles.sectionSubheading}>Perícias</h4>
@@ -703,35 +699,66 @@ const CitizenEditForm = ({
         </div>
 
         {/* ── Habilidades ──────────────────────────────── */}
-        <div className={handles.section}>
-          <h3 className={handles.sectionTitle}>
-            Habilidades e Características
-          </h3>
-          {(formData.abilities || []).map((ab, i) => (
-            <ArrayItemWrapper key={i} onRemove={() => removeAbility(i)}>
-              <FormField
-                label="Nome"
-                value={ab.name || ''}
-                onChange={(e) => handleAbilityChange(i, 'name', e.target.value)}
-              />
-              <FormField
-                label="Descrição"
-                isTextarea
-                value={ab.description || ''}
-                onChange={(e) =>
-                  handleAbilityChange(i, 'description', e.target.value)
-                }
-              />
-            </ArrayItemWrapper>
-          ))}
-          <button
-            type="button"
-            className={handles.addButton}
-            onClick={addAbility}
-          >
-            + Adicionar Habilidade
-          </button>
-        </div>
+        {/*
+          Só para cidadão. Na ficha de jogador este campo virou redundante: o
+          que a classe concede é derivado do vínculo a cada leitura (ver
+          services/classFeatures.service.ts) e o que é manual — traço de raça,
+          antecedente — se edita na própria ficha embutida, que tem o painel
+          completo. Editar nos dois lugares era convidar as duas listas a
+          divergirem.
+
+          O cidadão fica: ele não tem vínculo de classe resolvido nem ficha
+          embutida, então este é o único lugar onde as habilidades dele podem
+          ser escritas. O campo continua indo no payload do jogador sem ser
+          tocado, então nada do que já existe se perde.
+        */}
+        {variant !== 'player' && (
+          <div className={handles.section}>
+            <h3 className={handles.sectionTitle}>
+              Habilidades e Características
+            </h3>
+            {(formData.abilities || []).map((ab, i) => (
+              <ArrayItemWrapper key={i} onRemove={() => removeAbility(i)}>
+                <FormField
+                  label="Nome"
+                  value={ab.name || ''}
+                  onChange={(e) =>
+                    handleAbilityChange(i, 'name', e.target.value)
+                  }
+                />
+                <FormField
+                  label="Descrição"
+                  isTextarea
+                  value={ab.description || ''}
+                  onChange={(e) =>
+                    handleAbilityChange(i, 'description', e.target.value)
+                  }
+                />
+              </ArrayItemWrapper>
+            ))}
+            <button
+              type="button"
+              className={handles.addButton}
+              onClick={addAbility}
+            >
+              Adicionar Habilidade
+            </button>
+          </div>
+        )}
+
+        {/* ── Arquétipo ────────────────────────────────────
+            Só jogador, pela mesma razão da seção acima: é o vínculo de classe
+            que dá sentido à escolha, e só a ficha de jogador o resolve. O
+            componente se esconde sozinho enquanto o nível não alcança o que a
+            tabela da classe exige. */}
+        {variant === 'player' && (
+          <ArchetypeSelect
+            classId={formData.classId}
+            level={formData.level}
+            value={formData.archetype}
+            onChange={setArchetype}
+          />
+        )}
 
         {/* ── Profissões ───────────────────────────────── */}
         <div className={handles.section}>
@@ -752,7 +779,7 @@ const CitizenEditForm = ({
             className={handles.addButton}
             onClick={addProfession}
           >
-            + Adicionar Profissão
+            Adicionar Profissão
           </button>
           <FormField
             label="Sub-profissões (separadas por vírgula)"
@@ -839,22 +866,22 @@ const CitizenEditForm = ({
           </div>
 
           <h4 className={handles.sectionSubheading}>Magias Preparadas</h4>
-          {(formData.spells || []).map((spell, i) => (
-            <ArrayItemWrapper key={i} onRemove={() => removeSpell(i)}>
-              <FormField
-                label={`Magia ${i + 1}`}
-                value={spell}
-                onChange={(e) => handleSpellChange(i, e.target.value)}
-              />
-            </ArrayItemWrapper>
-          ))}
-          <button
-            type="button"
-            className={handles.addButton}
-            onClick={addSpell}
-          >
-            + Adicionar Magia
-          </button>
+          <SpellList
+            spells={formData.spells || []}
+            onChange={(i, spell) => setSpellAt('spells', i, spell)}
+            onRemove={(i) => removeSpellAt('spells', i)}
+            noun="Magia"
+            newTitle="Nova magia"
+            editTitle="Editar magia"
+            emptyLabel="Nenhuma magia registrada."
+            addLabel="Adicionar Magia"
+          />
+
+          <h4 className={handles.sectionSubheading}>Grimório</h4>
+          <SpellLinkList
+            refs={formData.spellRefs || []}
+            onChange={setSpellRefs}
+          />
         </div>
 
         {/* ── Equipamento ──────────────────────────────── */}

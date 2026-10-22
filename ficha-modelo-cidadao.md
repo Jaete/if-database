@@ -5,6 +5,9 @@
 - **Nome:**
 - **Idade:**
 - **Altura:**
+- **Tamanho:**
+- **Tipo:**
+- **Subtítulo:**
 - **Classe:**
 - **Raça:**
 - **Gênero:**
@@ -112,15 +115,40 @@
 - **Bônus de Ataque:**
 - **Nível de Conjuração:**
 
-### Truques
+### Magias por Nível
 
-- Nome do Truque
-- Nome do Truque
+<!--
+  Um cabeçalho "#### Nível N" por círculo (Nível 0 são os truques). Dentro
+  dele, uma magia por "- **Nome:**", seguida dos campos que ela tiver. Só o
+  nome é obrigatório; o resto aparece na ficha quando preenchido.
+-->
 
-### Magias Preparadas
+#### Nível 0 (Truques)
 
-- Nome da Magia
-- Nome da Magia
+- **Nome:** Nome do Truque
+  **Escola:**
+  **Classes:**
+  **Tempo de Conjuração:**
+  **Alcance:**
+  **Componentes:**
+  **Duração:**
+  **Uso:**
+  **Descrição:**
+
+#### Nível 1
+
+- **Espaços:** 0
+- **Magias:**
+  - **Nome:** Nome da Magia
+    **Escola:**
+    **Classes:**
+    **Tempo de Conjuração:**
+    **Alcance:**
+    **Componentes:**
+    **Duração:**
+    **Uso:**
+    **Preparada:** sim
+    **Descrição:**
 
 ---
 
@@ -177,3 +205,12 @@
 ## 🗣️ Idiomas
 
 -
+
+---
+
+## 🎭 Estilo de Narração
+
+<!--
+  Texto livre, para quem narra: o tipo de narrativa que agrada, o que prefere
+  evitar e o que não pode aparecer de jeito nenhum.
+-->

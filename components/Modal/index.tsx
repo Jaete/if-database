@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useRef, useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
 import { useCssHandles, applyModifiers } from '@/hooks/useCssHandles';
 import { useModal } from './useModal';
@@ -22,6 +22,22 @@ const Modal = ({ isOpen, onClose, title, children, sectionRail }: IProps) => {
   const handles = useCssHandles(ModalHandles);
   const contentRef = useRef<HTMLDivElement>(null);
   useModal(isOpen, onClose);
+
+  // `document` não existe na renderização do servidor, e o portal é avaliado
+  // já no render. Funcionava enquanto todo chamador montava o Modal só depois
+  // de abri-lo, por um clique; quem o deixa montado fechado derrubava a
+  // página inteira.
+  //
+  // `useSyncExternalStore` é o que dá a resposta certa nos dois lados: no
+  // servidor e na hidratação devolve `false`, e só depois dela passa a `true`.
+  // Um `typeof document` simples responderia `true` já na hidratação, e o
+  // cliente montaria um overlay que não existe no HTML do servidor.
+  const isClient = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
+  if (!isClient) return null;
 
   const overlayClass = isOpen
     ? `${handles.overlay} ${applyModifiers(handles.overlay, 'visible')}`

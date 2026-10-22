@@ -45,6 +45,12 @@ export interface ISavingThrow {
   value?: number; // valor base de 0 a 30
 }
 
+/** Uma parcela de bônus, com a procedência que a justifica. */
+export interface IBonus {
+  value: number;
+  source?: string; // ex: "Manto élfico", "Talento: Observador"
+}
+
 export interface ISkill {
   name?: string; // ex: "Percepção"
   // Derivado: modificador final do atributo, mais o bônus de proficiência
@@ -52,8 +58,14 @@ export interface ISkill {
   // (o drawer do fórum), mas recalculado pelo formulário a cada edição.
   value?: number;
   proficient?: boolean;
-  // Bônus extra da perícia: item, talento, característica racial. Editável.
+  // Total dos bônus extras da perícia. Continua sendo um número só porque o
+  // formulário completo do app o edita assim, e os documentos antigos só têm
+  // isto — mas quando `bonuses` existe, este campo é a SOMA daquela lista e é
+  // regravado junto.
   bonus?: number;
+  // Detalhamento do bônus: cada parcela com a sua origem. Ausente nos
+  // documentos anteriores a este campo, que têm apenas o total em `bonus`.
+  bonuses?: IBonus[];
 }
 
 export interface IProficiencies {

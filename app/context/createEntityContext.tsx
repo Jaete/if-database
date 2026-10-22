@@ -95,19 +95,18 @@ export function createEntityContext<T extends IEntityRef>({
       }
     }, []);
 
+    // Gravação propaga o erro em vez de devolver vazio: quem chama são os
+    // formulários de edição, os dois com try/catch, e é lá que a mensagem
+    // precisa chegar para a pessoa decidir o que fazer. Engolir aqui fazia o
+    // formulário fechar como se tivesse salvado.
     const update = useCallback(async (entity: T) => {
-      try {
-        const { data } = await api.update(entity);
-        if (data) {
-          setItems((prev) =>
-            prev.map((item) => (item.slug === data.slug ? data : item))
-          );
-        }
-        return data;
-      } catch (err) {
-        console.error(err);
-        return undefined;
+      const { data } = await api.update(entity);
+      if (data) {
+        setItems((prev) =>
+          prev.map((item) => (item.slug === data.slug ? data : item))
+        );
       }
+      return data;
     }, []);
 
     const erase = useCallback(async (entity: T) => {
@@ -120,14 +119,9 @@ export function createEntityContext<T extends IEntityRef>({
     }, []);
 
     const create = useCallback(async (entity: T) => {
-      try {
-        const { data } = await api.create(entity);
-        if (data) setItems((prev) => [...prev, data]);
-        return data;
-      } catch (err) {
-        console.error(err);
-        return undefined;
-      }
+      const { data } = await api.create(entity);
+      if (data) setItems((prev) => [...prev, data]);
+      return data;
     }, []);
 
     useEffect(() => {

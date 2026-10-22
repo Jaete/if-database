@@ -1,0 +1,94 @@
+@use '../../styles/globals' as *;
+
+.promptBody {
+  @include flex-col-start;
+  gap: $spacing-5;
+  width: 100%;
+}
+
+.promptLabel {
+  @include flex-col-start;
+  gap: $spacing-2;
+  width: 100%;
+  @include caption($color-text-muted, $font-weight-semibold);
+}
+
+.promptInput {
+  width: 100%;
+  padding: $spacing-2 $spacing-3;
+  border: 1px solid $color-border;
+  border-radius: $radius-sm;
+  background: $surface-raised;
+  @include main-md($color-text, $font-weight-regular);
+  @include premium-input-focus;
+}
+
+.promptArea {
+  min-height: $spacing-20 * 2;
+  resize: vertical;
+  @include main-sm($color-text, $font-weight-regular, 1.6);
+}
+
+// O espaçador empurra cancelar/confirmar para a direita e deixa a ação
+// destrutiva sozinha na esquerda, longe do clique de confirmar.
+.promptSpacer {
+  flex: 1;
+}
+
+.promptActions {
+  @include flex-row-start;
+  gap: $spacing-3;
+  width: 100%;
+}
+
+.promptDelete {
+  padding: $spacing-2 $spacing-4;
+  border: 1px solid $error-border;
+  border-radius: $radius-sm;
+  background-color: transparent;
+  color: $error;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  @include cinzel-sm($error, $font-weight-bold, 1.2);
+  @include focus-ring($error);
+
+  &:hover {
+    background-color: $error-bg;
+  }
+}
+
+.promptCancel,
+.promptConfirm {
+  padding: $spacing-2 $spacing-4;
+  border-radius: $radius-sm;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  @include cinzel-sm($color-text, $font-weight-bold, 1.2);
+  @include focus-ring($primary-100);
+}
+
+.promptCancel {
+  border: 1px solid $color-border;
+  background-color: transparent;
+  color: $color-text-muted;
+
+  &:hover {
+    background-color: $accent-overlay;
+    color: $color-text;
+  }
+}
+
+.promptConfirm {
+  border: 1px solid $primary-100;
+  background-color: $primary-100;
+  color: $neutral-100;
+
+  &:hover {
+    background-color: $primary-200;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}

@@ -1,0 +1,886 @@
+@use '../../styles/globals' as *;
+
+.codex,
+.codexDetail {
+  min-height: 100dvh;
+  padding: $spacing-10 $spacing-5 calc($spacing-10 + 3.5rem);
+  margin: 0 auto;
+  max-width: 64rem;
+  background-color: $neutral-100;
+
+  @include light {
+    background-color: $neutral-2100;
+  }
+}
+
+.codexHeader {
+  text-align: center;
+  margin-bottom: $spacing-6;
+}
+
+.codexTitle {
+  @include cinzel-3xl($color-text, $font-weight-bold, 1.2, 0.08em, center);
+  @include gold-gradient-text;
+}
+
+.codexSubtitle {
+  @include main-sm($color-text-muted, $font-weight-regular, 1.5, 0, center);
+  margin-top: $spacing-2;
+}
+
+// A barra acompanha a rolagem, como o cabeçalho do bestiário: a lista tem 20
+// classes e os botões ficavam inalcançáveis já no primeiro rolar.
+//
+// O fundo precisa cobrir a lista que passa por baixo, e a lista ocupa a
+// largura do container INCLUINDO o respiro lateral dele — daí a margem
+// negativa com o mesmo padding de volta, que estende o fundo sem mexer no
+// alinhamento do conteúdo. (O bestiário resolve com `100dvw`, que aqui
+// vazaria para fora do container de 64rem e criaria rolagem horizontal.)
+.codexTools {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  gap: $spacing-3;
+  flex-wrap: wrap;
+  align-items: center;
+  margin: 0 (-$spacing-5) $spacing-4;
+  padding: $spacing-3 $spacing-5;
+  // A faixa transparente no fim é o que evita o corte reto contra o conteúdo
+  // que desliza por baixo.
+  background: linear-gradient(
+    180deg,
+    $neutral-100 0%,
+    $neutral-100 calc(100% - 12px),
+    transparent 100%
+  );
+
+  @include light {
+    background: linear-gradient(
+      180deg,
+      $neutral-2100 0%,
+      $neutral-2100 calc(100% - 12px),
+      transparent 100%
+    );
+  }
+
+  // Rolou, encolheu: os três rótulos saem e ficam só os ícones. A busca fica
+  // com a largura, que é o que ela precisa quando a barra está sobre a lista.
+  &--compact {
+    padding-top: $spacing-2;
+    padding-bottom: $spacing-2;
+
+    .codexActionLabel {
+      // `max-width` em vez de `display: none` para a transição ter o que
+      // animar — de outro modo o botão salta de pílula a círculo.
+      max-width: 0;
+      margin-left: 0;
+      opacity: 0;
+    }
+
+    .codexAction {
+      width: 2.5rem;
+      padding: 0;
+    }
+  }
+}
+
+.codexSearch {
+  flex: 1 1 14rem;
+  padding: $spacing-3;
+  border-radius: $radius-md;
+  border: 1px solid $color-border;
+  background-color: $surface;
+  @include main-md($color-text, $font-weight-regular);
+  @include premium-input-focus;
+}
+
+.codexActions {
+  display: flex;
+  gap: $spacing-2;
+  flex-wrap: wrap;
+}
+
+.codexButton {
+  padding: $spacing-3 $spacing-4;
+  border-radius: $radius-md;
+  border: 1px solid $color-border-strong;
+  background-color: $surface-raised;
+  cursor: pointer;
+  @include caption($color-text, $font-weight-semibold);
+  @include focus-ring;
+
+  &:hover {
+    background-color: $accent-overlay-hover;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+// Mesmo botão redondo do bestiário (.crgCompactActionBtn): é o padrão de ação
+// iconográfica do app.
+.codexAction {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  height: 2.5rem;
+  padding: 0 $spacing-4;
+  border: none;
+  // O mesmo raio nos dois estados: é ele que faz a pílula virar círculo sem
+  // nenhum salto de forma no meio da transição.
+  border-radius: $radius-full;
+  background: linear-gradient(135deg, $gold-300, $primary-200);
+  color: $color-text;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    width 0.25s ease,
+    padding 0.25s ease;
+
+  @include focus-ring;
+
+  svg {
+    flex-shrink: 0;
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+
+  &:hover:not(:disabled) {
+    background: linear-gradient(135deg, $gold-200, $primary-100);
+    transform: translateY(-1px);
+    box-shadow:
+      0 4px 10px rgba(0, 0, 0, 0.3),
+      0 0 8px rgba($gold-100, 0.15);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.codexActionLabel {
+  overflow: hidden;
+  margin-left: $spacing-2;
+  max-width: 12rem;
+  @include caption($color-text, $font-weight-semibold);
+  transition:
+    max-width 0.25s ease,
+    margin 0.25s ease,
+    opacity 0.2s ease;
+}
+
+.codexFeedback {
+  margin-bottom: $spacing-3;
+  padding: $spacing-3;
+  border-radius: $radius-md;
+  border: 1px solid $success-border;
+  background-color: $success-bg;
+  @include main-sm($color-text, $font-weight-regular);
+}
+
+.codexFeedbackError {
+  border-color: $error-border;
+  background-color: $error-bg;
+}
+
+.codexCount {
+  @include caption($color-text-subtle, $font-weight-regular);
+  margin-bottom: $spacing-2;
+}
+
+.codexList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-2;
+}
+
+.codexEmpty {
+  padding: $spacing-6;
+  text-align: center;
+  @include main-sm($color-text-muted, $font-weight-regular, 1.5, 0, center);
+}
+
+.codexRow {
+  display: grid;
+  grid-template-columns: auto minmax(8rem, 1fr) auto auto;
+  align-items: center;
+  gap: $spacing-3;
+  padding: $spacing-3;
+  border-radius: $radius-md;
+  border: 1px solid $color-border;
+  background-color: $surface;
+
+  &:hover {
+    border-color: $color-border-strong;
+  }
+}
+
+// O selo era uma letra; agora é um ícone, e por isso virou caixa flex: uma
+// letra se centraliza com `text-align`, um <svg> não.
+.codexBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  // Maior que o selo da letra: um desenho com miolo (a faísca sobre o livro,
+  // a guarda da espada) vira borrão abaixo de ~18px, e aí as duas marcas
+  // deixam de se distinguir à distância de leitura da lista.
+  width: $spacing-8;
+  height: $spacing-8;
+  border-radius: $radius-full;
+  border: 1px solid rgba($primary-100, 0.4);
+  color: $primary-100;
+
+  svg {
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+}
+
+.codexName {
+  @include main-md($color-text, $font-weight-semibold);
+  text-decoration: none;
+  @include focus-ring;
+
+  &:hover {
+    color: $primary-100;
+  }
+}
+
+.codexNameCell {
+  display: flex;
+  align-items: center;
+  gap: $spacing-3;
+  min-width: 0;
+}
+
+// Classe única na listagem. Âmbar, e não dourado: o dourado desta página é
+// ornamento, e isto é um estado — a classe está tomada.
+.codexUnique {
+  flex-shrink: 0;
+  padding: $spacing-1 $spacing-2;
+  border: 1px solid $warning-border;
+  border-radius: $radius-sm;
+  background: $warning-bg;
+  @include caption($warning, $font-weight-semibold);
+}
+
+.codexMeta {
+  @include main-xs($color-text-subtle, $font-weight-regular);
+}
+
+// ── Detalhe da classe ──────────────────────────────────────
+
+.codexBack {
+  @include caption($color-text-muted, $font-weight-semibold);
+  text-decoration: none;
+  @include focus-ring;
+
+  &:hover {
+    color: $primary-100;
+  }
+}
+
+.codexDetailTitle {
+  @include cinzel-3xl($color-text, $font-weight-bold, 1.2, 0.04em);
+  @include gold-gradient-text;
+  margin-top: $spacing-3;
+}
+
+.codexDetailIntro {
+  @include main-md($color-text-muted, $font-weight-regular, 1.7);
+  margin-top: $spacing-3;
+  white-space: pre-line;
+}
+
+.codexSection {
+  margin-top: $spacing-8;
+}
+
+.codexSectionTitle {
+  @include cinzel-xl($color-text, $font-weight-semibold);
+  @include gold-decorative-line;
+  padding-bottom: $spacing-2;
+  margin-bottom: $spacing-4;
+  // Os botões de acrescentar moram no título da seção, e não dentro de um
+  // painel: ali dentro competiam com o lápis do próprio item.
+  display: flex;
+  align-items: baseline;
+  gap: $spacing-3;
+  flex-wrap: wrap;
+  position: relative;
+  padding-bottom: $spacing-4;
+
+  // `gold-decorative-line` desenha a régua com um ::after `display: block`.
+  // Num contêiner flex ele vira item e foi parar AO LADO do texto; tirá-lo do
+  // fluxo o devolve para baixo do título, onde pertence.
+  &::after {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    margin-top: 0;
+  }
+}
+
+.codexFacts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: $spacing-3;
+  margin: 0;
+}
+
+.codexFact {
+  padding: $spacing-3;
+  border-radius: $radius-md;
+  border: 1px solid $color-border;
+  background-color: $surface;
+}
+
+.codexFactLabel {
+  @include caption($color-text-subtle, $font-weight-semibold);
+}
+
+.codexFactValue {
+  @include main-sm($color-text, $font-weight-regular);
+  margin: $spacing-1 0 0;
+}
+
+// A rolagem mora no wrapper, e não na tabela.
+//
+// Com `display: block; overflow-x: auto` na própria tabela, ela virava um
+// bloco que cresce até o conteúdo caber: permitir a quebra não adiantava nada,
+// porque nunca havia pressão para quebrar — sempre havia mais largura
+// disponível do outro lado da rolagem. Com a tabela em `width: 100%` dentro de
+// um wrapper que rola, a largura passa a ser definida, e aí a coluna de texto
+// corrido quebra em vez de empurrar.
+.codexTableScroll {
+  overflow-x: auto;
+}
+
+.codexTable {
+  width: 100%;
+  border-collapse: collapse;
+
+  th,
+  td {
+    padding: $spacing-2 $spacing-2;
+    border-bottom: 1px solid $color-border;
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  // O rótulo quebra; os valores da coluna é que não podem. Sem isto, um
+  // cabeçalho longo de coluna específica da classe ("Invocar Criaturas (por
+  // nível)") dita sozinho a largura de uma coluna cujos valores têm 2 dígitos.
+  th {
+    white-space: normal;
+    @include caption($color-text-subtle, $font-weight-semibold);
+  }
+
+  td {
+    @include main-sm($color-text, $font-weight-regular);
+  }
+}
+
+// A coluna de características é a única com texto corrido, e é ela que deve
+// absorver a sobra de largura em vez de empurrar a tabela para fora do
+// container.
+//
+// Antes isto era `td:last-child`, o que funcionava só para quem não pode
+// editar: com a coluna do lápis no fim, a regra caía na célula do botão e as
+// características seguiam sem quebrar.
+// Aninhada em `.codexTable` por especificidade: `.codexTable td` tem dois
+// seletores de classe e venceria uma regra de classe só, deixando a coluna sem
+// quebrar e a tabela estourando do mesmo jeito.
+.codexTable .codexGrantCell {
+  white-space: normal;
+  min-width: 12rem;
+}
+
+// Os espaços de magia da tabela de progressão: um losango por espaço, em
+// blocos por círculo. Mesmo desenho do pip da ficha (.sheetSlot), porque é o
+// mesmo objeto — lá gasto, aqui concedido.
+.codexSlots {
+  display: inline-flex;
+  // Alinhados pelo topo: os blocos têm alturas diferentes só quando o círculo
+  // tem mais de quatro espaços, e aí é a base que deve crescer para baixo.
+  align-items: flex-start;
+  // Maior que o vão interno: é ele que separa um círculo do outro. O ordinal
+  // acima de cada bloco também agrupa, então não precisa ser o dobro.
+  gap: $spacing-3;
+}
+
+.codexSlotGroup {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $spacing-1;
+}
+
+.codexSlotCircle {
+  @include caption($color-text-subtle, $font-weight-semibold, 1, 0.04em, center);
+}
+
+.codexSlotGrid {
+  @include slot-grid;
+}
+
+.codexSlot {
+  @include slot-pip;
+  background: $gold-300;
+  box-shadow: 0 0 6px rgba($gold-100, 0.45);
+
+  // Sobre o pergaminho o brilho vira sujeira: o contraste do dourado já basta.
+  @include light {
+    box-shadow: none;
+  }
+}
+
+.codexFeature {
+  margin-bottom: $spacing-5;
+  padding: $spacing-4;
+  border-radius: $radius-md;
+  border: 1px solid $color-border;
+  background-color: $surface;
+}
+
+.codexFeatureName {
+  @include main-md($color-text, $font-weight-semibold);
+  display: flex;
+  align-items: baseline;
+  gap: $spacing-3;
+  flex-wrap: wrap;
+  margin: 0 0 $spacing-2;
+}
+
+.codexFeatureLevel {
+  @include caption($primary-100, $font-weight-semibold);
+}
+
+.codexFeatureText {
+  @include main-sm($color-text-muted, $font-weight-regular, 1.7);
+  white-space: pre-line;
+  margin: 0;
+}
+
+.codexNote {
+  margin-top: $spacing-6;
+  padding: $spacing-3;
+  border-radius: $radius-md;
+  border: 1px solid $warning-border;
+  background-color: $warning-bg;
+  @include main-sm($color-text, $font-weight-regular);
+}
+
+// Distingue a escolha ("ou") da concessão garantida ("+") na tabela.
+.codexTable em {
+  @include main-xs($primary-100, $font-weight-semibold);
+  font-style: normal;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.codexTable abbr {
+  color: $primary-100;
+  text-decoration: none;
+  cursor: help;
+}
+
+// Tabela dentro da descrição de uma habilidade (ex.: o custo em níveis de
+// cada enxame, na "Forma de Enxame" do druida).
+.codexInnerTable {
+  margin: $spacing-3 0;
+  border-collapse: collapse;
+  width: 100%;
+  max-width: 34rem;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  overflow: hidden;
+
+  th,
+  td {
+    padding: $spacing-2 $spacing-3;
+    border-bottom: 1px solid $color-border;
+    text-align: left;
+  }
+
+  th {
+    @include caption($color-text, $font-weight-semibold);
+    background-color: $accent-overlay;
+  }
+
+  td {
+    @include main-sm($color-text-muted, $font-weight-regular);
+  }
+
+  tr:last-child td {
+    border-bottom: 0;
+  }
+}
+
+// Listas escritas com "-" no começo da linha.
+.codexBullets {
+  @include main-sm($color-text-muted, $font-weight-regular, 1.7);
+  margin: $spacing-2 0;
+  padding-left: $spacing-5;
+
+  li {
+    margin-bottom: $spacing-1;
+  }
+
+  li::marker {
+    color: $primary-100;
+  }
+}
+
+.codexEdit {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-2;
+  padding: $spacing-1 $spacing-3;
+  border-radius: $radius-sm;
+  // Em repouso o botão já se anuncia como botão: antes a borda era
+  // transparente e o fundo nenhum, então ele só existia no hover — quem não
+  // passasse o mouse não descobria que dava para clicar.
+  border: 1px solid rgba($primary-100, 0.45);
+  background-color: $accent-overlay;
+  cursor: pointer;
+  @include caption($primary-100, $font-weight-semibold);
+  @include focus-ring;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+
+  svg {
+    width: 0.9rem;
+    height: 0.9rem;
+  }
+
+  &:hover {
+    border-color: $primary-100;
+    background-color: $accent-overlay-hover;
+    box-shadow: 0 0 8px rgba($gold-100, 0.2);
+  }
+}
+
+// O X da linha da progressão. Discreto ao lado do lápis: apagar um nível é
+// mais raro que editá-lo, e um botão vermelho em vinte linhas gritaria.
+.codexRemove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-1;
+  vertical-align: middle;
+  border: 0;
+  border-radius: $radius-sm;
+  background: transparent;
+  color: $color-text-subtle;
+  cursor: pointer;
+  transition: color 0.15s ease;
+
+  @include focus-ring($error);
+
+  &:hover {
+    color: $error;
+  }
+
+  svg {
+    width: 0.9rem;
+    height: 0.9rem;
+  }
+}
+
+// `width: 1%` encolhe a coluna até o conteúdo. Sem `display: flex` aqui: um
+// `<td>` que vira caixa flex sai do layout da tabela, e a borda da linha
+// deixa de passar por baixo dele. O espaço entre o lápis e o X é uma margem
+// no próprio X.
+.codexLevelCell {
+  width: 1%;
+
+  // Aqui o espaço precisa ser margem: a célula não é flex (ver acima), então
+  // não há `gap` para separar o lápis do X. No cabeçalho da característica o
+  // próprio flex já separa.
+  .codexRemove {
+    margin-left: $spacing-1;
+  }
+}
+
+.codexEditBar {
+  display: flex;
+  align-items: center;
+  gap: $spacing-3;
+  flex-wrap: wrap;
+  margin-top: $spacing-6;
+  padding-top: $spacing-4;
+  border-top: 1px solid $color-border;
+}
+
+// ── Arquétipo: o contêiner e o que vive dentro dele ────────
+//
+// A hierarquia precisa ser visível: antes o arquétipo e as características
+// dele usavam o mesmo cartão e quase o mesmo título, então "Familiar Fecundo"
+// parecia irmão de "Controlador de Enxames", e não algo que ele concede.
+
+.codexArchetype {
+  margin-bottom: $spacing-6;
+  border-radius: $radius-lg;
+  border: 1px solid $color-border-strong;
+  background-color: $surface;
+  overflow: hidden;
+  @include elevation(2);
+}
+
+.codexArchetypeHead {
+  padding: $spacing-5;
+  // O cabeçalho é mais claro que o corpo: o olho lê "isto contém aquilo".
+  background-color: $surface-raised;
+  border-bottom: 1px solid $color-border;
+}
+
+.codexArchetypeTag {
+  @include caption($primary-100, $font-weight-semibold);
+  display: block;
+  margin-bottom: $spacing-1;
+}
+
+.codexArchetypeName {
+  @include cinzel-xl($color-text, $font-weight-bold);
+  display: flex;
+  align-items: baseline;
+  gap: $spacing-3;
+  flex-wrap: wrap;
+  margin: 0 0 $spacing-2;
+}
+
+.codexArchetypeBody {
+  padding: $spacing-4 $spacing-5 $spacing-5;
+}
+
+.codexArchetypeSubtitle {
+  @include caption($color-text-subtle, $font-weight-semibold);
+  display: flex;
+  align-items: center;
+  gap: $spacing-3;
+  flex-wrap: wrap;
+  margin: 0 0 $spacing-3;
+}
+
+.codexSubFeature {
+  position: relative;
+  margin-bottom: $spacing-4;
+  padding: $spacing-3 0 $spacing-3 $spacing-5;
+  // A régua à esquerda é o que liga visualmente a característica ao arquétipo
+  // que a concede, sem precisar de mais uma caixa dentro da caixa.
+  border-left: 2px solid rgba($primary-100, 0.35);
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  // O título da característica é menor que o do arquétipo, de propósito.
+  > .codexFeatureName {
+    @include main-sm($color-text, $font-weight-semibold);
+    margin-bottom: $spacing-2;
+  }
+}
+
+// Sub-lista: recua e troca o marcador, para a profundidade ser visível.
+.codexBullets .codexBullets {
+  margin: $spacing-1 0 $spacing-2;
+  list-style-type: circle;
+
+  li::marker {
+    color: rgba($primary-100, 0.6);
+  }
+
+  .codexBullets {
+    list-style-type: square;
+  }
+}
+
+// ── Editor de espaços de magia (dentro do modal de nível) ──
+//
+// Mora aqui, e não em promptModal.scss, porque o editor é do ClassData: o
+// modal é genérico e não conhece círculo de magia.
+.slotsField {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-2;
+  width: 100%;
+}
+
+.slotsEmpty {
+  @include main-sm($color-text-muted, $font-weight-regular);
+}
+
+.slotsRow {
+  display: flex;
+  align-items: center;
+  gap: $spacing-3;
+}
+
+.slotsCircle {
+  min-width: 2rem;
+  @include cinzel-sm($color-text, $font-weight-semibold, 1.2);
+}
+
+.slotsStepper {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid $color-border;
+  border-radius: $radius-sm;
+  background: $surface-raised;
+}
+
+.slotsStep {
+  padding: $spacing-1 $spacing-3;
+  border: 0;
+  background: transparent;
+  color: $color-text;
+  cursor: pointer;
+  @include main-md($color-text, $font-weight-bold);
+  @include focus-ring($primary-100);
+
+  &:hover:not(:disabled) {
+    color: $gold-100;
+  }
+
+  // No piso do nível anterior o "−" apaga em vez de sumir: a borda do que é
+  // permitido continua visível, que é o que explica por que não desce mais.
+  &:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+}
+
+.slotsCount {
+  min-width: 2rem;
+  font-variant-numeric: tabular-nums;
+  @include mono-md($color-text, $font-weight-bold, 1.2, 0, center);
+}
+
+.slotsFloor {
+  @include caption($color-text-subtle, $font-weight-semibold);
+}
+
+.slotsRemove {
+  display: inline-flex;
+  align-items: center;
+  padding: $spacing-1;
+  border: 0;
+  border-radius: $radius-sm;
+  background: transparent;
+  color: $color-text-subtle;
+  cursor: pointer;
+
+  @include focus-ring($error);
+
+  &:hover {
+    color: $error;
+  }
+}
+
+.slotsAdd {
+  align-self: flex-start;
+  padding: $spacing-1 $spacing-3;
+  border: 1px dashed $color-border-strong;
+  border-radius: $radius-sm;
+  background: transparent;
+  cursor: pointer;
+
+  @include main-xs($color-text-muted, $font-weight-medium);
+  @include focus-ring($primary-100);
+
+  &:hover {
+    border-color: $primary-100;
+    border-style: solid;
+    color: $color-text;
+    background: $accent-overlay;
+  }
+}
+
+.slotsAddSelect {
+  align-self: flex-start;
+  padding: $spacing-1 $spacing-3;
+  border: 1px solid $primary-100;
+  border-radius: $radius-sm;
+  background: $surface-raised;
+  @include main-sm($color-text, $font-weight-regular);
+}
+
+// ── Candidato: o texto que a importação extraiu e não confiou ──
+//
+// Fica visualmente fora do corpo da classe de propósito. Isto não é conteúdo
+// publicado, é uma pergunta aberta — e quem olha precisa ver a diferença antes
+// de ler uma linha.
+.codexCandidate {
+  margin-bottom: $spacing-8;
+  padding: $spacing-5;
+  border: 1px dashed $warning-border;
+  border-radius: $radius-lg;
+  background: $warning-bg;
+}
+
+.codexCandidateTitle {
+  margin: 0 0 $spacing-2;
+  @include cinzel-lg($warning, $font-weight-semibold, 1.3);
+}
+
+.codexCandidateWhy {
+  margin: 0 0 $spacing-4;
+  @include main-sm($color-text-muted, $font-weight-regular, 1.6);
+}
+
+.codexCandidateLink {
+  color: $primary-100;
+  text-decoration: underline;
+}
+
+.codexCandidateGroup {
+  margin-bottom: $spacing-3;
+}
+
+.codexCandidateCount {
+  @include caption($color-text-subtle, $font-weight-semibold);
+}
+
+// Os nomes todos, e não uma amostra: é olhando a lista inteira que dá para
+// dizer se o parser entendeu o tópico ou inventou blocos.
+.codexCandidateNames {
+  margin: $spacing-1 0 0;
+  @include main-sm($color-text, $font-weight-regular, 1.6);
+}
+
+.codexCandidateActions {
+  display: flex;
+  align-items: center;
+  gap: $spacing-3;
+  margin-top: $spacing-4;
+}
+
+.codexCandidateDiscard {
+  padding: $spacing-1 $spacing-3;
+  border: 1px solid $error-border;
+  border-radius: $radius-sm;
+  background: transparent;
+  color: $error;
+  cursor: pointer;
+
+  @include caption($error, $font-weight-semibold);
+  @include focus-ring($error);
+
+  &:hover {
+    background: $error-bg;
+  }
+}

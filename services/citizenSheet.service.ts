@@ -61,6 +61,16 @@ export function parseCitizenSheetLines(
   let inStatsTableHeader = false;
   const pendingAppearance: string[] = [];
   const pendingBackstory: string[] = [];
+  const pendingNarration: string[] = [];
+  // Magia sendo montada dentro de "Conjuração de Magias", e os parágrafos da
+  // descrição dela. `spellCircle` só deixa de ser nulo depois de um cabeçalho
+  // de círculo, que é o que distingue este formato das listas soltas de
+  // "### Truques" e "### Magias Preparadas".
+  let currentSpell: Record<string, unknown> | null = null;
+  let spellCircle: number | null = null;
+  let inSpellArea = false;
+  const pendingSpellText: string[] = [];
+  let inSpellDescription = false;
 
   const STAT_NAMES = [
     'Força',
@@ -85,19 +95,134 @@ export function parseCitizenSheetLines(
     return parsedData.equipment as Record<string, unknown>;
   };
 
+  // ── Blocos de magia ───────────────────────────────────────
+  //
+  // Cada magia é um bloco "#### Nome" dentro de Conjuração de Magias, com os
+  // campos da ficha da magia em seguida. O círculo vem do campo "Círculo"; sem
+  // ele a magia cai nos truques, que é o único círculo que não tem espaços.
+  const SPELL_KEYS: Record<string, string> = {
+    escola: 'school',
+    classes: 'classes',
+    classe: 'classes',
+    'tempo de conjuracao': 'castingTime',
+    alcance: 'range',
+    componentes: 'components',
+    duracao: 'duration',
+    alvo: 'target',
+    'teste de resistencia': 'save',
+    'resistencia a magia': 'spellResistance',
+    uso: 'use',
+  };
+
+  const foldKey = (text: string) =>
+    text
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\*/g, '')
+      .trim()
+      .toLowerCase();
+
+  /** O círculo de nível `level`, criado se a tabela de espaços não o trouxe. */
+  const ensureCircle = (level: number) => {
+    const sc = getSpellcasting();
+    const levels = (sc.spellLevels as Array<Record<string, unknown>>) || [];
+    let circle = levels.find((l) => l.level === level);
+    if (!circle) {
+      circle = { level, slotsTotal: 0, slotsUsed: 0, spells: [] };
+      levels.push(circle);
+      sc.spellLevels = levels;
+    }
+    return circle;
+  };
+
+  /** Menor círculo que tem espaços, ou o primeiro quando não há tabela. */
+  const lowestSlotLevel = () => {
+    const sc = getSpellcasting();
+    const levels = (sc.spellLevels as Array<Record<string, unknown>>) || [];
+    const withSlots = levels
+      .filter((l) => (l.level as number) > 0 && (l.slotsTotal as number) > 0)
+      .map((l) => l.level as number);
+    return withSlots.length > 0 ? Math.min(...withSlots) : 1;
+  };
+
+  const flushSpell = () => {
+    if (!currentSpell) return;
+    const text = pendingSpellText.join('\n').trim();
+    if (text) currentSpell.description = text;
+
+    // `circle` é só o trânsito do campo "Círculo:" até aqui; o círculo de
+    // verdade é a posição na lista, não um campo da magia.
+    const own = currentSpell.circle;
+    delete currentSpell.circle;
+
+    // A ficha do fórum não agrupa as magias por círculo: o que ela diz é a
+    // escola, e é lá que o truque se identifica ("cura/truque"). O que não é
+    // truque cai no menor círculo com espaços, para ficar visível e poder ser
+    // movido depois.
+    let level = typeof own === 'number' ? own : spellCircle;
+    if (level === null) {
+      level = /truque|cantrip/i.test(String(currentSpell.school ?? ''))
+        ? 0
+        : lowestSlotLevel();
+    }
+    const circle = ensureCircle(level);
+    const spells = (circle.spells as Array<Record<string, unknown>>) || [];
+    spells.push(currentSpell);
+    circle.spells = spells;
+
+    currentSpell = null;
+    pendingSpellText.length = 0;
+    inSpellDescription = false;
+  };
+
+  /** Aplica "Escola: X" a uma magia; devolve false se a chave não for dela. */
+  const applySpellField = (rawKey: string, rawValue: string): boolean => {
+    if (!currentSpell) return false;
+    const key = foldKey(rawKey);
+    // O "- **Chave:** valor" do template deixa um "**" encostado no valor
+    // quando a linha é quebrada no primeiro dois-pontos.
+    const value = rawValue.replace(/^\*+/, '').trim();
+    if (!value) return false;
+
+    if (key === 'preparada' || key === 'preparado') {
+      currentSpell.prepared = !/^(n|f)/i.test(value);
+      return true;
+    }
+    const field = SPELL_KEYS[key];
+    if (!field) return false;
+    currentSpell[field] = value;
+    return true;
+  };
+
   const getSpellcasting = () => {
     if (!parsedData.playerSpellcasting)
       parsedData.playerSpellcasting = { spellLevels: [] };
     return parsedData.playerSpellcasting as Record<string, unknown>;
   };
 
+  // Comentários do modelo (<!-- como preencher -->) são instrução para quem
+  // escreve a ficha, não valor — e cairiam no texto corrido das seções.
+  let inComment = false;
+
   for (let i = 0; i < lines.length; i++) {
     const raw = lines[i];
     const line = raw.trimEnd();
 
+    if (inComment) {
+      if (line.includes('-->')) inComment = false;
+      continue;
+    }
+    if (line.trimStart().startsWith('<!--')) {
+      if (!line.includes('-->')) inComment = true;
+      continue;
+    }
+
     // ─── Section Headers (## ...) ─────────────────────
     const sectionMatch = line.match(/^##\s+(.+)/);
     if (sectionMatch) {
+      flushSpell();
+      inSpellArea = false;
+      spellCircle = null;
       currentSection = sectionTitle(sectionMatch[1].trim());
       currentSubSection = '';
       defenseSubSection = '';
@@ -113,8 +238,29 @@ export function parseCitizenSheetLines(
     }
 
     // ─── Sub-Section Headers (### ...) ────────────────
+    // Cabeçalho de círculo: "#### Nível 1", "#### Nível 0 (Truques)",
+    // "#### 2º Círculo". É ele que abre a área das magias detalhadas.
+    const circleMatch = line.match(/^####\s+(.+)/);
+    if (circleMatch && currentSection === 'Conjuração de Magias') {
+      flushSpell();
+      const title = circleMatch[1].trim();
+      const numbered = title.match(/\d+/);
+      inSpellArea = true;
+      // Sem número e sem "truque" no título, o círculo fica indefinido e cada
+      // magia decide o seu — é o caso do cabeçalho genérico que a importação
+      // do fórum emite.
+      spellCircle = numbered
+        ? parseInt(numbered[0], 10)
+        : /truque/i.test(title)
+          ? 0
+          : null;
+      if (spellCircle !== null) ensureCircle(spellCircle);
+      continue;
+    }
+
     const subMatch = line.match(/^###\s+(.+)/);
     if (subMatch) {
+      flushSpell();
       const subTitle = subMatch[1].trim();
 
       // Array item: ### N. Name (abilities, professions)
@@ -205,11 +351,13 @@ export function parseCitizenSheetLines(
         'Defesas',
         'Sentidos',
         'Idiomas',
+        'Estilo de Narração',
       ];
       const matchedSection = knownSections.find(
         (s) => s.toLowerCase() === cleanedTitle.toLowerCase()
       );
       if (matchedSection) {
+        flushSpell();
         currentSection = matchedSection;
         currentSubSection = '';
         defenseSubSection = '';
@@ -395,6 +543,102 @@ export function parseCitizenSheetLines(
       }
     }
 
+    // ─── Magias detalhadas, sob um cabeçalho de círculo ──
+    if (currentSection === 'Conjuração de Magias' && inSpellArea) {
+      const trimmed = line.trim();
+
+      if (!trimmed) {
+        // Linha em branco separa parágrafos da descrição; fora dela, não há
+        // nada a guardar.
+        if (currentSpell && inSpellDescription) pendingSpellText.push('');
+        continue;
+      }
+
+      // Régua de separação fecha o bloco: sem isso o "---" que divide as
+      // seções entra como último parágrafo da descrição.
+      if (/^(-{3,}|\*{3,}|_{3,})$/.test(trimmed)) {
+        flushSpell();
+        continue;
+      }
+
+      const bare = trimmed.replace(/^-\s*/, '');
+      const kv = bare.match(/^\*{0,2}(.+?)\*{0,2}:\*{0,2}\s*(.*)$/);
+      const fieldKey = kv ? foldKey(kv[1]) : '';
+
+      // Uma magia nova começa no seu nome.
+      if (kv && fieldKey === 'nome' && kv[2].trim()) {
+        flushSpell();
+        currentSpell = {
+          name: kv[2].replace(/^\*+/, '').trim(),
+          prepared: true,
+        };
+        continue;
+      }
+
+      // A magia pode declarar o próprio círculo, que é como a ficha do fórum
+      // informa isso — lá as magias não vêm agrupadas por cabeçalho.
+      if (
+        currentSpell &&
+        kv &&
+        (fieldKey === 'circulo' || fieldKey === 'nivel') &&
+        kv[2].trim()
+      ) {
+        currentSpell.circle = getNum(kv[2]);
+        continue;
+      }
+
+      // Espaços do círculo, quando a ficha os declara aqui em vez da tabela.
+      if (
+        kv &&
+        spellCircle !== null &&
+        (fieldKey === 'espacos' || fieldKey === 'slots')
+      ) {
+        const circle = ensureCircle(spellCircle);
+        const total = getNum(kv[2]);
+        if (total) circle.slotsTotal = total;
+        continue;
+      }
+
+      // Campo do modelo deixado em branco: pular, para "**Escola:**" vazio não
+      // virar a primeira linha da descrição.
+      if (kv && !kv[2].trim() && SPELL_KEYS[fieldKey]) continue;
+
+      // Rótulo solto ("- **Magias:**"), sem valor: não é campo de ninguém.
+      if (kv && !kv[2].trim() && !currentSpell) continue;
+
+      if (currentSpell) {
+        const descMatch = bare.match(
+          /^\*{0,2}(?:descri[çc][ãa]o|description)\*{0,2}:\*{0,2}\s*(.*)$/i
+        );
+        if (descMatch) {
+          inSpellDescription = true;
+          if (descMatch[1].trim())
+            pendingSpellText.push(descMatch[1].replace(/^\*+/, '').trim());
+          continue;
+        }
+
+        if (!inSpellDescription) {
+          // Uma linha pode trazer mais de um campo. O separador das fichas é
+          // o ponto e vírgula ("Escola: X; Classes: Y"); a barra aparece
+          // dentro de valores como "cura/truque", então só vale com espaços.
+          const pairs = bare
+            .split(/\s*;\s*|\s+\/\s+/)
+            .map((part) => part.match(/^(.+?):\s*(.+)$/))
+            .filter((m): m is RegExpMatchArray => m !== null);
+          if (
+            pairs.length > 0 &&
+            pairs.every((m) => applySpellField(m[1], m[2]))
+          ) {
+            continue;
+          }
+        }
+
+        pendingSpellText.push(trimmed);
+        inSpellDescription = true;
+        continue;
+      }
+    }
+
     // ─── List items in Defenses ────────────────────────
     const listMatch = line.match(/^-\s+(.+)/);
     if (listMatch) {
@@ -469,7 +713,14 @@ export function parseCitizenSheetLines(
     const plainKvMatch = !kvMatch
       ? line.match(/^([A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ\s()]+?):\s+(.*)/)
       : null;
-    const effectiveKv = kvMatch || plainKvMatch;
+    // Em seção de texto corrido, "Não pode aparecer: tortura" é conteúdo, não
+    // um par chave-valor — sem esta guarda a linha some da ficha.
+    const isProseSection =
+      currentSection === 'Aparência' ||
+      currentSection === 'História' ||
+      currentSection === 'Estilo de Narração';
+
+    const effectiveKv = isProseSection ? null : kvMatch || plainKvMatch;
     if (effectiveKv) {
       const key = effectiveKv[1].trim();
       const value = effectiveKv[2].trim();
@@ -480,6 +731,10 @@ export function parseCitizenSheetLines(
           if (key === 'Nome') parsedData.name = value;
           else if (key === 'Idade') parsedData.age = value;
           else if (key === 'Altura') parsedData.height = value;
+          else if (key === 'Tamanho') parsedData.size = value;
+          else if (key === 'Tipo') parsedData.type = value;
+          else if (key === 'Subtítulo' || key === 'Epíteto')
+            parsedData.subtitle = value;
           else if (key === 'Classe') parsedData.class = value;
           else if (key === 'Raça') parsedData.race = value;
           else if (key === 'Gênero') parsedData.gender = value;
@@ -548,17 +803,15 @@ export function parseCitizenSheetLines(
         }
 
         case 'Conjuração de Magias': {
-          if (
-            currentSubSection === 'Informações Gerais' ||
-            currentSubSection?.toLowerCase().includes('informações')
-          ) {
-            const sc = getSpellcasting();
-            if (key.includes('Atributo')) sc.ability = value;
-            else if (key.includes('CD')) sc.saveDC = getNum(value);
-            else if (key.includes('Bônus')) sc.attackBonus = getNum(value);
-            else if (key.includes('Nível') || key.includes('Conjurador'))
-              sc.casterLevel = getNum(value);
-          }
+          // Os quatro campos gerais são reconhecidos pelo nome, não pela
+          // sub-seção: a ficha do fórum não tem "### Informações Gerais", e
+          // exigi-la fazia os quatro serem descartados em silêncio.
+          const sc = getSpellcasting();
+          if (key.includes('Atributo')) sc.ability = value;
+          else if (key.includes('CD')) sc.saveDC = getNum(value);
+          else if (key.includes('Bônus')) sc.attackBonus = getNum(value);
+          else if (key.includes('Conjurador') || key.includes('Conjuração'))
+            sc.casterLevel = getNum(value);
           break;
         }
 
@@ -655,6 +908,11 @@ export function parseCitizenSheetLines(
       continue;
     }
 
+    if (currentSection === 'Estilo de Narração' && line.trim()) {
+      pendingNarration.push(line.trim());
+      continue;
+    }
+
     // ─── Plain text in Defenses (docx) ──────────────────
     if (currentSection === 'Defesas' && defenseSubSection && line.trim()) {
       const trimmed = line.trim();
@@ -698,6 +956,35 @@ export function parseCitizenSheetLines(
         continue;
       }
     }
+  }
+
+  flushSpell();
+
+  // "### Magias Preparadas" é uma lista de nomes sem círculo nenhum. Antes
+  // isso parava num campo que nada lia, e as magias sumiam da ficha. Sem a
+  // informação do círculo, o melhor palpite é o menor com espaços — fica
+  // visível e editável, em vez de perdido.
+  const sc = parsedData.playerSpellcasting as Record<string, unknown>;
+  const loose = sc?.preparedSpells;
+  if (Array.isArray(loose) && loose.length > 0) {
+    const levels = (sc.spellLevels as Array<Record<string, unknown>>) || [];
+    const withSlots = levels
+      .filter((l) => (l.level as number) > 0)
+      .map((l) => l.level as number);
+    const target = withSlots.length > 0 ? Math.min(...withSlots) : 1;
+    const circle = ensureCircle(target);
+    const spells = (circle.spells as Array<Record<string, unknown>>) || [];
+    for (const name of loose) {
+      if (typeof name === 'string' && name.trim()) {
+        spells.push({ name: name.trim(), prepared: true });
+      }
+    }
+    circle.spells = spells;
+    delete sc.preparedSpells;
+  }
+
+  if (pendingNarration.length > 0) {
+    parsedData.narrationStyle = pendingNarration.join('\n');
   }
 
   // Flush pending appearance/backstory

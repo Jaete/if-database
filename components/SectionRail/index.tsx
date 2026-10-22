@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import { applyModifiers, useCssHandles } from '@/hooks/useCssHandles';
 import { useSectionRail } from './useSectionRail';
 import SectionRailHandles from './handles';
@@ -13,15 +14,40 @@ interface IProps {
 
 const SectionRail = ({ containerRef, isEnabled }: IProps) => {
   const handles = useCssHandles(SectionRailHandles);
+  const railRef = useRef<HTMLElement>(null);
   const { sections, activeId, scrollToSection } = useSectionRail(
     containerRef,
     isEnabled
   );
 
+  // A aba ativa acompanha a rolagem do modal, mas só dentro da régua: um
+  // scrollIntoView aqui arrastaria a página inteira junto.
+  useEffect(() => {
+    const rail = railRef.current;
+    if (!rail || !activeId) return;
+
+    const tab = rail.querySelector<HTMLElement>('[aria-current="true"]');
+    if (!tab) return;
+
+    const tabTop = tab.offsetTop;
+    const tabBottom = tabTop + tab.offsetHeight;
+    const viewBottom = rail.scrollTop + rail.clientHeight;
+
+    if (tabTop < rail.scrollTop) {
+      rail.scrollTop = tabTop;
+    } else if (tabBottom > viewBottom) {
+      rail.scrollTop = tabBottom - rail.clientHeight;
+    }
+  }, [activeId]);
+
   if (sections.length === 0) return null;
 
   return (
-    <nav className={handles.sectionRail} aria-label="Seções do formulário">
+    <nav
+      ref={railRef}
+      className={handles.sectionRail}
+      aria-label="Seções do formulário"
+    >
       {sections.map(({ id, label }) => {
         const isActive = id === activeId;
 

@@ -1,0 +1,58 @@
+@use '../../styles/globals' as *;
+
+.copyFicha {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+  width: 100%;
+  padding: $spacing-2 $spacing-3;
+  border: 1px solid $color-border;
+  border-radius: $radius-sm;
+  background: $surface-raised;
+  cursor: pointer;
+  text-align: left;
+
+  @include caption($color-text-muted, $font-weight-semibold);
+  @include focus-ring($primary-100);
+
+  // O rótulo não quebra; quem cede largura é a etiqueta.
+  > span {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  // A etiqueta inteira fica à vista: é ela que vai ser colada, e ver o que foi
+  // copiado é o que diferencia de um botão que pode ter falhado em silêncio.
+  code {
+    min-width: 0;
+    margin-left: auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    // O `caption` do botão deixa tudo em caixa alta, e o id é hexadecimal:
+    // exibi-lo maiúsculo mostraria uma etiqueta diferente da que foi copiada.
+    text-transform: none;
+    @include mono-xs($color-text-subtle, $font-weight-regular);
+  }
+
+  &:hover {
+    border-color: rgba($primary-100, 0.5);
+    background: $accent-overlay;
+  }
+
+  &--done {
+    border-color: $success-border;
+    color: $success;
+  }
+
+  &--fail {
+    border-color: $error-border;
+    color: $error;
+  }
+}
+
+.copyFichaIcon {
+  flex-shrink: 0;
+  width: 0.875rem;
+  height: 0.875rem;
+}

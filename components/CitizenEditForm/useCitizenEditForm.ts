@@ -2,7 +2,12 @@
 
 import { useState, useRef, useEffect } from 'react';
 import type ICitizen from '@/db/citizens/citizen.d';
-import type { IPlayerSpellLevel } from '@/db/citizens/citizen.d';
+import type {
+  ICitizenArchetype,
+  IPlayerSpell,
+  IPlayerSpellLevel,
+  IPlayerSpellRef,
+} from '@/db/citizens/citizen.d';
 import { splitList } from '@/lib/listValues';
 import SKILLS, { findSkill } from '@/db/l10n/skills';
 import { modifierOf, skillValue } from '@/lib/stats';
@@ -13,8 +18,13 @@ export type FormDataType = Partial<ICitizen> & {
   ownerUsername?: string;
   ownerForumUserId?: number;
   forumTopicUrl?: string;
-  spells: string[];
-  cantrips: string[];
+  // A magia inteira, não só o nome: a ficha guarda escola, componentes,
+  // descrição e o resto, e editar só o nome apagaria tudo isso ao salvar.
+  spells: IPlayerSpell[];
+  cantrips: IPlayerSpell[];
+  // Magias ligadas ao grimório: só o id e o estado de quem conjura. O resto da
+  // magia (inclusive o círculo) mora na coleção `spells`.
+  spellRefs: IPlayerSpellRef[];
   profSavingThrows: Array<{ attribute: string; value: number }>;
   profSkills: Array<{
     name: string;
@@ -33,6 +43,7 @@ export const emptyCitizen: FormDataType = {
   race: '',
   gender: '',
   class: '',
+  classId: undefined as string | undefined,
   age: '',
   height: '',
   alignment: '',
@@ -81,6 +92,7 @@ export const emptyCitizen: FormDataType = {
   // UI-only fields (not sent to API)
   spells: [],
   cantrips: [],
+  spellRefs: [],
   profSavingThrows: [],
   profSkills: [],
   spellSlots: [],
@@ -88,20 +100,106 @@ export const emptyCitizen: FormDataType = {
   backpackText: '',
 };
 
+/** Chave de comparação de nome de magia, tolerante a acento e caixa. */
+const spellKey = (name: string) =>
+  name
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase();
+
+/**
+ * Reconstrói os círculos de magia a partir do que o formulário edita: as
+ * listas de nomes e a tabela de espaços.
+ *
+ * O que a magia tem além do nome — escola, componentes, uso, descrição — não
+ * tem campo no formulário, então vem da ficha carregada e é reaproveitado por
+ * nome. Sem isso, salvar aqui apagaria tudo o que a importação leu.
+ *
+ * Fora deste arquivo por ser pura: é a parte do formulário que dá para
+ * verificar sem montar a tela.
+ */
+export const buildSpellLevels = (formData: {
+  spells?: IPlayerSpell[];
+  cantrips?: IPlayerSpell[];
+  spellSlots?: Array<{ level: number; slotsTotal: number; slotsUsed: number }>;
+  playerSpellcasting?: { spellLevels?: IPlayerSpellLevel[] };
+}): IPlayerSpellLevel[] => {
+  const known = new Map<string, { level: number; spell: IPlayerSpell }>();
+  for (const level of formData.playerSpellcasting?.spellLevels ?? []) {
+    for (const spell of level.spells ?? []) {
+      if (spell?.name) {
+        known.set(spellKey(spell.name), { level: level.level, spell });
+      }
+    }
+  }
+
+  const slots = (formData.spellSlots || []).filter((s) => s.level > 0);
+  // Magia sem origem conhecida (digitada aqui) vai para o menor círculo com
+  // espaços, em vez de ser copiada para todos eles.
+  const fallbackLevel = slots.length
+    ? Math.min(...slots.map((s) => s.level))
+    : 1;
+
+  const byLevel = new Map<number, IPlayerSpell[]>();
+  const place = (spell: IPlayerSpell, defaultLevel: number) => {
+    // O formulário edita a magia inteira; da ficha carregada só aproveitamos
+    // em que círculo ela estava, que é o que o formulário não guarda.
+    const hit = known.get(spellKey(spell.name));
+    let level = hit ? hit.level : defaultLevel;
+    // Círculo que perdeu os espaços no formulário não pode levar a magia
+    // junto para fora da ficha.
+    if (level > 0 && !slots.some((s) => s.level === level)) {
+      level = defaultLevel;
+    }
+    const list = byLevel.get(level) ?? [];
+    list.push(spell);
+    byLevel.set(level, list);
+  };
+
+  (formData.spells || [])
+    .filter((s) => s?.name)
+    .forEach((spell) => place(spell, fallbackLevel));
+  (formData.cantrips || [])
+    .filter((s) => s?.name)
+    .forEach((spell) => place(spell, 0));
+
+  const spellLevels: IPlayerSpellLevel[] = slots.map((slot) => ({
+    level: slot.level,
+    slotsTotal: slot.slotsTotal || 0,
+    slotsUsed: slot.slotsUsed || 0,
+    spells: byLevel.get(slot.level) ?? [],
+  }));
+
+  const cantripSpells = byLevel.get(0) ?? [];
+  if (cantripSpells.length > 0) {
+    spellLevels.unshift({
+      level: 0,
+      slotsTotal: 0,
+      slotsUsed: 0,
+      spells: cantripSpells,
+    });
+  }
+
+  return spellLevels;
+};
+
 export const citizenToFormData = (citizen: ICitizen) => {
-  const spells: string[] = [];
-  const cantrips: string[] = [];
+  const spellRefs: IPlayerSpellRef[] =
+    citizen.playerSpellcasting?.spellRefs ?? [];
+  const spells: IPlayerSpell[] = [];
+  const cantrips: IPlayerSpell[] = [];
   const sl = citizen.playerSpellcasting?.spellLevels || [];
   sl.forEach((level) => {
-    if (level.level === 0) {
-      (level.spells || []).forEach((s) => {
-        if (s.name && !cantrips.includes(s.name)) cantrips.push(s.name);
-      });
-    } else {
-      (level.spells || []).forEach((s) => {
-        if (s.name && !spells.includes(s.name)) spells.push(s.name);
-      });
-    }
+    const target = level.level === 0 ? cantrips : spells;
+    (level.spells || []).forEach((s) => {
+      if (
+        s.name &&
+        !target.some((t) => spellKey(t.name) === spellKey(s.name))
+      ) {
+        target.push(s);
+      }
+    });
   });
 
   // Extract professions sub-names
@@ -123,6 +221,7 @@ export const citizenToFormData = (citizen: ICitizen) => {
     ...citizen,
     spells,
     cantrips,
+    spellRefs,
     profSavingThrows: (citizen.proficiencies?.savingThrows ||
       []) as FormDataType['profSavingThrows'],
     profSkills: (citizen.proficiencies?.skills ||
@@ -146,6 +245,22 @@ export type EditFormVariant = 'citizen' | 'player';
  * o mesmo formulário roda na página de cidadãos e na de jogadores, e cada uma
  * tem o seu provider. Chamar o hook errado quebraria a outra tela.
  */
+/**
+ * Os campos que o schema marca como `required` — em cidadão e em jogador, que
+ * exigem os mesmos quatro.
+ *
+ * Esta lista é a cópia frontend de `db/citizens/schema.ts`. Se um campo virar
+ * obrigatório lá, precisa entrar aqui também; o preço de não ter a lista é
+ * devolver um 500 a quem clicou em salvar.
+ */
+const REQUIRED_FIELDS: readonly { name: keyof FormDataType; label: string }[] =
+  [
+    { name: 'name', label: 'Nome' },
+    { name: 'race', label: 'Raça' },
+    { name: 'gender', label: 'Gênero' },
+    { name: 'class', label: 'Classe' },
+  ];
+
 export interface IEditFormPersistence {
   create: (data: ICitizen) => Promise<unknown>;
   update: (data: ICitizen) => Promise<unknown>;
@@ -237,28 +352,21 @@ export const useCitizenEditForm = ({
         const d = result.data;
 
         // Extract spell list for UI
-        const spells: string[] = [];
-        const cantrips: string[] = [];
+        const spells: IPlayerSpell[] = [];
+        const cantrips: IPlayerSpell[] = [];
 
         const sl = d.playerSpellcasting?.spellLevels || [];
         sl.forEach((level: IPlayerSpellLevel) => {
-          if (level.level === 0) {
-            (level.spells || []).forEach((s) => {
-              if (s.name && !cantrips.includes(s.name)) cantrips.push(s.name);
-            });
-          } else {
-            (level.spells || []).forEach((s) => {
-              if (s.name && !spells.includes(s.name)) spells.push(s.name);
-            });
-          }
-        });
-        if (d.playerSpellcasting?.preparedSpells) {
-          (d.playerSpellcasting.preparedSpells as string[]).forEach(
-            (name: string) => {
-              if (!spells.includes(name)) spells.push(name);
+          const target = level.level === 0 ? cantrips : spells;
+          (level.spells || []).forEach((s) => {
+            if (
+              s.name &&
+              !target.some((t) => spellKey(t.name) === spellKey(s.name))
+            ) {
+              target.push(s);
             }
-          );
-        }
+          });
+        });
 
         // Sub-professions from profession objects
         const subProfessions: string[] = [];
@@ -632,47 +740,41 @@ export const useCitizenEditForm = ({
     }));
   };
 
-  const addSpell = () => {
-    setFormData((prev) => ({
-      ...prev,
-      spells: [...(prev.spells || []), ''],
-    }));
-  };
+  // Um par de operações só, para truques e magias: as duas listas guardam o
+  // mesmo tipo e o que muda é só em qual delas a magia entra.
+  type SpellList = 'spells' | 'cantrips';
 
-  const handleSpellChange = (index: number, value: string) => {
+  const setSpellAt = (list: SpellList, index: number, spell: IPlayerSpell) => {
     setFormData((prev) => {
-      const arr = [...(prev.spells || [])];
-      arr[index] = value;
-      return { ...prev, spells: arr } as typeof prev;
+      const arr = [...(prev[list] || [])];
+      if (index < 0) arr.push(spell);
+      else arr[index] = spell;
+      return { ...prev, [list]: arr } as typeof prev;
     });
   };
 
-  const removeSpell = (index: number) => {
+  // A classe grava os dois campos juntos: o vínculo e o nome desnormalizado
+  // que a ficha exibe.
+  const setCharacterClass = (next: { classId?: string; class: string }) =>
     setFormData((prev) => ({
       ...prev,
-      spells: (prev.spells || []).filter((_, i) => i !== index),
+      classId: next.classId,
+      class: next.class,
+      // O arquétipo é de uma classe só: mantê-lo ao trocar deixaria a ficha
+      // apontando para uma subclasse que a classe nova não tem.
+      archetype: prev.classId === next.classId ? prev.archetype : undefined,
     }));
-  };
 
-  const addCantrip = () => {
+  const setArchetype = (archetype: ICitizenArchetype | undefined) =>
+    setFormData((prev) => ({ ...prev, archetype }));
+
+  const setSpellRefs = (spellRefs: IPlayerSpellRef[]) =>
+    setFormData((prev) => ({ ...prev, spellRefs }));
+
+  const removeSpellAt = (list: SpellList, index: number) => {
     setFormData((prev) => ({
       ...prev,
-      cantrips: [...(prev.cantrips || []), ''],
-    }));
-  };
-
-  const handleCantripChange = (index: number, value: string) => {
-    setFormData((prev) => {
-      const arr = [...(prev.cantrips || [])];
-      arr[index] = value;
-      return { ...prev, cantrips: arr } as typeof prev;
-    });
-  };
-
-  const removeCantrip = (index: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      cantrips: (prev.cantrips || []).filter((_, i) => i !== index),
+      [list]: (prev[list] || []).filter((_, i) => i !== index),
     }));
   };
 
@@ -698,37 +800,12 @@ export const useCitizenEditForm = ({
   // ─── Submit ────────────────────────────────────────────
 
   const buildCitizenData = () => {
-    // Build playerSpellcasting from spellSlots + spells + cantrips
-    const spellLevels = (formData.spellSlots || [])
-      .filter((s) => s.level > 0)
-      .map((slot) => {
-        const levelSpells = (formData.spells || [])
-          .filter(Boolean)
-          .map((name) => ({ name, prepared: true }));
-        return {
-          level: slot.level,
-          slotsTotal: slot.slotsTotal || 0,
-          slotsUsed: slot.slotsUsed || 0,
-          spells: levelSpells,
-        };
-      });
-
-    // Add cantrips as level 0 entry if any exist
-    const cantripSpells = (formData.cantrips || [])
-      .filter(Boolean)
-      .map((name) => ({ name, prepared: true }));
-    if (cantripSpells.length > 0) {
-      spellLevels.unshift({
-        level: 0,
-        slotsTotal: 0,
-        slotsUsed: 0,
-        spells: cantripSpells,
-      });
-    }
+    const spellLevels = buildSpellLevels(formData);
 
     const playerSpellcasting = {
       ...formData.playerSpellcasting,
       spellLevels,
+      spellRefs: formData.spellRefs ?? [],
     };
     if (playerSpellcasting.ability === '' && playerSpellcasting.saveDC === 0) {
       delete (playerSpellcasting as Record<string, unknown>).spellLevels;
@@ -768,6 +845,9 @@ export const useCitizenEditForm = ({
       race: formData.race || '',
       gender: formData.gender || '',
       class: formData.class || '',
+      // `|| undefined`, nunca `|| ''`: string vazia num caminho ObjectId é
+      // erro de cast no Mongoose, e o formulário mostraria uma falha opaca.
+      classId: formData.classId || undefined,
       age: formData.age || undefined,
       height: formData.height || undefined,
       family: formData.family || undefined,
@@ -789,6 +869,14 @@ export const useCitizenEditForm = ({
       senses: formData.senses || undefined,
       languages: formData.languages || undefined,
       abilities: formData.abilities || undefined,
+      // Só a escolha; o nome do arquétipo e o teto de habilidades são
+      // derivados da tabela da classe a cada leitura.
+      archetype: formData.archetype?.slug
+        ? {
+            slug: formData.archetype.slug,
+            features: formData.archetype.features ?? [],
+          }
+        : undefined,
       professions,
       actions: formData.actions || undefined,
       playerSpellcasting,
@@ -857,11 +945,21 @@ export const useCitizenEditForm = ({
     e.preventDefault();
     setIsSubmitting(true);
 
-    if (!formData.name) {
+    // O que o schema exige. Conferido aqui porque a alternativa é o servidor
+    // recusar com 500 depois do formulário já ter fechado — e aí a ficha
+    // inteira, que pode ter levado meia hora para ser preenchida, se perde.
+    // O `slug` não entra: é derivado do nome logo abaixo.
+    const missing = REQUIRED_FIELDS.filter(
+      (field) => !String(formData[field.name] ?? '').trim()
+    );
+
+    if (missing.length > 0) {
+      const subject = variant === 'player' ? 'o personagem' : 'o cidadão';
+      const labels = missing.map((field) => field.label);
       setAlertMsg(
-        variant === 'player'
-          ? 'Nome é obrigatório para criar um personagem.'
-          : 'Nome é obrigatório para criar um cidadão.'
+        `Para salvar ${subject}, ${
+          labels.length === 1 ? 'falta preencher' : 'faltam preencher'
+        }: ${labels.join(', ')}.`
       );
       setIsSubmitting(false);
       return;
@@ -870,10 +968,18 @@ export const useCitizenEditForm = ({
     const citizenData = buildCitizenData();
 
     try {
-      if (isCreate) {
-        await create(citizenData);
-      } else {
-        await update(citizenData);
+      const saved = isCreate
+        ? await create(citizenData)
+        : await update(citizenData);
+
+      // Fechar só com a gravação confirmada. A persistência devolve vazio
+      // quando o servidor recusa, e fechar nesse caso é perder tudo o que
+      // está na tela.
+      if (!saved) {
+        setAlertMsg(
+          'O servidor recusou a gravação. A ficha continua aberta — confira os campos e tente de novo.'
+        );
+        return;
       }
       onClose();
     } catch (err) {
@@ -923,12 +1029,11 @@ export const useCitizenEditForm = ({
     handleSpellSlotChange,
     addSpellSlot,
     removeSpellSlot,
-    addSpell,
-    handleSpellChange,
-    removeSpell,
-    addCantrip,
-    handleCantripChange,
-    removeCantrip,
+    setSpellAt,
+    removeSpellAt,
+    setSpellRefs,
+    setCharacterClass,
+    setArchetype,
     handleDefensesChange,
     handleLanguagesChange,
     isImportingSheet,

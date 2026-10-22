@@ -1,0 +1,522 @@
+@use '../../../styles/globals' as *;
+@use 'vars' as *;
+
+// Edição embutida da ficha. Como o resto da ficha, sem blocos `@include light`:
+// o embed é sempre escuro.
+
+// ── Campo editável ──────────────────────────────────────────
+//
+// "Sutil" é requisito: fora do hover, o botão tem de ser indistinguível do
+// texto que substitui, senão o modo de edição vira um formulário e a ficha
+// deixa de parecer uma ficha. Daí zerar tudo que um <button> traz de fábrica.
+.sheetEditableButton {
+  display: inline;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: inherit;
+  letter-spacing: inherit;
+  cursor: text;
+  border-bottom: 1px dashed transparent;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+
+  &:hover {
+    background-color: $accent-overlay;
+    border-bottom-color: $color-border;
+  }
+
+  // Teclado apenas: o contorno não aparece no clique de mouse.
+  @include focus-ring($primary-100);
+
+  // Campo alterado e ainda não salvo.
+  &--dirty {
+    border-bottom-color: $primary-100;
+    border-bottom-style: solid;
+  }
+}
+
+.sheetEditablePlaceholder {
+  color: $color-text-subtle;
+  font-style: italic;
+}
+
+.sheetEditableInput,
+.sheetEditableArea {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: $spacing-1 $spacing-2;
+  border: 1px solid $color-border;
+  border-radius: $radius-sm;
+  background: $surface-raised;
+  color: $color-text;
+  font: inherit;
+
+  @include premium-input-focus;
+}
+
+.sheetEditableArea {
+  display: block;
+  min-height: $spacing-20;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+// ── Botão de entrar/sair da edição ──────────────────────────
+
+// Botão primário: é a única ação da ficha e precisa ser achado de primeira.
+// Usa $primary-* (o ouro funcional, de botões e links), não $gold-*, que é o
+// ornamental das bordas e brilhos.
+.sheetEditToggle {
+  position: absolute;
+  top: $spacing-3;
+  right: $spacing-3;
+  z-index: 3;
+  padding: $spacing-2 $spacing-4;
+  border: 1px solid $primary-100;
+  border-radius: $radius-full;
+  background: $primary-100;
+  color: $neutral-100;
+  cursor: pointer;
+
+  @include main-sm($neutral-100, $font-weight-semibold);
+  @include elevation(2);
+  @include focus-ring($primary-100);
+
+  &:hover {
+    background: $primary-200;
+    border-color: $primary-200;
+  }
+
+  // Já dentro da edição a ação primária passa a ser salvar, na SaveBar — aqui
+  // sobra "sair", que é secundária e não deve competir com ela.
+  &--editing {
+    background: transparent;
+    border-color: $color-border;
+    box-shadow: none;
+
+    @include main-sm($color-text-muted, $font-weight-medium);
+
+    &:hover {
+      background: $accent-overlay;
+      border-color: $primary-100;
+      color: $color-text;
+    }
+  }
+}
+
+// ── Barra de salvar ─────────────────────────────────────────
+//
+// `sticky`, não `fixed`: dentro de um iframe de altura fixa, `fixed` prende no
+// viewport do iframe e a barra descola do rodapé da ficha.
+.sheetSaveBar {
+  position: sticky;
+  bottom: 0;
+  z-index: 4;
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-3;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-3 $spacing-4;
+  border-top: 1px solid $primary-100;
+  background: $surface-float;
+
+  @include elevation(4);
+  @include slide-up(0.2s);
+}
+
+.sheetSaveBarCount {
+  @include main-sm($color-text, $font-weight-medium);
+}
+
+.sheetSaveBarError {
+  flex-basis: 100%;
+  order: 3;
+
+  @include main-xs($error, $font-weight-regular);
+}
+
+.sheetSaveBarActions {
+  display: flex;
+  gap: $spacing-2;
+}
+
+.sheetSaveBarSave,
+.sheetSaveBarDiscard {
+  padding: $spacing-2 $spacing-4;
+  border-radius: $radius-sm;
+  cursor: pointer;
+
+  @include main-sm($color-text, $font-weight-semibold);
+  @include focus-ring($primary-100);
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+}
+
+.sheetSaveBarSave {
+  border: 1px solid $primary-100;
+  background: $primary-100;
+  color: $neutral-100;
+}
+
+.sheetSaveBarDiscard {
+  border: 1px solid $color-border;
+  background: transparent;
+  color: $color-text-muted;
+}
+
+// Aviso de bloco somente-leitura dentro da edição.
+.sheetEditNote {
+  margin-top: $spacing-2;
+  padding: $spacing-2 $spacing-3;
+  border-left: 2px solid $color-border-strong;
+  background: $accent-overlay;
+
+  @include main-xs($color-text-subtle, $font-weight-regular);
+}
+
+// ── Listas editáveis (chips) ────────────────────────────────
+
+.sheetChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-2;
+  align-items: center;
+}
+
+// Herda a aparência do .sheetTag de leitura para a lista não "pular" ao entrar
+// na edição; o que muda é ganhar o X e virar clicável.
+.sheetChip {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-1;
+  padding: $spacing-1 $spacing-1 $spacing-1 $spacing-2;
+  border: 1px solid $color-border;
+  border-radius: $radius-full;
+  background: $surface-raised;
+
+  &:hover {
+    border-color: $primary-100;
+  }
+}
+
+.sheetChipText {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: text;
+
+  @include main-xs($color-text, $font-weight-regular);
+  @include focus-ring($primary-100);
+}
+
+.sheetChipRemove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: $spacing-4;
+  height: $spacing-4;
+  padding: 0;
+  border: 0;
+  border-radius: $radius-full;
+  background: transparent;
+  cursor: pointer;
+  line-height: 1;
+
+  @include main-sm($color-text-subtle, $font-weight-bold);
+  @include focus-ring($error);
+
+  &:hover {
+    background: $error-bg;
+    color: $error;
+  }
+}
+
+.sheetChipInput {
+  width: $spacing-20;
+  padding: $spacing-1 $spacing-2;
+  border: 1px solid $primary-100;
+  border-radius: $radius-full;
+  background: $surface-raised;
+  color: $color-text;
+
+  @include main-xs($color-text, $font-weight-regular);
+  @include premium-input-focus;
+}
+
+.sheetChipAdd {
+  padding: $spacing-1 $spacing-3;
+  border: 1px dashed $color-border-strong;
+  border-radius: $radius-full;
+  background: transparent;
+  cursor: pointer;
+
+  @include main-xs($color-text-muted, $font-weight-medium);
+  @include focus-ring($primary-100);
+
+  &:hover {
+    border-color: $primary-100;
+    border-style: solid;
+    color: $color-text;
+    background: $accent-overlay;
+  }
+}
+
+// ── Bolinha de proficiência clicável ────────────────────────
+//
+// Mantém os 8px do pip de leitura para a lista não mudar de métrica ao entrar
+// na edição; a área de clique é ampliada por um ::after invisível, que não
+// ocupa espaço no grid.
+.sheetSkillPip--button {
+  position: relative;
+  padding: 0;
+  cursor: pointer;
+  background: transparent;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: -$spacing-2;
+  }
+
+  &:hover {
+    border-color: $primary-100;
+    box-shadow: 0 0 0 2px $accent-overlay-hover;
+  }
+
+  @include focus-ring($primary-100);
+}
+
+// ── Bônus de perícia (modo edição) ──────────────────────────
+
+.sheetBonusRemove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: $spacing-3;
+  height: $spacing-3;
+  padding: 0;
+  border: 0;
+  border-radius: $radius-full;
+  background: transparent;
+  cursor: pointer;
+  line-height: 1;
+
+  @include main-xs($color-text-subtle, $font-weight-bold);
+  @include focus-ring($error);
+
+  &:hover {
+    background: $error-bg;
+    color: $error;
+  }
+}
+
+.sheetBonusAdd {
+  margin-left: $spacing-1;
+  padding: 0 $spacing-2;
+  border: 1px dashed $color-border-strong;
+  border-radius: $radius-sm;
+  background: transparent;
+  cursor: pointer;
+  white-space: nowrap;
+
+  @include main-xs($color-text-muted, $font-weight-medium);
+  @include focus-ring($primary-100);
+
+  &:hover {
+    border-color: $primary-100;
+    border-style: solid;
+    color: $color-text;
+    background: $accent-overlay;
+  }
+}
+
+// ── Lista mestra editável (habilidades e ações) ─────────────
+//
+// A linha em si vive em _panels.scss, porque em leitura ela também existe: o
+// que é exclusivo da edição é o lápis e o botão de acrescentar.
+.sheetMasterEdit {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-1;
+  border: 0;
+  border-radius: $radius-sm;
+  background: transparent;
+  color: $color-text-subtle;
+  cursor: pointer;
+  opacity: 0.35;
+  transition:
+    opacity 0.15s ease,
+    color 0.15s ease;
+
+  @include focus-ring($primary-100);
+
+  &:hover {
+    color: $primary-100;
+  }
+}
+
+// O arquétipo é a única escolha da ficha que é lista fechada: os arquétipos
+// são os que a classe publica, e digitar um nome produziria uma subclasse que
+// não existe. Por isso select, e não o EditableText das outras linhas.
+.sheetArchetypeSelect {
+  width: 100%;
+  margin-bottom: $spacing-1;
+  padding: $spacing-2 $spacing-3;
+  border: 1px solid $color-border-strong;
+  border-radius: $radius-sm;
+  background: $surface;
+  cursor: pointer;
+
+  @include main-sm($color-text, $font-weight-medium);
+  @include premium-input-focus;
+
+  @include light {
+    background: $color-bg-inverse;
+    color: $color-text-inverse;
+    border-color: $color-border-inverse;
+  }
+}
+
+.sheetMasterAdd {
+  margin-top: $spacing-1;
+  padding: $spacing-1 $spacing-3;
+  border: 1px dashed $color-border-strong;
+  border-radius: $radius-sm;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+
+  @include main-xs($color-text-muted, $font-weight-medium);
+  @include focus-ring($primary-100);
+
+  &:hover {
+    border-color: $primary-100;
+    border-style: solid;
+    color: $color-text;
+    background: $accent-overlay;
+  }
+}
+
+// ── Magias ──────────────────────────────────────────────────
+
+// O nome vira botão quando a magia tem ficha para abrir; fora isso precisa
+// parecer o mesmo texto de antes, daí zerar o que o <button> traz de fábrica.
+// Badge clicável no modo de edição: alterna preparada/conhecida.
+button.sheetSpellBadge {
+  border: 0;
+  cursor: pointer;
+
+  @include focus-ring($primary-100);
+}
+
+.sheetSpellEdit {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-1;
+  border: 0;
+  border-radius: $radius-sm;
+  background: transparent;
+  color: $color-text-subtle;
+  cursor: pointer;
+  opacity: 0.35;
+  transition:
+    opacity 0.15s ease,
+    color 0.15s ease;
+
+  @include focus-ring($primary-100);
+
+  .sheetSpell:hover &,
+  &:focus-visible {
+    opacity: 1;
+  }
+
+  &:hover {
+    color: $primary-100;
+  }
+}
+
+.sheetSpellAdd {
+  align-self: flex-start;
+  margin-top: $spacing-2;
+  padding: $spacing-1 $spacing-3;
+  border: 1px dashed $color-border-strong;
+  border-radius: $radius-sm;
+  background: transparent;
+  cursor: pointer;
+
+  @include main-xs($color-text-muted, $font-weight-medium);
+  @include focus-ring($primary-100);
+
+  &:hover {
+    border-color: $primary-100;
+    border-style: solid;
+    color: $color-text;
+    background: $accent-overlay;
+  }
+}
+
+// ── Ficha da magia (modal de leitura) ───────────────────────
+
+.sheetSpellMeta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: $spacing-3;
+  margin-bottom: $spacing-4;
+  padding-bottom: $spacing-4;
+  border-bottom: 1px solid $color-border;
+}
+
+.sheetSpellMetaKey {
+  @include caption($color-text-muted, $font-weight-semibold);
+}
+
+.sheetSpellMetaValue {
+  margin: 0;
+
+  @include main-sm($color-text, $font-weight-regular);
+}
+
+// `pre-line` preserva os parágrafos do texto da magia sem exigir que a
+// edição seja um editor rico.
+.sheetSpellText {
+  white-space: pre-line;
+
+  @include main-sm($color-text, $font-weight-regular, 1.7);
+}
+
+// Fórmula sob um valor derivado, para o número não parecer um campo que a
+// pessoa esqueceu de poder editar.
+.sheetCastNote {
+  @include main-xs($color-text-subtle, $font-weight-regular);
+}
+
+// Herda a caixa de .sheetEditableInput; só troca o que um <select> precisa.
+.sheetEditableSelect {
+  width: auto;
+  max-width: 100%;
+  cursor: pointer;
+
+  // O menu nativo é desenhado pelo sistema, que no tema claro ignoraria a cor
+  // herdada e deixaria texto claro sobre fundo claro.
+  option {
+    background: $surface-raised;
+    color: $color-text;
+  }
+}

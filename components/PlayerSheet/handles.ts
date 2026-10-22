@@ -4,6 +4,7 @@ const PlayerSheetHandles = [
   'playerSheetBody',
   'playerSheetPanel',
   'playerSheetWipe',
+  'sheetEditToggle',
 ] as const;
 
 export default PlayerSheetHandles;

@@ -13,14 +13,29 @@ $tuck: 10px;
   z-index: 0;
   width: $section-rail-width;
   max-height: calc(85dvh - #{$spacing-20});
+  overflow-x: hidden;
   overflow-y: auto;
+  overscroll-behavior: contain;
   @include flex-col-start();
   gap: $spacing-1;
+  scrollbar-width: thin;
+  scrollbar-color: $gold-400 transparent;
 
-  // Sem barra de rolagem visível: a régua é um atalho, não um painel.
-  scrollbar-width: none;
   &::-webkit-scrollbar {
-    display: none;
+    width: $spacing-1;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: $gold-400;
+    border-radius: $radius-full;
+  }
+
+  @include light {
+    scrollbar-color: $gold-600 transparent;
+
+    &::-webkit-scrollbar-thumb {
+      background: $gold-600;
+    }
   }
 
   // Abaixo daqui não sobra espaço lateral, e um rodapé de abas disputaria
@@ -31,8 +46,10 @@ $tuck: 10px;
 }
 
 .sectionRailTab {
+  flex-shrink: 0;
   width: 100%;
   box-sizing: border-box;
+  min-height: $spacing-10;
   padding: $spacing-2 $spacing-3 $spacing-2 calc(#{$spacing-3} + #{$tuck});
   border: 1px solid $color-border-strong;
   border-left: none;

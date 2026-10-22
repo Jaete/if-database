@@ -158,9 +158,57 @@
   border: 1px solid $color-border-strong;
 }
 
+// Cada parcela de bônus é uma pílula própria, exibidas lado a lado (+2 +1 -1).
+// `relative` ancora o popover de origem.
 .sheetSkillBonus {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-1;
   margin-left: $spacing-1;
+  padding: 0 $spacing-1;
+  border: 1px solid $color-border;
+  border-radius: $radius-sm;
+  font-variant-numeric: tabular-nums;
+
   @include main-xs($color-text-muted, $font-weight-regular);
+
+  &:hover,
+  &:focus-visible {
+    border-color: $primary-100;
+    color: $color-text;
+  }
+}
+
+// Popover com a origem do bônus. Só aparece no hover ou com foco de teclado, e
+// `pointer-events: none` evita que ele próprio roube o hover da pílula.
+.sheetBonusPop {
+  position: absolute;
+  bottom: calc(100% + #{$spacing-1});
+  left: 50%;
+  z-index: 5;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: $spacing-20 * 2;
+  padding: $spacing-1 $spacing-2;
+  border: 1px solid $color-border-strong;
+  border-radius: $radius-sm;
+  background: $surface-float;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 0.15s ease,
+    visibility 0.15s ease;
+
+  @include main-xs($color-text, $font-weight-regular);
+  @include elevation(3);
+
+  .sheetSkillBonus:hover &,
+  .sheetSkillBonus:focus-visible & {
+    opacity: 1;
+    visibility: visible;
+  }
 }
 
 .sheetSkillValue {
@@ -168,14 +216,10 @@
   @include mono-sm($color-text, $font-weight-bold);
 }
 
-// ── Master-detail list (abilities, equipment) ──
-.sheetMaster {
-  display: grid;
-  grid-template-columns: 11.875rem minmax(0, 1fr);
-  gap: $spacing-4;
-  align-items: start;
-}
-
+// ── Lista de habilidades e ações ──
+//
+// Coluna única: a descrição não divide mais a tela com a lista, ela abre no
+// modal pelo botão de ler da própria linha.
 .sheetMasterList {
   display: flex;
   flex-direction: column;
@@ -191,16 +235,34 @@
   }
 }
 
-.sheetMasterOption {
-  position: relative;
-  padding: $spacing-2 $spacing-2 $spacing-2 $spacing-5;
-  border: 0;
+// A linha inteira, agora também em leitura: o nome ocupa a largura e as ações
+// ficam à direita dele.
+.sheetMasterRow {
+  display: flex;
+  align-items: center;
+  gap: $spacing-1;
   border-radius: $radius-sm;
-  background: none;
-  cursor: pointer;
-  text-align: left;
+
+  &:hover {
+    background: $accent-overlay;
+  }
+
+  // As ações ficam discretas até a linha receber o ponteiro: a lista é lida
+  // muito mais do que acionada.
+  &:hover .sheetMasterRead,
+  &:hover .sheetMasterEdit,
+  .sheetMasterRead:focus-visible,
+  .sheetMasterEdit:focus-visible {
+    opacity: 1;
+  }
+}
+
+.sheetMasterName {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  padding: $spacing-2 $spacing-2 $spacing-2 $spacing-5;
   @include main-sm($color-text, $font-weight-regular);
-  @include focus-ring;
 
   &::before {
     content: '';
@@ -213,20 +275,157 @@
     transform: rotate(45deg);
     border: 1px solid $color-border-strong;
   }
+}
+
+.sheetMasterRead {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  margin-right: $spacing-1;
+  padding: $spacing-1;
+  border: 0;
+  border-radius: $radius-sm;
+  background: transparent;
+  color: $color-text-subtle;
+  cursor: pointer;
+  opacity: 0.45;
+  transition:
+    opacity 0.15s ease,
+    color 0.15s ease;
+
+  @include focus-ring($gold-100);
 
   &:hover {
+    color: $gold-100;
+  }
+}
+
+// ── Leitura da característica, dentro do modal ──
+.sheetReader {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-2;
+}
+
+.sheetReaderKicker {
+  @include caption($gold-100, $font-weight-semibold);
+}
+
+.sheetReaderText {
+  white-space: pre-line;
+  @include main-sm($color-text, $font-weight-regular, 1.6);
+}
+
+// Marca, na lista, o que vem da classe ligada — o que a ficha não edita.
+.sheetMasterOrigin {
+  margin-left: $spacing-2;
+  @include caption($gold-200, $font-weight-semibold);
+}
+
+// ── Seletor de magias preparadas (dentro do modal) ──
+.sheetPicker {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-3;
+}
+
+// A descrição do arquétipo escolhido, logo abaixo do nome: é o que distingue
+// um arquétipo do outro na hora de escolher.
+.sheetArchetypeNote {
+  margin: 0;
+  @include main-xs($color-text-muted, $font-weight-regular, 1.6);
+}
+
+.sheetPickerNote {
+  @include main-xs($color-text-muted, $font-weight-regular);
+}
+
+.sheetPickerSearch {
+  padding: $spacing-2 $spacing-3;
+  border: 1px solid $color-border-strong;
+  border-radius: $radius-sm;
+  background: $surface;
+  @include main-sm($color-text, $font-weight-regular);
+  @include premium-input-focus;
+}
+
+.sheetPickerList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-1;
+  max-height: 24rem;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sheetPickerOption {
+  display: flex;
+  align-items: baseline;
+  gap: $spacing-2;
+  width: 100%;
+  padding: $spacing-2 $spacing-3;
+  border: 0;
+  border-radius: $radius-sm;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+
+  @include focus-ring($gold-100);
+
+  &:hover:not(:disabled) {
     background: $accent-overlay;
   }
 
-  &[aria-pressed='true'] {
-    background: $accent-overlay-hover;
-    color: $gold-100;
-
-    &::before {
-      background: $gold-300;
-      border-color: $gold-300;
-    }
+  // Já preparada, ou sem espaço livre: continua visível, porque a lista também
+  // serve para ver o que a classe conhece.
+  &:disabled {
+    cursor: default;
+    opacity: 0.45;
   }
+}
+
+// O seletor de arquétipo escolhe pela DESCRIÇÃO, não por um par curto
+// "escola · classe" como o de magias: é ela que distingue duas habilidades da
+// mesma lista. Dividir a linha com o nome espremia o nome até ele quebrar
+// palavra por palavra, então aqui a opção empilha.
+.sheetPickerOption--stacked {
+  flex-direction: column;
+  align-items: stretch;
+  gap: $spacing-1;
+}
+
+.sheetPickerHead {
+  @include flex-row-between;
+  gap: $spacing-2;
+  width: 100%;
+}
+
+.sheetPickerDesc {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  @include main-xs($color-text-subtle, $font-weight-regular, 1.5);
+}
+
+.sheetPickerName {
+  flex: 1;
+  min-width: 0;
+  @include main-sm($color-text, $font-weight-regular);
+}
+
+.sheetPickerMeta {
+  flex: 0 1 auto;
+  @include main-xs($color-text-subtle, $font-weight-regular);
+}
+
+.sheetPickerTaken {
+  flex: 0 0 auto;
+  @include caption($gold-200, $font-weight-semibold);
 }
 
 // ── Spells ──
@@ -287,11 +486,15 @@
   gap: $spacing-2;
 }
 
+// Mesmo desenho da tabela de progressão da classe: quatro fecham o quadrado,
+// três deixam faltando um canto, dois viram a linha do meio, um fica centrado.
+// É o mesmo objeto nas duas telas — lá concedido, aqui gasto.
+.sheetSlotGrid {
+  @include slot-grid(0.625rem);
+}
+
 .sheetSlot {
-  width: 0.625rem;
-  height: 0.625rem;
-  transform: rotate(45deg);
-  border: 1px solid $gold-300;
+  @include slot-pip(0.625rem);
 
   &--free {
     background: $gold-300;
@@ -324,6 +527,58 @@
   &--off {
     color: $color-text-muted;
   }
+}
+
+// O nome da magia é um botão sempre que há ficha para abrir — em leitura
+// também, e por isso mora aqui e não em _editing.scss.
+.sheetSpellName {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  border-bottom: 1px dashed transparent;
+
+  @include focus-ring($primary-100);
+
+  &:hover {
+    border-bottom-color: $color-border-strong;
+  }
+}
+
+// O indicativo de que dá para ler. O nome inteiro continua clicável; este
+// botão existe para a linha dizer isso parada, sem depender do ponteiro — por
+// isso não é escondido, só discreto. Fora da ordem de tabulação: repete o
+// destino do nome, que já é tabulável.
+.sheetSpellRead {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-1;
+  border: 0;
+  border-radius: $radius-sm;
+  background: transparent;
+  color: $color-text-subtle;
+  cursor: pointer;
+  opacity: 0.5;
+  transition:
+    opacity 0.15s ease,
+    color 0.15s ease;
+
+  &:hover {
+    opacity: 1;
+    color: $gold-100;
+  }
+}
+
+.sheetSpell:hover .sheetSpellRead {
+  opacity: 1;
 }
 
 .sheetSpellBadge {
@@ -590,7 +845,6 @@
   }
 
   .sheetSkillGroups,
-  .sheetMaster,
   .sheetSpells,
   .sheetProfessions,
   .sheetChronicle,
@@ -650,4 +904,11 @@
     animation-iteration-count: 1;
     transition-duration: 0.01ms;
   }
+}
+
+// O teste de resistência ganhou o mesmo pip dourado das perícias como marca de
+// proficiência (em leitura ele só é renderizado quando proficiente).
+.sheetSave--prof .sheetSkillPip {
+  background: $gold-300;
+  border-color: $gold-300;
 }

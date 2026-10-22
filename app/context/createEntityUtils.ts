@@ -26,6 +26,17 @@ export function createEntityUtils<T extends IEntityRef>({
   basePath,
   label,
 }: IOptions) {
+  /**
+   * O erro carrega o que o servidor disse, não só "Failed to create".
+   *
+   * As rotas respondem `{ error }` com o motivo em português — classe única
+   * já tomada, campo obrigatório faltando — e era isso que se perdia: quem
+   * salvava via só o formulário fechar.
+   */
+  const failure = async (res: Response, fallback: string) => {
+    const body = await res.json().catch(() => null);
+    return new Error(body?.error || fallback);
+  };
   // O JSON.stringify fica dentro de try/catch porque um formulário com
   // referência circular falharia aqui de um jeito difícil de rastrear.
   const serialize = (entity: T, operation: string): string => {
@@ -54,7 +65,8 @@ export function createEntityUtils<T extends IEntityRef>({
         headers: { 'Content-Type': 'application/json' },
         body: serialize(entity, 'create'),
       });
-      if (!res.ok) throw new Error(`Failed to create ${label}`);
+      if (!res.ok)
+        throw await failure(res, `Não foi possível criar o ${label}.`);
       return { success: true, data: await res.json() };
     },
 
@@ -64,13 +76,15 @@ export function createEntityUtils<T extends IEntityRef>({
         headers: { 'Content-Type': 'application/json' },
         body: serialize(entity, 'update'),
       });
-      if (!res.ok) throw new Error(`Failed to update ${label}`);
+      if (!res.ok)
+        throw await failure(res, `Não foi possível salvar o ${label}.`);
       return { success: true, data: await res.json() };
     },
 
     async remove(slug: string): Promise<IApiResult<null>> {
       const res = await fetch(`${basePath}/${slug}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error(`Failed to delete ${label}`);
+      if (!res.ok)
+        throw await failure(res, `Não foi possível excluir o ${label}.`);
       return { success: true };
     },
   };

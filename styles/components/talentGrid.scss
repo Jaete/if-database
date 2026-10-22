@@ -1,0 +1,36 @@
+@use '../../styles/globals' as *;
+
+// A folha do grimório (spellGrid.scss) cobre a página inteira; aqui ficam só
+// as duas peças que o catálogo de talentos tem a mais: o filtro por categoria
+// e o selo de categoria na linha, que no grimório é o número do círculo.
+.talentFilter {
+  padding: $spacing-2 $spacing-3;
+  border: 1px solid $color-border-strong;
+  border-radius: $radius-sm;
+  background: $surface;
+  cursor: pointer;
+
+  @include main-sm($color-text, $font-weight-regular);
+  @include premium-input-focus;
+
+  @include light {
+    background: $color-bg-inverse;
+    color: $color-text-inverse;
+    border-color: $color-border-inverse;
+  }
+}
+
+// Largura fixa: é a primeira coluna da linha, e sem ela os nomes dos talentos
+// ficariam desalinhados a cada categoria de tamanho diferente.
+.talentCategory {
+  flex: 0 0 11rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  @include caption($gold-200, $font-weight-semibold);
+
+  @include mobile {
+    flex-basis: auto;
+  }
+}

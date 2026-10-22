@@ -4,6 +4,8 @@ import { formatModifier } from '@/lib/stats';
 import Portrait from '../Portrait';
 import { DASH, formatMeters, formatNumber } from '../sheetData';
 import HeaderHandles from './handles';
+import { useEditing } from '../EditingContext';
+import EditableText from '../EditableText';
 
 interface IProps {
   player: IPublicPlayer;
@@ -11,6 +13,7 @@ interface IProps {
 
 const Header = ({ player }: IProps) => {
   const handles = useCssHandles(HeaderHandles);
+  const { editable, value } = useEditing();
   const { combat, experience, chi, senses } = player;
 
   const eyebrow = [
@@ -20,11 +23,14 @@ const Header = ({ player }: IProps) => {
     .filter(Boolean)
     .join(' · ');
 
-  const hasXp = !!experience && experience.nextLevel > 0;
-  const xpRatio = hasXp
-    ? Math.min(1, Math.max(0, experience.current / experience.nextLevel))
-    : 0;
-  const hasChi = !!chi && (chi.max > 0 || chi.current > 0);
+  const hasXp = editable || (!!experience && experience.nextLevel > 0);
+  // `hasXp` também é verdadeiro no modo de edição, quando ainda pode não haver
+  // experiência nenhuma — daí a barra ter a sua própria checagem.
+  const xpRatio =
+    experience && experience.nextLevel > 0
+      ? Math.min(1, Math.max(0, experience.current / experience.nextLevel))
+      : 0;
+  const hasChi = editable || (!!chi && (chi.max > 0 || chi.current > 0));
   const hasChiBar = !!chi && chi.max > 0;
   const hpValue = combat?.hp?.value;
   // The schema only stores max HP, so the bar is always full.
@@ -71,26 +77,60 @@ const Header = ({ player }: IProps) => {
 
       <div className={handles.sheetWho}>
         {eyebrow && <span className={handles.sheetEyebrow}>{eyebrow}</span>}
-        <h1 className={handles.sheetName}>{player.name}</h1>
+        <h1 className={handles.sheetName}>
+          <EditableText path="name" label="Nome">
+            {player.name}
+          </EditableText>
+        </h1>
         <div className={handles.sheetLine}>
-          {player.class} <span className={handles.sheetLineMuted}>·</span>{' '}
-          {player.race}
+          <EditableText path="class" label="Classe">
+            {player.class}
+          </EditableText>{' '}
+          <span className={handles.sheetLineMuted}>·</span>{' '}
+          <EditableText path="race" label="Raça">
+            {player.race}
+          </EditableText>
         </div>
         {hasXp && (
           <div className={handles.sheetXp}>
             <div className={handles.sheetXpRow}>
               <span>Experiência</span>
               <b>
-                {formatNumber(experience.current)} /{' '}
-                {formatNumber(experience.nextLevel)}
+                {editable ? (
+                  <>
+                    <EditableText
+                      path="experience.current"
+                      label="Experiência atual"
+                      as="number"
+                      placeholder="0"
+                    >
+                      {value('experience.current')}
+                    </EditableText>{' '}
+                    /{' '}
+                    <EditableText
+                      path="experience.nextLevel"
+                      label="Experiência do próximo nível"
+                      as="number"
+                      placeholder="0"
+                    >
+                      {value('experience.nextLevel')}
+                    </EditableText>
+                  </>
+                ) : (
+                  <>
+                    {formatNumber(experience!.current)} /{' '}
+                    {formatNumber(experience!.nextLevel)}
+                  </>
+                )}
               </b>
             </div>
-            {bar(
-              xpRatio,
-              `Experiência para o nível ${(player.level ?? 0) + 1}`,
-              experience.current,
-              experience.nextLevel
-            )}
+            {experience &&
+              bar(
+                xpRatio,
+                `Experiência para o nível ${(player.level ?? 0) + 1}`,
+                experience.current,
+                experience.nextLevel
+              )}
           </div>
         )}
       </div>
@@ -99,23 +139,42 @@ const Header = ({ player }: IProps) => {
         <div className={handles.sheetResource}>
           <span className={handles.sheetResourceKey}>HP</span>
           <span className={handles.sheetResourceValue}>
-            {combat?.hp?.value ?? DASH}
+            <EditableText
+              path="combat.hp.value"
+              label="Pontos de vida"
+              as="number"
+            >
+              {combat?.hp?.value ?? DASH}
+            </EditableText>
           </span>
           {hasHpBar && bar(1, 'Vida máxima', hpValue, hpValue, 'hp')}
-          {combat?.hp?.formula && (
+          {(editable || combat?.hp?.formula) && (
             <span className={handles.sheetResourceFormula}>
-              {combat.hp.formula}
+              <EditableText
+                path="combat.hp.formula"
+                label="Fórmula dos pontos de vida"
+                placeholder="Fórmula"
+              >
+                {combat?.hp?.formula}
+              </EditableText>
             </span>
           )}
         </div>
-        {hasChi && chi && (
+        {hasChi && (
           <div className={handles.sheetResource}>
             <span className={handles.sheetResourceKey}>Chi</span>
             <span className={handles.sheetResourceValue}>
-              {chi.current}
-              <small className={handles.sheetResourceTotal}> / {chi.max}</small>
+              <EditableText path="chi.current" label="Chi atual" as="number">
+                {chi?.current}
+              </EditableText>
+              <small className={handles.sheetResourceTotal}>
+                {' / '}
+                <EditableText path="chi.max" label="Chi máximo" as="number">
+                  {chi?.max}
+                </EditableText>
+              </small>
             </span>
-            {hasChiBar && bar(chiRatio, 'Chi', chi.current, chi.max)}
+            {hasChiBar && chi && bar(chiRatio, 'Chi', chi.current, chi.max)}
           </div>
         )}
       </div>
@@ -124,34 +183,74 @@ const Header = ({ player }: IProps) => {
         <div className={handles.sheetStripCell} title={combat?.ac?.formula}>
           <span className={handles.sheetStripKey}>CA</span>
           <span className={handles.sheetStripValue}>
-            {combat?.ac?.value ?? DASH}
+            <EditableText
+              path="combat.ac.value"
+              label="Classe de armadura"
+              as="number"
+            >
+              {combat?.ac?.value ?? DASH}
+            </EditableText>
           </span>
-          {combat?.ac?.formula && (
-            <span className={handles.sheetStripNote}>{combat.ac.formula}</span>
+          {(editable || combat?.ac?.formula) && (
+            <span className={handles.sheetStripNote}>
+              <EditableText
+                path="combat.ac.formula"
+                label="Fórmula da classe de armadura"
+                placeholder="Fórmula"
+              >
+                {combat?.ac?.formula}
+              </EditableText>
+            </span>
           )}
         </div>
         <div className={handles.sheetStripCell}>
           <span className={handles.sheetStripKey}>Velocidade</span>
           <span className={handles.sheetStripValue}>
-            {speed?.walk !== undefined ? formatMeters(speed.walk) : DASH}
+            <EditableText
+              path="combat.speed.walk"
+              label="Velocidade de caminhada, em metros"
+              as="number"
+            >
+              {speed?.walk !== undefined ? formatMeters(speed.walk) : DASH}
+            </EditableText>
           </span>
-          {speedNote && (
-            <span className={handles.sheetStripNote}>{speedNote}</span>
+          {(editable || speedNote) && (
+            <span className={handles.sheetStripNote}>
+              <EditableText
+                path="combat.speed.note"
+                label="Observação da velocidade"
+                placeholder="Observação"
+              >
+                {speedNote}
+              </EditableText>
+            </span>
           )}
         </div>
         <div className={handles.sheetStripCell}>
           <span className={handles.sheetStripKey}>Proficiência</span>
           <span className={handles.sheetStripValue}>
-            {player.proficiencyBonus !== undefined
-              ? formatModifier(player.proficiencyBonus)
-              : DASH}
+            <EditableText
+              path="proficiencyBonus"
+              label="Bônus de proficiência"
+              as="number"
+            >
+              {player.proficiencyBonus !== undefined
+                ? formatModifier(player.proficiencyBonus)
+                : DASH}
+            </EditableText>
           </span>
           <span className={handles.sheetStripNote}>bônus</span>
         </div>
         <div className={handles.sheetStripCell}>
           <span className={handles.sheetStripKey}>Percepção</span>
           <span className={handles.sheetStripValue}>
-            {senses?.passivePerception ?? DASH}
+            <EditableText
+              path="senses.passivePerception"
+              label="Percepção passiva"
+              as="number"
+            >
+              {senses?.passivePerception ?? DASH}
+            </EditableText>
           </span>
           <span className={handles.sheetStripNote}>passiva</span>
         </div>

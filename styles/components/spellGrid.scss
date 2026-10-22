@@ -1,0 +1,145 @@
+@use '../../styles/globals' as *;
+
+.grimoire {
+  min-height: 100dvh;
+  padding: $spacing-10 $spacing-5 calc($spacing-10 + 3.5rem);
+  margin: 0 auto;
+  max-width: 60rem;
+  background-color: $neutral-100;
+
+  @include light {
+    background-color: $neutral-2100;
+  }
+}
+
+.grimoireHeader {
+  text-align: center;
+  margin-bottom: $spacing-6;
+}
+
+.grimoireTitle {
+  @include cinzel-3xl($color-text, $font-weight-bold, 1.2, 0.08em, center);
+  @include gold-gradient-text;
+}
+
+.grimoireSubtitle {
+  @include main-sm($color-text-muted, $font-weight-regular, 1.5, 0, center);
+  margin-top: $spacing-2;
+}
+
+.grimoireTools {
+  display: flex;
+  gap: $spacing-3;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: $spacing-4;
+}
+
+.grimoireSearch {
+  flex: 1 1 16rem;
+  padding: $spacing-3;
+  border-radius: $radius-md;
+  border: 1px solid $color-border;
+  background-color: $surface;
+  @include main-md($color-text, $font-weight-regular);
+  @include premium-input-focus;
+}
+
+.grimoireActions {
+  display: flex;
+  gap: $spacing-2;
+}
+
+.grimoireButton,
+.grimoireImport {
+  padding: $spacing-3 $spacing-4;
+  border-radius: $radius-md;
+  border: 1px solid $color-border-strong;
+  background-color: $surface-raised;
+  cursor: pointer;
+  @include caption($color-text, $font-weight-semibold);
+  @include focus-ring;
+
+  &:hover {
+    background-color: $accent-overlay-hover;
+  }
+}
+
+.grimoireImport {
+  border-color: rgba($primary-100, 0.5);
+}
+
+.grimoireFeedback {
+  margin-bottom: $spacing-3;
+  padding: $spacing-3;
+  border-radius: $radius-md;
+  border: 1px solid $success-border;
+  background-color: $success-bg;
+  @include main-sm($color-text, $font-weight-regular);
+}
+
+.grimoireFeedbackError {
+  border-color: $error-border;
+  background-color: $error-bg;
+}
+
+.grimoireCount {
+  @include caption($color-text-subtle, $font-weight-regular);
+  margin-bottom: $spacing-2;
+}
+
+.grimoireList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-2;
+}
+
+.grimoireEmpty {
+  padding: $spacing-6;
+  text-align: center;
+  @include main-sm($color-text-muted, $font-weight-regular, 1.5, 0, center);
+}
+
+.grimoireRow {
+  width: 100%;
+  display: grid;
+  // A terceira coluna é a que encolhe: o resumo é informação de apoio, o nome
+  // e o círculo não podem ser cortados.
+  grid-template-columns: auto minmax(8rem, max-content) minmax(0, 1fr);
+  align-items: center;
+  gap: $spacing-3;
+  padding: $spacing-3;
+  text-align: left;
+  border-radius: $radius-md;
+  border: 1px solid $color-border;
+  background-color: $surface;
+  cursor: pointer;
+  @include focus-ring;
+
+  &:hover {
+    background-color: $accent-overlay;
+    border-color: $color-border-strong;
+  }
+}
+
+.grimoireCircle {
+  @include mono-sm($primary-100, $font-weight-bold, 1, 0, center);
+  min-width: $spacing-6;
+  padding: $spacing-1;
+  border-radius: $radius-full;
+  border: 1px solid rgba($primary-100, 0.4);
+}
+
+.grimoireName {
+  @include main-md($color-text, $font-weight-semibold);
+}
+
+.grimoireMeta {
+  @include main-xs($color-text-subtle, $font-weight-regular);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

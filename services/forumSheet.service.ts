@@ -46,11 +46,7 @@ const LABEL_ALIASES: Record<string, string> = {
 // Seções em que cada trecho em negrito é o nome de um item, e o texto que vem
 // depois é a descrição dele. O parser do template espera esses itens na forma
 // "### N. Nome" seguida de "**Descrição:**".
-const ITEM_SECTIONS = new Set([
-  'Habilidades e Características',
-  'Profissões',
-  'Conjuração de Magias',
-]);
+const ITEM_SECTIONS = new Set(['Habilidades e Características', 'Profissões']);
 
 // Marca as linhas que vieram de <strong>. A informação se perde ao remover as
 // tags, mas é ela que distingue o nome de uma habilidade do corpo dela.
@@ -98,7 +94,7 @@ export function parseTopicUrl(raw: string): string {
   return `${url.origin}${url.pathname}${url.search}`;
 }
 
-async function fetchTopicHtml(url: string): Promise<string> {
+export async function fetchTopicHtml(url: string): Promise<string> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
 
@@ -285,6 +281,7 @@ export function normalizeSheetLines(lines: string[]): {
   let proficiencyBonus = 2;
   const skills = new Map<string, boolean>();
   let inventoryStarted = false;
+  let inSpellSlots = false;
   const backpack: string[] = [];
 
   for (const raw of lines) {
@@ -312,10 +309,38 @@ export function normalizeSheetLines(lines: string[]): {
       } else {
         inventoryStarted = false;
       }
+
+      // As magias da ficha do fórum não vêm agrupadas por círculo, mas o
+      // parser do template só lê magia detalhada sob um cabeçalho de círculo.
+      // Este abre a área; cada magia que declarar "Círculo:" sai daqui para o
+      // seu, e o que não declarar fica nos truques.
+      if (mapped === 'Conjuração de Magias') out.push('#### Magias');
       continue;
     }
 
     const match = line.match(/^([^:]{1,40}):\s*(.*)$/);
+
+    // ── Slots de magia ──
+    // A ficha escreve "Slots de Magia:" e lista "• Nível 1: 2"; o parser do
+    // template espera uma tabela de três colunas. A ficha não registra quantos
+    // espaços já foram gastos, então todos entram como disponíveis.
+    if (inSpellSlots) {
+      const slot = line
+        .replace(BULLET, '')
+        .trim()
+        .match(/^(?:n[íi]vel|c[íi]rculo)\s*(\d+)\s*:\s*(\d+)/i);
+      if (slot) {
+        out.push(`| ${slot[1]} | ${slot[2]} | 0 |`);
+        continue;
+      }
+      inSpellSlots = false;
+    }
+    if (match && /^slots de magia$/i.test(match[1].trim())) {
+      out.push('### Slots de Magia');
+      out.push('| Círculo | Total | Usados |');
+      inSpellSlots = true;
+      continue;
+    }
 
     if (ITEM_SECTIONS.has(section)) {
       if (bold) sectionHasBold = true;
@@ -342,6 +367,20 @@ export function normalizeSheetLines(lines: string[]): {
         out.push(`**Descrição:** ${line}`);
         continue;
       }
+    }
+
+    // ── Magias ──
+    // Cada trecho em negrito é o nome de uma magia; o resto são os campos da
+    // ficha dela ("Escola: X; Classes: Y") e, depois de "DESCRIÇÃO:", o texto
+    // corrido. O parser do template já lê tudo isso; aqui só é preciso marcar
+    // onde cada magia começa.
+    if (section === 'Conjuração de Magias') {
+      const text = line.trim();
+      if (!text) continue;
+      // "DESCRIÇÃO:" também vem em negrito, mas não é nome de magia nenhuma.
+      const isDescription = /^descri[çc][ãa]o:?$/i.test(text);
+      out.push(bold && !isDescription ? `- **Nome:** ${text}` : text);
+      continue;
     }
 
     // ── Perícias ──

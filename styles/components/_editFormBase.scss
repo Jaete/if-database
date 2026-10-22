@@ -7,6 +7,7 @@
 // root class — instead this partial exposes one mixin per shared rule
 // body, `@include`d from inside each form's own root selector.
 @use '../globals' as *;
+@use 'sass:color';
 
 @mixin edit-form-section($nth-count: 20) {
   width: 100%;
@@ -114,7 +115,7 @@
   font-weight: bold;
 
   &:hover {
-    color: lighten($error, 10%);
+    color: color.adjust($error, $lightness: 10%);
   }
 }
 

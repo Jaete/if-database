@@ -1,12 +1,16 @@
 import type { IPublicPlayer } from '@/db/players/publicFields';
+import type { IBonus, ISkill } from '@/db/creatures/creatures';
 import type { IStatDetail } from '@/db/citizens/citizen';
-import { modifierOf } from '@/lib/stats';
+import { attributeKeyOf, modifierOf } from '@/lib/stats';
+import type { AttributeKey } from '@/lib/stats';
 
 export const DASH = '—';
 
 // ── Attributes ──────────────────────────────────────────────
 
-export type AttrKey = 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha';
+// Alias do tipo de lib/stats, que é onde o mapeamento nome → atributo mora
+// agora que o servidor também precisa dele.
+export type AttrKey = AttributeKey;
 
 export const ATTRIBUTES: readonly {
   key: AttrKey;
@@ -19,6 +23,43 @@ export const ATTRIBUTES: readonly {
   { key: 'int', abbr: 'INT', label: 'Inteligência' },
   { key: 'wis', abbr: 'SAB', label: 'Sabedoria' },
   { key: 'cha', abbr: 'CAR', label: 'Carisma' },
+];
+
+/**
+ * The identity rows, as the canonical list rather than as whatever happens to
+ * be filled in. Read-only rendering filters the blanks out; edit mode needs the
+ * full list, or a field that is empty today could never be filled from here.
+ */
+export const IDENTITY_FIELDS: readonly { path: string; label: string }[] = [
+  { path: 'age', label: 'Idade' },
+  { path: 'height', label: 'Altura' },
+  { path: 'size', label: 'Tamanho' },
+  { path: 'gender', label: 'Gênero' },
+  { path: 'race', label: 'Raça' },
+  { path: 'type', label: 'Tipo' },
+  { path: 'class', label: 'Classe' },
+  { path: 'alignment', label: 'Alinhamento' },
+  { path: 'family', label: 'Família' },
+  { path: 'clan', label: 'Clã' },
+  { path: 'kingdom', label: 'Reino' },
+  { path: 'deity', label: 'Adoração' },
+];
+
+/** Same idea for the senses, which render as formatted tags when read-only. */
+export const SENSE_FIELDS: readonly {
+  path: string;
+  label: string;
+  meters: boolean;
+}[] = [
+  { path: 'senses.darkvision', label: 'Visão no escuro', meters: true },
+  { path: 'senses.blindsight', label: 'Visão às cegas', meters: true },
+  { path: 'senses.tremorsense', label: 'Sentido sísmico', meters: true },
+  { path: 'senses.truesight', label: 'Visão verdadeira', meters: true },
+  {
+    path: 'senses.passivePerception',
+    label: 'Percepção passiva',
+    meters: false,
+  },
 ];
 
 // Skills are fixed by the system, grouped by the attribute that governs them.
@@ -132,14 +173,7 @@ export const readAttribute = (
   return null;
 };
 
-export const attrFromName = (name?: string): AttrKey | null => {
-  if (!name) return null;
-  const n = normalize(name);
-  const found = ATTRIBUTES.find(
-    (a) => normalize(a.label) === n || normalize(a.abbr) === n
-  );
-  return found?.key ?? null;
-};
+export const attrFromName = attributeKeyOf;
 
 export const sameName = (a?: string, b?: string) =>
   !!a && !!b && normalize(a) === normalize(b);
@@ -174,12 +208,42 @@ export const hasSpellcasting = (player: IPublicPlayer): boolean =>
   typeof player.playerSpellcasting === 'object' &&
   Object.keys(player.playerSpellcasting).length > 0;
 
+// ── Bônus de perícia ────────────────────────────────────────
+
+/**
+ * Parcelas de bônus de uma perícia.
+ *
+ * Documentos anteriores ao detalhamento guardam só o total em `bonus`, sem
+ * origem; eles viram uma parcela única, para a exibição ser a mesma nos dois
+ * casos. Um total zerado não vira parcela nenhuma.
+ */
+export const readBonuses = (entry?: ISkill): IBonus[] => {
+  const detailed = Array.isArray(entry?.bonuses) ? entry.bonuses : [];
+  if (detailed.length > 0) {
+    return detailed.filter((b) => Number.isFinite(b?.value));
+  }
+  const total = entry?.bonus ?? 0;
+  return total ? [{ value: total }] : [];
+};
+
+/** `bonus` é sempre a soma de `bonuses` — é o que o app inteiro já lê. */
+export const sumBonuses = (bonuses: IBonus[]): number =>
+  bonuses.reduce((total, b) => total + (Number(b.value) || 0), 0);
+
+// ── Magias ──────────────────────────────────────────────────
+
+// A lista de campos mora em db/l10n/spells porque o formulário completo do app
+// edita exatamente os mesmos; reexportada aqui para os painéis não precisarem
+// conhecer os dois caminhos.
+export { SPELL_FIELDS, hasSpellDetail } from '@/db/l10n/spells';
+
 // ── Menu ────────────────────────────────────────────────────
 
 export type ScreenId =
   | 'status'
   | 'pericias'
   | 'habilidades'
+  | 'arquetipo'
   | 'magias'
   | 'equipamento'
   | 'profissoes'
@@ -207,6 +271,27 @@ export const countAbilities = (player: IPublicPlayer): number =>
     0
   );
 
+/**
+ * O arquétipo da ficha, quando ele já é escolha de verdade.
+ *
+ * `pickLevel` só vem resolvido quando a classe ligada TEM arquétipo na tabela
+ * (ver services/classArchetypes.service.ts); comparar com o nível é o que
+ * separa um necromante de nível 6, que já escolheu, de um druida de nível 1,
+ * que só escolhe no 3. Até lá não há tela: oferecer um menu que não leva a
+ * decisão nenhuma é pior que não oferecer.
+ */
+export const readArchetype = (player: IPublicPlayer) => {
+  const archetype = player.archetype;
+  const pickLevel = Number(archetype?.pickLevel);
+  if (!Number.isFinite(pickLevel) || pickLevel < 1) return null;
+  if ((player.level ?? 0) < pickLevel) return null;
+  return {
+    name: archetype?.name ?? '',
+    chosen: archetype?.features?.length ?? 0,
+    slots: archetype?.featureSlots ?? 0,
+  };
+};
+
 export const readProfessions = (player: IPublicPlayer) =>
   Array.isArray(player.professions)
     ? player.professions.filter((p) => p?.name)
@@ -215,13 +300,22 @@ export const readProfessions = (player: IPublicPlayer) =>
 export const countEquipped = (player: IPublicPlayer): number =>
   EQUIPMENT_SLOTS.filter((s) => readItem(player.equipment?.[s.key])).length;
 
-export const buildMenu = (player: IPublicPlayer): IMenuItem[] => {
+/**
+ * `editable` destrava "Magias" para quem ainda não conjura: sem isso, um
+ * personagem que acabou de virar conjurador nunca alcançaria a tela onde se
+ * preenche a conjuração.
+ */
+export const buildMenu = (
+  player: IPublicPlayer,
+  editable = false
+): IMenuItem[] => {
   const caster = hasSpellcasting(player);
   const proficient = (player.proficiencies?.skills ?? []).filter(
     (s) => s.proficient
   ).length;
   const abilities = countAbilities(player);
   const professions = readProfessions(player).length;
+  const archetype = readArchetype(player);
 
   return [
     {
@@ -245,6 +339,15 @@ export const buildMenu = (player: IPublicPlayer): IMenuItem[] => {
       meta: String(abilities),
       disabled: false,
     },
+    // Entra entre Habilidades e Magias, e só para quem já alcançou o nível de
+    // escolha da classe. `filter(Boolean)` lá embaixo tira o buraco.
+    archetype && {
+      id: 'arquetipo' as const,
+      label: 'Arquétipo',
+      desc: archetype.name || 'Escolha o arquétipo da classe',
+      meta: `${archetype.chosen}/${archetype.slots}`,
+      disabled: false,
+    },
     {
       id: 'magias',
       label: 'Magias',
@@ -252,7 +355,7 @@ export const buildMenu = (player: IPublicPlayer): IMenuItem[] => {
         ? 'Espaços por círculo e magias preparadas'
         : 'Sem conjuração',
       meta: caster ? `CD ${player.playerSpellcasting?.saveDC ?? DASH}` : DASH,
-      disabled: !caster,
+      disabled: !caster && !editable,
     },
     {
       id: 'equipamento',
@@ -275,7 +378,7 @@ export const buildMenu = (player: IPublicPlayer): IMenuItem[] => {
       meta: '',
       disabled: false,
     },
-  ];
+  ].filter(Boolean) as IMenuItem[];
 };
 
 export const tabId = (uid: string, id: ScreenId) => `${uid}-tab-${id}`;

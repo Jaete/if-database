@@ -18,9 +18,9 @@ export type Transition = 'none' | 'enter' | 'enterBack';
 // Keep in sync with the compact container breakpoint in playerSheet.scss.
 const COMPACT_MAX_WIDTH = 560;
 
-export const usePlayerSheet = (player: IPublicPlayer) => {
+export const usePlayerSheet = (player: IPublicPlayer, editable = false) => {
   const uid = useId();
-  const menu = buildMenu(player);
+  const menu = buildMenu(player, editable);
   const count = menu.length;
 
   const [active, setActive] = useState(0);
@@ -173,6 +173,12 @@ export const usePlayerSheet = (player: IPublicPlayer) => {
 
   const handlePanelKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     const target = e.target as HTMLElement;
+
+    // Um modal aberto por um painel é filho dele na árvore do React, mas vive
+    // no body — então as teclas dele chegam aqui por propagação do portal. Sem
+    // esta guarda, o Esc que fecha o modal também voltaria para o menu.
+    if (panelRef.current && !panelRef.current.contains(target)) return;
+
     const list = target.closest<HTMLElement>('[data-listnav]');
 
     if (e.key === 'Escape' || (e.key === 'ArrowLeft' && !list)) {

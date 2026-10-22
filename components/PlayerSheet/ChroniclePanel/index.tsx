@@ -4,6 +4,8 @@ import Block from '../Block';
 import Portrait from '../Portrait';
 import { formatDate, isHttpUrl, splitLines } from '../sheetData';
 import ChroniclePanelHandles from './handles';
+import { useEditing } from '../EditingContext';
+import EditableText from '../EditableText';
 
 interface IProps {
   player: IPublicPlayer;
@@ -11,6 +13,7 @@ interface IProps {
 
 const ChroniclePanel = ({ player }: IProps) => {
   const handles = useCssHandles(ChroniclePanelHandles);
+  const { editable } = useEditing();
 
   const appearance = splitLines(player.appearance);
   const backstory = splitLines(player.backstory);
@@ -22,37 +25,59 @@ const ChroniclePanel = ({ player }: IProps) => {
   const hasRegistry = !!player.ownerUsername || !!topicUrl || !!importedAt;
   const hasText = appearance.length > 0 || backstory.length > 0;
 
+  // Em edição os dois textos longos viram uma textarea cada, com o conteúdo
+  // cru: quebrar em parágrafos é apresentação, e editar o texto já quebrado
+  // perderia as quebras de linha originais.
+  const prose = (
+    path: 'appearance' | 'backstory',
+    label: string,
+    paragraphs: string[]
+  ) => (
+    <div className={handles.sheetProse}>
+      <EditableText
+        path={path}
+        label={label}
+        as="multiline"
+        placeholder={`Sem ${label.toLowerCase()}`}
+      >
+        {paragraphs.map((p, i) => (
+          <p key={i}>{p}</p>
+        ))}
+      </EditableText>
+    </div>
+  );
+
   return (
     <>
       <div className={handles.sheetChronicle}>
         <Portrait image={player.image} name={player.name} variant="chronicle" />
         <div>
-          {player.subtitle && (
-            <span className={handles.sheetEpithet}>{player.subtitle}</span>
+          {(editable || player.subtitle) && (
+            <span className={handles.sheetEpithet}>
+              <EditableText
+                path="subtitle"
+                label="Epíteto"
+                placeholder="Epíteto"
+              >
+                {player.subtitle}
+              </EditableText>
+            </span>
           )}
-          {appearance.length > 0 && (
+          {(editable || appearance.length > 0) && (
             <Block title="Aparência">
-              <div className={handles.sheetProse}>
-                {appearance.map((p, i) => (
-                  <p key={i}>{p}</p>
-                ))}
-              </div>
+              {prose('appearance', 'Aparência', appearance)}
             </Block>
           )}
         </div>
       </div>
 
-      {backstory.length > 0 && (
+      {(editable || backstory.length > 0) && (
         <Block title="História">
-          <div className={handles.sheetProse}>
-            {backstory.map((p, i) => (
-              <p key={i}>{p}</p>
-            ))}
-          </div>
+          {prose('backstory', 'História', backstory)}
         </Block>
       )}
 
-      {!hasText && (
+      {!hasText && !editable && (
         <p className={handles.sheetEmpty}>Nenhuma crônica registrada.</p>
       )}
 

@@ -10,6 +10,9 @@ export const NAV_ITEMS = [
   { href: '/monsters', label: 'Bestiário' },
   { href: '/citizens', label: 'Cidadãos' },
   { href: '/players', label: 'Jogadores' },
+  { href: '/classes', label: 'Classes' },
+  { href: '/spells', label: 'Grimório' },
+  { href: '/talents', label: 'Talentos' },
 ] as const;
 
 export const useNavDrawer = () => {

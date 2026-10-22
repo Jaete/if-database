@@ -1,4 +1,5 @@
 @use '../../styles/globals' as *;
+@use 'sass:color';
 @use './editFormBase' as *;
 
 .citizenEditForm {
@@ -55,6 +56,54 @@
     @include edit-form-textarea;
   }
 
+  // O seletor de classe usa `.fieldGroup`/`.label`/`.select` acima; só a
+  // linha de aviso do modo texto livre é dele.
+  .classSelectHint {
+    margin-top: $spacing-1;
+    @include main-xs($neutral-1000, normal, 1.4);
+  }
+
+  // ─── Arquétipo ─────────────────────────────────────
+
+  .archetypeHint {
+    margin-top: $spacing-1;
+    @include main-xs($neutral-1000, normal, 1.4);
+  }
+
+  // As habilidades escolhidas: poucas por definição (o teto vai de 1 a 6),
+  // então lista simples em vez da linha de chips dos campos de lista livre.
+  .archetypeList {
+    @include flex-col-start;
+    gap: $spacing-1;
+    width: 100%;
+    margin: 0 0 $spacing-2;
+    padding: 0;
+    list-style: none;
+  }
+
+  .archetypeItem {
+    @include flex-row-between;
+    width: 100%;
+    padding: $spacing-1 $spacing-2;
+    border: 1px solid $neutral-400;
+    border-radius: $radius-sm;
+    @include main-sm($color-text, $font-weight-regular);
+  }
+
+  .archetypeRemove {
+    border: none;
+    background: none;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0 $spacing-1;
+    @include main-md($neutral-1000, $font-weight-bold);
+    @include focus-ring($primary-100);
+
+    &:hover {
+      color: $error;
+    }
+  }
+
   // ─── Stat Table ────────────────────────────────────
 
   .statTable {
@@ -95,7 +144,7 @@
       }
 
       &:hover {
-        background-color: lighten($neutral-200, 2%);
+        background-color: color.adjust($neutral-200, $lightness: 2%);
       }
     }
 
@@ -205,6 +254,57 @@
 
   .removeButton {
     @include edit-form-remove-button;
+  }
+
+  // ─── Magias (lista editada por modal) ───────────────
+
+  .spellRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $spacing-3;
+    min-width: 0;
+  }
+
+  .spellRowName {
+    display: block;
+    @include main-md($color-text, $font-weight-medium);
+  }
+
+  // Resumo do que já está preenchido, para não ser preciso abrir o modal só
+  // para lembrar o que a magia tem.
+  .spellRowMeta {
+    display: block;
+    margin-top: $spacing-1;
+    @include main-xs($color-text-muted, $font-weight-regular, 1.5);
+  }
+
+  .spellRowEdit {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    padding: $spacing-2;
+    border: 1px solid $color-border;
+    border-radius: $radius-sm;
+    background: transparent;
+    color: $color-text-muted;
+    cursor: pointer;
+    transition:
+      color 0.2s ease,
+      border-color 0.2s ease;
+
+    @include focus-ring($primary-100);
+
+    &:hover {
+      color: $gold-100;
+      border-color: $gold-300;
+    }
+  }
+
+  .spellEmpty {
+    margin-bottom: $spacing-3;
+    @include main-sm($color-text-muted, $font-weight-regular);
   }
 
   .addButton {
@@ -407,4 +507,101 @@
     font-variant-numeric: tabular-nums;
     @include mono-sm($gold-100, $font-weight-semibold, $align: center);
   }
+}
+
+// ── Grimório: magias ligadas à ficha ──────────────────────
+// Sem import próprio no SpellLinkList: ele divide a folha do formulário que o
+// contém, como o CLAUDE.md pede para um sub-componente de domínio.
+
+.linkList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-2;
+}
+
+.linkRow {
+  display: flex;
+  align-items: center;
+  gap: $spacing-3;
+  min-width: 0;
+}
+
+.linkCircle {
+  @include mono-sm($primary-100, $font-weight-bold, 1, 0, center);
+  min-width: $spacing-6;
+  padding: $spacing-1;
+  border-radius: $radius-full;
+  border: 1px solid rgba($primary-100, 0.4);
+  flex-shrink: 0;
+}
+
+.linkName {
+  @include main-sm($color-text, $font-weight-semibold);
+}
+
+.linkMeta,
+.linkOptionMeta {
+  @include main-xs($color-text-subtle, $font-weight-regular);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.linkEmpty {
+  @include main-sm($color-text-muted, $font-weight-regular);
+  margin-bottom: $spacing-2;
+}
+
+.linkPicker {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-3;
+  min-width: 0;
+}
+
+.linkSearch {
+  padding: $spacing-3;
+  border-radius: $radius-md;
+  border: 1px solid $color-border;
+  background-color: $surface;
+  @include main-md($color-text, $font-weight-regular);
+  @include premium-input-focus;
+}
+
+.linkOptions {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-1;
+  // O catálogo tem centenas de magias; a lista rola dentro do modal em vez de
+  // esticá-lo para fora da tela.
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.linkOption {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto minmax(6rem, max-content) minmax(0, 1fr);
+  align-items: center;
+  gap: $spacing-3;
+  padding: $spacing-2 $spacing-3;
+  text-align: left;
+  border-radius: $radius-md;
+  border: 1px solid transparent;
+  background: none;
+  cursor: pointer;
+  @include focus-ring;
+
+  &:hover {
+    background-color: $accent-overlay;
+    border-color: $color-border;
+  }
+}
+
+.linkLoading {
+  @include main-sm($color-text-muted, $font-weight-regular);
+  padding: $spacing-3;
 }

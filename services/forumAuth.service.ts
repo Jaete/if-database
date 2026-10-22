@@ -120,6 +120,69 @@ export function verifyVerifyTicket(
   }
 }
 
+// ===== EMBED (sessão da ficha embutida no fórum) =====
+//
+// Terceiro mecanismo, distinto dos dois acima. O ticket de SSO e o nonce de
+// verify são credenciais de uso único que duram segundos; este é a sessão que
+// nasce DEPOIS de o nonce provar a identidade, e é o que evita reescrever o
+// campo de perfil a cada visita.
+//
+// Vive num cookie `SameSite=None; Partitioned` porque o iframe roda sob o
+// fórum como site de topo — ver services/embedAuth.service.ts.
+
+const EMBED_PURPOSE = 'forum-embed';
+const EMBED_EXPIRY = Time.days(3);
+
+export interface EmbedClaim {
+  forumUserId: number;
+  username: string;
+}
+
+interface EmbedPayload extends EmbedClaim {
+  purpose: string;
+  exp: number;
+}
+
+// A role NÃO entra no token, de propósito: ela é relida do banco a cada
+// requisição (getEmbedSession), para que promover ou rebaixar alguém tenha
+// efeito imediato mesmo com um cookie de três dias ainda válido.
+export function signEmbedToken(claim: EmbedClaim): string {
+  const payload: EmbedPayload = {
+    ...claim,
+    purpose: EMBED_PURPOSE,
+    exp: Math.floor(Date.now() / 1000) + EMBED_EXPIRY,
+  };
+  const body = Buffer.from(JSON.stringify(payload)).toString('base64url');
+  return `${body}.${sign(body)}`;
+}
+
+export function verifyEmbedToken(token: string): EmbedClaim | null {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 2) return null;
+
+    const [body, signature] = parts;
+    const sigBuf = Buffer.from(signature, 'base64url');
+    const expectedBuf = Buffer.from(sign(body), 'base64url');
+
+    if (sigBuf.length !== expectedBuf.length) return null;
+    if (!timingSafeEqual(sigBuf, expectedBuf)) return null;
+
+    const payload: EmbedPayload = JSON.parse(
+      Buffer.from(body, 'base64url').toString('utf-8')
+    );
+
+    if (payload.purpose !== EMBED_PURPOSE) return null;
+    if (payload.exp < Math.floor(Date.now() / 1000)) return null;
+
+    return { forumUserId: payload.forumUserId, username: payload.username };
+  } catch {
+    return null;
+  }
+}
+
+export { EMBED_EXPIRY };
+
 // ===== AVATAR =====
 
 // O fórum serve todo avatar pelo próprio CDN, inclusive os hospedados fora

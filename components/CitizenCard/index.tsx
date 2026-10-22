@@ -24,6 +24,14 @@ interface IProps {
   onEditInNewTab?: (citizen: ICitizen) => void;
   // Sobrescreve o "raça · classe" padrão. Jogadores usam para mostrar o dono.
   subtitle?: string;
+  /**
+   * Itens acrescentados ao fim do menu de contexto.
+   *
+   * Entram por prop para o cartão compartilhado não precisar conhecer o que é
+   * exclusivo de jogador — copiar a etiqueta do fórum, por exemplo, só faz
+   * sentido para quem tem ficha embutida lá.
+   */
+  menuItems?: IContextMenuItem[];
 }
 
 const CitizenCard = ({
@@ -33,6 +41,7 @@ const CitizenCard = ({
   onDelete,
   onEditInNewTab,
   subtitle: subtitleOverride,
+  menuItems,
 }: IProps) => {
   const handles = useCssHandles(CitizenCardHandles);
   const { canEdit } = useAuth();
@@ -72,6 +81,7 @@ const CitizenCard = ({
       onClick: () => onEditInNewTab?.(citizen),
       disabled: !canEdit,
     },
+    ...(menuItems ?? []),
   ];
 
   return (
@@ -95,10 +105,18 @@ const CitizenCard = ({
         <div className={handles.ccCardImageOverlay} />
       </div>
       <div className={handles.ccCardInfo}>
-        <div className={handles.ccCardSubtitle}>
+        {/* Os dois são cortados por CSS para todos os cartões terem a mesma
+            altura; o `title` é o que devolve o texto inteiro a quem precisa
+            dele. */}
+        <div
+          className={handles.ccCardSubtitle}
+          title={subtitleOverride ?? subtitle}
+        >
           {subtitleOverride ?? subtitle}
         </div>
-        <h3 className={handles.ccCardName}>{citizen.name}</h3>
+        <h3 className={handles.ccCardName} title={citizen.name}>
+          {citizen.name}
+        </h3>
         <div className={handles.ccCardActions}>
           {canEdit && (
             <button

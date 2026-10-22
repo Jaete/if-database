@@ -25,6 +25,21 @@ const MainMenu = () => {
             Cidadãos
           </Link>
         </div>
+        <div className={handles.menuItem}>
+          <Link href="/classes" className={handles.menuLink} prefetch={false}>
+            Classes
+          </Link>
+        </div>
+        <div className={handles.menuItem}>
+          <Link href="/spells" className={handles.menuLink} prefetch={false}>
+            Grimório
+          </Link>
+        </div>
+        <div className={handles.menuItem}>
+          <Link href="/talents" className={handles.menuLink} prefetch={false}>
+            Talentos
+          </Link>
+        </div>
       </nav>
     </div>
   );

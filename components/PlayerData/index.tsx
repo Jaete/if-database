@@ -3,6 +3,7 @@
 import type IPlayer from '@/db/players/player';
 import { useCssHandles } from '@/hooks/useCssHandles';
 import CitizenData from '../CitizenData';
+import CopyFichaTag from '../CopyFichaTag';
 import StatSection from '../StatSection';
 import InfoRow from '../InfoRow';
 import PlayerDataHandles from './handles';
@@ -20,6 +21,9 @@ const PlayerData = ({ player }: IProps) => {
 
   return (
     <>
+      {/* Primeira coisa do painel: é o que se vem buscar aqui quando a ficha
+          vai ser postada no fórum. */}
+      {player._id && <CopyFichaTag playerId={String(player._id)} />}
       {hasOrigin && (
         <StatSection title="Jogador">
           {player.ownerUsername && (

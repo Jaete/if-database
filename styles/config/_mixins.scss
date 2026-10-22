@@ -186,3 +186,43 @@
   }
 }
 
+// ── Espaços de magia ────────────────────────────────────────
+//
+// Um losango por espaço, fechando um quadrado a cada quatro: quatro é o
+// quadrado inteiro, três deixam faltando o canto de baixo à direita, dois
+// viram a linha do meio e um fica centrado.
+//
+// Mora aqui, e não na folha de um dos dois, porque é o mesmo desenho na
+// tabela de progressão da classe — onde o espaço é concedido — e na ficha,
+// onde ele é gasto. Duas cópias da geometria divergiriam na primeira correção.
+@mixin slot-grid($size: 0.5rem, $gap: $spacing-2) {
+    display: grid;
+    // Grade de duas colunas, e não flex com quebra: a quebra dependeria da
+    // soma dos tamanhos caber na linha, e com dois losangos mais o vão dando
+    // exatamente a largura, qualquer arredondamento empilha tudo numa coluna
+    // só. A grade põe dois por linha porque foi mandada, não porque coube.
+    grid-template-columns: repeat(2, $size);
+    gap: $gap;
+    justify-content: center;
+    // Duas linhas de altura mínima: é o que permite centrar verticalmente um
+    // bloco de um ou dois espaços dentro da mesma caixa dos de quatro.
+    align-content: center;
+    min-height: $size * 2 + $gap;
+
+    // Dois e três saem pelo fluxo natural da grade. Só o espaço sozinho
+    // precisa ser dito: sem isto ele encostaria na coluna da esquerda.
+    > *:only-child {
+        grid-column: 1 / -1;
+        justify-self: center;
+    }
+}
+
+@mixin slot-pip($size: 0.5rem, $color: $gold-300) {
+    // Explícito para a geometria não depender do reset global: a largura da
+    // coluna da grade é exatamente $size, e a borda tem que caber dentro.
+    box-sizing: border-box;
+    width: $size;
+    height: $size;
+    transform: rotate(45deg);
+    border: 1px solid $color;
+}

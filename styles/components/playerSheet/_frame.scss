@@ -15,8 +15,12 @@ body:has(.playerSheetStage) {
   container: playerSheet / inline-size;
   position: relative;
   height: min(56.25rem, 100dvh);
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  // Coluna flex, e não um grid de linhas fixas: as faixas opcionais (estilo de
+  // narração, barra de salvar) entram e saem conforme a permissão, e um
+  // `grid-template-rows` com número fixo de trilhas faria a linha flexível
+  // cair no filho errado quando a contagem muda.
+  display: flex;
+  flex-direction: column;
   background: $surface;
   border-radius: $radius-xl;
   overflow: hidden;
@@ -30,6 +34,7 @@ body:has(.playerSheetStage) {
 }
 
 .playerSheetBody {
+  flex: 1;
   display: grid;
   grid-template-columns: $rail-width minmax(0, 1fr);
   min-height: 0;

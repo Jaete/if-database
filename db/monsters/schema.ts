@@ -54,7 +54,15 @@ const MonsterSchema = new Schema<IMonster>(
           name: { type: String },
           value: { type: Number },
           proficient: { type: Boolean },
+          // `bonus` é o total; `bonuses` detalha de onde ele vem. Sem esta
+          // declaração o Mongoose descartaria o detalhamento na gravação.
           bonus: { type: Number },
+          bonuses: [
+            {
+              value: { type: Number },
+              source: { type: String },
+            },
+          ],
         },
       ],
     },

@@ -19,6 +19,13 @@ const ID_PREFIX = 'section-rail-';
  * Isso acompanha sozinho as seções condicionais (Drops e Níveis de Evolução só
  * existem para monstro, Detalhes do Cidadão só para cidadão), serve aos dois
  * formulários e dá uma aba de graça a qualquer seção nova.
+ *
+ * A varredura se repete a cada mudança na árvore, e não só no primeiro quadro:
+ * há seção que decide se existe depois de uma busca — o Arquétipo só se mostra
+ * quando o catálogo da classe diz que a ficha já escolhe um — e chega tarde
+ * demais para a primeira passada. Pior: os ids são posicionais, então uma
+ * seção que entra no meio desloca todas as abas seguintes em relação ao que
+ * elas rotulam.
  */
 export const useSectionRail = (
   containerRef: React.RefObject<HTMLElement | null>,
@@ -40,10 +47,12 @@ export const useSectionRail = (
     }
 
     let observer: IntersectionObserver | null = null;
+    let frame = 0;
+    // A assinatura evita refazer tudo a cada mexida no formulário: só a
+    // entrada ou saída de uma seção — ou a troca de um título — muda a régua.
+    let signature = '';
 
-    // As seções começam em `opacity: 0` e só aparecem pela animação slideUp
-    // (_editFormBase.scss), então a varredura espera o primeiro quadro.
-    const frame = requestAnimationFrame(() => {
+    const scan = () => {
       const nodes = Array.from(
         container.querySelectorAll<HTMLElement>(SECTION_SELECTOR)
       );
@@ -56,10 +65,21 @@ export const useSectionRail = (
         return { id, label: title || `Seção ${index + 1}` };
       });
 
+      const next = found.map((entry) => entry.label).join('|');
+      if (next === signature) return;
+      signature = next;
+
       setSections(found);
-      setActiveId(found[0]?.id ?? null);
+      // A seção ativa é preservada quando sobrevive à nova varredura: perder o
+      // lugar porque uma seção apareceu lá em cima seria pior que não
+      // atualizar.
+      setActiveId((prev) =>
+        found.some((entry) => entry.id === prev) ? prev : (found[0]?.id ?? null)
+      );
       ratiosRef.current = new Map();
 
+      observer?.disconnect();
+      observer = null;
       if (found.length === 0) return;
 
       // O root precisa ser o container de rolagem do modal: contra a viewport o
@@ -88,10 +108,23 @@ export const useSectionRail = (
       );
 
       nodes.forEach((node) => observer?.observe(node));
+    };
+
+    // As seções começam em `opacity: 0` e só aparecem pela animação slideUp
+    // (_editFormBase.scss), então a varredura espera o primeiro quadro.
+    frame = requestAnimationFrame(scan);
+
+    // Só `childList`: a varredura escreve `node.id`, e observar atributos
+    // faria ela se disparar sozinha em laço.
+    const mutations = new MutationObserver(() => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(scan);
     });
+    mutations.observe(container, { childList: true, subtree: true });
 
     return () => {
       cancelAnimationFrame(frame);
+      mutations.disconnect();
       observer?.disconnect();
     };
   }, [containerRef, isEnabled]);

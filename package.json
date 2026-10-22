@@ -11,10 +11,12 @@
     "lint:staged": "lint-staged",
     "format": "prettier --write .",
     "type-check": "tsc --noEmit",
+    "test:parser": "npx tsx __tests__/classTopic.test.ts",
     "seed:monsters": "npx tsx ./scripts/seedMonsters.ts",
     "seed:admin": "npx tsx ./scripts/seedAdmin.ts",
     "backfill:provider": "npx tsx ./scripts/backfillUserProvider.ts",
     "check-db": "npx tsx ./scripts/checkDb.ts",
+    "link:classes": "npx tsx ./scripts/linkCharacterClasses.ts",
     "prepare": "husky"
   },
   "dependencies": {

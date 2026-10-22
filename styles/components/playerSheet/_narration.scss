@@ -1,0 +1,149 @@
+@use '../../../styles/globals' as *;
+@use 'vars' as *;
+
+// Faixa "Estilo de narração", entre o cabeçalho e o corpo da ficha. Como o
+// resto da ficha, sem blocos `@include light`: o embed é sempre escuro.
+.sheetNarration {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-2 $spacing-3;
+  align-items: center;
+  padding: $spacing-2 $spacing-4;
+  border-top: 1px solid $color-border;
+  border-bottom: 1px solid $color-border;
+  background: $accent-overlay;
+}
+
+.sheetNarrationKey {
+  @include caption($color-text-muted, $font-weight-semibold);
+}
+
+// Prévia de uma linha só: o texto inteiro é do modal, e deixá-lo quebrar aqui
+// empurraria o corpo da ficha para baixo.
+.sheetNarrationPreview {
+  flex: 1 1 $spacing-20;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+
+  @include main-xs($color-text-subtle, $font-weight-regular);
+}
+
+.sheetNarrationOpen {
+  padding: $spacing-1 $spacing-3;
+  border: 1px solid $color-border-strong;
+  border-radius: $radius-full;
+  background: transparent;
+  cursor: pointer;
+  white-space: nowrap;
+
+  @include main-xs($color-text-muted, $font-weight-medium);
+  @include focus-ring($primary-100);
+
+  &:hover {
+    border-color: $primary-100;
+    background: $accent-overlay-hover;
+    color: $color-text;
+  }
+}
+
+// ── Conteúdo do modal ───────────────────────────────────────
+
+.sheetNarrationBody {
+  @include flex-col-start;
+  gap: $spacing-4;
+  width: 100%;
+}
+
+.sheetNarrationText {
+  @include main-md($color-text, $font-weight-regular, 1.7);
+
+  p + p {
+    margin-top: $spacing-3;
+  }
+}
+
+.sheetNarrationEmpty {
+  @include main-sm($color-text-subtle, $font-weight-regular);
+}
+
+// O disclaimer é o motivo de a edição ser um modal, então tem peso visual de
+// conteúdo, não de nota de rodapé.
+.sheetNarrationNote {
+  width: 100%;
+  padding: $spacing-3 $spacing-4;
+  border-left: 2px solid $primary-100;
+  border-radius: $radius-sm;
+  background: $surface-raised;
+
+  @include main-sm($color-text-muted, $font-weight-regular, 1.6);
+
+  p + p {
+    margin-top: $spacing-2;
+  }
+
+  b {
+    color: $color-text;
+    font-weight: $font-weight-semibold;
+  }
+}
+
+.sheetNarrationNoteTitle {
+  display: block;
+  margin-bottom: $spacing-2;
+
+  @include caption($color-text, $font-weight-semibold);
+}
+
+.sheetNarrationArea {
+  width: 100%;
+  min-height: $spacing-20 * 3;
+  padding: $spacing-3;
+  border: 1px solid $color-border;
+  border-radius: $radius-sm;
+  background: $surface-raised;
+  color: $color-text;
+  resize: vertical;
+
+  @include main-sm($color-text, $font-weight-regular, 1.6);
+  @include premium-input-focus;
+}
+
+.sheetNarrationActions {
+  @include flex-row-end;
+  gap: $spacing-3;
+  width: 100%;
+}
+
+.sheetNarrationCancel,
+.sheetNarrationSave {
+  padding: $spacing-2 $spacing-4;
+  border-radius: $radius-sm;
+  cursor: pointer;
+
+  @include main-sm($color-text, $font-weight-semibold);
+  @include focus-ring($primary-100);
+}
+
+.sheetNarrationCancel {
+  border: 1px solid $color-border;
+  background: transparent;
+  color: $color-text-muted;
+
+  &:hover {
+    background: $accent-overlay;
+    color: $color-text;
+  }
+}
+
+.sheetNarrationSave {
+  border: 1px solid $primary-100;
+  background: $primary-100;
+  color: $neutral-100;
+
+  &:hover {
+    background: $primary-200;
+    border-color: $primary-200;
+  }
+}

@@ -1,45 +1,61 @@
-# IF Database - Monster Bestiary
+# IF Database — Bestiário de Terralém
 
-Um banco de dados de monstros para RPG, construído com Next.js e MongoDB.
+Base de dados e editor de conteúdo do **Isekai Fantasy**, um sistema de RPG
+caseiro. É uma aplicação Next.js que guarda criaturas, cidadãos, personagens de
+jogador, classes e magias em MongoDB — e também publica a ficha de personagem
+dentro do fórum da comunidade, via iframe.
 
-## 📖 Sobre o Projeto
+A interface é toda em **pt-BR**.
 
-Este projeto é um bestiário digital que permite visualizar, criar, editar e gerenciar informações de monstros para jogos de RPG. Cada monstro inclui detalhes completos como estatísticas, habilidades, sentidos e drops.
+## 📖 Sobre o projeto
 
-## ✨ Funcionalidades
+O projeto começou como um bestiário de monstros e cresceu até virar o
+back-office do sistema inteiro. Hoje ele tem duas frentes:
 
-- **Listagem de Monstros**: Visualize todos os monstros cadastrados em formato de grid
-- **Detalhes do Monstro**: Veja informações completas de cada monstro em um drawer lateral
-- **CRUD Completo**: Crie, edite e exclua monstros
-- **Dados Estruturados**:
-  - Estatísticas (FOR, DES, CON, INT, SAB, CAR)
-  - Habilidades e ações especiais
-  - Sentidos e percepções
-  - Drops e recompensas
+- **Editor** — rotas `/monsters`, `/citizens`, `/classes`, `/spells` e
+  `/players`. Uso interno, com login e papéis (`admin`, `editor`, `viewer`).
+- **Visualização embutida** — rotas `/embed/...`, pensadas para rodar dentro do
+  fórum: a ficha de personagem (com edição opcional) e a árvore de evolução.
+
+Além do CRUD manual, boa parte do conteúdo entra por **importação**: tópicos do
+fórum (fichas, classes, magias) e Markdown/`.docx` de criaturas são parseados
+para o formato do banco.
+
+## ✨ Módulos
+
+| Módulo                  | Rota                           | Conteúdo                                                                   |
+| ----------------------- | ------------------------------ | -------------------------------------------------------------------------- |
+| **Bestiário**           | `/monsters`                    | Criaturas com stats, perícias, sentidos, defesas, drops, CR/XP e perks     |
+| **Cidadãos**            | `/citizens`                    | Fichas de NPC/cidadão: stats com breakdown (base + raça + classe), Chi, XP |
+| **Jogadores**           | `/players`                     | Cidadãos com dono (conta do fórum) e tópico de origem                      |
+| **Classes**             | `/classes`                     | Progressão de 20 níveis, concessões por nível e slots de magia             |
+| **Grimório**            | `/spells`                      | Magias como entidade própria, ligadas a classes                            |
+| **Árvores de evolução** | modal e `/embed/arvore/[slug]` | Árvore de evoluções de uma criatura                                        |
+
+Cada entidade tem listagem em grid, drawer/modal de detalhe, formulário de
+edição e busca. A ficha de jogador (`/embed/jogador/[id]`) é um subsistema à
+parte, com UI em estilo de menu de RPG.
 
 ## 🚀 Tecnologias
 
-- **Frontend**: Next.js 16, React 19, TypeScript
-- **Banco de Dados**: MongoDB com Mongoose
-- **Estilização**: Sass/SCSS
-- **Ferramentas de Qualidade**:
-  - ESLint para linting
-  - Prettier para formatação
-  - Commitlint para padronização de commits
-  - Husky + lint-staged para hooks de pré-commit
+- **Framework:** Next.js 16 (App Router), React 19, TypeScript
+- **Banco:** MongoDB com Mongoose 9
+- **Estilização:** Sass/SCSS (sem CSS Modules, sem CSS-in-JS, sem Tailwind)
+- **Parsing de importação:** `mammoth` para `.docx` (as rotas de Markdown)
+- **Qualidade:** ESLint, Prettier, Commitlint, Husky + lint-staged
 
 ## 📋 Pré-requisitos
 
-- Node.js (versão 18 ou superior)
-- MongoDB instalado localmente ou acesso a uma instância remota
-- npm ou yarn
+- Node.js 20.9 ou superior (exigência do Next.js 16)
+- MongoDB local ou uma instância remota (ex.: Atlas)
+- npm (há `yarn.lock` no repo, mas os scripts assumem npm)
 
 ## 🔧 Instalação
 
 1. **Clone o repositório**
 
    ```bash
-   git clone <url-do-repositorio>
+   git clone git@github.com:Jaete/if-database.git
    cd if-database
    ```
 
@@ -51,79 +67,109 @@ Este projeto é um bestiário digital que permite visualizar, criar, editar e ge
 
 3. **Configure as variáveis de ambiente**
 
-   Copie o arquivo `.env.example` para `.env.local`:
+   Copie o exemplo e preencha:
 
    ```bash
    cp .env.example .env.local
    ```
 
-   Edite o `.env.local` e adicione sua string de conexão com o MongoDB:
+   A connection string **não** é uma variável só: `lib/db.ts` monta a URI a
+   partir das partes. `MONGODB_CONNECTION` é só o esquema, já terminando em
+   `//` (ex.: `mongodb+srv:`).
 
    ```env
-   MONGODB_CONNECTION=mongodb://localhost:27017/monster-database
+   MONGODB_CONNECTION=mongodb+srv:
+   MONGODB_USER=usuario
+   MONGODB_PASSWORD=senha
+   MONGODB_HOST=cluster.exemplo.mongodb.net
+   MONGODB_DATABASE=if-database
+   MONGODB_APPNAME=if-database
+
+   JWT_SECRET=uma-string-longa-e-aleatoria
+   ADMIN_USERNAME=admin
+   ADMIN_PASSWORD=senha-do-admin
+
+   FORUM_ORIGIN=https://isekaifantasy.forumbrasil.net
+   NEXT_PUBLIC_FORUM_SSO_URL=https://isekaifantasy.forumbrasil.net/?ifdb_sso=1
    ```
 
-4. **Popule o banco de dados (opcional)**
+   Os scripts carregam tanto `.env` quanto `.env.local` — ambos são ignorados
+   pelo git.
 
-   Para adicionar dados iniciais de exemplo:
+4. **Popule o banco (opcional)**
 
    ```bash
-   npm run seed
+   npm run seed:monsters   # ⚠️ apaga e recria as criaturas a partir da fonte
+   npm run seed:admin      # cria o usuário admin com ADMIN_USERNAME/ADMIN_PASSWORD
    ```
 
 ## 🎯 Uso
 
 ### Desenvolvimento
 
-Inicie o servidor de desenvolvimento:
-
 ```bash
 npm run dev
 ```
 
-Acesse [http://localhost:3000](http://localhost:3000) no seu navegador.
+Acesse [http://localhost:3000](http://localhost:3000).
 
-### Comandos Disponíveis
+### Comandos disponíveis
 
-| Comando              | Descrição                                       |
-| -------------------- | ----------------------------------------------- |
-| `npm run dev`        | Inicia o servidor de desenvolvimento            |
-| `npm run dev:https`  | Servidor de desenvolvimento em HTTPS (SSO)      |
-| `npm run build`      | Compila o projeto para produção                 |
-| `npm run start`      | Inicia o servidor em modo de produção           |
-| `npm run lint`       | Executa o linter no projeto                     |
-| `npm run format`     | Formata o código com Prettier                   |
-| `npm run type-check` | Verifica tipos TypeScript sem compilar          |
-| `npm run seed`       | Popula o banco de dados com monstros de exemplo |
+| Comando                     | Descrição                                                              |
+| --------------------------- | ---------------------------------------------------------------------- |
+| `npm run dev`               | Servidor de desenvolvimento                                            |
+| `npm run dev:https`         | Servidor em HTTPS (exigido para testar o SSO do fórum)                 |
+| `npm run build`             | Build de produção                                                      |
+| `npm run start`             | Servidor em modo de produção                                           |
+| `npm run lint`              | ESLint                                                                 |
+| `npm run format`            | Formata com Prettier                                                   |
+| `npm run type-check`        | Verifica tipos sem emitir                                              |
+| `npm run seed:monsters`     | **Apaga** as criaturas e recria a partir de `scripts/creature-data.ts` |
+| `npm run seed:admin`        | Cria/atualiza o usuário admin                                          |
+| `npm run check-db`          | Testa a conexão com o MongoDB                                          |
+| `npm run backfill:provider` | Preenche `provider` em usuários antigos                                |
+| `npm run link:classes`      | Liga fichas existentes às classes (por padrão só relata)               |
+
+Há também scripts sem alias npm, rodados direto com `npx tsx`:
+
+- `scripts/repairDefenses.ts` — corrige defesas gravadas por um bug antigo do
+  seed, recalculando a partir da fonte original.
 
 ### Testando o SSO do fórum em localhost
 
-O fórum não precisa alcançar a sua máquina: em todo o fluxo quem faz a viagem de volta é o
-navegador, então o handshake funciona contra o localhost sem túnel. O que aponta para produção é
-o `APP_BASE` cravado no script global do fórum (`.forum-frontend/sso.js`), e ele aceita um
-override de dev restrito a localhost.
+O fórum não precisa alcançar a sua máquina: em todo o fluxo quem faz a viagem
+de volta é o navegador, então o handshake funciona contra o localhost sem
+túnel. O que aponta para produção é o `APP_BASE` cravado no script global do
+fórum (`.forum-frontend/sso.js`), e ele aceita um override de dev restrito a
+localhost.
 
-1. Suba o app em HTTPS — o fórum é HTTPS, e servir o app em HTTP arrisca bloqueio de mixed
-   content no `fetch` do handshake:
+> `.forum-frontend/` são os scripts colados no fórum (SSO, collector, renderer
+> da árvore). A pasta está no `.gitignore` e não faz parte do build deste app —
+> um clone novo não a traz.
+
+1. Suba o app em HTTPS — o fórum é HTTPS, e servir o app em HTTP arrisca
+   bloqueio de mixed content no `fetch` do handshake:
 
    ```bash
    npm run dev:https
    ```
 
-   O Next gera um certificado localmente confiável via `mkcert` e sobe em
-   `https://localhost:3000`.
+   O Next gera um certificado localmente confiável via `mkcert` (na pasta
+   `certificates/`) e sobe em `https://localhost:3000`.
 
-2. No navegador, **no origin do fórum** e já logado, abra o console e aponte o handshake para a
-   sua máquina:
+2. No navegador, **no origin do fórum** e já logado, abra o console e aponte o
+   handshake para a sua máquina:
 
    ```js
    localStorage.setItem('ifdb_dev_api_base', 'https://localhost:3000');
    ```
 
-   Recarregue a página: o console deve mostrar `[FORUM-SSO] Dev override active, ...`.
+   Recarregue a página: o console deve mostrar `[FORUM-SSO] Dev override
+active, ...`.
 
-3. Em `https://localhost:3000`, use **"Entrar com o fórum"**. O fluxo vai ao fórum, escreve o
-   nonce no perfil e volta para o `verify-callback` local, com a sessão criada.
+3. Em `https://localhost:3000`, use **"Entrar com o fórum"**. O fluxo vai ao
+   fórum, escreve o nonce no perfil e volta para o `verify-callback` local, com
+   a sessão criada.
 
 Para desligar:
 
@@ -133,75 +179,81 @@ localStorage.removeItem('ifdb_dev_api_base');
 
 Detalhes que valem lembrar:
 
-- Só valores `localhost`/`127.0.0.1` são aceitos; qualquer outra coisa é ignorada e o fluxo segue
-  para produção.
-- O override vale apenas para o handshake (modo 1). A interceptação de cliques em links do app
-  dentro do fórum (modo 2), o `collect.js` e o `tree-renderer.js` continuam indo para produção.
-- O teste escreve no MongoDB apontado pelo seu `.env` e grava o nonce no perfil real do fórum —
-  o mesmo que acontece em produção.
-- `FORUM_ORIGIN` precisa ser exatamente o `Origin` do fórum, **sem barra final**: a comparação é
-  por igualdade exata e uma divergência derruba o CORS em silêncio, sem mensagem de erro.
+- Só valores `localhost`/`127.0.0.1` são aceitos; qualquer outra coisa é
+  ignorada e o fluxo segue para produção.
+- O override vale apenas para o handshake (modo 1). A interceptação de cliques
+  em links do app dentro do fórum (modo 2), o `collect.js` e o
+  `tree-renderer.js` continuam indo para produção.
+- O teste escreve no MongoDB apontado pelo seu `.env` e grava o nonce no perfil
+  real do fórum — o mesmo que acontece em produção.
+- `FORUM_ORIGIN` precisa ser exatamente o `Origin` do fórum, **sem barra
+  final**: a comparação é por igualdade exata e uma divergência derruba o CORS
+  em silêncio, sem mensagem de erro.
 
-## 📁 Estrutura do Projeto
+### Ficha embutida no fórum
+
+`/embed/jogador/[id]` renderiza a ficha em dark mode fixo (o fórum é escuro) e
+descobre quem está visualizando por um handshake em `postMessage` com a página
+do fórum — nunca por parâmetro na URL, que seria forjável. Sem origem
+autorizada, a ficha abre em modo somente leitura.
+
+A sessão do embed é um cookie separado da sessão normal do app
+(`SameSite=None; Secure; Partitioned`), porque `SameSite` é avaliado contra o
+site de topo, e não contra a origem imediata do iframe. Isso é o motivo pelo
+qual o teste local exige HTTPS.
+
+## 📁 Estrutura do projeto
 
 ```
-if-database/
-├── app/                    # Rotas e páginas Next.js (App Router)
-│   ├── monsters/          # Páginas relacionadas a monstros
-│   │   └── edit/[slug]/   # Página de edição de monstro
-│   ├── layout.tsx         # Layout principal
-│   └── page.tsx           # Página inicial
-├── components/            # Componentes React
-│   ├── AbilitiesBlock/    # Bloco de habilidades
-│   ├── CombatInfo/        # Informações de combate
-│   ├── CreatureDrawer/    # Drawer lateral de criaturas
-│   ├── DropsBlock/        # Bloco de drops
-│   ├── MonsterCard/       # Card individual de monstro
-│   ├── MonsterData/       # Dados completos do monstro
-│   ├── MonsterGrid/       # Grid de cards de monstros
-│   ├── MonsterInfo/       # Informações básicas do monstro
-│   ├── SensesBlock/       # Bloco de sentidos
-│   └── StatsBlock/        # Bloco de estatísticas
-├── db/                    # Modelos e configurações do banco
-│   └── monsters/          # Modelo e schemas de monstros
-├── lib/                   # Utilitários e configurações
-│   └── db.ts              # Conexão com MongoDB
-├── scripts/               # Scripts utilitários
-│   ├── initializeDb.ts    # Script de inicialização do DB
-│   └── monster-data.ts    # Dados iniciais de monstros
-├── services/              # Camada de serviço/regras de negócio
-│   └── monster.service.ts # Operações CRUD de monstros
-├── styles/                # Arquivos de estilo SCSS
-├── .env.example           # Exemplo de variáveis de ambiente
-└── package.json           # Dependências e scripts
+app/
+├── (app)/                # Rotas do editor — layout com AuthProvider + AuthGate
+│   ├── monsters/         # Bestiário (page.tsx server + *PageClient.tsx)
+│   ├── citizens/         # Cidadãos
+│   ├── classes/          # Classes (lista + /[slug])
+│   ├── spells/           # Grimório
+│   ├── players/          # Jogadores
+│   └── page.tsx          # Menu principal
+├── (embed)/embed/        # Rotas para iframe no fórum (jogador, arvore)
+├── api/                  # Route handlers (auth, entidades, importação)
+│   └── _entity/          # Handlers REST compartilhados entre entidades
+└── context/              # Context providers (Auth, Tab e um por entidade)
+
+components/               # Componentes (atomic design, pastas flat)
+db/                       # Modelos Mongoose + tipos, uma pasta por entidade
+services/                 # Regras de negócio e parsers de importação
+lib/                      # Conexão com o banco, CORS, stats, sanitização
+hooks/                    # useCssHandles
+scripts/                  # Seeds, backfills e reparos (via tsx)
+styles/                   # SCSS: config (tokens/mixins) + components
 ```
+
+## 🧱 Convenções
+
+O guia completo está em [CLAUDE.md](./CLAUDE.md) — ele é a documentação
+canônica do projeto. Em resumo:
+
+- **Componentes** seguem atomic design (atom / molecule / organism), mas as
+  pastas são flat e o nível é comportamental: organismo é quem possui estado,
+  efeitos ou orquestração assíncrona. Cada pasta tem `index.tsx`, `handles.ts` e,
+  quando há lógica real, um `use<Componente>.ts`.
+- **CSS Handles** (`hooks/useCssHandles.ts`) definem os nomes de classe. É um
+  mapeamento identidade — sem escopo nem hash — então evitar colisão de nomes é
+  disciplina manual.
+- **Estilo** nunca usa hex ou px cru: sempre tokens semânticos e mixins de
+  `styles/config/`. Dark mode é o padrão; o claro vai dentro de
+  `@include light`.
+- **Páginas** (`app/*/page.tsx`) são sempre server components: conectam no banco,
+  buscam os dados, serializam com `JSON.parse(JSON.stringify(...))` e passam
+  para um componente organizador. O layout real mora no componente.
+- **Serviços** são funções `async` exportadas (nunca classes), no formato CRUD
+  padrão, e a escrita via API exige sessão com papel diferente de `viewer`.
 
 ## 🤝 Contribuindo
 
-1. Faça um fork do projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. Faça commit das suas mudanças (`git commit -m 'feat: add some AmazingFeature'`)
-4. Faça push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
-
-### Padrões de Commit
-
-Este projeto utiliza [Conventional Commits](https://www.conventionalcommits.org/):
-
-- `feat:` - Nova funcionalidade
-- `fix:` - Correção de bug
-- `docs:` - Mudanças na documentação
-- `style:` - Formatação, ponto e vírgula, etc.
-- `refactor:` - Refatoração de código
-- `test:` - Adição ou correção de testes
-- `chore:` - Tarefas de manutenção
+Este projeto usa [Conventional Commits](https://www.conventionalcommits.org/),
+verificado por commitlint no hook de pre-commit (Husky + lint-staged rodam
+ESLint e Prettier nos arquivos alterados).
 
 ## 📄 Licença
 
 Este projeto está sob a licença MIT.
-
-## 🙏 Agradecimentos
-
-- Next.js Team
-- MongoDB Team
-- Comunidade React/TypeScript
