@@ -156,11 +156,13 @@ export const classFromPrompt = (
   values: Record<string, string>
 ): Partial<ICharacterClass> => {
   const next: Record<string, unknown> = { name: values.name };
+  // Escritos mesmo vazios: o modal abre com o valor atual, então um campo em
+  // branco é alguém apagando — omiti-lo manteria o valor antigo.
   for (const field of CLASS_FIELDS) {
     const key = field.name as string;
-    if (values[key]) next[key] = values[key];
+    next[key] = values[key] ?? '';
   }
-  if (values.description) next.description = values.description;
+  next.description = values.description ?? '';
   // Sempre escrito, inclusive como `false`: é um interruptor, e omitir o
   // "não" deixaria a classe única para sempre depois do primeiro "sim".
   next.isUnique = values.isUnique === 'sim';

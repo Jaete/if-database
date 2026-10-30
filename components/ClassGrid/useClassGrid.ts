@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type ICharacterClass from '@/db/classes/class.d';
-import { classSlug } from '@/db/l10n/classes';
+import { classSlug, type IClassFormSource } from '@/db/l10n/classes';
 
 export interface IClassOption {
   _id: string;
@@ -14,6 +14,9 @@ export interface IClassOption {
   /** Quem está com a classe única. Derivado do vínculo das fichas. */
   takenBy?: { id: string; name: string; slug: string };
 }
+
+/** A classe aberta no modal de edição: a linha da lista mais o documento. */
+export type IClassEditTarget = IClassOption & IClassFormSource;
 
 /**
  * Estado do códice de classes: a lista, a busca e as três escritas (criar,
@@ -75,6 +78,25 @@ export function useClassGrid(initial: IClassOption[]) {
       await reload();
     },
     [reload]
+  );
+
+  /**
+   * Busca a classe inteira antes de abrir o modal.
+   *
+   * A lista vem da projeção magra, sem descrição, PV nem variantes do nome —
+   * abrir o modal só com ela mostrava esses campos vazios, e salvar apagava as
+   * variantes.
+   */
+  const loadForEdit = useCallback(
+    async (klass: IClassOption): Promise<IClassEditTarget | null> => {
+      const res = await fetch(`/api/classes/${klass.slug}`);
+      if (!res.ok) {
+        await fail(res, 'Não consegui carregar a classe.');
+        return null;
+      }
+      return { ...klass, ...(await res.json()) };
+    },
+    []
   );
 
   const remove = useCallback(
@@ -150,6 +172,7 @@ export function useClassGrid(initial: IClassOption[]) {
     feedback,
     busy,
     save,
+    loadForEdit,
     remove,
     importTopic,
     linkSpells,

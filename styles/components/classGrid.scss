@@ -304,6 +304,49 @@
   white-space: pre-line;
 }
 
+.codexIntroEditor {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-2;
+  margin-top: $spacing-3;
+}
+
+.codexIntroInput {
+  width: 100%;
+  min-height: $spacing-20 * 2;
+  padding: $spacing-3;
+  border-radius: $radius-md;
+  border: 1px solid $color-border;
+  background-color: $surface;
+  resize: vertical;
+  @include main-md($color-text, $font-weight-regular, 1.7);
+  @include premium-input-focus;
+}
+
+.codexIntroActions {
+  @include flex-row-end;
+  gap: $spacing-2;
+}
+
+.codexIntroCancel {
+  padding: $spacing-1 $spacing-3;
+  border: 1px solid $color-border;
+  border-radius: $radius-sm;
+  background: transparent;
+  cursor: pointer;
+  @include caption($color-text-muted, $font-weight-semibold);
+  @include focus-ring;
+
+  &:hover {
+    border-color: $color-border-strong;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
 .codexSection {
   margin-top: $spacing-8;
 }
@@ -429,7 +472,13 @@
 }
 
 .codexSlotCircle {
-  @include caption($color-text-subtle, $font-weight-semibold, 1, 0.04em, center);
+  @include caption(
+    $color-text-subtle,
+    $font-weight-semibold,
+    1,
+    0.04em,
+    center
+  );
 }
 
 .codexSlotGrid {

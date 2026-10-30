@@ -451,6 +451,7 @@ const ClassData = ({ characterClass: initial }: IProps) => {
     error,
     saving,
     saveOverview,
+    saveDescription,
     saveArchetype,
     removeArchetype,
     saveArchetypeFeature,
@@ -474,6 +475,8 @@ const ClassData = ({ characterClass: initial }: IProps) => {
   const [featureAt, setFeatureAt] = useState<number | null>(null);
   const [talentAt, setTalentAt] = useState<number | null>(null);
   const [editingOverview, setEditingOverview] = useState(false);
+  // Rascunho da descrição editada no lugar; null é o texto em leitura.
+  const [descriptionDraft, setDescriptionDraft] = useState<string | null>(null);
   const [archetypeAt, setArchetypeAt] = useState<number | null>(null);
   const [catalogAt, setCatalogAt] = useState<number | null>(null);
   const [catalogItemAt, setCatalogItemAt] = useState<[number, number] | null>(
@@ -642,14 +645,83 @@ const ClassData = ({ characterClass: initial }: IProps) => {
     openNode === 'talentos' ||
     (openNode?.startsWith('catalog:') ?? false);
 
+  const submitDescription = async () => {
+    if (descriptionDraft === null) return;
+    // Fecha só se gravou: com erro, o rascunho continua para tentar de novo.
+    if (await saveDescription(descriptionDraft)) setDescriptionDraft(null);
+  };
+
   return (
     <div className={handles.codexDetail}>
       <Link href="/classes" className={handles.codexBack} prefetch={false}>
         ← Classes
       </Link>
       <h1 className={handles.codexDetailTitle}>{k.name}</h1>
-      {k.description && (
-        <p className={handles.codexDetailIntro}>{k.description}</p>
+      {descriptionDraft !== null ? (
+        <div className={handles.codexIntroEditor}>
+          <textarea
+            className={handles.codexIntroInput}
+            value={descriptionDraft}
+            onChange={(event) => setDescriptionDraft(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Escape') setDescriptionDraft(null);
+              if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
+                submitDescription();
+              }
+            }}
+            placeholder="O que a classe é."
+            aria-label="Descrição da classe"
+            rows={6}
+            autoFocus
+          />
+          <div className={handles.codexIntroActions}>
+            <button
+              type="button"
+              className={handles.codexIntroCancel}
+              onClick={() => setDescriptionDraft(null)}
+              disabled={saving}
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              className={handles.codexEdit}
+              onClick={submitDescription}
+              disabled={saving}
+            >
+              Salvar
+            </button>
+          </div>
+        </div>
+      ) : k.description ? (
+        <p className={handles.codexDetailIntro}>
+          {k.description}
+          {canEdit && (
+            <>
+              {' '}
+              <button
+                type="button"
+                className={handles.codexEdit}
+                onClick={() => setDescriptionDraft(k.description ?? '')}
+                aria-label="Editar descrição"
+              >
+                <PencilIcon />
+              </button>
+            </>
+          )}
+        </p>
+      ) : (
+        canEdit && (
+          <p className={handles.codexDetailIntro}>
+            <button
+              type="button"
+              className={handles.codexEdit}
+              onClick={() => setDescriptionDraft('')}
+            >
+              + Descrição
+            </button>
+          </p>
+        )
       )}
 
       {canEdit && k.candidate && (

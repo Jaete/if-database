@@ -54,9 +54,10 @@ export function useClassData(initial: ICharacterClass) {
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         setError(body.error ?? 'Não consegui salvar.');
-        return;
+        return false;
       }
       setCharacterClass((prev) => ({ ...prev, ...patch }) as ICharacterClass);
+      return true;
     },
     [initial.slug]
   );
@@ -204,6 +205,15 @@ export function useClassData(initial: ICharacterClass) {
       } as Partial<ICharacterClass>);
     },
     [characterClass.proficiencies?.raw, save]
+  );
+
+  /**
+   * Grava só a descrição, editada no próprio texto da página. Vazia é gravada
+   * como vazia, e não omitida: omitir manteria a descrição antiga.
+   */
+  const saveDescription = useCallback(
+    (description: string) => save({ description: description.trim() }),
+    [save]
   );
 
   const saveArchetype = useCallback(
@@ -397,6 +407,7 @@ export function useClassData(initial: ICharacterClass) {
     error,
     saving,
     saveOverview,
+    saveDescription,
     saveArchetype,
     removeArchetype,
     saveArchetypeFeature,

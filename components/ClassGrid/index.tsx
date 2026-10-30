@@ -13,7 +13,11 @@ import {
   SwordIcon,
 } from '../Icons';
 import PromptModal from '../PromptModal';
-import { useClassGrid, type IClassOption } from './useClassGrid';
+import {
+  useClassGrid,
+  type IClassEditTarget,
+  type IClassOption,
+} from './useClassGrid';
 import ClassGridHandles from './handles';
 import '@/styles/components/classGrid.scss';
 
@@ -40,14 +44,22 @@ const ClassGrid = ({ initialClasses }: IProps) => {
     feedback,
     busy,
     save,
+    loadForEdit,
     remove,
     importTopic,
     linkSpells,
   } = useClassGrid(initialClasses);
 
   // `null` = fechado, `undefined` = classe nova.
-  const [editing, setEditing] = useState<IClassOption | undefined | null>(null);
+  const [editing, setEditing] = useState<IClassEditTarget | undefined | null>(
+    null
+  );
   const [importing, setImporting] = useState(false);
+
+  const openEditor = async (klass: IClassOption) => {
+    const full = await loadForEdit(klass);
+    if (full) setEditing(full);
+  };
 
   return (
     <div className={handles.codex}>
@@ -181,7 +193,7 @@ const ClassGrid = ({ initialClasses }: IProps) => {
                 <button
                   type="button"
                   className={handles.codexButton}
-                  onClick={() => setEditing(klass)}
+                  onClick={() => openEditor(klass)}
                 >
                   EDITAR
                 </button>
