@@ -11,6 +11,7 @@ import {
   PlusIcon,
   SpellbookIcon,
   SwordIcon,
+  UserIcon,
 } from '../../Icons';
 import ClassWheel from '../ClassWheel';
 import type { ISectionNode } from '../sections';
@@ -59,6 +60,13 @@ const Hero = ({
   const [primary] = k.roles ?? [];
   const kind = k.isSpellcaster ? 'Classe mágica' : 'Classe marcial';
   const KindIcon = k.isSpellcaster ? SpellbookIcon : SwordIcon;
+  const players = k.playerCount ?? 0;
+  const playersText =
+    players === 0
+      ? 'Nenhum jogador'
+      : players === 1
+        ? '1 jogador'
+        : `${players} jogadores`;
 
   const sigil = (
     <div className={handles.clsSigil} aria-hidden="true">
@@ -107,6 +115,17 @@ const Hero = ({
               <KindIcon />
             </i>
             {kind}
+          </span>
+          <span
+            className={`${handles.clsPlayers}${
+              players === 0
+                ? ` ${applyModifiers(handles.clsPlayers, 'empty')}`
+                : ''
+            }`}
+            title="Fichas de jogador vinculadas a esta classe"
+          >
+            <UserIcon />
+            {playersText}
           </span>
           {k.isUnique && (
             <span

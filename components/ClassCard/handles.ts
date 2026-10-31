@@ -8,6 +8,8 @@ const ClassCardHandles = [
   'pickSigilRole',
   'pickTop',
   'pickKind',
+  'pickPlayers',
+  'pickPlayersCount',
   'pickEdit',
   'pickSpacer',
   'pickHead',

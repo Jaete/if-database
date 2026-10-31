@@ -11,6 +11,7 @@ import {
   PencilIcon,
   SpellbookIcon,
   SwordIcon,
+  UserIcon,
 } from '../Icons';
 import ClassRoles from '../ClassRoles';
 import { useClassCard } from './useClassCard';
@@ -69,6 +70,11 @@ const ClassCard = ({
   const kind = klass.isSpellcaster ? 'Classe mágica' : 'Classe marcial';
   const KindIcon = klass.isSpellcaster ? SpellbookIcon : SwordIcon;
   const proficiencies = klass.proficiencies;
+  const players = klass.playerCount ?? 0;
+  const playersLabel =
+    players === 1
+      ? '1 jogador com esta classe'
+      : `${players} jogadores com esta classe`;
 
   const hitPoints: Row[] = [
     ['Dado de vida', klass.hitDie],
@@ -181,6 +187,19 @@ const ClassCard = ({
           title={kind}
         >
           <KindIcon />
+        </span>
+        <span
+          className={`${handles.pickPlayers}${
+            players === 0
+              ? ` ${applyModifiers(handles.pickPlayers, 'empty')}`
+              : ''
+          }`}
+          role="img"
+          aria-label={playersLabel}
+          title={playersLabel}
+        >
+          <UserIcon />
+          <span className={handles.pickPlayersCount}>{players}</span>
         </span>
         {canEdit && (
           <button

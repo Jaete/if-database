@@ -1,8 +1,16 @@
 // Espelha db/citizens/schema.ts, com os campos de vínculo e procedência no fim.
 // Jogadores e cidadãos são coleções separadas de propósito: nenhuma consulta de
 // uma precisa filtrar a outra.
-import { Schema } from 'mongoose';
+import {
+  Schema,
+  type MongooseDefaultQueryMiddleware,
+  type Query,
+} from 'mongoose';
 import IPlayer from './player';
+import {
+  classIdFromUpdate,
+  recountClassPlayersSafely,
+} from './classPlayerCount';
 
 const PlayerSchema = new Schema<IPlayer>(
   {
@@ -221,5 +229,90 @@ PlayerSchema.pre('findOneAndUpdate', function stripOnUpdate() {
 PlayerSchema.pre('updateOne', function stripOnUpdateOne() {
   stripLinkedSpells(this.getUpdate() as Record<string, unknown>);
 });
+
+// ── Contador de jogadores por classe (`playerCount`) ──
+//
+// Mora no model pelo mesmo motivo do strip acima: há vários caminhos de
+// escrita de jogador (a ficha embutida, o formulário do app, os scripts de
+// importação e vínculo), e um contador que dependesse de cada rota lembrar de
+// atualizá-lo ficaria errado no primeiro que esquecesse.
+
+// Criação e `save()` de documento. Num documento que já existia, o valor
+// anterior de `classId` não fica disponível aqui; esse caso reconta todas.
+PlayerSchema.pre('save', function markClassChange() {
+  this.$locals.recountClass = this.isNew
+    ? this.classId
+      ? [this.classId]
+      : false
+    : this.isModified('classId')
+      ? 'all'
+      : false;
+});
+
+PlayerSchema.post('save', async function recountOnSave() {
+  const target = this.$locals.recountClass as unknown[] | 'all' | false;
+  if (!target) return;
+  await recountClassPlayersSafely(target === 'all' ? undefined : target);
+});
+
+PlayerSchema.post('insertMany', async function recountOnInsertMany(docs) {
+  // A tipagem do Mongoose declara o resultado como o model; em runtime é a
+  // lista dos documentos inseridos.
+  const inserted = docs as unknown as { classId?: unknown }[];
+  const ids = inserted.map((d) => d.classId);
+  if (ids.some(Boolean)) await recountClassPlayersSafely(ids);
+});
+
+// Updates e deletes por query. O `pre` guarda as classes de ANTES (as fichas
+// que a query alcança), o `post` reconta essas mais a de destino — que é o que
+// cobre a troca de classe, quando as duas pontas mudam de número.
+const affectedClasses = new WeakMap<object, unknown[]>();
+
+type PlayerQuery = Query<unknown, IPlayer>;
+
+async function rememberClassesBefore(query: PlayerQuery, extra?: unknown) {
+  const before = await query.model.distinct('classId', query.getFilter());
+  affectedClasses.set(query, extra ? [...before, extra] : before);
+}
+
+async function recountRemembered(query: PlayerQuery) {
+  const ids = affectedClasses.get(query);
+  if (!ids) return;
+  affectedClasses.delete(query);
+  await recountClassPlayersSafely(ids);
+}
+
+const UPDATES: MongooseDefaultQueryMiddleware[] = [
+  'findOneAndUpdate',
+  'findOneAndReplace',
+  'updateOne',
+  'updateMany',
+  'replaceOne',
+];
+const DELETES: MongooseDefaultQueryMiddleware[] = [
+  'findOneAndDelete',
+  'deleteOne',
+  'deleteMany',
+];
+
+PlayerSchema.pre<PlayerQuery>(UPDATES, async function captureOnUpdate() {
+  // Renomear a classe (`updateMany({ classId }, { class })`) e quase todo save
+  // de ficha não tocam no vínculo: nada a contar.
+  const change = classIdFromUpdate(
+    this.getUpdate() as Record<string, unknown> | null
+  );
+  if (change.touched) await rememberClassesBefore(this, change.value);
+});
+
+PlayerSchema.pre<PlayerQuery>(DELETES, async function captureOnDelete() {
+  await rememberClassesBefore(this);
+});
+
+PlayerSchema.post<PlayerQuery>(
+  [...UPDATES, ...DELETES],
+  async function recountOnQuery() {
+    await recountRemembered(this);
+  }
+);
 
 export default PlayerSchema;

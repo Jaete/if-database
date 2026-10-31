@@ -17,6 +17,7 @@
     "backfill:provider": "npx tsx ./scripts/backfillUserProvider.ts",
     "check-db": "npx tsx ./scripts/checkDb.ts",
     "link:classes": "npx tsx ./scripts/linkCharacterClasses.ts",
+    "sync:spell-lists": "npx tsx ./scripts/syncClassSpellLists.ts",
     "prepare": "husky"
   },
   "dependencies": {

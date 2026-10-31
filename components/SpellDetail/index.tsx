@@ -20,6 +20,13 @@ interface IProps {
   classNames: Record<string, string> | null;
   canEdit: boolean;
   compact?: boolean;
+  /**
+   * Aberta por cima de outro modal (as listas da classe), e não do grimório:
+   * sobe acima da camada dos modais.
+   */
+  overlay?: boolean;
+  /** O rótulo do voltar; o padrão é voltar ao grimório. */
+  backLabel?: string;
   onClose: () => void;
   onEdit: (spell: ISpell) => void;
 }
@@ -80,6 +87,8 @@ const SpellDetail = ({
   classNames,
   canEdit,
   compact = false,
+  overlay = false,
+  backLabel = 'Grimório',
   onClose,
   onEdit,
 }: IProps) => {
@@ -117,7 +126,7 @@ const SpellDetail = ({
 
   const root = `${handles.spellDetail} ${applyModifiers(handles.spellDetail, school)}${
     compact ? ` ${applyModifiers(handles.spellDetail, 'compact')}` : ''
-  }`;
+  }${overlay ? ` ${applyModifiers(handles.spellDetail, 'overlay')}` : ''}`;
 
   return (
     <div
@@ -134,7 +143,7 @@ const SpellDetail = ({
           onClick={onClose}
         >
           <ArrowLeftIcon />
-          Grimório
+          {backLabel}
         </button>
         {canEdit && (
           <button

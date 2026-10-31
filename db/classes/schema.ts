@@ -75,6 +75,7 @@ const CatalogItemSchema = new Schema<IClassCatalogItem>(
     name: { type: String, required: true },
     description: String,
     tables: [TableSchema],
+    spell: String,
   },
   { _id: false }
 );
@@ -172,6 +173,8 @@ const CharacterClassSchema = new Schema<ICharacterClass>(
 
     isSpellcaster: Boolean,
     isUnique: Boolean,
+    // Derivado das fichas de jogador; ver `playerCount` em class.d.ts.
+    playerCount: { type: Number, default: 0 },
 
     sourceUrl: String,
     importedAt: Date,
@@ -185,5 +188,30 @@ const CharacterClassSchema = new Schema<ICharacterClass>(
 // O Mongoose pluralizaria 'CharacterClass' em 'characterclasses'. A coleção é
 // fixada aqui para o nome acompanhar a rota e o resto do vocabulário.
 CharacterClassSchema.set('collection', 'classes');
+
+// `playerCount` só é escrito pela recontagem (`db/players/classPlayerCount.ts`),
+// que usa `bulkWrite` e por isso não passa por estes hooks. O formulário da
+// classe devolve o documento inteiro no PUT; sem esta guarda, o número que
+// estava na tela quando o modal abriu sobrescreveria o atual.
+function stripPlayerCount(update: Record<string, unknown> | null) {
+  if (!update) return;
+  delete update.playerCount;
+  for (const op of ['$set', '$setOnInsert', '$inc', '$unset']) {
+    const target = update[op] as Record<string, unknown> | undefined;
+    if (target) delete target.playerCount;
+  }
+}
+
+CharacterClassSchema.pre(
+  ['findOneAndUpdate', 'updateOne', 'updateMany'],
+  function guardPlayerCount() {
+    stripPlayerCount(this.getUpdate() as Record<string, unknown> | null);
+  }
+);
+
+// Uma classe recém-criada não tem ficha nenhuma apontando para ela.
+CharacterClassSchema.pre('save', function resetPlayerCount() {
+  if (this.isNew) this.playerCount = 0;
+});
 
 export default CharacterClassSchema;

@@ -2,11 +2,12 @@
 
 import { useEffect, useRef } from 'react';
 import type ICharacterClass from '@/db/classes/class.d';
-import { applyModifiers, useCssHandles } from '@/hooks/useCssHandles';
+import { useCssHandles } from '@/hooks/useCssHandles';
 import { PlusIcon } from '../../../Icons';
 import Description from '../../Description';
 import ClassDataHandles from '../../handles';
 import { groupFeaturesByLevel, type IFeatureEntry } from '../../featureLookup';
+import { flashTarget } from '../flashTarget';
 import ItemTools from '../ItemTools';
 import SectionModalHandles from '../handles';
 import type { ISectionActions } from '../types';
@@ -19,36 +20,6 @@ interface IProps {
 }
 
 const levelLabel = (level: number) => (level ? `${level}º` : '—');
-
-const prefersReducedMotion = () =>
-  window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-/** Rola até a característica e a destaca com um brilho rápido. */
-function flashFeature(
-  container: HTMLElement | null,
-  index: number,
-  featClass: string
-) {
-  const target = container?.querySelector<HTMLElement>(
-    `[data-feature="${index}"]`
-  );
-  if (!target) return;
-  target.scrollIntoView({
-    behavior: prefersReducedMotion() ? 'auto' : 'smooth',
-    block: 'start',
-  });
-  const flashClass = applyModifiers(featClass, 'flash');
-  target.classList.remove(flashClass);
-  // Força o reflow: sem ele, remover e readicionar no mesmo quadro não
-  // reinicia a animação.
-  void target.offsetWidth;
-  target.classList.add(flashClass);
-  target.addEventListener(
-    'animationend',
-    () => target.classList.remove(flashClass),
-    { once: true }
-  );
-}
 
 /**
  * As características, agrupadas por nível, com a régua de níveis ao lado.
@@ -67,13 +38,28 @@ const Features = ({ characterClass: k, actions, focus }: IProps) => {
     // Espera o quadro: o modal acabou de trocar de seção e a altura final
     // da lista só existe depois do layout.
     const frame = requestAnimationFrame(() =>
-      flashFeature(contentRef.current, focus.index, handles.clsFeat)
+      flashTarget(
+        contentRef.current,
+        `[data-feature="${focus.index}"]`,
+        handles.clsFeat
+      )
     );
     return () => cancelAnimationFrame(frame);
   }, [focus, handles.clsFeat]);
 
   const flash = (index: number) =>
-    flashFeature(contentRef.current, index, handles.clsFeat);
+    flashTarget(
+      contentRef.current,
+      `[data-feature="${index}"]`,
+      handles.clsFeat
+    );
+
+  const flashLevel = (level: number) =>
+    flashTarget(
+      contentRef.current,
+      `[data-level="${level}"]`,
+      handles.clsLvlGroup
+    );
 
   const renderFeature = ({ feature, index }: IFeatureEntry) => (
     <article key={index} className={handles.clsFeat} data-feature={index}>
@@ -105,9 +91,13 @@ const Features = ({ characterClass: k, actions, focus }: IProps) => {
           <ol>
             {groups.map((group) => (
               <li key={group.level}>
-                <span className={handles.clsRailLevel}>
+                <button
+                  type="button"
+                  className={`${handles.clsRailLevel} ${handles.clsRailHead}`}
+                  onClick={() => flashLevel(group.level)}
+                >
                   {group.level ? `${group.level}º nível` : 'Sem nível'}
-                </span>
+                </button>
                 {group.blocks
                   .flatMap((block) => block.entries)
                   .map(({ feature, index }) => (
@@ -130,7 +120,11 @@ const Features = ({ characterClass: k, actions, focus }: IProps) => {
           <p className={handles.clsModalEmpty}>Nenhuma característica ainda.</p>
         )}
         {groups.map((group) => (
-          <section key={group.level} className={handles.clsLvlGroup}>
+          <section
+            key={group.level}
+            className={handles.clsLvlGroup}
+            data-level={group.level}
+          >
             <div className={handles.clsLvlSeal}>
               <b>{levelLabel(group.level)}</b>
               <small>nível</small>

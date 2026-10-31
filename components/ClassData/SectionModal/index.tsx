@@ -2,6 +2,7 @@
 
 import type ICharacterClass from '@/db/classes/class.d';
 import { useCssHandles } from '@/hooks/useCssHandles';
+import { useWheelScrollX } from '@/hooks/useWheelScrollX';
 import Modal from '../../Modal';
 import { nextLevelNumber } from '../useClassData';
 import { CATALOG_PREFIX, type ISectionNode } from '../sections';
@@ -44,6 +45,7 @@ const SectionModal = ({
   focus,
 }: IProps) => {
   const handles = useCssHandles(SectionModalHandles);
+  const switchRef = useWheelScrollX<HTMLElement>();
   const node = nodes.find((n) => n.id === openId);
 
   const extraColumns = [
@@ -56,6 +58,19 @@ const SectionModal = ({
   let body = null;
   if (openId === 'caracteristicas') {
     body = <Features characterClass={k} actions={actions} focus={focus} />;
+  } else if (openId?.startsWith(CATALOG_PREFIX)) {
+    // As listas também trazem a régua e montam as próprias colunas.
+    const index = (k.catalogs ?? []).findIndex(
+      (catalog) => `${CATALOG_PREFIX}${catalog.slug}` === openId
+    );
+    const catalog = k.catalogs?.[index];
+    if (catalog) {
+      body = <Catalog catalog={catalog} index={index} actions={actions} />;
+    }
+  } else if (openId === 'arquetipos') {
+    // Como as características, os arquétipos trazem a régua lateral e montam
+    // as próprias colunas.
+    body = <Archetypes characterClass={k} actions={actions} />;
   } else if (openId) {
     let section = null;
     if (openId === 'progressao') {
@@ -69,18 +84,8 @@ const SectionModal = ({
           nextLevel={nextLevelNumber(k.levels)}
         />
       );
-    } else if (openId === 'arquetipos') {
-      section = <Archetypes characterClass={k} actions={actions} />;
     } else if (openId === 'talentos') {
       section = <Talents characterClass={k} actions={actions} />;
-    } else if (openId.startsWith(CATALOG_PREFIX)) {
-      const index = (k.catalogs ?? []).findIndex(
-        (catalog) => `${CATALOG_PREFIX}${catalog.slug}` === openId
-      );
-      const catalog = k.catalogs?.[index];
-      if (catalog) {
-        section = <Catalog catalog={catalog} index={index} actions={actions} />;
-      }
     }
     body = <div className={handles.clsModalContent}>{section}</div>;
   }
@@ -94,7 +99,11 @@ const SectionModal = ({
       variant="sheet"
       className={handles.clsModalShell}
       headerExtra={
-        <nav className={handles.clsSwitch} aria-label="Trocar de seção">
+        <nav
+          ref={switchRef}
+          className={handles.clsSwitch}
+          aria-label="Trocar de seção"
+        >
           {nodes.map((n) => {
             const Icon = n.icon;
             return (

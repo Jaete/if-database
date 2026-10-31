@@ -4,6 +4,7 @@ import {
   ListIcon,
   ScrollIcon,
   ShieldIcon,
+  SpellbookIcon,
   StarIcon,
   SunIcon,
   TableIcon,
@@ -70,7 +71,14 @@ export function buildSections(
     nodes.push({
       id: `${CATALOG_PREFIX}${catalog.slug}`,
       label: catalog.name,
-      icon: catalog.slug === 'artes-divinas' ? SunIcon : ListIcon,
+      icon:
+        catalog.slug === 'artes-divinas'
+          ? SunIcon
+          : // Lista de magias do grimório: todo item aponta para uma magia.
+            (catalog.items?.length ?? 0) > 0 &&
+              catalog.items!.every((item) => item.spell)
+            ? SpellbookIcon
+            : ListIcon,
       count: catalog.items?.length ?? 0,
       unit: 'itens',
     });

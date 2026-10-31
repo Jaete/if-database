@@ -19,6 +19,8 @@ export interface IClassOption {
   hpAtFirstLevel?: string;
   hpPerLevel?: string;
   proficiencies?: IClassProficiencies;
+  /** Quantas fichas de jogador estão vinculadas à classe. */
+  playerCount?: number;
   /** Quem está com a classe única. Derivado do vínculo das fichas. */
   takenBy?: { id: string; name: string; slug: string };
 }

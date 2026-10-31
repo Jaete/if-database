@@ -28,6 +28,11 @@
   }
 }
 
+// Por cima do modal das seções da classe (1000), que é de onde ela abre.
+.spellDetail--overlay {
+  z-index: 1100;
+}
+
 .spellDetailBar {
   position: sticky;
   top: 0;

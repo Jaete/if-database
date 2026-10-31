@@ -5,6 +5,7 @@ const HeroHandles = [
   'clsKicker',
   'clsKind',
   'clsKindIcon',
+  'clsPlayers',
   'clsUnique',
   'clsName',
   'clsClasp',

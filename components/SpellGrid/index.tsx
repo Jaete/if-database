@@ -35,6 +35,8 @@ interface IProps {
   compact?: boolean;
   /** Esconde toda a edição, mesmo para quem pode editar. */
   readOnly?: boolean;
+  /** Slug da magia a abrir de cara (o `?magia=` da URL). */
+  initialSlug?: string;
 }
 
 const countLabel = (count: number) =>
@@ -44,6 +46,7 @@ const SpellGrid = ({
   initialSpells,
   compact = false,
   readOnly = false,
+  initialSlug,
 }: IProps) => {
   const handles = useCssHandles(SpellGridHandles);
   // O embed não tem AuthProvider: sem contexto, ninguém edita. A guarda de
@@ -67,7 +70,7 @@ const SpellGrid = ({
     save,
     remove,
     importTopic,
-  } = useSpellGrid(initialSpells);
+  } = useSpellGrid(initialSpells, initialSlug);
 
   // `null` = fechado, `undefined` = magia nova.
   const [editing, setEditing] = useState<ISpell | undefined | null>(null);

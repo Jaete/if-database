@@ -317,6 +317,13 @@ export function catalogItemFields(item?: IClassCatalogItem) {
       initialValue: item?.description ?? '',
       placeholder: 'O que o item faz.',
     },
+    {
+      name: 'spell',
+      label: 'Magia do grimório (slug) — o nome vira link para ela',
+      required: false,
+      initialValue: item?.spell ?? '',
+      placeholder: 'ex.: allegro',
+    },
   ];
 }
 

@@ -5,7 +5,12 @@ import SpellGrid from '@/components/SpellGrid';
 
 export const dynamic = 'force-dynamic';
 
-export default async function SpellsPage() {
+export default async function SpellsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ magia?: string | string[] }>;
+}) {
+  const { magia } = await searchParams;
   let serialized: ISpell[] = [];
   try {
     await connectDB();
@@ -16,7 +21,10 @@ export default async function SpellsPage() {
 
   return (
     <main>
-      <SpellGrid initialSpells={serialized} />
+      <SpellGrid
+        initialSpells={serialized}
+        initialSlug={typeof magia === 'string' ? magia : undefined}
+      />
     </main>
   );
 }

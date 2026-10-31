@@ -359,6 +359,7 @@ export function useClassData(initial: ICharacterClass) {
         name: values.name,
         description: values.description || undefined,
         tables: current?.tables,
+        spell: values.spell?.trim() || undefined,
       };
       if (itemIndex < 0) items.push(next);
       else items[itemIndex] = next;

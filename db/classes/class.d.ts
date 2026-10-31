@@ -96,6 +96,13 @@ export interface IArchetype {
 export interface IClassCatalogItem {
   name: string;
   description?: string;
+  /**
+   * Slug da magia do grimório que este item é, quando é uma.
+   *
+   * As Músicas e os Jingles do bardo são magias: o texto mora no grimório e o
+   * item só aponta para lá, para não haver duas cópias que se desencontram.
+   */
+  spell?: string;
   tables?: IFeatureTable[];
 }
 
@@ -259,6 +266,18 @@ export interface ICharacterClass extends Document {
    * personagem morto e cada troca de classe.
    */
   isUnique?: boolean;
+
+  /**
+   * Quantas fichas de jogador têm `classId` apontando para esta classe.
+   *
+   * Ao contrário do dono da classe única, este É gravado: é o que a listagem
+   * do códice mostra em todo card, e contar fichas a cada abertura seria
+   * trabalho repetido. Quem mantém o número é o model de jogador
+   * (`db/players/classPlayerCount.ts`), que reconta as classes afetadas a
+   * cada escrita que mexe no vínculo. Não editar à mão; para reconstruir:
+   * `npx tsx ./scripts/recountClassPlayers.ts`.
+   */
+  playerCount?: number;
 
   sourceUrl?: string;
   importedAt?: Date;

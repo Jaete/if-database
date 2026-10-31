@@ -331,6 +331,27 @@
   }
 }
 
+// Quantas fichas de jogador estão na classe (`playerCount`).
+.clsPlayers {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-1;
+  padding: $spacing-1 $spacing-2;
+  border: 1px solid with-alpha($color-accent-line, 0.5);
+  border-radius: $radius-sm;
+  @include caption($color-accent, $font-weight-semibold);
+
+  svg {
+    width: $spacing-3;
+    height: $spacing-3;
+  }
+
+  &--empty {
+    border-color: $color-border;
+    color: $color-text-muted;
+  }
+}
+
 .clsUnique {
   display: inline-block;
   padding: $spacing-1 $spacing-2;

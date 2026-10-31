@@ -21,7 +21,7 @@ export interface ISpellGroup {
  * Extraído do componente porque é tudo efeito e rede; o `index.tsx` fica só
  * com a apresentação, como o CLAUDE.md pede para um organismo.
  */
-export function useSpellGrid(initialSpells: ISpell[]) {
+export function useSpellGrid(initialSpells: ISpell[], initialSlug?: string) {
   // A lista inicial vem da página (servidor), como nas outras listagens deste
   // projeto. Buscá-la num efeito custaria um render a mais e esbarraria na
   // regra `react-hooks/set-state-in-effect`; aqui a rede só é acionada depois
@@ -31,8 +31,14 @@ export function useSpellGrid(initialSpells: ISpell[]) {
   // A magia aberta por cima da lista e a última que foi aberta (fica marcada
   // ao voltar). Guardar o slug, e não o documento, mantém o detalhe em dia
   // depois de uma edição.
-  const [viewingSlug, setViewingSlug] = useState<string | null>(null);
-  const [currentSlug, setCurrentSlug] = useState<string | null>(null);
+  // `?magia=<slug>` abre a magia direto: é o link que as listas das classes
+  // usam. Um slug que não existe é ignorado em vez de abrir um detalhe vazio.
+  const linked =
+    initialSlug && initialSpells.some((spell) => spell.slug === initialSlug)
+      ? initialSlug
+      : null;
+  const [viewingSlug, setViewingSlug] = useState<string | null>(linked);
+  const [currentSlug, setCurrentSlug] = useState<string | null>(linked);
   const [classNames, setClassNames] = useState<Record<string, string> | null>(
     null
   );
@@ -229,8 +235,34 @@ export function useSpellGrid(initialSpells: ISpell[]) {
     [classNames, loadClassNames]
   );
 
+  // Aberta pelo link, a magia também precisa dos nomes das classes. A busca é
+  // a mesma de `loadClassNames`, escrita por extenso porque o estado só pode
+  // mudar no retorno da rede, não no corpo do efeito.
+  useEffect(() => {
+    if (!linked) return;
+    let alive = true;
+    fetch('/api/classes/options')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((options: { _id: string; name: string }[] | null) => {
+        if (!alive || !options) return;
+        setClassNames(Object.fromEntries(options.map((o) => [o._id, o.name])));
+      })
+      .catch(() => {
+        // Sem os nomes, o detalhe cai no texto do fórum.
+      });
+    return () => {
+      alive = false;
+    };
+  }, [linked]);
+
   const closeSpell = useCallback(() => {
     setViewingSlug(null);
+    // Fechar tira o `?magia=`: sem isto, recarregar a página reabriria a magia.
+    const url = new URL(window.location.href);
+    if (url.searchParams.has('magia')) {
+      url.searchParams.delete('magia');
+      window.history.replaceState(window.history.state, '', url);
+    }
     // A linha continua montada por baixo do detalhe: devolve o foco a ela.
     if (viewingSlug) {
       document
