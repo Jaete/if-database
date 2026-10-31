@@ -8,14 +8,26 @@
   @include gold-border(2px, 0.95);
   @include elevation(1);
   flex: 0 0 var(--pick-card-w);
+  width: var(--pick-card-w);
   height: var(--pick-card-h);
+  // Todos os cards ocupam a mesma célula do trilho (grid) e se separam só por
+  // este `translate`: um passo (card + vão) por posição de distância do
+  // central, mais o arrasto do dedo. É `translate`, não `transform`, porque a
+  // escala do foco já usa o `transform`. Um card que acaba de montar nasce já
+  // no lugar final (não há estilo anterior para animar a partir dele).
+  grid-area: 1 / 1;
+  justify-self: center;
+  translate: calc(
+      var(--pick-offset, 0) * (var(--pick-card-w) + var(--pick-gap)) +
+        var(--pick-drag, 0px)
+    )
+    0;
   // Contexto de empilhamento próprio, para a arte poder ficar ATRÁS do texto
   // (z-index negativo) sem que o cabeçalho, o fecho e o corpo precisem de
   // z-index. O cabeçalho não pode ter: o `::after` do link do nome cobre o
   // card inteiro, e um ancestral posicionado com z-index o prenderia dentro de
   // si. (O corpo tem, de propósito: ver `.pickBody`.)
   isolation: isolate;
-  scroll-snap-align: center;
   display: flex;
   flex-direction: column;
   border-radius: $radius-lg;
@@ -24,6 +36,7 @@
   border: 1px solid $color-border;
   transform: scale(0.94);
   transition:
+    translate 0.4s var(--pick-ease),
     transform 0.28s var(--pick-ease),
     box-shadow 0.28s var(--pick-ease),
     border-color 0.28s ease;
@@ -373,6 +386,16 @@
   gap: $spacing-3;
   padding: $spacing-3 $spacing-5 $spacing-5;
   background: $surface;
+  // Num card de altura fixa (desktop, celular, embed baixo) o corpo encolhe
+  // depois do espaçador, e quem perde altura são os atributos — não o "Ver
+  // tudo", que precisa continuar à vista para abrir o resto.
+  flex: 0 1 auto;
+  min-height: 0;
+
+  > .pickDesc,
+  > .pickMore {
+    flex-shrink: 0;
+  }
 }
 
 .pickDesc {
@@ -393,6 +416,8 @@
   display: flex;
   flex-direction: column;
   gap: $spacing-2;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .pickGroup {

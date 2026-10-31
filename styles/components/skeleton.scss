@@ -1,0 +1,55 @@
+@use '../../styles/globals' as *;
+
+// Texto fantasma: o texto fica transparente e o brilho corre por trás, então
+// a altura vem da fonte (o skeleton ocupa a mesma caixa do conteúdo real).
+// `!important` porque o ghost vive dentro de elementos com cor de texto,
+// gradiente de título ou sombra próprios.
+.skeleton {
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
+  text-shadow: none !important;
+  border-radius: $radius-sm;
+  background: linear-gradient(
+      90deg,
+      $color-border 30%,
+      $color-border-strong 50%,
+      $color-border 70%
+    )
+    0 0 / 200% 100%;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  animation: shimmer 3.2s linear infinite;
+  user-select: none;
+
+  // No pergaminho o brilho clareia em vez de escurecer.
+  @include light {
+    background-image: linear-gradient(
+      90deg,
+      $color-border 30%,
+      $surface-float 50%,
+      $color-border 70%
+    );
+  }
+
+  // Para a arte: preenche o pai.
+  &--block {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+    background: $color-border;
+  }
+}
+
+.skeletonStatus {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

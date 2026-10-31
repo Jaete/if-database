@@ -244,6 +244,9 @@
 
   .pickTrack {
     flex: 1;
+    // A linha da grade é a altura que sobra no iframe, não a do maior card:
+    // os cards esticam até ela e o aberto rola por dentro.
+    grid-template-rows: minmax(0, 1fr);
     align-items: stretch;
     padding-block: $spacing-3;
   }
@@ -255,14 +258,6 @@
     &--open {
       overflow-y: auto;
     }
-  }
-
-  .pickDesc {
-    -webkit-line-clamp: 2;
-  }
-
-  .pickCard--open .pickDesc {
-    -webkit-line-clamp: unset;
   }
 
   .pickRows {
@@ -314,14 +309,6 @@
 
   // iframe baixo: aperta mais um pouco.
   @media (max-height: 660px) {
-    .pickDesc {
-      -webkit-line-clamp: 1;
-    }
-
-    .pickCard--open .pickDesc {
-      -webkit-line-clamp: unset;
-    }
-
     .pickHead {
       padding-top: $spacing-6;
       margin-top: -$spacing-6;

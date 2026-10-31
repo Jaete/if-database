@@ -1,0 +1,53 @@
+@use '../../styles/globals' as *;
+
+// Só os modificadores novos do skeleton do seletor: o resto vem dos SCSS reais
+// (classGrid, classCarousel, classCard, classRoles). Os seletores dobram a
+// classe base (`.pickTrack.pickTrack--skeleton`) para vencer a regra real
+// qualquer que seja a ordem em que as folhas chegam à página.
+
+// Sete cards centrados, com vizinhos dos dois lados: uma fileira (flex) no
+// lugar da grade sobreposta do trilho real, nas mesmas posições (passo =
+// card + vão) e com a mesma altura.
+.pickTrack.pickTrack--skeleton {
+  display: flex;
+  justify-content: center;
+  gap: var(--pick-gap);
+}
+
+.pickCard.pickCard--skeleton {
+  transition: none;
+
+  // A reticência do line-clamp é pintada com a cor do bloco, não a do
+  // texto fantasma.
+  .pickDesc,
+  .pickRows dd {
+    color: transparent;
+  }
+
+  .pickKind {
+    visibility: hidden;
+  }
+
+  &:not(.pickCard--focused) .skeleton {
+    opacity: 0.55;
+  }
+}
+
+.pickArt.pickArt--skeleton .skeleton--block {
+  opacity: 0.4;
+}
+
+.pickArrow.pickArrow--skeleton {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.classRoles.classRoles--skeleton {
+  .classRole {
+    border-color: $color-border-strong;
+  }
+
+  .classRoleIcon {
+    background: $color-border;
+  }
+}

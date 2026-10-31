@@ -8,6 +8,7 @@ const ClassCarouselHandles = [
   'pickCount',
   'pickCountNumber',
   'pickPips',
+  'pickPipsReel',
   'pickPip',
   'pickCarouselSrOnly',
 ] as const;

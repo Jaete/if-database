@@ -1,0 +1,35 @@
+@use '../../styles/globals' as *;
+
+.classLoading {
+  min-height: 100dvh;
+  padding: $spacing-16 $spacing-8;
+  background-color: $color-bg;
+
+  &--compact {
+    min-height: 0;
+    padding: $spacing-8 $spacing-6;
+  }
+
+  @include mobile {
+    padding-inline: $spacing-5;
+  }
+}
+
+.classLoadingHero {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-3;
+  max-width: 78rem;
+  margin: 0 auto;
+}
+
+.classLoadingTitle {
+  margin: 0;
+  @include cinzel-3xl($color-text, $font-weight-bold, 1.2, 0.08em);
+}
+
+.classLoadingLine {
+  max-width: 40rem;
+  margin: 0;
+  @include main-md($color-text-muted, $font-weight-regular, 1.5);
+}

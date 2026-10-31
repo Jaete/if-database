@@ -1,6 +1,6 @@
 @use '../../styles/globals' as *;
 
-// O seletor de classes: trilho de cards com scroll-snap. O card em foco é o
+// O seletor de classes: janela virtualizada de cards movida por translate. O card em foco é o
 // do centro; as medidas dos cards vêm daqui como custom properties, para o
 // embed trocar um valor em vez de reescrever regras. As cores são os tokens
 // semânticos globais.
@@ -16,7 +16,9 @@
   // Um card por vez: a largura é a do palco menos a fresta dos vizinhos.
   @include mobile {
     --pick-card-w: calc(100cqi - #{$spacing-16});
-    --pick-card-h: auto;
+    // Altura fixa, como no desktop: o trilho tem a altura do maior card, e o
+    // skeleton não tem como adivinhá-la. O que exceder vai no "Ver tudo".
+    --pick-card-h: 36rem;
     --pick-gap: #{$spacing-3};
     --pick-fade: 0rem;
   }
@@ -42,19 +44,24 @@
   }
 }
 
+// A janela de cards. Todos ocupam a mesma célula da grade (`.pickCard`:
+// `grid-area: 1 / 1`) e se afastam por `translate`; a célula tem a altura do
+// maior card montado, então o "Ver tudo" (card aberto, `height: auto`) estica
+// o trilho como quando os cards eram itens de fluxo. A largura é a do palco,
+// e o que passa dela é cortado (`overflow: hidden`), como a máscara pede.
 .pickTrack {
   position: relative;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
   align-items: center;
-  gap: var(--pick-gap);
-  overflow-x: auto;
-  overflow-y: hidden;
-  scroll-snap-type: x mandatory;
-  scroll-behavior: smooth;
-  overscroll-behavior-x: contain;
+  // Só para o JS ler o vão já resolvido em px (passo = largura + vão).
+  column-gap: var(--pick-gap);
+  overflow: hidden;
   padding-block: $spacing-6;
-  padding-inline: calc(50% - var(--pick-card-w) / 2);
-  scrollbar-width: none;
+  // O gesto horizontal é nosso (pointer events); a rolagem vertical da
+  // página continua.
+  touch-action: pan-y;
+  overscroll-behavior-x: contain;
   outline: none;
   // As bordas esmaecem: os vizinhos de fora somem no escuro em vez de serem
   // cortados a seco. Só o alfa importa numa máscara, qualquer cor serve.
@@ -73,8 +80,9 @@
     transparent 100%
   );
 
-  &::-webkit-scrollbar {
-    display: none;
+  // Durante o arrasto o trilho segue o dedo, sem atraso.
+  &--dragging .pickCard {
+    transition: none;
   }
 
   // A máscara cortaria um outline no próprio trilho, então o anel vai no card
@@ -87,10 +95,6 @@
   @include mobile {
     -webkit-mask-image: none;
     mask-image: none;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    scroll-behavior: auto;
   }
 }
 
@@ -144,7 +148,7 @@
     right: $spacing-4;
   }
 
-  // Nada de setas no toque: o swipe nativo do snap faz o trabalho.
+  // Nada de setas no toque: o arrasto faz o trabalho.
   @include mobile {
     display: none;
   }
@@ -177,6 +181,63 @@
   justify-content: center;
   gap: $spacing-2;
   max-width: 20rem;
+
+  // A janela: 7 losangos à vista, uma linha só, de altura constante. A tira
+  // desliza por baixo (`.pickPipsReel`) e as pontas se apagam pela máscara.
+  &--window {
+    --pip-step: #{$spacing-4}; // losango (0.5rem) + vão (0.5rem)
+    display: block;
+    flex-wrap: nowrap;
+    max-width: none;
+    position: relative;
+    width: calc(var(--pip-step) * 7 - #{$spacing-2});
+    // Folga vertical: o losango girado é mais alto que a caixa dele.
+    padding-block: $spacing-1;
+    overflow: hidden;
+
+    // O losango aceso: fixo no meio da janela, por cima da tira que desliza.
+    &::after {
+      @include slot-pip($color: $color-accent-line);
+      content: '';
+      position: absolute;
+      top: $spacing-1;
+      left: calc(var(--pip-step) * 3);
+      background: $color-accent-fill;
+      box-shadow: 0 0 6px with-alpha($color-accent-line, 0.45);
+
+      @include light {
+        box-shadow: none;
+      }
+    }
+    mask-image: linear-gradient(
+      90deg,
+      transparent,
+      black 30%,
+      black 70%,
+      transparent
+    );
+  }
+}
+
+.pickPipsReel {
+  display: flex;
+  gap: $spacing-2;
+  width: max-content;
+  transform: translateX(calc(var(--pip-shift, 0) * var(--pip-step) * -1));
+  transition: transform 0.4s var(--pick-ease);
+
+  // A tira real: losangos posicionados por posição virtual (`--pip-pos`) e
+  // uma tira que desliza `--pip-shift` passos. Sem fluxo, sem saltos.
+  &--virtual {
+    display: block;
+    position: relative;
+    width: 0;
+    height: $spacing-2;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
 }
 
 .pickPip {
@@ -184,6 +245,12 @@
   transition:
     background 0.2s ease,
     box-shadow 0.2s ease;
+
+  &--slide {
+    position: absolute;
+    top: 0;
+    left: calc(var(--pip-pos, 0) * var(--pip-step));
+  }
 
   &--on {
     background: $color-accent-fill;

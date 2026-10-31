@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, type MouseEvent } from 'react';
+import { Fragment, type CSSProperties, type MouseEvent } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { applyModifiers, useCssHandles } from '@/hooks/useCssHandles';
@@ -23,12 +23,16 @@ interface IProps {
   total: number;
   /** O card mais próximo do centro do trilho. */
   focused: boolean;
+  /** Repetição de uma classe já à vista (poucas classes): escondida e inerte. */
+  clone?: boolean;
+  /** Posição relativa ao card central, em passos: -1 é o vizinho da esquerda. */
+  offset: number;
   basePath: string;
   /** Só o app mostra o lápis; o embed é somente leitura. */
   canEdit: boolean;
   onEdit: (klass: IClassOption) => void;
   /** Clique num vizinho: só o traz ao centro, sem navegar. */
-  onCenter: (index: number) => void;
+  onCenter: () => void;
   /** Clique no card em foco: abre a classe sem sair do seletor. */
   onOpen: (klass: IClassOption) => void;
 }
@@ -47,6 +51,8 @@ const ClassCard = ({
   index,
   total,
   focused,
+  clone = false,
+  offset,
   basePath,
   canEdit,
   onEdit,
@@ -86,7 +92,7 @@ const ClassCard = ({
     }
     event.preventDefault();
     if (focused) onOpen(klass);
-    else onCenter(index);
+    else onCenter();
   };
 
   // O corpo fica acima do véu do link, então o clique que cai nele chega aqui.
@@ -97,7 +103,7 @@ const ClassCard = ({
     if ((event.target as HTMLElement).closest('a, button')) return;
     if (window.getSelection()?.toString()) return;
     if (focused) onOpen(klass);
-    else onCenter(index);
+    else onCenter();
   };
 
   const renderGroup = (title: string, rows: Row[]) => {
@@ -131,6 +137,9 @@ const ClassCard = ({
       role="group"
       aria-roledescription="classe"
       aria-label={`${index + 1} de ${total}: ${klass.name}`}
+      aria-hidden={clone || undefined}
+      inert={clone || undefined}
+      style={{ '--pick-offset': offset } as CSSProperties}
       onClick={onCardClick}
     >
       <div

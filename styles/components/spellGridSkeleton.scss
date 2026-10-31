@@ -1,0 +1,19 @@
+@use '../../styles/globals' as *;
+
+// Só os modificadores novos do skeleton do grimório: o resto vem dos SCSS reais
+// (spellGrid, spellRow). Seletores dobrados pelo mesmo motivo do skeleton das
+// classes: vencem a regra real em qualquer ordem de folhas.
+
+.spellbookBody.spellbookBody--skeleton {
+  user-select: none;
+}
+
+// A escola ainda não é conhecida: barra e selo neutros.
+.spellbookRow.spellbookRow--skeleton {
+  --school: #{$color-border-strong};
+  cursor: default;
+
+  .spellbookRowArt .skeleton--block {
+    opacity: 0.5;
+  }
+}

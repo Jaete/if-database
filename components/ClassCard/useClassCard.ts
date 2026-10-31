@@ -8,6 +8,10 @@ import { useEffect, useRef, useState } from 'react';
  * A medição é de verdade (`scrollHeight > clientHeight`), e não uma contagem de
  * caracteres: quantas linhas cabem depende da largura do card, do modo embed e
  * da altura do iframe.
+ *
+ * Mede os textos com clamp e também os blocos do corpo: num card de altura
+ * fixa, o bloco de atributos pode ser cortado inteiro sem nenhum texto estar
+ * truncado pelo clamp.
  */
 export function useClassCard(focused: boolean) {
   const bodyRef = useRef<HTMLDivElement>(null);
@@ -24,11 +28,12 @@ export function useClassCard(focused: boolean) {
     if (!body || open) return;
 
     const measure = () => {
-      const texts = body.querySelectorAll('p, dd');
+      const nodes = [
+        ...Array.from(body.querySelectorAll('p, dd')),
+        ...Array.from(body.children),
+      ];
       setOverflowing(
-        Array.from(texts).some(
-          (node) => node.scrollHeight > node.clientHeight + 1
-        )
+        nodes.some((node) => node.scrollHeight > node.clientHeight + 1)
       );
     };
     const observer = new ResizeObserver(measure);

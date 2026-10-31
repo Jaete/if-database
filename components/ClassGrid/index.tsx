@@ -177,9 +177,10 @@ const ClassGrid = ({
         <p className={handles.codexEmpty}>Nenhuma classe encontrada.</p>
       ) : (
         // A chave é a busca: cada filtro remonta o trilho, que volta ao
-        // primeiro resultado em foco.
+        // primeiro resultado em foco. A contagem também: criar ou excluir uma
+        // classe muda o módulo das posições, e o trilho recomeça do zero.
         <ClassCarousel
-          key={query}
+          key={`${query}:${visible.length}`}
           classes={visible}
           basePath={basePath}
           canEdit={canEdit}
