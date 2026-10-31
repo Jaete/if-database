@@ -1,8 +1,7 @@
 @use '../../../styles/globals' as *;
 @use 'vars' as *;
 
-// Edição embutida da ficha. Como o resto da ficha, sem blocos `@include light`:
-// o embed é sempre escuro.
+// Edição embutida da ficha. Segue o tema do sistema (ou `?tema=`) pelos tokens.
 
 // ── Campo editável ──────────────────────────────────────────
 //
@@ -31,11 +30,11 @@
   }
 
   // Teclado apenas: o contorno não aparece no clique de mouse.
-  @include focus-ring($primary-100);
+  @include focus-ring();
 
   // Campo alterado e ainda não salvo.
   &--dirty {
-    border-bottom-color: $primary-100;
+    border-bottom-color: $color-accent-line;
     border-bottom-style: solid;
   }
 }
@@ -70,43 +69,26 @@
 // ── Botão de entrar/sair da edição ──────────────────────────
 
 // Botão primário: é a única ação da ficha e precisa ser achado de primeira.
-// Usa $primary-* (o ouro funcional, de botões e links), não $gold-*, que é o
-// ornamental das bordas e brilhos.
 .sheetEditToggle {
   position: absolute;
   top: $spacing-3;
   right: $spacing-3;
   z-index: 3;
   padding: $spacing-2 $spacing-4;
-  border: 1px solid $primary-100;
   border-radius: $radius-full;
-  background: $primary-100;
-  color: $neutral-100;
   cursor: pointer;
 
-  @include main-sm($neutral-100, $font-weight-semibold);
+  @include btn-primary;
+  @include main-sm($color-text-on-accent, $font-weight-semibold);
   @include elevation(2);
-  @include focus-ring($primary-100);
-
-  &:hover {
-    background: $primary-200;
-    border-color: $primary-200;
-  }
 
   // Já dentro da edição a ação primária passa a ser salvar, na SaveBar — aqui
   // sobra "sair", que é secundária e não deve competir com ela.
   &--editing {
-    background: transparent;
-    border-color: $color-border;
     box-shadow: none;
 
+    @include btn-secondary;
     @include main-sm($color-text-muted, $font-weight-medium);
-
-    &:hover {
-      background: $accent-overlay;
-      border-color: $primary-100;
-      color: $color-text;
-    }
   }
 }
 
@@ -124,7 +106,7 @@
   align-items: center;
   justify-content: space-between;
   padding: $spacing-3 $spacing-4;
-  border-top: 1px solid $primary-100;
+  border-top: 1px solid $color-accent-line;
   background: $surface-float;
 
   @include elevation(4);
@@ -139,7 +121,7 @@
   flex-basis: 100%;
   order: 3;
 
-  @include main-xs($error, $font-weight-regular);
+  @include main-xs($color-error, $font-weight-regular);
 }
 
 .sheetSaveBarActions {
@@ -154,7 +136,7 @@
   cursor: pointer;
 
   @include main-sm($color-text, $font-weight-semibold);
-  @include focus-ring($primary-100);
+  @include focus-ring();
 
   &:disabled {
     opacity: 0.6;
@@ -163,9 +145,7 @@
 }
 
 .sheetSaveBarSave {
-  border: 1px solid $primary-100;
-  background: $primary-100;
-  color: $neutral-100;
+  @include btn-primary;
 }
 
 .sheetSaveBarDiscard {
@@ -205,7 +185,7 @@
   background: $surface-raised;
 
   &:hover {
-    border-color: $primary-100;
+    border-color: $color-accent-line;
   }
 }
 
@@ -216,7 +196,7 @@
   cursor: text;
 
   @include main-xs($color-text, $font-weight-regular);
-  @include focus-ring($primary-100);
+  @include focus-ring();
 }
 
 .sheetChipRemove {
@@ -233,18 +213,18 @@
   line-height: 1;
 
   @include main-sm($color-text-subtle, $font-weight-bold);
-  @include focus-ring($error);
+  @include focus-ring($color-error);
 
   &:hover {
     background: $error-bg;
-    color: $error;
+    color: $color-error;
   }
 }
 
 .sheetChipInput {
   width: $spacing-20;
   padding: $spacing-1 $spacing-2;
-  border: 1px solid $primary-100;
+  border: 1px solid $color-accent-line;
   border-radius: $radius-full;
   background: $surface-raised;
   color: $color-text;
@@ -261,10 +241,10 @@
   cursor: pointer;
 
   @include main-xs($color-text-muted, $font-weight-medium);
-  @include focus-ring($primary-100);
+  @include focus-ring();
 
   &:hover {
-    border-color: $primary-100;
+    border-color: $color-accent-line;
     border-style: solid;
     color: $color-text;
     background: $accent-overlay;
@@ -292,11 +272,11 @@
   }
 
   &:hover {
-    border-color: $primary-100;
+    border-color: $color-accent-line;
     box-shadow: 0 0 0 2px $accent-overlay-hover;
   }
 
-  @include focus-ring($primary-100);
+  @include focus-ring();
 }
 
 // ── Bônus de perícia (modo edição) ──────────────────────────
@@ -315,11 +295,11 @@
   line-height: 1;
 
   @include main-xs($color-text-subtle, $font-weight-bold);
-  @include focus-ring($error);
+  @include focus-ring($color-error);
 
   &:hover {
     background: $error-bg;
-    color: $error;
+    color: $color-error;
   }
 }
 
@@ -333,10 +313,10 @@
   white-space: nowrap;
 
   @include main-xs($color-text-muted, $font-weight-medium);
-  @include focus-ring($primary-100);
+  @include focus-ring();
 
   &:hover {
-    border-color: $primary-100;
+    border-color: $color-accent-line;
     border-style: solid;
     color: $color-text;
     background: $accent-overlay;
@@ -363,10 +343,10 @@
     opacity 0.15s ease,
     color 0.15s ease;
 
-  @include focus-ring($primary-100);
+  @include focus-ring();
 
   &:hover {
-    color: $primary-100;
+    color: $color-accent;
   }
 }
 
@@ -377,19 +357,11 @@
   width: 100%;
   margin-bottom: $spacing-1;
   padding: $spacing-2 $spacing-3;
-  border: 1px solid $color-border-strong;
   border-radius: $radius-sm;
-  background: $surface;
   cursor: pointer;
 
+  @include field-input;
   @include main-sm($color-text, $font-weight-medium);
-  @include premium-input-focus;
-
-  @include light {
-    background: $color-bg-inverse;
-    color: $color-text-inverse;
-    border-color: $color-border-inverse;
-  }
 }
 
 .sheetMasterAdd {
@@ -402,10 +374,10 @@
   text-align: left;
 
   @include main-xs($color-text-muted, $font-weight-medium);
-  @include focus-ring($primary-100);
+  @include focus-ring();
 
   &:hover {
-    border-color: $primary-100;
+    border-color: $color-accent-line;
     border-style: solid;
     color: $color-text;
     background: $accent-overlay;
@@ -421,7 +393,7 @@ button.sheetSpellBadge {
   border: 0;
   cursor: pointer;
 
-  @include focus-ring($primary-100);
+  @include focus-ring();
 }
 
 .sheetSpellEdit {
@@ -440,7 +412,7 @@ button.sheetSpellBadge {
     opacity 0.15s ease,
     color 0.15s ease;
 
-  @include focus-ring($primary-100);
+  @include focus-ring();
 
   .sheetSpell:hover &,
   &:focus-visible {
@@ -448,7 +420,7 @@ button.sheetSpellBadge {
   }
 
   &:hover {
-    color: $primary-100;
+    color: $color-accent;
   }
 }
 
@@ -462,10 +434,10 @@ button.sheetSpellBadge {
   cursor: pointer;
 
   @include main-xs($color-text-muted, $font-weight-medium);
-  @include focus-ring($primary-100);
+  @include focus-ring();
 
   &:hover {
-    border-color: $primary-100;
+    border-color: $color-accent-line;
     border-style: solid;
     color: $color-text;
     background: $accent-overlay;

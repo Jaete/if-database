@@ -23,10 +23,6 @@
   background-color: $color-bg;
   @include fade-in(0.2s);
 
-  @include light {
-    background-color: $color-bg-inverse;
-  }
-
   @media (prefers-reduced-motion: reduce) {
     animation: none;
   }
@@ -43,10 +39,6 @@
   padding: $spacing-3 $spacing-5;
   // A arte passa por baixo da barra.
   background: linear-gradient(180deg, $color-bg 55%, transparent);
-
-  @include light {
-    background: linear-gradient(180deg, $color-bg-inverse 55%, transparent);
-  }
 
   @include mobile {
     padding: $spacing-3 $spacing-4;
@@ -65,35 +57,18 @@
   gap: $spacing-2;
   padding: $spacing-2 $spacing-4;
   border-radius: $radius-full;
-  border: 1px solid $color-border-strong;
-  background-color: $surface-raised;
   cursor: pointer;
+  @include btn-secondary;
   @include cinzel-sm($color-text, $font-weight-bold, 1.5, 0.04em);
-  @include focus-ring;
-
-  @include light {
-    background-color: $neutral-2300;
-    border-color: $color-border-inverse;
-    color: $color-text-inverse;
-  }
 
   svg {
     width: $spacing-4;
     height: $spacing-4;
   }
-
-  &:hover {
-    border-color: rgba($gold-100, 0.35);
-    color: $gold-100;
-
-    @include light {
-      color: $gold-500;
-    }
-  }
 }
 
 .spellDetailEdit {
-  border-color: rgba($primary-100, 0.5);
+  border-color: with-alpha($color-accent-line, 0.5);
 }
 
 .spellDetailHero {
@@ -130,7 +105,7 @@
   display: grid;
   place-items: center;
   height: clamp(11rem, 30vh, 16rem);
-  color: $gold-300;
+  color: $color-accent-line-2;
   background: radial-gradient(
     40% 70% at 50% 55%,
     color-mix(in srgb, var(--school) 14%, transparent),
@@ -205,16 +180,11 @@
   height: $spacing-16;
   border-radius: $radius-md;
   background: linear-gradient(180deg, $surface-elevated, $surface-raised);
-  border: 1px solid rgba($gold-100, 0.35);
+  border: 1px solid with-alpha($color-accent-line, 0.35);
   box-shadow:
-    0 8px 24px rgba($neutral-100, 0.5),
+    0 8px 24px rgba(#{$shadow-ink}, 0.5),
     $glow-primary;
   text-align: center;
-
-  @include light {
-    background: linear-gradient(180deg, $neutral-2400, $neutral-2300);
-    border-color: rgba($gold-400, 0.45);
-  }
 
   @include mobile {
     width: $spacing-14;
@@ -224,21 +194,13 @@
 
 .spellDetailSealNumber {
   display: block;
-  @include cinzel-2xl($gold-100, $font-weight-bold, 1, 0, center);
-
-  @include light {
-    color: $gold-500;
-  }
+  @include cinzel-2xl($color-accent, $font-weight-bold, 1, 0, center);
 }
 
 .spellDetailSealLabel {
   display: block;
   margin-top: $spacing-1;
   @include caption($color-text-muted, $font-weight-semibold, 1.2, 1px, center);
-
-  @include light {
-    color: $color-text-muted-inverse;
-  }
 }
 
 .spellDetailTitleText {
@@ -252,16 +214,11 @@
   @include cinzel-3xl($color-text, $font-weight-bold, 1.15, 0.04em);
 
   @include light {
-    color: $color-text-inverse;
     text-shadow: none;
   }
 
   @include mobile {
     @include cinzel-2xl($color-text, $font-weight-bold, 1.15, 0.04em);
-
-    @include light {
-      color: $color-text-inverse;
-    }
   }
 }
 
@@ -272,10 +229,6 @@
   gap: $spacing-2;
   margin-top: $spacing-2;
   @include main-sm($color-text-muted, $font-weight-regular);
-
-  @include light {
-    color: $color-text-muted-inverse;
-  }
 }
 
 .spellDetailSchoolGlyph {
@@ -286,10 +239,6 @@
 
 .spellDetailSchoolText {
   color: $color-text;
-
-  @include light {
-    color: $color-text-inverse;
-  }
 }
 
 .spellDetailBody {
@@ -328,11 +277,6 @@
   background-color: $color-border;
   border: 1px solid $color-border;
   border-radius: $radius-md;
-
-  @include light {
-    background-color: $color-border-inverse;
-    border-color: $color-border-inverse;
-  }
 }
 
 .spellDetailQuadCell {
@@ -344,29 +288,17 @@
   &:last-child:nth-child(odd) {
     grid-column: 1 / -1;
   }
-
-  @include light {
-    background-color: $neutral-2200;
-  }
 }
 
 .spellDetailLabel {
   display: block;
   margin-bottom: $spacing-1;
   @include caption($color-text-muted, $font-weight-semibold);
-
-  @include light {
-    color: $color-text-muted-inverse;
-  }
 }
 
 .spellDetailValue {
   overflow-wrap: anywhere;
   @include main-md($color-text, $font-weight-regular, 1.45);
-
-  @include light {
-    color: $color-text-inverse;
-  }
 }
 
 .spellDetailFields {
@@ -381,39 +313,23 @@
   gap: $spacing-3;
   padding: $spacing-2 0;
   border-bottom: 1px solid $color-border;
-
-  @include light {
-    border-color: $color-border-inverse;
-  }
 }
 
 .spellDetailFieldTerm {
   margin: 0;
   padding-top: $spacing-1;
   @include caption($color-text-muted, $font-weight-semibold);
-
-  @include light {
-    color: $color-text-muted-inverse;
-  }
 }
 
 .spellDetailFieldValue {
   margin: 0;
   overflow-wrap: anywhere;
   @include main-sm($color-text, $font-weight-regular, 1.45);
-
-  @include light {
-    color: $color-text-inverse;
-  }
 }
 
 .spellDetailClassesHead {
   margin: 0 0 $spacing-2;
   @include caption($color-text-muted, $font-weight-semibold);
-
-  @include light {
-    color: $color-text-muted-inverse;
-  }
 }
 
 .spellDetailChips {
@@ -428,14 +344,9 @@
 .spellDetailChip {
   padding: $spacing-1 $spacing-3;
   border-radius: $radius-full;
-  border: 1px solid rgba($gold-100, 0.35);
+  border: 1px solid with-alpha($color-accent-line, 0.35);
   background-color: $surface-raised;
   @include cinzel-xs($color-text, $font-weight-semibold, 1.5);
-
-  @include light {
-    background-color: $neutral-2300;
-    color: $color-text-inverse;
-  }
 }
 
 // Texto do fórum, sem classe vinculada.
@@ -444,40 +355,22 @@
   border-color: $color-border-strong;
   background-color: transparent;
   @include main-xs($color-text-muted, $font-weight-regular);
-
-  @include light {
-    background-color: transparent;
-    color: $color-text-muted-inverse;
-    border-color: $color-border-inverse;
-  }
 }
 
 .spellDetailSource {
   margin: 0;
   @include main-xs($color-text-muted, $font-weight-regular, 1.6);
-
-  @include light {
-    color: $color-text-muted-inverse;
-  }
 }
 
 .spellDetailSourceLink {
-  color: $gold-100;
+  color: $color-accent;
   @include focus-ring;
-
-  @include light {
-    color: $gold-500;
-  }
 }
 
 .spellDetailDescription {
   min-width: 0;
   max-width: 68ch;
   @include main-md($color-text, $font-weight-regular, 1.7);
-
-  @include light {
-    color: $color-text-inverse;
-  }
 
   @include mobile {
     order: 2;
@@ -495,11 +388,7 @@
     font-size: 3.1em;
     font-weight: $font-weight-bold;
     line-height: 0.9;
-    color: $gold-100;
-
-    @include light {
-      color: $gold-500;
-    }
+    color: $color-accent;
   }
 
   ul {
@@ -511,7 +400,7 @@
     margin-bottom: $spacing-2;
 
     &::marker {
-      color: $gold-300;
+      color: $color-accent-line-2;
     }
   }
 }
@@ -519,8 +408,4 @@
 .spellDetailEmpty {
   font-style: italic;
   color: $color-text-muted;
-
-  @include light {
-    color: $color-text-muted-inverse;
-  }
 }

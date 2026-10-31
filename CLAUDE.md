@@ -177,41 +177,66 @@ $neutral-100 (#0a0a0a) … $neutral-1000 (#808080)     // dark-mode neutrals
 $neutral-2000 (#f5f5f5) … $neutral-2900 (#d2c8b4)    // light-mode / parchment neutrals
 $success (#4caf50) / $info (#2196f3) / $warning (#ff9800) / $error (#f44336)
 
-// Semantic — surfaces (an elevation ladder; pair each step with the matching
-// `elevation($level)` mixin of the same rank so shadow depth and surface
-// brightness always move together):
-$overlay                                             // elevation 0 — dim/backdrop
+// Semantic tokens — same Sass names, but the VALUE is a theme custom property
+// (`var(--color-…)`) generated from the `$theme-dark` / `$theme-light` maps at
+// the end of _colors.scss. They flip with the theme on their own.
+//
+// surfaces (an elevation ladder; pair each step with `elevation($level)`):
+$overlay                                             // elevation 0 — backdrop
 $surface / $surface-raised / $surface-elevated / $surface-float   // elevation 1-4
-$accent-overlay / $accent-overlay-hover
-$glow-gold / $glow-gold-strong / $glow-primary
+$accent-overlay / $accent-overlay-hover              // gold tints (hover backgrounds)
+$glow-gold / $glow-gold-strong / $glow-primary       // glow in dark, 1px hairline in light
 
-// Semantic — text & borders (dark mode is the default; "-inverse" variants
-// are for use inside `@include light { }` overrides):
+// text & borders:
 $color-bg                    // page background
-$color-text                  // primary text on dark surfaces (off-white, not pure #fff)
-$color-text-muted            // secondary text
-$color-text-subtle           // least-emphasis text (captions, disabled)
+$color-text / $color-text-muted / $color-text-subtle
+$color-text-on-accent        // text over $color-accent-fill / primary buttons
 $color-border / $color-border-strong
+$color-border-control        // input / select / secondary-button outline (>= 3:1)
 
-$color-bg-inverse / $color-text-inverse / $color-text-muted-inverse / $color-border-inverse
+// gold (ALL gold text/icons use $color-accent, never $gold-100/$primary-100):
+$color-accent / $color-accent-hover      // gold text, icons, titles
+$color-accent-line / $color-accent-line-2 // hairlines, ◆, gold borders (use with-alpha), pips
+$color-accent-fill                       // small solid gold fill (active pip, badge)
+$color-focus                             // focus ring, focused-input border
 
-// Semantic — state tints, for alert/badge backgrounds & borders (same
-// tinted-overlay pattern as $accent-overlay, applied to each state color):
-$success-bg / $success-border
-$warning-bg / $warning-border
-$error-bg / $error-border
-$info-bg / $info-border
+// controls & misc:
+$color-input-bg / $color-placeholder / $color-scrollbar
+$shadow-ink                              // RGB triplet: rgba(#{$shadow-ink}, .3)
+$accent-gradient / $accent-fill-gradient / $accent-fill-gradient-hover
+
+// states — text/icon: $color-success / $color-warning / $color-error / $color-info
+// states — background & border tints:
+$success-bg / $success-border  (same for warning, error, info)
+// The primitives $success/$warning/$error/$info stay for fills and bars.
+
+// Static (do NOT follow the theme): every primitive above, $school-*, and the
+// DEPRECATED "-inverse" tokens ($color-bg-inverse, $color-text-inverse,
+// $color-text-muted-inverse, $color-border-inverse). A `light` override that only
+// swaps a token for its -inverse is now redundant: delete it.
 
 // Semantic — spell schools (accent only: side bar, glyph, haze; never text/fill):
 // $school-abjuracao … $school-transmutacao, $school-outra, and the $school-colors map
 // ($school-adivinhacao-light is its light-mode variant)
 ```
 
-### Theming (CSS custom properties)
+### Theming (light "Pergaminho" / dark)
 
-`styles/_globals.scss` generates a small set of CSS custom properties (`--color-bg`, `--color-surface`, `--color-text`, `--color-border`, `--color-primary`) at `:root`, derived from the `$color-*` Sass tokens above, with a `@include light { :root { ... } }` block re-assigning them to the light-mode values. This exists **only** so plain `.css` files that can't `@use` Sass (like `app/globals.css`) have something real to reference via `var(--color-text)` etc. — it fixed a previously-dead `var(--neutral-100)` reference that resolved to nothing.
+Dark is the default; light is a parchment theme. The theme follows the OS (`prefers-color-scheme`) unless the user chose manually: `<html data-theme="light|dark">` (absent = follow the system). The choice is stored in `localStorage` under `ifdb-theme` and applied by an inline script in the `<head>` of `app/(app)/layout.tsx` before hydration (so `<html>` has `suppressHydrationWarning`). The selector (System / Light / Dark) lives in the NavDrawer footer (`components/ThemeSwitch`, `hooks/useThemePreference`). Embeds (`app/(embed)`) follow the OS, have no switch, and accept `?tema=claro|escuro` on the iframe URL.
 
-Component `.scss` files should keep using the `$color-*` Sass variables directly (with `@include light { }` overrides), exactly as documented under CSS Handles / Styling Rules below — don't switch component styling to `var(--color-*)` just because the custom properties exist; the Sass tokens are still the source of truth and the custom-property block is generated from them, not the other way around.
+**How it works.** `$theme-dark` / `$theme-light` (in `styles/config/_colors.scss`) are the only place theme values live. `styles/_globals.scss` emits them as `--color-*`, `--shadow-*`, `--glow-*` and gradient custom properties on `:root` (also consumed by `app/globals.css`). The semantic Sass tokens resolve to those properties, so **components keep writing `$color-*` / `$surface*` and get both themes for free**.
+
+**Rules of use**
+
+- Paper roles go through semantic tokens: background `$color-bg`/`$surface*`, text `$color-text*`, borders `$color-border*`, gold text/icons `$color-accent`, gold lines/ornaments `$color-accent-line`, state text `$color-error` etc., state fills `$error-bg`/`$error-border`.
+- Use a primitive (`$neutral-*`, `$gold-*`, `$success`…) only when the color is meant to be the same in both themes (school bars, HP bar, spell-slot pips via `slot-pip`). No `#fff`, `white` or `rgba(0,0,0,…)` literals.
+- Semantic tokens are `var()`: **never** pass them to `rgba()`, `color.adjust()`, `mix()`. Use `with-alpha($token, $amount)` (returns `color-mix`). Sass color math on a primitive is fine. `theme-value($theme, $key)` gives the static value when truly needed.
+- `@include light { }` / `@include dark { }` keep their API and now respect `data-theme`, but are for **exceptions** only (an image filter, a per-school color, an alpha that needs a different number). Do not use them to swap a token for its `-inverse`. Inside a block, repeat state selectors (`&:hover`) that touch the same property. `@include light` must be inside a selector, and `&` must be the first compound of the nested selector: put it inside the final selector (`.parent:hover .x { @include light { … } }`), not as `.parent:hover & { }` within a block. At `:root` level use `theme-root(light)` (only `_globals.scss`).
+- `@include theme-scope(dark)` (or `light`) forces a theme on a subtree: use it for labels/controls placed **directly over artwork**, which stays dark in both themes. Put it before typography mixins.
+- Buttons and fields use the mixins: `btn-primary` (gold gradient, `$color-text-on-accent`), `btn-secondary`, `btn-ghost`, `btn-danger`, `field-input` (typography/padding/radius stay in the component). The primary button is never light text on light gold.
+- The "premium" mixins (`premium-card`, `elevation`, `gold-border`, `gold-gradient-text`, `focus-ring`, `slot-pip`…) already use theme tokens; don't add local light overrides on top of them.
+- Text must keep WCAG AA (4.5:1; 3:1 for large text and non-text like control borders/focus). Check both themes.
+- Never add a colored side border to a card (`border-left: 3px solid …`).
 
 **Typography** (`styles/config/_typography.scss`) — three font families, each with the same size scale and mixin signature `@mixin family-size($color, $weight, $line-height: 1.5, $spacing: 0, $align: left)`:
 
@@ -237,8 +262,8 @@ Extended mixins: `caption($color, $weight)` (10px, uppercase, letter-spacing) an
 
 - `@include desktop { }` → `min-width: 750px` (the default; no media query needed for desktop styles themselves)
 - `@include mobile { }` → `max-width: 749px` (override)
-- `@include dark { }` → `prefers-color-scheme: dark`
-- `@include light { }` → `prefers-color-scheme: light` (override — **dark is the default**, write dark styles unwrapped and put light overrides in `@include light`)
+- `@include dark { }` / `@include light { }` → theme override honoring `prefers-color-scheme` **and** `data-theme` (**dark is the default**; see Theming for when to use them)
+- `theme-root($theme)`, `theme-vars($theme)`, `theme-scope($theme)`, `theme-value($theme, $key)`, `with-alpha($color, $amount)` — theme plumbing, see Theming
 
 **"Premium" decorative mixins** (`styles/config/_mixins.scss` — previously undocumented, already used across the codebase, use these instead of hand-rolling gold/glow/elevation effects):
 
@@ -247,14 +272,19 @@ Extended mixins: `caption($color, $weight)` (10px, uppercase, letter-spacing) an
   @include gold-decorative-line($width: 48px, $height: 2px) // gold underline via ::after
   @include gold-gradient-text // gold gradient text-fill
   @include premium-input-focus // gold focus ring for inputs
-  @include gold-glow($intensity: 1) // gold box-shadow glow
+  @include gold-glow // themed accent glow ($intensity is accepted but ignored)
   @include premium-card($padding: $spacing-5) // card surface + border + hover glow
-  @include corner-ornament($size: 8px, $color: $gold-100, $opacity: 0.3) // ◆ corner decoration via ::before
-  @include elevation($level: 0-4) // box-shadow elevation scale
-  @include noise-texture($opacity: 0.03); // fixed noise overlay via ::after
+  @include
+  corner-ornament($size: 8px, $color: $color-accent-line, $opacity: 0.3) // ◆ corner decoration via ::before
+  @include elevation($level: 0-4) // themed box-shadow elevation scale (var(--shadow-N))
+  @include noise-texture($opacity: 0.03) // fixed noise overlay via ::after
+  @include slot-pip($color: $color-accent-line-2) // spell-slot diamond
+  // Controls — color, border and states only; typography/padding/radius stay in the component:
+  @include btn-primary / btn-secondary / btn-ghost / btn-danger @include
+  field-input; // input/textarea/select: bg, border, placeholder, focus
 ```
 
-**Accessibility mixin** (also in `_mixins.scss`, not decorative — use on any custom interactive element): `@include focus-ring($color: $primary-100)` sets a `:focus-visible` outline (keyboard nav only, never shows on mouse click). Prefer this over `premium-input-focus` for anything that isn't a text input.
+**Accessibility mixin** (also in `_mixins.scss`, not decorative — use on any custom interactive element): `@include focus-ring($color: $color-focus)` sets a `:focus-visible` outline (keyboard nav only, never shows on mouse click). Prefer this over `premium-input-focus` for anything that isn't a text input.
 
 **Animation** (`styles/config/_animations.scss`): keyframes `fadeIn`/`fadeOut`/`slideUp`/`slideDown`/`scaleIn`/`shimmer`/`spin`, plus mixins `fade-in($duration)`, `slide-up($duration)`, `scale-in($duration)`.
 

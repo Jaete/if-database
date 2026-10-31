@@ -148,7 +148,7 @@ const ClassGrid = ({
                 </button>
                 <button
                   type="button"
-                  className={handles.codexAction}
+                  className={`${handles.codexAction} ${handles.codexAction}--primary`}
                   onClick={() => setEditing(undefined)}
                   aria-label="Criar nova classe"
                   title="Nova classe"

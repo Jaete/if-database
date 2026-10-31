@@ -14,13 +14,11 @@
 }
 
 .promptInput {
+  @include field-input;
   width: 100%;
   padding: $spacing-2 $spacing-3;
-  border: 1px solid $color-border;
   border-radius: $radius-sm;
-  background: $surface-raised;
   @include main-md($color-text, $font-weight-regular);
-  @include premium-input-focus;
 }
 
 .promptArea {
@@ -42,19 +40,12 @@
 }
 
 .promptDelete {
+  @include btn-danger;
   padding: $spacing-2 $spacing-4;
-  border: 1px solid $error-border;
   border-radius: $radius-sm;
-  background-color: transparent;
-  color: $error;
   cursor: pointer;
   transition: background-color 0.2s ease;
-  @include cinzel-sm($error, $font-weight-bold, 1.2);
-  @include focus-ring($error);
-
-  &:hover {
-    background-color: $error-bg;
-  }
+  @include cinzel-sm($color-error, $font-weight-bold, 1.2);
 }
 
 .promptCancel,
@@ -63,32 +54,14 @@
   border-radius: $radius-sm;
   cursor: pointer;
   transition: background-color 0.2s ease;
-  @include cinzel-sm($color-text, $font-weight-bold, 1.2);
-  @include focus-ring($primary-100);
 }
 
 .promptCancel {
-  border: 1px solid $color-border;
-  background-color: transparent;
-  color: $color-text-muted;
-
-  &:hover {
-    background-color: $accent-overlay;
-    color: $color-text;
-  }
+  @include btn-secondary;
+  @include cinzel-sm($color-text, $font-weight-bold, 1.2);
 }
 
 .promptConfirm {
-  border: 1px solid $primary-100;
-  background-color: $primary-100;
-  color: $neutral-100;
-
-  &:hover {
-    background-color: $primary-200;
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: default;
-  }
+  @include btn-primary;
+  @include cinzel-sm($color-text-on-accent, $font-weight-bold, 1.2);
 }

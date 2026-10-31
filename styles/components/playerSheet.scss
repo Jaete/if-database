@@ -1,7 +1,7 @@
 @use '../../styles/globals' as *;
 
-// The embed frame is always dark (see app/(embed)/layout.tsx): this sheet has
-// no `@include light` overrides on purpose.
+// The embed follows the system theme (or `?tema=`, see app/(embed)/layout.tsx):
+// colors come from the semantic tokens, which switch on their own.
 
 @use 'playerSheet/frame';
 @use 'playerSheet/header';

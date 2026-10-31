@@ -13,15 +13,15 @@
   @include fade-in(0.25s);
 
   .fullScreenModal {
-    background-color: $neutral-200;
-    border: 1px solid $primary-400;
+    background-color: $surface-float;
+    border: 1px solid $color-border-strong;
     border-radius: $radius-md;
     width: 100%;
     max-width: 95vw;
     height: 95vh;
     @include flex-col-start;
     overflow: hidden;
-    box-shadow: 0 4px 20px rgba($neutral-100, 0.5);
+    @include elevation(4);
     position: relative;
     @include slide-up(0.35s);
 
@@ -35,7 +35,7 @@
       background: linear-gradient(
         90deg,
         transparent,
-        rgba($primary-100, 0.5),
+        with-alpha($color-accent-line, 0.5),
         transparent
       );
       z-index: 1;
@@ -45,22 +45,22 @@
   .modalHeader {
     width: 100%;
     padding: $spacing-4 $spacing-6;
-    border-bottom: 1px solid $neutral-400;
+    border-bottom: 1px solid $color-border;
     @include flex-row-between;
     align-items: center;
-    background: linear-gradient(180deg, $neutral-300 0%, $neutral-200 100%);
+    background-color: $surface-raised;
     flex-shrink: 0;
   }
 
   .modalTitle {
-    @include cinzel-lg($primary-100, bold, 1.2);
+    @include cinzel-lg($color-accent, $font-weight-bold, 1.2);
     margin: 0;
   }
 
   .modalCloseButton {
     background: none;
     border: none;
-    color: $neutral-1000;
+    color: $color-text-muted;
     font-size: 1.5rem;
     cursor: pointer;
     padding: 0 $spacing-2;
@@ -69,19 +69,19 @@
     transition: color 0.2s ease;
 
     &:hover {
-      color: $error;
+      color: $color-error;
     }
   }
 
   .toolbar {
     width: 100%;
     padding: $spacing-3 $spacing-6;
-    border-bottom: 1px solid $neutral-400;
+    border-bottom: 1px solid $color-border;
     @include flex-row-between;
     align-items: center;
     gap: $spacing-4;
     flex-shrink: 0;
-    background-color: $neutral-300;
+    background-color: $surface-raised;
   }
 
   .toolbarLeft {
@@ -103,39 +103,18 @@
   }
 
   .treeNameInput {
-    background-color: rgba(0, 0, 0, 0.2);
-    border: 1px solid $neutral-400;
+    @include field-input;
     border-radius: $radius-sm;
     padding: $spacing-2 $spacing-4;
-    color: $color-text;
     @include main-sm($color-text, $font-weight-regular);
     outline: none;
     min-width: 200px;
     transition: border-color 0.2s;
-
-    &::placeholder {
-      color: $neutral-800;
-    }
-
-    &:focus {
-      border-color: $primary-100;
-    }
-
-    @include light {
-      background-color: $color-text;
-      color: $neutral-200;
-      border-color: $neutral-2700;
-
-      &::placeholder {
-        color: $neutral-2300;
-      }
-    }
   }
 
   .saveButton {
-    @include main-xs($color-text, $font-weight-bold);
-    background-color: $primary-100;
-    border: none;
+    @include btn-primary;
+    @include main-xs($color-text-on-accent, $font-weight-bold);
     padding: $spacing-2 $spacing-5;
     border-radius: 6px;
     cursor: pointer;
@@ -144,16 +123,11 @@
       transform 0.15s ease;
     white-space: nowrap;
 
-    &:hover:not(:disabled) {
-      background-color: $primary-200;
-    }
-
     &:active:not(:disabled) {
       transform: scale(0.98);
     }
 
     &:disabled {
-      opacity: 0.4;
       cursor: not-allowed;
     }
   }
@@ -163,32 +137,24 @@
     width: 100%;
     overflow: auto;
     position: relative;
-    background-color: $neutral-300;
+    background-color: $surface;
     background-image: radial-gradient(
       circle,
-      $neutral-400 1px,
+      with-alpha($color-accent-line, 0.15) 1px,
       transparent 1px
     );
     background-size: 24px 24px;
-
-    @include light {
-      background-color: $neutral-2100;
-      background-image: radial-gradient(
-        circle,
-        $neutral-2700 1px,
-        transparent 1px
-      );
-    }
+    scrollbar-color: $color-scrollbar transparent;
 
     &::-webkit-scrollbar {
       width: 8px;
       height: 8px;
     }
     &::-webkit-scrollbar-track {
-      background: $neutral-200;
+      background: $surface;
     }
     &::-webkit-scrollbar-thumb {
-      background-color: $primary-400;
+      background-color: $color-scrollbar;
       border-radius: $radius-full;
     }
   }
@@ -201,8 +167,8 @@
 
   .treeNode {
     position: absolute;
-    background-color: $neutral-200;
-    border: 1px solid $primary-400;
+    background-color: $surface;
+    border: 1px solid $color-border-strong;
     border-radius: $radius-md;
     display: flex;
     flex-direction: column;
@@ -212,8 +178,8 @@
       box-shadow 0.2s;
 
     &:hover {
-      border-color: $primary-100;
-      box-shadow: 0 0 12px rgba($primary-100, 0.2);
+      border-color: $color-accent-line;
+      box-shadow: $glow-gold;
     }
   }
 
@@ -232,11 +198,7 @@
     object-fit: contain;
     flex-shrink: 0;
     border-radius: $radius-sm;
-    background-color: $neutral-300;
-
-    @include light {
-      background-color: $neutral-2400;
-    }
+    background-color: $surface-raised;
   }
 
   .treeNodeInfo {
@@ -250,10 +212,6 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-
-    @include light {
-      color: $neutral-200;
-    }
   }
 
   .treeNodeActions {
@@ -286,25 +244,25 @@
   }
 
   .treeNodeAddBtn {
-    background-color: $primary-400;
-    color: $primary-100;
+    background-color: $accent-overlay;
+    color: $color-accent;
 
     &:hover {
-      background-color: $primary-300;
+      background-color: $accent-overlay-hover;
     }
   }
 
   .treeNodeRemoveBtn {
-    background-color: rgba($error, 0.2);
-    color: $error;
+    background-color: $error-bg;
+    color: $color-error;
 
     &:hover {
-      background-color: rgba($error, 0.4);
+      background-color: with-alpha($color-error, 0.25);
     }
   }
 
   .noTreeMessage {
-    @include main-md($neutral-800, normal);
+    @include main-md($color-text-muted, $font-weight-regular);
     text-align: center;
     padding: $spacing-10;
     width: 100%;
@@ -323,20 +281,20 @@
     width: 100%;
     flex-shrink: 0;
     padding: $spacing-3 $spacing-6;
-    border-top: 1px solid $neutral-400;
-    background-color: $neutral-300;
+    border-top: 1px solid $color-border;
+    background-color: $surface-raised;
     @include flex-row-center;
   }
 
   .sectionTitle {
-    @include cinzel-md($primary-100, bold, 1.2);
+    @include cinzel-md($color-accent, $font-weight-bold, 1.2);
     margin: 0 0 $spacing-2;
   }
 
   .savedTreeItem {
     width: 100%;
-    background-color: $neutral-200;
-    border: 1px solid $neutral-400;
+    background-color: $surface;
+    border: 1px solid $color-border;
     border-radius: $radius-md;
     padding: $spacing-3 $spacing-4;
     @include flex-row-between;
@@ -345,7 +303,7 @@
     transition: border-color 0.2s;
 
     &:hover {
-      border-color: $primary-400;
+      border-color: $color-accent-line;
     }
   }
 
@@ -355,14 +313,10 @@
 
     strong {
       @include main-sm($color-text, $font-weight-bold);
-
-      @include light {
-        color: $neutral-200;
-      }
     }
 
     span {
-      @include caption($neutral-800, normal);
+      @include caption($color-text-muted, $font-weight-regular);
     }
   }
 
@@ -376,7 +330,6 @@
   .deleteTreeBtn,
   .newTreeBtn {
     @include main-xs($color-text, $font-weight-bold);
-    border: none;
     padding: $spacing-1 $spacing-4;
     border-radius: 4px;
     cursor: pointer;
@@ -391,43 +344,24 @@
   }
 
   .loadTreeBtn {
-    background-color: $primary-400;
-    color: $primary-100;
-
-    &:hover {
-      background-color: $primary-300;
-    }
+    @include btn-secondary;
   }
 
   .copyBBCodeBtn {
-    background-color: rgba($primary-100, 0.15);
-    color: $primary-100;
-
-    &:hover {
-      background-color: rgba($primary-100, 0.3);
-    }
+    @include btn-ghost;
   }
 
   .deleteTreeBtn {
-    background-color: rgba($error, 0.2);
-    color: $error;
-
-    &:hover {
-      background-color: rgba($error, 0.4);
-    }
+    @include btn-danger;
   }
 
   .newTreeBtn {
-    background-color: $primary-100;
+    @include btn-primary;
     padding: $spacing-2 $spacing-6;
-
-    &:hover {
-      background-color: $primary-200;
-    }
   }
 
   .toolbarBackButton {
-    @include main-sm($primary-100, $font-weight-regular, normal);
+    @include main-sm($color-accent, $font-weight-regular, normal);
     background: none;
     border: none;
     cursor: pointer;
@@ -458,13 +392,5 @@
     top: 0;
     left: 0;
     pointer-events: none;
-  }
-}
-
-@include light {
-  .fullScreenOverlay {
-    .savedTreeItemInfo strong {
-      color: $neutral-200;
-    }
   }
 }

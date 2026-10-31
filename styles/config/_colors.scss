@@ -39,47 +39,168 @@ $info: #2196f3;
 $warning: #ff9800;
 $error: #f44336;
 
-// Semantic — surfaces (elevation ladder: pair each step with the matching
-// `elevation($level)` mixin in _mixins.scss — surface = 1, raised = 2, etc.)
-$overlay: rgba(0, 0, 0, 0.6);
-$surface: $neutral-200; // elevation 1 — cards, panels
-$surface-raised: $neutral-300; // elevation 2 — nested cards, popovers
-$surface-elevated: #262626; // elevation 3 — dropdowns, tooltips
-$surface-float: #2e2e2e; // elevation 4 — modals, topmost overlays
-$accent-overlay: rgba(#9c841c, 0.04);
-$accent-overlay-hover: rgba(#9c841c, 0.08);
-$glow-gold: 0 0 15px rgba(#d4a843, 0.15);
-$glow-gold-strong: 0 0 25px rgba(#d4a843, 0.25);
-$glow-primary: 0 0 20px rgba($primary-100, 0.12);
+// ── Theme maps ──────────────────────────────────────────────
+// Single source of truth for everything that changes between dark and light.
+// Each key becomes a `--color-<key>` custom property (see `theme-vars` in
+// _mixins.scss); the semantic Sass tokens below resolve to those properties.
+// Only primitives are referenced here — no new hex, except the two dark
+// surface literals that already existed as $surface-elevated / $surface-float.
 
-// Semantic — text & borders (dark mode is the default; the "-inverse" variants
-// are for use inside `@include light { }` overrides). Reach for these instead
-// of a raw $neutral-* step or a hardcoded hex whenever styling text/borders —
-// this is the single most-violated rule in the codebase today (see
-// CLAUDE.md's "Known Naming Quirks" / the refactor-component worklist).
-$color-bg: $neutral-100; // page background
-$color-text: $neutral-2000; // primary text on dark surfaces — off-white, not pure #fff (reduces glare on long reads)
-$color-text-muted: $neutral-1000; // secondary text
-$color-text-subtle: $neutral-800; // least-emphasis text (captions, disabled)
-$color-border: $neutral-400; // default subtle border on dark surfaces
-$color-border-strong: $neutral-600; // more visible border/divider
+// Light-mode "ink" for shadows: a dark sepia derived from the deepest gold, so
+// shadows on parchment are not blue-grey. ≈ rgb(59 44 6).
+$ink-light: color.mix($gold-600, $neutral-100, 60%);
 
-$color-bg-inverse: $neutral-2100; // light-mode page background (warm parchment, not plain white)
-$color-text-inverse: $neutral-100; // light-mode primary text
-$color-text-muted-inverse: $neutral-700; // light-mode secondary text
-$color-border-inverse: $neutral-2600; // light-mode subtle border
+$theme-dark: (
+  // surfaces (elevation ladder 0–4)
+  'bg': $neutral-100,
+  'surface': $neutral-200,
+  'surface-raised': $neutral-300,
+  'surface-elevated': #262626,
+  'surface-float': #2e2e2e,
+  'overlay': rgba($neutral-100, 0.6),
+  // text
+  'text': $neutral-2000,
+  'text-muted': color.mix($neutral-1000, $neutral-2000, 80%),
+  'text-subtle': $neutral-1000,
+  'text-on-accent': $neutral-100,
+  // borders
+  'border': $neutral-400,
+  'border-strong': $neutral-600,
+  'border-control': $neutral-900,
+  // gold
+  'accent': $gold-100,
+  'accent-hover': $gold-200,
+  'accent-line': $gold-100,
+  'accent-line-2': $gold-300,
+  'accent-fill': $primary-100,
+  'accent-tint': rgba($primary-100, 0.04),
+  'accent-tint-hover': rgba($primary-100, 0.08),
+  'focus': $primary-100,
+  // controls
+  'input-bg': $neutral-200,
+  'placeholder': color.mix($neutral-1000, $neutral-2000, 80%),
+  // states: text / background / border
+  'success': $success,
+  'success-bg': rgba($success, 0.12),
+  'success-border': rgba($success, 0.35),
+  'warning': $warning,
+  'warning-bg': rgba($warning, 0.12),
+  'warning-border': rgba($warning, 0.35),
+  'error': $error,
+  'error-bg': rgba($error, 0.12),
+  'error-border': rgba($error, 0.35),
+  'info': $info,
+  'info-bg': rgba($info, 0.12),
+  'info-border': rgba($info, 0.35),
+  // scrollbar
+  'scrollbar': $gold-400,
+);
 
-// Semantic — state tints (for alert/badge backgrounds & borders, same
-// rgba-tinted-overlay pattern as $accent-overlay above, applied to each
-// semantic state color instead of only primary)
-$success-bg: rgba($success, 0.12);
-$success-border: rgba($success, 0.35);
-$warning-bg: rgba($warning, 0.12);
-$warning-border: rgba($warning, 0.35);
-$error-bg: rgba($error, 0.12);
-$error-border: rgba($error, 0.35);
-$info-bg: rgba($info, 0.12);
-$info-border: rgba($info, 0.35);
+$theme-light: (
+  'bg': $neutral-2100,
+  'surface': $neutral-2200,
+  'surface-raised': $neutral-2300,
+  'surface-elevated': $neutral-2400,
+  'surface-float': $neutral-2100,
+  'overlay': rgba($ink-light, 0.35),
+  'text': $neutral-100,
+  'text-muted': $neutral-700,
+  'text-subtle': $neutral-800,
+  'text-on-accent': $neutral-2100,
+  'border': $neutral-2600,
+  'border-strong': $neutral-2900,
+  'border-control': $neutral-1000,
+  'accent': $gold-500,
+  'accent-hover': $gold-600,
+  'accent-line': $gold-400,
+  'accent-line-2': $gold-500,
+  'accent-fill': $gold-500,
+  'accent-tint': rgba($gold-400, 0.06),
+  'accent-tint-hover': rgba($gold-400, 0.12),
+  'focus': $gold-500,
+  'input-bg': $neutral-2100,
+  'placeholder': $neutral-700,
+  'success': color.mix($success, $neutral-100, 55%),
+  'success-bg': rgba($success, 0.1),
+  'success-border': rgba($success, 0.45),
+  'warning': color.mix($warning, $neutral-100, 50%),
+  'warning-bg': rgba($warning, 0.1),
+  'warning-border': rgba($warning, 0.45),
+  'error': color.mix($error, $neutral-100, 70%),
+  'error-bg': rgba($error, 0.08),
+  'error-border': rgba($error, 0.45),
+  'info': color.mix($info, $neutral-100, 62%),
+  'info-bg': rgba($info, 0.08),
+  'info-border': rgba($info, 0.45),
+  'scrollbar': $gold-500,
+);
+
+// Semantic tokens: same names as ever, but the value is a custom property that
+// flips with the theme. Write `$color-text`, never the primitive behind it.
+// Because they are `var()`, Sass color functions (rgba(), mix(), adjust()) do
+// NOT work on them — use `with-alpha($token, $amount)` from _mixins.scss.
+//
+// surfaces (pair each step with `elevation($level)` of the same rank)
+$overlay: var(--color-overlay); // elevation 0 — backdrop
+$surface: var(--color-surface); // elevation 1 — cards, panels
+$surface-raised: var(--color-surface-raised); // elevation 2
+$surface-elevated: var(--color-surface-elevated); // elevation 3
+$surface-float: var(--color-surface-float); // elevation 4 — modals
+$accent-overlay: var(--color-accent-tint);
+$accent-overlay-hover: var(--color-accent-tint-hover);
+$glow-gold: var(--glow-accent);
+$glow-gold-strong: var(--glow-accent-strong);
+$glow-primary: var(--glow-accent);
+
+// page, text, borders
+$color-bg: var(--color-bg);
+$color-text: var(--color-text);
+$color-text-muted: var(--color-text-muted);
+$color-text-subtle: var(--color-text-subtle);
+$color-text-on-accent: var(--color-text-on-accent); // text over $color-accent-fill
+$color-border: var(--color-border);
+$color-border-strong: var(--color-border-strong);
+$color-border-control: var(--color-border-control); // input/select/secondary button outline (>= 3:1)
+
+// gold
+$color-accent: var(--color-accent); // ALL gold text/icons
+$color-accent-hover: var(--color-accent-hover);
+$color-accent-line: var(--color-accent-line); // hairlines, ◆, gold borders (use with-alpha)
+$color-accent-line-2: var(--color-accent-line-2); // 2nd gradient stop, spell-slot pips
+$color-accent-fill: var(--color-accent-fill); // small solid gold fill
+$color-focus: var(--color-focus);
+
+// controls
+$color-input-bg: var(--color-input-bg);
+$color-placeholder: var(--color-placeholder);
+$color-scrollbar: var(--color-scrollbar);
+
+// states — text/icon. The primitives ($success…) remain for fills and bars.
+$color-success: var(--color-success);
+$color-warning: var(--color-warning);
+$color-error: var(--color-error);
+$color-info: var(--color-info);
+$success-bg: var(--color-success-bg);
+$success-border: var(--color-success-border);
+$warning-bg: var(--color-warning-bg);
+$warning-border: var(--color-warning-border);
+$error-bg: var(--color-error-bg);
+$error-border: var(--color-error-border);
+$info-bg: var(--color-info-bg);
+$info-border: var(--color-info-border);
+
+// shadows & gradients (composite values live in `theme-vars`)
+$shadow-ink: var(--shadow-ink); // RGB triplet: rgba(#{$shadow-ink}, 0.3)
+$accent-gradient: var(--accent-gradient);
+$accent-fill-gradient: var(--accent-fill-gradient);
+$accent-fill-gradient-hover: var(--accent-fill-gradient-hover);
+
+// Static (do NOT change with the theme). DEPRECATED: a `light` override that
+// only swaps a token for its -inverse is redundant now — delete it.
+$color-bg-inverse: $neutral-2100;
+$color-text-inverse: $neutral-100;
+$color-text-muted-inverse: $neutral-700;
+$color-border-inverse: $neutral-2600;
 
 // Semantic — spell schools (grimoire). Accent only: the row's side bar, the
 // school glyph and the haze behind the placeholder — never text or fills.

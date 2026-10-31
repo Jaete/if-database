@@ -13,7 +13,7 @@
   text-align: left;
 
   @include caption($color-text-muted, $font-weight-semibold);
-  @include focus-ring($primary-100);
+  @include focus-ring();
 
   // O rótulo não quebra; quem cede largura é a etiqueta.
   > span {
@@ -36,18 +36,18 @@
   }
 
   &:hover {
-    border-color: rgba($primary-100, 0.5);
+    border-color: with-alpha($color-accent-line, 0.5);
     background: $accent-overlay;
   }
 
   &--done {
     border-color: $success-border;
-    color: $success;
+    color: $color-success;
   }
 
   &--fail {
     border-color: $error-border;
-    color: $error;
+    color: $color-error;
   }
 }
 

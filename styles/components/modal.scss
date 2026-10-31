@@ -7,7 +7,7 @@
   width: 100vw;
   height: 100dvh;
   padding-bottom: 3.5rem;
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: $overlay;
   backdrop-filter: blur(8px);
   z-index: 1000;
   @include flex-center;
@@ -105,8 +105,12 @@
   }
 
   .modal {
-    background: linear-gradient(180deg, $surface-elevated 0%, $surface 100%);
-    border: 1px solid $neutral-400;
+    background: linear-gradient(
+      180deg,
+      $surface-elevated 0%,
+      $surface-float 100%
+    );
+    border: 1px solid $color-border-strong;
     border-radius: $radius-lg;
     width: 100%;
     max-height: 85dvh;
@@ -136,39 +140,39 @@
       background: linear-gradient(
         90deg,
         transparent,
-        rgba($gold-100, 0.4),
+        with-alpha($color-accent-line, 0.4),
         transparent
       );
       z-index: 1;
     }
 
     &:hover {
-      border-color: rgba($gold-100, 0.15);
+      border-color: with-alpha($color-accent-line, 0.3);
     }
   }
 
   .header {
     width: 100%;
     padding: $spacing-5 $spacing-6;
-    border-bottom: 1px solid $neutral-400;
+    border-bottom: 1px solid $color-border-strong;
     @include flex-row-between;
     align-items: center;
     background: linear-gradient(
       180deg,
-      rgba($surface-float, 0.5) 0%,
+      with-alpha($surface-float, 0.5) 0%,
       $surface-elevated 100%
     );
   }
 
   .title {
-    @include cinzel-lg($gold-300, bold, 1.2);
+    @include cinzel-lg($color-accent, bold, 1.2);
     margin: 0;
   }
 
   .closeButton {
     background: none;
     border: none;
-    color: $neutral-800;
+    color: $color-text-muted;
     font-size: 1.5rem;
     cursor: pointer;
     padding: 0 $spacing-2;
@@ -178,7 +182,7 @@
     border-radius: $radius-sm;
 
     &:hover {
-      color: $gold-300;
+      color: $color-accent;
     }
   }
 
@@ -188,25 +192,24 @@
     min-height: 0;
     padding: $spacing-6 $spacing-8;
     overflow-y: auto;
-    @include main-md($neutral-1000, normal, 1.5);
+    @include main-md($color-text, normal, 1.5);
 
     &::-webkit-scrollbar {
       width: 6px;
     }
     &::-webkit-scrollbar-track {
-      background: $neutral-200;
+      background: transparent;
       border-radius: 3px;
     }
     &::-webkit-scrollbar-thumb {
-      background: linear-gradient(180deg, $gold-300, $gold-500);
+      background: $color-scrollbar;
       border-radius: 3px;
-      border: 1px solid $neutral-400;
     }
     &::-webkit-scrollbar-thumb:hover {
-      background: $gold-200;
+      background: $color-accent-line;
     }
     /* Firefox */
     scrollbar-width: thin;
-    scrollbar-color: $gold-400 $neutral-200;
+    scrollbar-color: $color-scrollbar transparent;
   }
 }

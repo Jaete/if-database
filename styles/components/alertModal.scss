@@ -7,13 +7,9 @@
 }
 
 .message {
-  @include main-md($neutral-1000, normal, 1.5);
+  @include main-md($color-text, normal, 1.5);
   margin: 0;
   white-space: pre-wrap;
-
-  @include light {
-    color: $neutral-500;
-  }
 }
 
 .actions {
@@ -24,19 +20,14 @@
 }
 
 .okButton {
-  @include main-xs($color-text, $font-weight-bold);
-  background-color: $primary-100;
-  border: none;
+  @include btn-primary;
+  @include main-xs($color-text-on-accent, $font-weight-bold);
   padding: $spacing-2 $spacing-8;
-  border-radius: 6px;
+  border-radius: $radius-md;
   cursor: pointer;
   transition:
     background-color 0.2s,
     transform 0.15s ease;
-
-  &:hover {
-    background-color: $primary-200;
-  }
 
   &:active {
     transform: scale(0.98);

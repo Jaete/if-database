@@ -1,7 +1,5 @@
 @use '../../styles/globals' as *;
 
-// Segue o tema do cabeçalho onde entra (ClassGrid/SpellGrid), que troca
-// para pergaminho num SO em tema claro.
 .embedBack {
   flex: none;
   display: inline-flex;
@@ -21,19 +19,8 @@
     border-color 0.2s ease;
 
   &:hover {
-    color: $gold-100;
-    border-color: $gold-200;
-  }
-
-  @include light {
-    border-color: $color-border-inverse;
-    background: $neutral-2000;
-    color: $color-text-muted-inverse;
-
-    &:hover {
-      color: $gold-500;
-      border-color: $gold-400;
-    }
+    color: $color-accent;
+    border-color: $color-accent-line;
   }
 
   @include focus-ring;
@@ -61,10 +48,6 @@
   width: 1px;
   height: $spacing-5;
   background: $color-border-strong;
-
-  @include light {
-    background: $color-border-inverse;
-  }
 
   @include mobile {
     display: none;

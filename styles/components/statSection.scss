@@ -9,14 +9,9 @@
   h3 {
     margin: 0 0 $spacing-3;
     padding-bottom: $spacing-2;
-    border-bottom: 1px solid rgba($gold-100, 0.15);
+    border-bottom: 1px solid with-alpha($color-accent-line, 0.25);
     text-transform: uppercase;
-    @include cinzel-md($gold-100, $font-weight-bold, 1.5, 1.5px);
-
-    @include light {
-      color: $gold-500;
-      border-bottom-color: rgba($gold-500, 0.25);
-    }
+    @include cinzel-md($color-accent, $font-weight-bold, 1.5, 1.5px);
   }
 
   @for $i from 1 through 14 {

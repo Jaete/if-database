@@ -10,16 +10,6 @@
   @include mono-sm($color-text-muted, $font-weight-regular, 1.4);
 
   strong {
-    color: $gold-100;
-  }
-
-  @include light {
-    color: $color-text-muted-inverse;
-    background: linear-gradient(180deg, $neutral-2100 0%, $neutral-2300 100%);
-    border-color: $color-border-inverse;
-
-    strong {
-      color: $gold-500;
-    }
+    color: $color-accent;
   }
 }

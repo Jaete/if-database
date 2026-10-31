@@ -41,3 +41,7 @@ export { default as RoleUtilityIcon } from './RoleUtilityIcon';
 export { default as AstrolabeIcon } from './AstrolabeIcon';
 export { default as SpellSchoolIcon } from './SpellSchoolIcon';
 export { default as SearchIcon } from './SearchIcon';
+
+export { default as ThemeSystemIcon } from './ThemeSystemIcon';
+export { default as ThemeLightIcon } from './ThemeLightIcon';
+export { default as ThemeDarkIcon } from './ThemeDarkIcon';

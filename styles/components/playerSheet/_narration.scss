@@ -2,7 +2,7 @@
 @use 'vars' as *;
 
 // Faixa "Estilo de narração", entre o cabeçalho e o corpo da ficha. Como o
-// resto da ficha, sem blocos `@include light`: o embed é sempre escuro.
+// resto da ficha, tematizada pelos tokens.
 .sheetNarration {
   display: flex;
   flex-wrap: wrap;
@@ -39,10 +39,10 @@
   white-space: nowrap;
 
   @include main-xs($color-text-muted, $font-weight-medium);
-  @include focus-ring($primary-100);
+  @include focus-ring();
 
   &:hover {
-    border-color: $primary-100;
+    border-color: $color-accent-line;
     background: $accent-overlay-hover;
     color: $color-text;
   }
@@ -73,7 +73,7 @@
 .sheetNarrationNote {
   width: 100%;
   padding: $spacing-3 $spacing-4;
-  border-left: 2px solid $primary-100;
+  border-left: 2px solid $color-accent-line;
   border-radius: $radius-sm;
   background: $surface-raised;
 
@@ -123,7 +123,7 @@
   cursor: pointer;
 
   @include main-sm($color-text, $font-weight-semibold);
-  @include focus-ring($primary-100);
+  @include focus-ring();
 }
 
 .sheetNarrationCancel {
@@ -138,12 +138,5 @@
 }
 
 .sheetNarrationSave {
-  border: 1px solid $primary-100;
-  background: $primary-100;
-  color: $neutral-100;
-
-  &:hover {
-    background: $primary-200;
-    border-color: $primary-200;
-  }
+  @include btn-primary;
 }

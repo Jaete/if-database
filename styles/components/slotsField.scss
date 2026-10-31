@@ -41,10 +41,10 @@
   color: $color-text;
   cursor: pointer;
   @include main-md($color-text, $font-weight-bold);
-  @include focus-ring($primary-100);
+  @include focus-ring;
 
   &:hover:not(:disabled) {
-    color: $gold-100;
+    color: $color-accent;
   }
 
   // No piso do nível anterior o "−" apaga em vez de sumir: a borda do que é
@@ -75,10 +75,10 @@
   color: $color-text-subtle;
   cursor: pointer;
 
-  @include focus-ring($error);
+  @include focus-ring($color-error);
 
   &:hover {
-    color: $error;
+    color: $color-error;
   }
 }
 
@@ -91,10 +91,10 @@
   cursor: pointer;
 
   @include main-xs($color-text-muted, $font-weight-medium);
-  @include focus-ring($primary-100);
+  @include focus-ring;
 
   &:hover {
-    border-color: $primary-100;
+    border-color: $color-accent-line;
     border-style: solid;
     color: $color-text;
     background: $accent-overlay;
@@ -104,8 +104,7 @@
 .slotsAddSelect {
   align-self: flex-start;
   padding: $spacing-1 $spacing-3;
-  border: 1px solid $primary-100;
   border-radius: $radius-sm;
-  background: $surface-raised;
+  @include field-input;
   @include main-sm($color-text, $font-weight-regular);
 }

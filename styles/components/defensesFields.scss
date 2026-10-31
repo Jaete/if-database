@@ -24,11 +24,7 @@
 }
 
 .elementPickerLabel {
-  @include caption($color-text-subtle, $font-weight-semibold);
-
-  @include light {
-    color: $color-text-muted-inverse;
-  }
+  @include caption($color-text-muted, $font-weight-semibold);
 }
 
 .elementPill {
@@ -45,26 +41,14 @@
   @include focus-ring();
 
   &:hover {
-    border-color: rgba($gold-100, 0.5);
-    color: $gold-100;
+    border-color: with-alpha($color-accent-line, 0.5);
+    color: $color-accent;
   }
 
   &--active {
-    border-color: rgba($gold-100, 0.6);
-    background-color: rgba($primary-100, 0.18);
-    color: $gold-100;
+    border-color: with-alpha($color-accent-line, 0.6);
+    background-color: $accent-overlay-hover;
+    color: $color-accent;
     font-weight: $font-weight-semibold;
-  }
-
-  @include light {
-    background-color: $neutral-2100;
-    border-color: $color-border-inverse;
-    color: $color-text-muted-inverse;
-
-    &:hover,
-    &.elementPill--active {
-      color: $gold-600;
-      border-color: rgba($gold-600, 0.5);
-    }
   }
 }

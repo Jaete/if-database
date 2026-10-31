@@ -1,9 +1,14 @@
 @use '../../../styles/globals' as *;
 @use 'vars' as *;
 
-// The forum is dark; keep the body from picking up the light token set.
+// Transparent in dark to blend into the (dark) forum; in light the iframe gets
+// an opaque ground anyway, so make it parchment (see spec 2.8).
 body:has(.playerSheetStage) {
   background-color: transparent;
+
+  @include light {
+    background-color: $color-bg;
+  }
 }
 
 .playerSheetStage {
@@ -54,7 +59,11 @@ body:has(.playerSheetStage) {
   inset: 0 auto 0 0;
   width: 100%;
   pointer-events: none;
-  background: linear-gradient(90deg, rgba($gold-100, 0.1), transparent 40%);
+  background: linear-gradient(
+    90deg,
+    with-alpha($color-accent-line, 0.1),
+    transparent 40%
+  );
   opacity: 0;
   animation: sheetWipe 0.45s ease-out;
 }
@@ -156,12 +165,12 @@ body:has(.playerSheetStage) {
   cursor: pointer;
   text-align: left;
   text-transform: uppercase;
-  @include main-xs($gold-100, $font-weight-semibold, 1.5, 1px);
+  @include main-xs($color-accent, $font-weight-semibold, 1.5, 1px);
   @include focus-ring;
 }
 
 .sheetScreenTitle {
-  @include cinzel-xl($gold-100, $font-weight-semibold, 1.3, 1px);
+  @include cinzel-xl($color-accent, $font-weight-semibold, 1.3, 1px);
   text-transform: uppercase;
 
   &::after {
@@ -170,7 +179,7 @@ body:has(.playerSheetStage) {
     width: 3rem;
     height: 2px;
     margin-top: $spacing-2;
-    background: linear-gradient(90deg, $gold-300, transparent);
+    background: linear-gradient(90deg, $color-accent-line, transparent);
   }
 }
 
@@ -247,7 +256,7 @@ body:has(.playerSheetStage) {
 }
 
 .sheetDetailKicker {
-  @include caption($gold-100, $font-weight-semibold);
+  @include caption($color-accent, $font-weight-semibold);
 }
 
 .sheetDetailTitle {

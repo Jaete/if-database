@@ -9,9 +9,9 @@
   width: $spacing-11;
   height: $spacing-11;
   padding: 0;
-  color: $gold-100;
+  color: $color-accent;
   background-color: $surface-raised;
-  border: 1px solid rgba($gold-100, 0.3);
+  border: 1px solid with-alpha($color-accent-line, 0.3);
   border-radius: $radius-md;
   cursor: pointer;
   transition:
@@ -23,19 +23,13 @@
 
   &:hover {
     background-color: $accent-overlay-hover;
-    border-color: rgba($gold-100, 0.6);
+    border-color: with-alpha($color-accent-line, 0.6);
     transform: translateY(-1px);
   }
 
   @include mobile {
     top: $spacing-3;
     left: $spacing-3;
-  }
-
-  @include light {
-    color: $gold-600;
-    background-color: $neutral-2100;
-    border-color: $neutral-2700;
   }
 }
 

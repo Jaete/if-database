@@ -2,6 +2,10 @@
 
 body:has(.embedNotFound) {
   background-color: transparent;
+
+  @include light {
+    background-color: $color-bg;
+  }
 }
 
 .embedNotFound {

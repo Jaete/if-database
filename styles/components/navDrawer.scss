@@ -14,7 +14,7 @@ $nav-inset: $spacing-6;
 }
 
 .navDrawerBrand {
-  @include cinzel-lg($gold-100, $font-weight-semibold, 1.2, 2px);
+  @include cinzel-lg($color-accent, $font-weight-semibold, 1.2, 2px);
   @include gold-gradient-text();
   text-transform: uppercase;
 }
@@ -34,16 +34,12 @@ $nav-inset: $spacing-6;
   @include focus-ring();
 
   &:hover {
-    color: $gold-100;
+    color: $color-accent;
   }
 
   svg {
     width: $spacing-5;
     height: $spacing-5;
-  }
-
-  @include light {
-    color: $color-text-muted-inverse;
   }
 }
 
@@ -79,7 +75,7 @@ $nav-inset: $spacing-6;
     top: 0;
     bottom: 0;
     width: 2px;
-    background: linear-gradient(180deg, $gold-100, $primary-200);
+    background: $accent-fill-gradient;
     opacity: 0;
     transition: opacity 0.2s ease;
   }
@@ -105,17 +101,8 @@ $nav-inset: $spacing-6;
   }
 
   .navItem--active & {
-    color: $gold-100;
+    color: $color-accent;
     font-weight: $font-weight-semibold;
-  }
-
-  @include light {
-    color: $color-text-muted-inverse;
-
-    .navItem:hover &,
-    .navItem--active & {
-      color: $color-text-inverse;
-    }
   }
 }
 
@@ -129,12 +116,12 @@ $nav-inset: $spacing-6;
     transform 0.2s ease;
 
   .navItem:hover & {
-    color: $gold-100;
+    color: $color-accent;
     transform: translateX(2px);
   }
 
   .navItem--active & {
-    color: $gold-100;
+    color: $color-accent;
   }
 }
 
@@ -160,7 +147,7 @@ $nav-inset: $spacing-6;
   width: $spacing-5;
   height: $spacing-5;
   flex-shrink: 0;
-  color: $gold-100;
+  color: $color-accent;
 }
 
 .navAccountAvatar {
@@ -169,7 +156,7 @@ $nav-inset: $spacing-6;
   flex-shrink: 0;
   object-fit: cover;
   border-radius: $radius-full;
-  border: 1px solid rgba($gold-100, 0.4);
+  border: 1px solid with-alpha($color-accent-line, 0.4);
   background-color: $surface-raised;
 }
 
@@ -184,10 +171,6 @@ $nav-inset: $spacing-6;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-
-  @include light {
-    color: $color-text-inverse;
-  }
 }
 
 .navAccountMeta {
@@ -210,20 +193,16 @@ $nav-inset: $spacing-6;
     background-color 0.2s ease,
     color 0.2s ease;
   @include main-md($color-text-muted, $font-weight-medium, 1.4, 0.5px);
-  @include focus-ring($error);
+  @include focus-ring($color-error);
 
   &:hover:not(:disabled) {
     background-color: $error-bg;
-    color: $error;
+    color: $color-error;
   }
 
   &:disabled {
     cursor: not-allowed;
     opacity: 0.6;
-  }
-
-  @include light {
-    color: $color-text-muted-inverse;
   }
 }
 

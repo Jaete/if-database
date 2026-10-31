@@ -8,27 +8,22 @@
 @use './config/colors' as *;
 @use './config/mixins' as *;
 
-// Bridge a small set of semantic color tokens to real CSS custom properties,
-// for the rare plain-.css file (e.g. app/globals.css) that can't @use Sass
-// variables directly. Component .scss files should keep reaching for the
-// $color-* Sass tokens directly — this block is generated from those same
-// tokens, not a second source of truth.
-:root {
-  --color-bg: #{$color-bg};
-  --color-surface: #{$surface};
-  --color-text: #{$color-text};
-  --color-border: #{$color-border};
-  --color-primary: #{$primary-100};
+// Theme custom properties. Generated from $theme-dark / $theme-light
+// (config/_colors.scss) so the Sass tokens and plain .css files (e.g.
+// app/globals.css) read the same values. Dark is the default; light applies
+// via the OS preference or <html data-theme="light">.
+@include theme-root(dark) {
+  @include theme-vars(dark);
+  --color-primary: var(--color-accent-fill); // compat app/globals.css
 }
 
-@include light {
-  :root {
-    --color-bg: #{$color-bg-inverse};
-    --color-surface: #{$neutral-2000};
-    --color-text: #{$color-text-inverse};
-    --color-border: #{$color-border-inverse};
-    --color-primary: #{$primary-100};
-  }
+@include theme-root(light) {
+  @include theme-vars(light);
+}
+
+// Switching theme without animating hundreds of color transitions at once.
+:root[data-theme-switching] * {
+  transition: none !important;
 }
 
 html {
@@ -37,8 +32,8 @@ html {
 }
 
 ::selection {
-  background-color: $primary-100;
-  color: $color-text;
+  background-color: $color-accent-fill;
+  color: $color-text-on-accent;
 }
 
 /* Hide number input spinners */

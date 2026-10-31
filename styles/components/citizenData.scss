@@ -4,10 +4,6 @@
   @include flex-col-start();
   width: 100%;
   color: $color-text;
-
-  @include light {
-    color: $color-text-inverse;
-  }
 }
 
 // Identity card at the top of the citizen sheet
@@ -17,7 +13,7 @@
   gap: 0;
   width: 100%;
   position: relative;
-  @include corner-ornament(8px, $gold-100, 0.35);
+  @include corner-ornament(8px, $color-accent-line, 0.35);
 }
 
 .citizenAbilities {

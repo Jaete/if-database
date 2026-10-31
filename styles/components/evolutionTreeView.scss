@@ -48,12 +48,12 @@
 
 .treeLink {
   fill: none;
-  stroke: $gold-400;
+  stroke: $color-accent-line-2;
   stroke-width: 2;
 }
 
 .treeLinkDot {
-  fill: $gold-100;
+  fill: $color-accent-line;
 }
 
 .treeNode {
@@ -71,7 +71,7 @@
   white-space: nowrap;
   cursor: pointer;
   background-color: $surface-raised;
-  border: 1px solid $gold-500;
+  border: 1px solid with-alpha($color-accent-line, 0.6);
   border-radius: $radius-md;
   transition:
     border-color 0.2s,
@@ -79,7 +79,7 @@
   @include focus-ring;
 
   &:hover {
-    border-color: $gold-100;
+    border-color: $color-accent-line;
     box-shadow: $glow-gold-strong;
   }
 }
@@ -111,10 +111,10 @@
   cursor: pointer;
   border: none;
   border-radius: $radius-full;
-  background-color: $gold-100;
-  @include main-md($neutral-100, $font-weight-bold, 1);
+  background-color: $color-accent-fill;
+  @include main-md($color-text-on-accent, $font-weight-bold, 1);
   @include elevation(1);
-  @include focus-ring($gold-100);
+  @include focus-ring;
 }
 
 .treeHints {
@@ -133,7 +133,7 @@
   @include flex-row-start;
   align-items: center;
   gap: $spacing-1;
-  @include main-xs($gold-400, $font-weight-regular);
+  @include main-xs($color-accent, $font-weight-regular);
   transition: opacity 0.3s;
 
   &--hidden {
@@ -161,9 +161,9 @@
   cursor: pointer;
   background: transparent;
   border: none;
-  @include main-lg($gold-100, $font-weight-bold, 1);
+  @include main-lg($color-accent, $font-weight-bold, 1);
   transition: background-color 0.2s;
-  @include focus-ring($gold-100);
+  @include focus-ring;
 
   & + & {
     border-top: 1px solid $color-border;
@@ -186,5 +186,5 @@
 
 .treeHintIcon {
   flex-shrink: 0;
-  --icon-accent: #{$gold-100};
+  --icon-accent: #{$color-accent};
 }

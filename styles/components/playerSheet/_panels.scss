@@ -45,13 +45,13 @@
 }
 
 .sheetAttrAbbr {
-  @include cinzel-sm($gold-100, $font-weight-semibold, 1.2, 1px);
+  @include cinzel-sm($color-accent, $font-weight-semibold, 1.2, 1px);
 }
 
 .sheetAttrMod {
   grid-row: span 2;
   justify-self: end;
-  @include stat-value($gold-100, $font-weight-bold, 1.2, 0, right);
+  @include stat-value($color-accent, $font-weight-bold, 1.2, 0, right);
 }
 
 .sheetAttrBreakdown {
@@ -92,7 +92,7 @@
   border-radius: $radius-md;
 
   &--prof {
-    border-color: $primary-100;
+    border-color: $color-accent-line;
     background: $accent-overlay-hover;
   }
 }
@@ -129,7 +129,7 @@
 }
 
 .sheetSkillGroupMod {
-  @include mono-xs($gold-100, $font-weight-regular);
+  @include mono-xs($color-accent, $font-weight-regular);
 }
 
 .sheetSkill {
@@ -145,9 +145,9 @@
   }
 
   &--prof .sheetSkillPip {
-    background: $gold-300;
-    border-color: $gold-300;
-    box-shadow: 0 0 6px rgba($gold-100, 0.5);
+    background: $color-accent-fill;
+    border-color: $color-accent-fill;
+    box-shadow: 0 0 6px with-alpha($color-accent-line, 0.5);
   }
 }
 
@@ -175,7 +175,7 @@
 
   &:hover,
   &:focus-visible {
-    border-color: $primary-100;
+    border-color: $color-accent-line;
     color: $color-text;
   }
 }
@@ -294,10 +294,10 @@
     opacity 0.15s ease,
     color 0.15s ease;
 
-  @include focus-ring($gold-100);
+  @include focus-ring();
 
   &:hover {
-    color: $gold-100;
+    color: $color-accent;
   }
 }
 
@@ -309,7 +309,7 @@
 }
 
 .sheetReaderKicker {
-  @include caption($gold-100, $font-weight-semibold);
+  @include caption($color-accent, $font-weight-semibold);
 }
 
 .sheetReaderText {
@@ -320,7 +320,7 @@
 // Marca, na lista, o que vem da classe ligada — o que a ficha não edita.
 .sheetMasterOrigin {
   margin-left: $spacing-2;
-  @include caption($gold-200, $font-weight-semibold);
+  @include caption($color-accent, $font-weight-semibold);
 }
 
 // ── Seletor de magias preparadas (dentro do modal) ──
@@ -373,7 +373,7 @@
   cursor: pointer;
   text-align: left;
 
-  @include focus-ring($gold-100);
+  @include focus-ring();
 
   &:hover:not(:disabled) {
     background: $accent-overlay;
@@ -425,7 +425,7 @@
 
 .sheetPickerTaken {
   flex: 0 0 auto;
-  @include caption($gold-200, $font-weight-semibold);
+  @include caption($color-accent, $font-weight-semibold);
 }
 
 // ── Spells ──
@@ -497,8 +497,8 @@
   @include slot-pip(0.625rem);
 
   &--free {
-    background: $gold-300;
-    box-shadow: 0 0 6px rgba($gold-100, 0.45);
+    background: $color-accent-fill;
+    box-shadow: 0 0 6px with-alpha($color-accent-line, 0.45);
   }
 }
 
@@ -544,7 +544,7 @@
   cursor: pointer;
   border-bottom: 1px dashed transparent;
 
-  @include focus-ring($primary-100);
+  @include focus-ring();
 
   &:hover {
     border-bottom-color: $color-border-strong;
@@ -573,7 +573,7 @@
 
   &:hover {
     opacity: 1;
-    color: $gold-100;
+    color: $color-accent;
   }
 }
 
@@ -589,8 +589,8 @@
   @include caption($color-text-muted, $font-weight-semibold, 1.5);
 
   &--prepared {
-    color: $gold-100;
-    box-shadow: inset 0 0 0 1px $primary-100;
+    color: $color-accent;
+    box-shadow: inset 0 0 0 1px $color-accent-line;
   }
 
   &--known {
@@ -629,8 +629,8 @@
   }
 
   [data-zone][data-active='true'] {
-    stroke: $gold-300;
-    fill: rgba($gold-100, 0.14);
+    stroke: $color-accent-line;
+    fill: with-alpha($color-accent-line, 0.14);
   }
 }
 
@@ -657,7 +657,7 @@
   }
 
   &[aria-pressed='true'] {
-    border-color: $primary-100;
+    border-color: $color-accent-line;
     background: $accent-overlay-hover;
     box-shadow: $glow-primary;
   }
@@ -695,7 +695,7 @@
 }
 
 .sheetGilValue {
-  @include stat-value($gold-100, $font-weight-bold, 1.2, 0, left);
+  @include stat-value($color-accent, $font-weight-bold, 1.2, 0, left);
 }
 
 .sheetPack {
@@ -777,7 +777,7 @@
 }
 
 .sheetEpithet {
-  @include cinzel-md($gold-100, $font-weight-semibold, 1.4);
+  @include cinzel-md($color-accent, $font-weight-semibold, 1.4);
 }
 
 .sheetProse {
@@ -810,7 +810,7 @@
 
 .sheetRegistryLink {
   overflow-wrap: anywhere;
-  @include main-xs($gold-100, $font-weight-regular);
+  @include main-xs($color-accent, $font-weight-regular);
   @include focus-ring;
 }
 
@@ -909,6 +909,6 @@
 // O teste de resistência ganhou o mesmo pip dourado das perícias como marca de
 // proficiência (em leitura ele só é renderizado quando proficiente).
 .sheetSave--prof .sheetSkillPip {
-  background: $gold-300;
-  border-color: $gold-300;
+  background: $color-accent-fill;
+  border-color: $color-accent-fill;
 }

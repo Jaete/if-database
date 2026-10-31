@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { applyModifiers, useCssHandles } from '@/hooks/useCssHandles';
 import { NAV_ITEMS, useNavDrawer } from './useNavDrawer';
 import Drawer from '../Drawer';
+import ThemeSwitch from '../ThemeSwitch';
 import { ChevronRightIcon, CloseIcon, LogOutIcon, UserIcon } from '../Icons';
 import NavDrawerHandles from './handles';
 import '@/styles/components/navDrawer.scss';
@@ -52,6 +53,8 @@ const NavDrawer = () => {
       </nav>
 
       <div className={handles.navDrawerFooter}>
+        <ThemeSwitch />
+
         <div className={handles.navAccount}>
           {user?.avatarUrl ? (
             // Hospedado no CDN do fórum, fora do next/image por ser um host

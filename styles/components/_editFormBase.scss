@@ -7,7 +7,6 @@
 // root class — instead this partial exposes one mixin per shared rule
 // body, `@include`d from inside each form's own root selector.
 @use '../globals' as *;
-@use 'sass:color';
 
 @mixin edit-form-section($nth-count: 20) {
   width: 100%;
@@ -27,7 +26,7 @@
 }
 
 @mixin edit-form-section-title {
-  @include cinzel-md($gold-100, bold, 1.2);
+  @include cinzel-md($color-accent, bold, 1.2);
   padding-bottom: $spacing-1;
   margin-bottom: $spacing-3;
   width: 100%;
@@ -49,7 +48,7 @@
 }
 
 @mixin edit-form-label {
-  @include main-sm($neutral-1000, bold, 1.2);
+  @include main-sm($color-text-muted, bold, 1.2);
   text-transform: uppercase;
   letter-spacing: 1px;
   white-space: nowrap;
@@ -60,20 +59,14 @@
 }
 
 @mixin edit-form-input {
+  @include field-input;
   width: 100%;
   padding: $spacing-3 $spacing-4;
-  background-color: $neutral-300;
-  border: 1px solid $neutral-400;
   border-radius: $radius-sm;
-  color: $neutral-2000;
-  @include main-md($neutral-2000, normal, 1.5);
+  @include main-md($color-text, normal, 1.5);
   transition:
     border-color 0.2s ease,
     box-shadow 0.2s ease;
-
-  &:focus {
-    @include premium-input-focus;
-  }
 }
 
 @mixin edit-form-textarea {
@@ -86,20 +79,19 @@
   @include flex-col-start;
   gap: $spacing-2;
   padding: $spacing-4;
-  border: 1px solid $neutral-400;
+  border: 1px solid $color-border;
   border-radius: $radius-md;
   position: relative;
   width: 100%;
-  background: linear-gradient(135deg, $neutral-200, rgba($surface-raised, 0.8));
-  border-left: 3px solid $gold-300;
+  background: $surface;
+  @include corner-ornament;
   @include elevation(1);
   transition:
     border-color 0.2s ease,
     box-shadow 0.2s ease;
 
   &:hover {
-    border-color: rgba($gold-100, 0.3);
-    border-left-color: $gold-100;
+    border-color: with-alpha($color-accent-line, 0.3);
     box-shadow: $glow-gold;
   }
 }
@@ -110,24 +102,24 @@
   right: $spacing-2;
   background: none;
   border: none;
-  color: $error;
+  color: $color-error;
   cursor: pointer;
   font-weight: bold;
 
   &:hover {
-    color: color.adjust($error, $lightness: 10%);
+    filter: brightness(1.15);
   }
 }
 
 @mixin edit-form-add-button {
   background-color: transparent;
-  color: $gold-200;
-  border: 1px dashed $gold-300;
+  color: $color-accent;
+  border: 1px dashed $color-border-control;
   border-radius: $radius-sm;
   padding: $spacing-2;
   cursor: pointer;
   width: 100%;
-  @include main-sm($gold-200, bold, 1.2);
+  @include main-sm($color-accent, bold, 1.2);
   transition: all 0.2s ease;
 
   &::before {
@@ -138,8 +130,8 @@
   }
 
   &:hover {
-    background-color: rgba($gold-100, 0.08);
-    border-color: $gold-100;
+    background-color: $accent-overlay;
+    border-color: $color-accent-line;
 
     &::before {
       transform: rotate(90deg);
@@ -165,36 +157,23 @@
   z-index: 2;
   margin: $spacing-2 (-$spacing-8) (-$spacing-6);
   padding: $spacing-4 $spacing-8;
-  border-top: 1px solid $neutral-400;
+  border-top: 1px solid $color-border;
   background: $surface;
-  box-shadow: 0 -8px 20px rgba(0, 0, 0, 0.4);
-
-  @include light {
-    background: $neutral-2100;
-    border-top-color: $color-border-inverse;
-    box-shadow: 0 -8px 20px rgba(0, 0, 0, 0.08);
-  }
+  box-shadow: 0 -8px 20px rgba(#{$shadow-ink}, 0.4);
 }
 
 @mixin edit-form-submit-button {
-  background: linear-gradient(135deg, $gold-300, $primary-200);
-  color: $neutral-100;
-  border: none;
+  @include btn-primary;
   border-radius: $radius-sm;
   padding: $spacing-3 $spacing-6;
   cursor: pointer;
-  @include cinzel-sm($neutral-100, bold, 1.2);
+  @include cinzel-sm($color-text-on-accent, bold, 1.2);
   transition: all 0.25s ease;
   display: inline-flex;
   align-items: center;
   gap: $spacing-2;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 
-  &:hover {
-    background: linear-gradient(135deg, $gold-200, $primary-100);
-    box-shadow:
-      0 4px 16px rgba(0, 0, 0, 0.4),
-      0 0 12px rgba($gold-100, 0.2);
+  &:hover:not(:disabled) {
     transform: translateY(-1px);
   }
 
@@ -203,28 +182,17 @@
   }
 
   &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
     transform: none;
-    box-shadow: none;
   }
 }
 
 @mixin edit-form-cancel-button {
-  background-color: transparent;
-  color: $neutral-1000;
-  border: 1px solid $neutral-600;
+  @include btn-secondary;
   border-radius: $radius-sm;
   padding: $spacing-3 $spacing-6;
   cursor: pointer;
-  @include cinzel-sm($neutral-1000, bold, 1.2);
+  @include cinzel-sm($color-text, bold, 1.2);
   transition: all 0.2s ease;
-
-  &:hover {
-    border-color: $gold-200;
-    color: $gold-100;
-    background-color: rgba($gold-100, 0.05);
-  }
 }
 
 @mixin edit-form-header-actions {
@@ -235,31 +203,15 @@
 }
 
 @mixin edit-form-import-markdown-button {
-  background: linear-gradient(
-    135deg,
-    rgba($gold-100, 0.15),
-    rgba($primary-100, 0.1)
-  );
-  color: $gold-100;
-  border: 1px solid rgba($gold-100, 0.3);
+  @include btn-secondary;
   border-radius: $radius-sm;
   padding: $spacing-2 $spacing-4;
   cursor: pointer;
-  @include main-sm($gold-100, bold, 1.2);
+  @include main-sm($color-text, bold, 1.2);
   transition: all 0.2s ease;
   display: inline-flex;
   align-items: center;
   gap: $spacing-2;
-
-  &:hover {
-    background: linear-gradient(
-      135deg,
-      rgba($gold-100, 0.25),
-      rgba($primary-100, 0.2)
-    );
-    border-color: $gold-200;
-    box-shadow: 0 0 10px rgba($gold-100, 0.15);
-  }
 
   &:disabled {
     opacity: 0.5;
@@ -268,25 +220,15 @@
 }
 
 @mixin edit-form-download-template-button {
-  background: linear-gradient(135deg, $gold-300, $primary-200);
-  color: $neutral-100;
-  border: none;
+  @include btn-primary;
   border-radius: $radius-sm;
   padding: $spacing-2 $spacing-4;
   cursor: pointer;
-  @include main-sm($neutral-100, bold, 1.2);
+  @include main-sm($color-text-on-accent, bold, 1.2);
   transition: all 0.2s ease;
   display: inline-flex;
   align-items: center;
   gap: $spacing-2;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-
-  &:hover {
-    background: linear-gradient(135deg, $gold-200, $primary-100);
-    box-shadow:
-      0 4px 12px rgba(0, 0, 0, 0.3),
-      0 0 10px rgba($gold-100, 0.15);
-  }
 }
 
 @mixin edit-form-file-input-markdown {
@@ -296,8 +238,8 @@
 @mixin edit-form-spinner {
   width: 14px;
   height: 14px;
-  border: 2px solid rgba($neutral-2000, 0.3);
-  border-top-color: $neutral-2000;
+  border: 2px solid with-alpha($color-text-on-accent, 0.3);
+  border-top-color: $color-text-on-accent;
   border-radius: 50%;
   animation: spin 0.6s linear infinite;
 }

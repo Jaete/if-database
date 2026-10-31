@@ -9,11 +9,9 @@
   box-sizing: border-box;
   min-width: 180px;
   padding: $spacing-2 $spacing-3;
-  background-color: $surface;
-  border: 1px solid $color-border;
+  @include field-input;
   border-radius: $radius-sm;
   @include main-sm($color-text, $font-weight-regular, 1.4);
-  @include premium-input-focus;
 }
 
 .monsterSearchDropdown {
@@ -26,7 +24,7 @@
   margin-top: $spacing-1;
   overflow-y: auto;
   background-color: $surface-elevated;
-  border: 1px solid $primary-400;
+  border: 1px solid $color-border-strong;
   border-radius: $radius-sm;
   @include elevation(3);
 }

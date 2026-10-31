@@ -1,8 +1,8 @@
 @use '../../styles/globals' as *;
 
-// Escura de propósito, mesmo num SO em tema claro: são painéis de imagem
-// com gradiente, e a tela vive dentro do fórum escuro. (O `colorScheme` do
-// layout do embed não muda `prefers-color-scheme`, então isto é escolha.)
+// Segue o tema do sistema (ou `?tema=`, ver o layout do embed). No claro os
+// painéis viram "gravura sobre pergaminho": a arte em repouso é multiplicada
+// sobre o papel e só acende inteira no hover/foco.
 $embed-entry-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
 
 .embedEntry {
@@ -40,9 +40,13 @@ $embed-entry-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
   align-items: center;
   justify-content: center;
   pointer-events: none;
-  @include cinzel-xs($gold-100, $font-weight-semibold, 1, 0.24em, center);
+  @include cinzel-xs($color-accent, $font-weight-semibold, 1, 0.24em, center);
   text-transform: uppercase;
-  text-shadow: 0 1px 2px rgba($neutral-100, 0.85);
+  text-shadow: 0 1px 2px rgba(#{$shadow-ink}, 0.85);
+
+  @include light {
+    text-shadow: none;
+  }
 
   @include mobile {
     left: $spacing-4;
@@ -59,6 +63,7 @@ $embed-entry-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
   align-items: flex-end;
   overflow: hidden;
   isolation: isolate;
+  background: $color-bg;
   color: $color-text;
   text-decoration: none;
   cursor: pointer;
@@ -82,8 +87,8 @@ $embed-entry-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
       background: linear-gradient(
         180deg,
         transparent,
-        rgba($gold-100, 0.35) 30%,
-        rgba($gold-100, 0.35) 70%,
+        with-alpha($color-accent-line, 0.35) 30%,
+        with-alpha($color-accent-line, 0.35) 70%,
         transparent
       );
 
@@ -97,8 +102,8 @@ $embed-entry-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
         background: linear-gradient(
           90deg,
           transparent,
-          rgba($gold-100, 0.35) 25%,
-          rgba($gold-100, 0.35) 75%,
+          with-alpha($color-accent-line, 0.35) 25%,
+          with-alpha($color-accent-line, 0.35) 75%,
           transparent
         );
       }
@@ -107,7 +112,7 @@ $embed-entry-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
 
   // Foco por dentro: o iframe cortaria um anel para fora.
   &:focus-visible {
-    outline: 2px solid $gold-100;
+    outline: 2px solid $color-focus;
     outline-offset: calc(#{$spacing-3} * -1);
   }
 }
@@ -132,7 +137,15 @@ $embed-entry-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
   transform: scale(1);
   transition:
     filter var(--entry-lit-dur) $embed-entry-ease,
+    opacity var(--entry-lit-dur) $embed-entry-ease,
     transform var(--entry-zoom-dur) $embed-entry-ease;
+
+  // Gravura: cinza e sépia multiplicados sobre o papel (o fundo do painel).
+  @include light {
+    filter: grayscale(1) sepia(0.3) brightness(1.1) contrast(0.85);
+    opacity: 0.55;
+    mix-blend-mode: multiply;
+  }
 }
 
 // Ornamento (Emblem)
@@ -145,7 +158,7 @@ $embed-entry-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
   aspect-ratio: 1;
   max-width: 100%;
   translate: -50% -50%;
-  color: $gold-300;
+  color: $color-accent-line;
   opacity: 0.22;
   transition:
     opacity var(--entry-lit-dur) $embed-entry-ease,
@@ -186,10 +199,10 @@ $embed-entry-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
   pointer-events: none;
   background: linear-gradient(
     to top,
-    rgba($color-bg, 0.94) 0%,
-    rgba($color-bg, 0.72) 26%,
-    rgba($color-bg, 0.12) 58%,
-    rgba($color-bg, 0.5) 100%
+    with-alpha($color-bg, 0.94) 0%,
+    with-alpha($color-bg, 0.72) 26%,
+    with-alpha($color-bg, 0.12) 58%,
+    with-alpha($color-bg, 0.5) 100%
   );
 }
 
@@ -209,7 +222,7 @@ $embed-entry-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
 .embedEntryMark {
-  @include cinzel-xs($gold-100, $font-weight-regular, 1);
+  @include cinzel-xs($color-accent, $font-weight-regular, 1);
 }
 
 .embedEntryTitle {
@@ -220,6 +233,11 @@ $embed-entry-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
     0 1px 2px rgba($neutral-100, 0.85),
     0 0 24px rgba($neutral-100, 0.5);
   transition: color var(--entry-lit-dur) $embed-entry-ease;
+
+  // Texto escuro sobre o pergaminho: a sombra viraria um borrão.
+  @include light {
+    text-shadow: none;
+  }
   @include gold-decorative-line;
 
   &::after {
@@ -267,13 +285,15 @@ $embed-entry-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
 // recuado depois de voltar do outro embed.
 @mixin entry-lit {
   .embedEntryArt {
-    filter: grayscale(0) brightness(1);
+    filter: none;
+    opacity: 1;
+    mix-blend-mode: normal;
     transform: scale(1.04);
   }
 
   .embedEntryGlyph {
     opacity: 0.55;
-    color: $gold-100;
+    color: $color-accent;
   }
 
   .embedEntryGlyphRing {
@@ -289,7 +309,7 @@ $embed-entry-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
   }
 
   .embedEntryCta {
-    color: $gold-100;
+    color: $color-accent;
 
     svg {
       transform: translateX($spacing-1);
@@ -301,6 +321,12 @@ $embed-entry-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
 @mixin entry-receded {
   .embedEntryArt {
     filter: grayscale(0.9) brightness(0.3);
+
+    // No claro recua para o papel, em vez de escurecer.
+    @include light {
+      filter: grayscale(1) sepia(0.3) brightness(1.1) contrast(0.85);
+      opacity: 0.35;
+    }
   }
 
   .embedEntryGlyph {
@@ -336,10 +362,17 @@ $embed-entry-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
 @media (hover: none) {
   .embedEntryArt {
     filter: grayscale(0.35) brightness(0.7);
+
+    @include light {
+      filter: grayscale(0.7) sepia(0.3) brightness(1.1) contrast(0.85);
+      opacity: 0.8;
+    }
   }
 
   .embedEntryPanel:active .embedEntryArt {
-    filter: grayscale(0) brightness(1);
+    filter: none;
+    opacity: 1;
+    mix-blend-mode: normal;
   }
 }
 

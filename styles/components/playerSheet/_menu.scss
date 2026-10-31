@@ -27,11 +27,11 @@ $menu-item-height-compact: 3.75rem;
   height: $menu-item-height;
   display: flex;
   align-items: center;
-  color: $gold-100;
+  color: $color-accent;
   font-size: $spacing-3;
   pointer-events: none;
   transition: transform 0.25s $ease-out;
-  text-shadow: 0 0 8px rgba($gold-100, 0.5);
+  text-shadow: 0 0 8px with-alpha($color-accent-line, 0.5);
 
   span {
     display: inline-block;
@@ -67,7 +67,7 @@ $menu-item-height-compact: 3.75rem;
   }
 
   &[aria-selected='true'] {
-    color: $gold-100;
+    color: $color-accent;
     background: linear-gradient(90deg, $accent-overlay-hover, transparent);
 
     &::after {
@@ -77,7 +77,7 @@ $menu-item-height-compact: 3.75rem;
       top: $spacing-2;
       bottom: $spacing-2;
       width: 2px;
-      background: $gold-300;
+      background: $color-accent-fill;
     }
   }
 
@@ -118,7 +118,7 @@ $menu-item-height-compact: 3.75rem;
     display: flex;
     align-items: center;
     gap: $spacing-1;
-    color: $gold-100;
+    color: $color-accent;
 
     svg {
       flex: none;
@@ -159,7 +159,7 @@ $menu-item-height-compact: 3.75rem;
 
 .sheetHintsMessage {
   min-width: 0;
-  @include main-xs($gold-100, $font-weight-regular, 1.5, 0, right);
+  @include main-xs($color-accent, $font-weight-regular, 1.5, 0, right);
 }
 
 @media (prefers-reduced-motion: reduce) {

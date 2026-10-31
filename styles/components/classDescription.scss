@@ -1,16 +1,16 @@
 @use '../../styles/globals' as *;
 
 // Texto das descrições (características, talentos, "Sobre a classe"). As
-// cores vêm do tema `--cls-*`, aplicado pelo dono (página ou modal).
+// cores são os tokens semânticos globais.
 .clsDescText {
-  @include main-sm(var(--cls-text), $font-weight-regular, 1.65);
+  @include main-sm($color-text, $font-weight-regular, 1.65);
   max-width: 72ch;
   margin: $spacing-1 0 0;
 }
 
 // Listas escritas com "-" no começo da linha.
 .clsDescBullets {
-  @include main-sm(var(--cls-text), $font-weight-regular, 1.65);
+  @include main-sm($color-text, $font-weight-regular, 1.65);
   margin: $spacing-2 0;
   padding-left: $spacing-5;
 
@@ -19,7 +19,7 @@
   }
 
   li::marker {
-    color: $gold-300;
+    color: $color-accent-line-2;
   }
 
   // Sub-lista: recua e troca o marcador, para a profundidade ser visível.
@@ -40,22 +40,22 @@
   max-width: 34rem;
   margin: $spacing-3 0;
   border-collapse: collapse;
-  border: 1px solid var(--cls-border);
+  border: 1px solid $color-border;
 
   th,
   td {
     padding: $spacing-2 $spacing-3;
-    border-bottom: 1px solid var(--cls-border);
+    border-bottom: 1px solid $color-border;
     text-align: left;
   }
 
   th {
-    @include caption(var(--cls-text), $font-weight-semibold);
+    @include caption($color-text, $font-weight-semibold);
     background-color: $accent-overlay;
   }
 
   td {
-    @include main-sm(var(--cls-muted), $font-weight-regular);
+    @include main-sm($color-text-muted, $font-weight-regular);
   }
 
   tr:last-child td {

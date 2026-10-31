@@ -1,8 +1,9 @@
 @use '../../styles/globals' as *;
 
 // O seletor de classes: trilho de cards com scroll-snap. O card em foco é o
-// do centro; as medidas e as cores dos cards vêm daqui como custom properties,
-// para o embed e o tema claro trocarem um valor em vez de reescrever regras.
+// do centro; as medidas dos cards vêm daqui como custom properties, para o
+// embed trocar um valor em vez de reescrever regras. As cores são os tokens
+// semânticos globais.
 .pick {
   --pick-card-w: 20rem;
   --pick-card-h: clamp(32rem, calc(100dvh - 16rem), 40rem);
@@ -10,31 +11,7 @@
   --pick-fade: 6rem;
   --pick-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
 
-  // Cores do tema. Escuro é o padrão; o claro troca só estas.
-  --pick-surface: #{$surface};
-  --pick-raised: #{$surface-raised};
-  --pick-text: #{$color-text};
-  --pick-text-muted: #{$color-text-muted};
-  --pick-text-subtle: #{$color-text-subtle};
-  --pick-border: #{$color-border};
-  --pick-border-strong: #{$color-border-strong};
-  --pick-accent: #{$gold-100};
-  --pick-unique: #{$warning};
-  --pick-shadow-ink: 0, 0, 0;
-
   position: relative;
-
-  @include light {
-    --pick-surface: #{$neutral-2200};
-    --pick-raised: #{$neutral-2300};
-    --pick-text: #{$color-text-inverse};
-    --pick-text-muted: #{$color-text-muted-inverse};
-    --pick-border: #{$color-border-inverse};
-    --pick-border-strong: #{$neutral-2900};
-    --pick-accent: #{$gold-500};
-    --pick-unique: #{$color-text-inverse};
-    --pick-shadow-ink: 60, 45, 10;
-  }
 
   // Um card por vez: a largura é a do palco menos a fresta dos vizinhos.
   @include mobile {
@@ -55,7 +32,7 @@
   // Vinheta: um palco, não uma lista.
   background: radial-gradient(
     ellipse 60% 70% at 50% 45%,
-    var(--pick-raised) 0%,
+    $surface-raised 0%,
     transparent 70%
   );
 
@@ -103,7 +80,7 @@
   // A máscara cortaria um outline no próprio trilho, então o anel vai no card
   // em foco.
   &:focus-visible .pickCard--focused {
-    outline: 2px solid rgba($primary-100, 0.6);
+    outline: 2px solid with-alpha($color-focus, 0.6);
     outline-offset: $spacing-1;
   }
 
@@ -127,11 +104,11 @@
   width: $spacing-12;
   height: $spacing-12;
   border-radius: $radius-full;
-  border: 1px solid rgba($gold-100, 0.35);
-  background: var(--pick-surface);
-  color: var(--pick-accent);
+  border: 1px solid with-alpha($color-accent-line, 0.35);
+  background: $surface;
+  color: $color-accent;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(var(--pick-shadow-ink), 0.4);
+  box-shadow: 0 4px 12px rgba(#{$shadow-ink}, 0.4);
   transition:
     border-color 0.2s ease,
     box-shadow 0.2s ease,
@@ -144,10 +121,10 @@
   }
 
   &:hover:not(:disabled) {
-    border-color: $gold-100;
+    border-color: $color-accent-line;
     box-shadow:
       $glow-gold,
-      0 4px 12px rgba(var(--pick-shadow-ink), 0.4);
+      0 4px 12px rgba(#{$shadow-ink}, 0.4);
   }
 
   &:disabled {
@@ -187,11 +164,10 @@
 
 .pickCount {
   @include mono-xs($color-text-muted, $font-weight-regular, 1.4, 0.1em);
-  color: var(--pick-text-muted);
 }
 
 .pickCountNumber {
-  color: var(--pick-text);
+  color: $color-text;
   font-weight: $font-weight-bold;
 }
 
@@ -210,8 +186,8 @@
     box-shadow 0.2s ease;
 
   &--on {
-    background: $gold-300;
-    box-shadow: 0 0 6px rgba($gold-100, 0.45);
+    background: $color-accent-fill;
+    box-shadow: 0 0 6px with-alpha($color-accent-line, 0.45);
 
     // Sobre o pergaminho o brilho vira sujeira.
     @include light {

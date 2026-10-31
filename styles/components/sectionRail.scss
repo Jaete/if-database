@@ -19,23 +19,15 @@ $tuck: 10px;
   @include flex-col-start();
   gap: $spacing-1;
   scrollbar-width: thin;
-  scrollbar-color: $gold-400 transparent;
+  scrollbar-color: $color-scrollbar transparent;
 
   &::-webkit-scrollbar {
     width: $spacing-1;
   }
 
   &::-webkit-scrollbar-thumb {
-    background: $gold-400;
+    background: $color-scrollbar;
     border-radius: $radius-full;
-  }
-
-  @include light {
-    scrollbar-color: $gold-600 transparent;
-
-    &::-webkit-scrollbar-thumb {
-      background: $gold-600;
-    }
   }
 
   // Abaixo daqui não sobra espaço lateral, e um rodapé de abas disputaria
@@ -69,37 +61,21 @@ $tuck: 10px;
   @include focus-ring();
 
   &:hover {
-    color: $gold-100;
-    border-color: rgba($gold-100, 0.45);
+    color: $color-accent;
+    border-color: with-alpha($color-accent-line, 0.45);
     transform: translateX(3px);
   }
 
   &--active {
     background: linear-gradient(
       90deg,
-      $surface-float,
-      rgba($primary-100, 0.22)
+      $surface,
+      with-alpha($color-accent-line, 0.22)
     );
-    border-color: rgba($gold-100, 0.6);
-    color: $gold-100;
+    border-color: with-alpha($color-accent-line, 0.6);
+    color: $color-accent;
     font-weight: $font-weight-semibold;
     transform: translateX(4px);
-  }
-
-  @include light {
-    background-color: $neutral-2100;
-    border-color: $color-border-inverse;
-    color: $color-text-muted-inverse;
-
-    &:hover,
-    &.sectionRailTab--active {
-      color: $gold-600;
-      border-color: rgba($gold-600, 0.5);
-    }
-
-    &--active {
-      background: $neutral-2300;
-    }
   }
 
   @media (prefers-reduced-motion: reduce) {

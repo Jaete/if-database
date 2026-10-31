@@ -1,28 +1,26 @@
 @use '../../styles/globals' as *;
-@use './classTheme' as *;
 
-// O modal das seções da classe. O Modal vai para o body, fora da página, então
-// aplica o mesmo tema `--cls-*` na própria casca.
+// O modal das seções da classe. O Modal vai para o body, fora da página; as
+// cores são os tokens globais, que o `:root` já fornece.
 //
 // Os seletores repetem `.overlay .modalShell` para vencer a especificidade das
 // regras do Modal, que são aninhadas nele.
 
 .overlay .modalShell.clsModalShell {
-  @include class-theme;
-  color: var(--cls-text);
+  color: $color-text;
 
   .modal {
-    border-color: rgba($gold-100, 0.3);
-    background: var(--cls-float);
+    border-color: with-alpha($color-accent-line, 0.3);
+    background: $surface-float;
 
     &:hover {
-      border-color: rgba($gold-100, 0.3);
+      border-color: with-alpha($color-accent-line, 0.3);
     }
   }
 
   .header {
     padding: $spacing-5 $spacing-6 0;
-    border-bottom: 1px solid var(--cls-border);
+    border-bottom: 1px solid $color-border;
     background: transparent;
 
     @include mobile {
@@ -31,28 +29,37 @@
   }
 
   .eyebrow {
-    color: var(--cls-muted);
+    color: $color-text-muted;
   }
 
   .title {
-    @include cinzel-2xl(var(--cls-text), $font-weight-bold, 1.2, 0.04em);
+    @include cinzel-2xl($color-text, $font-weight-bold, 1.2, 0.04em);
 
     @include mobile {
-      @include cinzel-xl(var(--cls-text), $font-weight-bold, 1.2, 0.04em);
+      @include cinzel-xl($color-text, $font-weight-bold, 1.2, 0.04em);
     }
   }
 
   .closeButton {
-    color: var(--cls-muted);
+    color: $color-text-muted;
 
     &:hover {
-      color: var(--cls-accent);
+      color: $color-accent;
     }
   }
 
   .content {
-    color: var(--cls-text);
+    color: $color-text;
     background: transparent;
+
+    // Com a régua de níveis, quem rola não é o `.content` do Modal: a régua e
+    // o texto rolam cada um na sua coluna, para dar para percorrer a lista de
+    // características sem perder o ponto da leitura (e vice-versa).
+    &:has(> .clsModalBody > .clsRail) {
+      display: flex;
+      padding: 0;
+      overflow: hidden;
+    }
   }
 }
 
@@ -86,7 +93,7 @@
   background: none;
   white-space: nowrap;
   cursor: pointer;
-  @include cinzel-sm(var(--cls-muted), $font-weight-semibold, 1.2, 0.03em);
+  @include cinzel-sm($color-text-muted, $font-weight-semibold, 1.2, 0.03em);
   @include focus-ring;
 
   &:focus-visible {
@@ -96,21 +103,21 @@
   svg {
     width: $spacing-5;
     height: $spacing-5;
-    color: $gold-300;
+    color: $color-accent;
   }
 
   &:hover {
-    color: var(--cls-text);
+    color: $color-text;
   }
 
   &[aria-current='true'] {
-    border-bottom-color: $gold-200;
-    color: var(--cls-accent);
+    border-bottom-color: $color-accent-line;
+    color: $color-accent;
   }
 }
 
 .clsSwitchCount {
-  @include mono-xs(var(--cls-muted), $font-weight-regular, 1);
+  @include mono-xs($color-text-muted, $font-weight-regular, 1);
 }
 
 // Corpo: rola dentro do `.content` do Modal. A régua de níveis, quando existe,
@@ -121,6 +128,16 @@
 
   &:has(> .clsRail) {
     grid-template-columns: $spacing-20 * 3 minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    flex: 1;
+    min-height: 0;
+
+    > .clsRail,
+    > .clsModalContent {
+      min-height: 0;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
 
     @include mobile {
       grid-template-columns: minmax(0, 1fr);
@@ -139,23 +156,21 @@
 
 .clsModalEmpty {
   margin: 0;
-  @include main-sm(var(--cls-muted), $font-weight-regular, 1.5);
+  @include main-sm($color-text-muted, $font-weight-regular, 1.5);
   font-style: italic;
 }
 
 .clsRail {
-  position: sticky;
-  top: 0;
-  align-self: start;
-  max-height: 100%;
-  overflow-y: auto;
+  // Coluna própria de rolagem (ver `.clsModalBody:has(> .clsRail)`).
+  align-self: stretch;
+  border-right: 1px solid $color-border;
   padding: $spacing-6 0 $spacing-6 $spacing-5;
 
   ol {
     margin: 0;
     padding: 0;
     list-style: none;
-    border-left: 1px solid var(--cls-border);
+    border-left: 1px solid $color-border;
   }
 
   li + li {
@@ -170,7 +185,7 @@
 .clsRailLevel {
   display: block;
   padding: 0 $spacing-4 $spacing-2;
-  @include cinzel-sm(var(--cls-accent), $font-weight-bold, 1.2, 0.04em);
+  @include cinzel-sm($color-accent, $font-weight-bold, 1.2, 0.04em);
 }
 
 .clsRailLink {
@@ -183,12 +198,12 @@
   background: none;
   text-align: left;
   cursor: pointer;
-  @include main-sm(var(--cls-muted), $font-weight-regular, 1.4);
+  @include main-sm($color-text-muted, $font-weight-regular, 1.4);
   @include focus-ring;
 
   &:hover {
-    color: var(--cls-text);
-    border-left-color: $gold-200;
+    color: $color-text;
+    border-left-color: $color-accent-line;
   }
 }
 
@@ -218,19 +233,19 @@
     top: 0;
     z-index: 1;
     padding: $spacing-2;
-    border-bottom: 1px solid var(--cls-border-strong);
-    background: var(--cls-float);
+    border-bottom: 1px solid $color-border-strong;
+    background: $surface-float;
     text-align: left;
     white-space: nowrap;
-    @include caption(var(--cls-muted), $font-weight-semibold);
+    @include caption($color-text-muted, $font-weight-semibold);
   }
 
   td {
     padding: $spacing-2;
-    border-bottom: 1px solid var(--cls-border);
+    border-bottom: 1px solid $color-border;
     vertical-align: middle;
     white-space: nowrap;
-    @include main-sm(var(--cls-text), $font-weight-regular, 1.5);
+    @include main-sm($color-text, $font-weight-regular, 1.5);
   }
 
   tr:hover td {
@@ -238,7 +253,7 @@
   }
 
   abbr {
-    color: var(--cls-accent);
+    color: $color-accent;
     text-decoration: none;
     cursor: help;
   }
@@ -247,11 +262,11 @@
 // Linha dourada onde o bônus de proficiência sobe.
 .clsProgRow--tier {
   td {
-    border-top: 1px solid rgba($gold-100, 0.35);
+    border-top: 1px solid with-alpha($color-accent-line, 0.35);
   }
 
   .clsProgProf b {
-    color: var(--cls-accent);
+    color: $color-accent;
   }
 }
 
@@ -260,14 +275,14 @@
   place-items: center;
   width: $spacing-9;
   height: $spacing-9;
-  border: 1px solid rgba($gold-100, 0.45);
+  border: 1px solid with-alpha($color-accent-line, 0.45);
   border-radius: $radius-full;
-  @include mono-sm(var(--cls-accent), $font-weight-bold, 1);
+  @include mono-sm($color-accent, $font-weight-bold, 1);
 }
 
 .clsProgProf {
   text-align: center;
-  @include mono-sm(var(--cls-muted), $font-weight-regular, 1);
+  @include mono-sm($color-text-muted, $font-weight-regular, 1);
 
   b {
     font-weight: $font-weight-bold;
@@ -276,7 +291,7 @@
 
 .clsProg .clsProgNum {
   text-align: center;
-  @include mono-sm(var(--cls-text), $font-weight-bold, 1);
+  @include mono-sm($color-text, $font-weight-bold, 1);
 }
 
 // A coluna de características é a única com texto corrido: ela absorve a
@@ -296,32 +311,32 @@
   padding: 0;
   border: 0;
   background: none;
-  color: var(--cls-text);
+  color: $color-text;
   text-decoration: underline;
-  text-decoration-color: rgba($gold-100, 0.5);
+  text-decoration-color: with-alpha($color-accent-line, 0.5);
   text-underline-offset: $spacing-1;
   cursor: pointer;
   font: inherit;
   @include focus-ring;
 
   &:hover {
-    color: var(--cls-accent);
+    color: $color-accent;
     text-decoration-color: currentColor;
   }
 }
 
 .clsGrantOr {
   margin: 0 $spacing-1;
-  @include caption(var(--cls-accent), $font-weight-semibold, 1);
+  @include caption($color-accent, $font-weight-semibold, 1);
 }
 
 .clsGrantPlus {
   margin: 0 $spacing-1;
-  color: var(--cls-muted);
+  color: $color-text-muted;
 }
 
 .clsGrantAsi {
-  color: var(--cls-muted);
+  color: $color-text-muted;
   font-style: italic;
 }
 
@@ -341,7 +356,7 @@
 }
 
 .clsSlotCircle {
-  @include caption(var(--cls-muted), $font-weight-semibold, 1, 0.04em, center);
+  @include caption($color-text-muted, $font-weight-semibold, 1, 0.04em, center);
 }
 
 .clsSlotGrid {
@@ -350,8 +365,8 @@
 
 .clsSlot {
   @include slot-pip;
-  background: $gold-300;
-  box-shadow: 0 0 calc(#{$spacing-1} * 1.5) rgba($gold-100, 0.45);
+  background: $color-accent-line-2;
+  box-shadow: 0 0 calc(#{$spacing-1} * 1.5) with-alpha($color-accent-line, 0.45);
 
   // Sobre o pergaminho o brilho vira sujeira: o contraste do dourado já basta.
   @include light {
@@ -364,10 +379,10 @@
   flex-wrap: wrap;
   gap: $spacing-2 $spacing-5;
   margin: $spacing-4 0 0;
-  @include main-xs(var(--cls-muted), $font-weight-regular, 1.5);
+  @include main-xs($color-text-muted, $font-weight-regular, 1.5);
 
   b {
-    color: var(--cls-accent);
+    color: $color-accent;
     font-weight: $font-weight-semibold;
   }
 }
@@ -379,7 +394,7 @@
   grid-template-columns: $spacing-14 minmax(0, 1fr);
   gap: $spacing-6;
   padding: $spacing-8 0;
-  border-bottom: 1px solid var(--cls-border);
+  border-bottom: 1px solid $color-border;
 
   &:first-child {
     padding-top: 0;
@@ -400,20 +415,20 @@
   place-items: center;
   width: $spacing-14;
   height: $spacing-14;
-  border: 1px solid rgba($gold-100, 0.45);
+  border: 1px solid with-alpha($color-accent-line, 0.45);
   border-radius: $radius-md;
-  background: linear-gradient(180deg, var(--cls-elevated), var(--cls-raised));
+  background: linear-gradient(180deg, $surface-elevated, $surface-raised);
   text-align: center;
 
   b {
     display: block;
-    @include cinzel-xl(var(--cls-accent), $font-weight-bold, 1);
+    @include cinzel-xl($color-accent, $font-weight-bold, 1);
   }
 
   small {
     display: block;
     margin-top: calc(#{$spacing-1} / 2);
-    @include caption(var(--cls-muted), $font-weight-semibold, 1);
+    @include caption($color-text-muted, $font-weight-semibold, 1);
   }
 
   @include mobile {
@@ -427,7 +442,7 @@
     padding: $spacing-1 $spacing-3;
 
     b {
-      @include cinzel-md(var(--cls-accent), $font-weight-bold, 1);
+      @include cinzel-md($color-accent, $font-weight-bold, 1);
     }
 
     small {
@@ -480,13 +495,13 @@
 .clsFeatName {
   flex: 1;
   margin: 0;
-  @include cinzel-xl(var(--cls-text), $font-weight-bold, 1.3, 0.02em);
+  @include cinzel-xl($color-text, $font-weight-bold, 1.3, 0.02em);
 }
 
 // Corpo da característica: um degrau acima do texto miúdo das listas, com
 // respiro entre parágrafos — é texto de regra, lido de ponta a ponta.
 .clsFeat .clsDescText {
-  @include main-md(var(--cls-text), $font-weight-regular, 1.75);
+  @include main-md($color-text, $font-weight-regular, 1.75);
   margin-top: $spacing-3;
 
   & + .clsDescText {
@@ -495,12 +510,12 @@
 }
 
 .clsFeat .clsDescBullets {
-  @include main-md(var(--cls-text), $font-weight-regular, 1.75);
+  @include main-md($color-text, $font-weight-regular, 1.75);
 }
 
 .clsFeatMeta {
   margin: $spacing-1 0 0;
-  @include main-xs(var(--cls-muted), $font-weight-regular, 1.5);
+  @include main-xs($color-text-muted, $font-weight-regular, 1.5);
 }
 
 // Opções ligadas por "ou" no mesmo nível: escolhe-se uma.
@@ -509,14 +524,14 @@
   flex-direction: column;
   gap: $spacing-4;
   padding: $spacing-4;
-  border: 1px solid var(--cls-border-strong);
+  border: 1px solid $color-border-strong;
   border-radius: $radius-md;
 }
 
 .clsChoiceTag {
   align-self: flex-start;
   margin-bottom: -$spacing-2;
-  @include caption(var(--cls-accent), $font-weight-semibold);
+  @include caption($color-accent, $font-weight-semibold);
 }
 
 .clsChoiceOr {
@@ -524,14 +539,14 @@
   align-items: center;
   gap: $spacing-2;
   margin-bottom: $spacing-4;
-  @include caption(var(--cls-muted), $font-weight-semibold, 1);
+  @include caption($color-text-muted, $font-weight-semibold, 1);
 
   &::before,
   &::after {
     content: '';
     flex: 1;
     height: 1px;
-    background: var(--cls-border);
+    background: $color-border;
   }
 }
 
@@ -539,7 +554,7 @@
 
 .clsArch {
   padding: $spacing-5 0;
-  border-bottom: 1px solid var(--cls-border);
+  border-bottom: 1px solid $color-border;
 
   &:first-child {
     padding-top: 0;
@@ -547,13 +562,13 @@
 }
 
 .clsArchTag {
-  @include caption(var(--cls-accent), $font-weight-semibold);
+  @include caption($color-accent, $font-weight-semibold);
 }
 
 .clsArchName {
   flex: 1;
   margin: $spacing-1 0 0;
-  @include cinzel-xl(var(--cls-text), $font-weight-bold, 1.3);
+  @include cinzel-xl($color-text, $font-weight-bold, 1.3);
 }
 
 .clsArchFeats {
@@ -563,23 +578,23 @@
   margin: $spacing-4 0 0;
   padding: 0;
   list-style: none;
-  border-left: 1px solid rgba($gold-100, 0.3);
+  border-left: 1px solid with-alpha($color-accent-line, 0.3);
 
   li {
     padding-left: $spacing-4;
   }
 
   .clsFeatName {
-    @include cinzel-md(var(--cls-text), $font-weight-bold, 1.3);
+    @include cinzel-md($color-text, $font-weight-bold, 1.3);
   }
 }
 
 .clsLvlPill {
   flex: none;
   padding: calc(#{$spacing-1} / 2) $spacing-2;
-  border: 1px solid rgba($gold-100, 0.4);
+  border: 1px solid with-alpha($color-accent-line, 0.4);
   border-radius: $radius-full;
-  @include mono-xs(var(--cls-accent), $font-weight-bold, 1.3);
+  @include mono-xs($color-accent, $font-weight-bold, 1.3);
 }
 
 // ── Talentos ────────────────────────────────────────────────
@@ -597,12 +612,12 @@
 .clsTalent {
   min-width: 0;
   padding: $spacing-4;
-  border: 1px solid var(--cls-border);
+  border: 1px solid $color-border;
   border-radius: $radius-md;
-  background: var(--cls-raised);
+  background: $surface-raised;
 
   .clsFeatName {
-    @include cinzel-md(var(--cls-text), $font-weight-bold, 1.3);
+    @include cinzel-md($color-text, $font-weight-bold, 1.3);
   }
 }
 
@@ -612,10 +627,10 @@
   padding: calc(#{$spacing-1} / 2) $spacing-2;
   border-radius: $radius-sm;
   background: $accent-overlay-hover;
-  @include main-xs(var(--cls-muted), $font-weight-regular, 1.5);
+  @include main-xs($color-text-muted, $font-weight-regular, 1.5);
 
   b {
-    color: var(--cls-text);
+    color: $color-text;
     font-weight: $font-weight-semibold;
   }
 }

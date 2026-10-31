@@ -36,7 +36,7 @@
   }
 
   &:hover {
-    border-color: $primary-100;
+    border-color: $color-accent-line;
     color: $color-text;
   }
 
@@ -49,24 +49,13 @@
 
   // O principal: dourado, com o número 1 em disco.
   &--primary[aria-pressed='true'] {
-    border-color: $gold-200;
+    border-color: $color-accent-line;
     background: $accent-overlay-hover;
-    color: $gold-100;
+    color: $color-accent;
 
     .rolesOrder {
-      background: $gold-300;
-      color: $neutral-100;
-    }
-  }
-
-  @include light {
-    &[aria-pressed='true'] {
-      background: $neutral-2300;
-      color: $color-text-inverse;
-    }
-
-    &--primary[aria-pressed='true'] {
-      color: $gold-500;
+      background: $color-accent-fill;
+      color: $color-text-on-accent;
     }
   }
 }
@@ -77,8 +66,8 @@
   min-width: $spacing-5;
   height: $spacing-5;
   border-radius: $radius-full;
-  background: $color-border-strong;
-  @include mono-xs($color-text, $font-weight-bold, 1, 0, center);
+  background: $surface-elevated;
+  @include mono-xs($color-text-muted, $font-weight-bold, 1, 0, center);
 }
 
 .rolesHelp {
@@ -88,12 +77,8 @@
   letter-spacing: 0;
 
   b {
-    color: $gold-100;
+    color: $color-accent;
     font-weight: $font-weight-semibold;
-
-    @include light {
-      color: $gold-500;
-    }
   }
 }
 
@@ -103,13 +88,9 @@
   background: transparent;
   cursor: pointer;
   font: inherit;
-  color: $gold-100;
+  color: $color-accent;
   text-decoration: underline;
   @include focus-ring;
-
-  @include light {
-    color: $gold-500;
-  }
 }
 
 .rolesSrOnly {

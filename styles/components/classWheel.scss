@@ -1,7 +1,7 @@
 @use '../../styles/globals' as *;
 
 // A roda de seções: astrolábio no desktop, lista com fio de ouro no mobile.
-// As cores `--cls-*` vêm da página (ClassData).
+// As cores são os tokens semânticos globais.
 
 .classWheel {
   display: flex;
@@ -29,7 +29,7 @@
   width: 100%;
   height: 100%;
   overflow: visible;
-  color: $gold-100;
+  color: $color-accent-line;
   pointer-events: none;
 
   * {
@@ -70,9 +70,9 @@
   border: 0;
   border-radius: $radius-full;
   background: none;
-  color: var(--cls-text);
+  color: $color-text;
   cursor: pointer;
-  @include focus-ring($gold-100);
+  @include focus-ring;
 
   &:focus-visible {
     outline-offset: $spacing-1;
@@ -80,18 +80,18 @@
 
   &:hover .classWheelOrb,
   &:focus-visible .classWheelOrb {
-    background: var(--cls-raised);
-    box-shadow: 0 0 $spacing-4 rgba($gold-100, 0.45);
+    background: $surface-raised;
+    box-shadow: 0 0 $spacing-4 with-alpha($color-accent-line, 0.45);
   }
 
   &:hover .classWheelLabel {
-    color: var(--cls-accent);
+    color: $color-accent;
   }
 
   // Seção aberta no modal: orbe preenchido.
   &[aria-expanded='true'] .classWheelOrb {
-    background: $gold-300;
-    color: $neutral-100;
+    background: $color-accent-fill;
+    color: $color-text-on-accent;
   }
 }
 
@@ -100,10 +100,10 @@
   inset: 0;
   display: grid;
   place-items: center;
-  border: 1px solid $gold-100;
+  border: 1px solid $color-accent-line;
   border-radius: $radius-full;
-  background: var(--cls-bg);
-  color: var(--cls-accent);
+  background: $color-bg;
+  color: $color-accent;
   transition:
     box-shadow 0.2s ease,
     background-color 0.2s ease;
@@ -128,10 +128,10 @@
   min-width: $spacing-6;
   height: $spacing-6;
   padding: 0 $spacing-1;
-  border: 1px solid rgba($gold-100, 0.6);
+  border: 1px solid with-alpha($color-accent-line, 0.6);
   border-radius: $radius-full;
-  background: var(--cls-raised);
-  @include mono-xs(var(--cls-text), $font-weight-bold, 1);
+  background: $surface-raised;
+  @include mono-xs($color-text, $font-weight-bold, 1);
 }
 
 .classWheelLabel {
@@ -141,13 +141,7 @@
   translate: -50% 0;
   width: max-content;
   max-width: $spacing-20 + $spacing-16 - $spacing-4;
-  @include cinzel-sm(
-    var(--cls-text),
-    $font-weight-semibold,
-    1.2,
-    0.03em,
-    center
-  );
+  @include cinzel-sm($color-text, $font-weight-semibold, 1.2, 0.03em, center);
 
   // O nó do topo põe o rótulo acima, para não invadir o retrato.
   .classWheelNode--up & {
@@ -163,12 +157,12 @@
   gap: $spacing-1;
   min-height: $spacing-8;
   padding: $spacing-1 $spacing-3;
-  border: 1px dashed var(--cls-border-strong);
+  border: 1px dashed $color-border-strong;
   border-radius: $radius-full;
   background: transparent;
   white-space: nowrap;
   cursor: pointer;
-  @include caption(var(--cls-muted), $font-weight-semibold);
+  @include caption($color-text-muted, $font-weight-semibold);
   @include focus-ring;
 
   svg {
@@ -177,8 +171,8 @@
   }
 
   &:hover {
-    border-color: $primary-100;
-    color: var(--cls-accent);
+    border-color: $color-accent-line;
+    color: $color-accent;
   }
 }
 
@@ -199,7 +193,7 @@
 
 .classWheelSpineHead {
   margin: 0 0 $spacing-2;
-  @include caption(var(--cls-muted), $font-weight-semibold);
+  @include caption($color-text-muted, $font-weight-semibold);
 }
 
 .classWheelSpineList {
@@ -216,7 +210,7 @@
     top: $spacing-6;
     bottom: $spacing-6;
     width: 1px;
-    background: rgba($gold-100, 0.45);
+    background: with-alpha($color-accent-line, 0.45);
   }
 }
 
@@ -230,7 +224,7 @@
   padding: $spacing-1 0;
   border: 0;
   background: none;
-  color: var(--cls-text);
+  color: $color-text;
   text-align: left;
   cursor: pointer;
   @include focus-ring;
@@ -249,31 +243,31 @@
   }
 
   &[aria-expanded='true'] .classWheelOrb {
-    background: $gold-300;
-    color: $neutral-100;
+    background: $color-accent-fill;
+    color: $color-text-on-accent;
   }
 
   &:active .classWheelOrb {
-    background: var(--cls-raised);
+    background: $surface-raised;
   }
 
   > svg {
     width: $spacing-4;
     height: $spacing-4;
-    color: var(--cls-muted);
+    color: $color-text-muted;
   }
 }
 
 .classWheelSpineLabel {
   flex: 1;
-  @include cinzel-md(var(--cls-text), $font-weight-semibold, 1.2, 0.03em);
+  @include cinzel-md($color-text, $font-weight-semibold, 1.2, 0.03em);
 }
 
 .classWheelSpineCount {
   min-width: $spacing-6;
   text-align: right;
   white-space: nowrap;
-  @include mono-xs(var(--cls-muted), $font-weight-bold, 1, 0, right);
+  @include mono-xs($color-text-muted, $font-weight-bold, 1, 0, right);
 }
 
 .classWheelSpineAdd {

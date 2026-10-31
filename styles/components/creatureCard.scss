@@ -3,7 +3,7 @@
 .creatureCard {
   display: flex;
   background: linear-gradient(180deg, $surface-raised 0%, $surface 100%);
-  border: 1px solid $neutral-400;
+  border: 1px solid $color-border;
   border-radius: 12px;
   overflow: hidden;
   height: 160px;
@@ -17,14 +17,15 @@
 
   &:hover {
     transform: translateY(-4px);
-    border-color: rgba($gold-100, 0.4);
-    box-shadow:
-      0 10px 20px rgba(0, 0, 0, 0.4),
-      0 0 0 1px rgba($gold-100, 0.3),
-      0 0 20px rgba($gold-100, 0.08);
+    border-color: with-alpha($color-accent-line, 0.4);
+    @include elevation(3);
 
     .creatureCardImageOverlay {
       opacity: 0.2;
+    }
+
+    .creatureCardName {
+      color: $color-accent;
     }
 
     .creatureCardInfo::after {
@@ -38,18 +39,6 @@
 
   @include mobile {
     height: 140px;
-  }
-
-  @include light {
-    background-color: $neutral-2100;
-    border-color: $neutral-2700;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-
-    &:hover {
-      box-shadow:
-        0 10px 15px rgba(0, 0, 0, 0.1),
-        0 0 0 1px rgba($primary-100, 0.2);
-    }
   }
 }
 
@@ -79,25 +68,12 @@
     background: linear-gradient(to right, transparent 40%, $surface 100%);
     z-index: 1;
     pointer-events: none;
-
-    @include light {
-      background: linear-gradient(
-        to right,
-        transparent 40%,
-        $neutral-2100 100%
-      );
-    }
   }
 
   &--placeholder {
     width: 150px;
     max-width: none;
-    background: linear-gradient(
-      135deg,
-      $neutral-300 0%,
-      $neutral-400 50%,
-      $neutral-300 100%
-    );
+    background: linear-gradient(135deg, $surface-raised, $surface);
 
     @include mobile {
       width: 120px;
@@ -108,7 +84,7 @@
 .creatureCardImageOverlay {
   position: absolute;
   inset: 0;
-  background: $primary-100;
+  background: $color-accent-fill;
   opacity: 0;
   transition: opacity 0.3s ease;
   z-index: 2;
@@ -133,7 +109,7 @@
     background: linear-gradient(
       90deg,
       transparent,
-      rgba($gold-100, 0.5),
+      with-alpha($color-accent-line, 0.5),
       transparent
     );
     opacity: 0;
@@ -142,17 +118,17 @@
 }
 
 .creatureCardRarity {
-  @include main-xs($primary-100, bold);
-  background-color: rgba($primary-100, 0.1);
+  @include main-xs($color-accent, $font-weight-bold);
+  background-color: $accent-overlay-hover;
   padding: 2px 8px;
   border-radius: 4px;
-  border: 1px solid rgba($primary-100, 0.3);
+  border: 1px solid with-alpha($color-accent-line, 0.35);
   text-transform: uppercase;
   width: fit-content;
 }
 
 .creatureCardName {
-  @include cinzel-md(#ffffff, bold, 1.3);
+  @include cinzel-md($color-text, $font-weight-bold, 1.3);
   margin: 0;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -160,31 +136,19 @@
   overflow: hidden;
   width: 100%;
   word-break: break-word;
-
-  @include light {
-    @include cinzel-md($primary-100, bold, 1.3);
-  }
+  transition: color 0.2s ease;
 }
 
 .creatureCardButton {
   margin-top: $spacing-3;
-  background: linear-gradient(135deg, $gold-300, $primary-200);
-  @include main-xs(#ffffff, bold);
-  border: none;
+  @include btn-primary;
+  @include main-xs($color-text-on-accent, $font-weight-bold);
   padding: 5px 14px;
   border-radius: 6px;
   cursor: pointer;
   @include flex-row-center();
   gap: $spacing-2;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-
-  &:hover {
-    background: linear-gradient(135deg, $gold-200, $primary-100);
-    box-shadow:
-      0 4px 10px rgba(0, 0, 0, 0.3),
-      0 0 10px rgba($gold-100, 0.15);
-  }
 
   &Icon {
     width: 14px;
@@ -203,7 +167,7 @@
 .creatureCardMenuDots {
   background: none;
   border: none;
-  color: $neutral-1000;
+  color: $color-text-muted;
   cursor: pointer;
   padding: $spacing-1;
   border-radius: $radius-sm;
@@ -215,18 +179,11 @@
     color 0.2s;
 
   &:hover {
-    background-color: rgba($primary-100, 0.15);
-    color: $primary-100;
+    background-color: $accent-overlay-hover;
+    color: $color-accent;
   }
 
-  @include light {
-    color: $neutral-200;
-
-    &:hover {
-      background-color: rgba($primary-100, 0.1);
-      color: $primary-100;
-    }
-  }
+  @include focus-ring();
 }
 
 .creatureCardDropdown {
@@ -234,20 +191,14 @@
   top: 100%;
   right: 0;
   margin-top: $spacing-1;
-  background-color: $surface-raised;
-  border: 1px solid rgba($gold-100, 0.15);
+  background-color: $surface-elevated;
+  border: 1px solid $color-border-strong;
   border-radius: $radius-sm;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  @include elevation(3);
   min-width: 140px;
   padding: $spacing-1;
   z-index: 20;
   animation: fadeIn 0.15s ease;
-
-  @include light {
-    background-color: $neutral-2100;
-    border-color: $neutral-2700;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  }
 }
 
 .creatureCardDropdownItem {
@@ -257,31 +208,25 @@
   padding: $spacing-2 $spacing-3;
   border-radius: $radius-sm;
   cursor: pointer;
-  @include main-sm($neutral-1000, normal, 1.2);
+  @include main-sm($color-text-muted, $font-weight-regular, 1.2);
   display: flex;
   align-items: center;
   gap: $spacing-2;
   transition: background-color 0.15s;
 
   &:hover {
-    background-color: $neutral-300;
+    color: $color-text;
+    background-color: $accent-overlay-hover;
   }
 
-  @include light {
-    &:hover {
-      background-color: $neutral-2600;
-    }
-  }
+  @include focus-ring();
 
   &Delete {
-    color: $error;
+    color: $color-error;
 
     &:hover {
-      background-color: rgba($error, 0.1);
-
-      @include light {
-        background-color: rgba($error, 0.06);
-      }
+      color: $color-error;
+      background-color: $error-bg;
     }
   }
 }

@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import '@/app/globals.css';
 import AuthProvider from '@/app/context/AuthContext';
@@ -19,6 +19,16 @@ export const metadata: Metadata = {
   description: 'Database de monstros para o sistema Isakai Fantasy',
 };
 
+// Both schemes are supported; the `color-scheme` set on :root by the theme
+// tokens decides which one applies.
+export const viewport: Viewport = {
+  colorScheme: 'dark light',
+};
+
+// Applies the saved theme choice before the first paint (no flash). Absent or
+// invalid value = follow the OS. Keep the key in sync with useThemePreference.
+const THEME_SCRIPT = `try{var t=localStorage.getItem('ifdb-theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -28,7 +38,11 @@ export default function RootLayout({
     <html
       lang="pt-BR"
       className={`${geistSans.variable} ${geistMono.variable}`}
+      suppressHydrationWarning
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       <body cz-shortcut-listen="true">
         <AuthProvider>
           <AuthGate>{children}</AuthGate>

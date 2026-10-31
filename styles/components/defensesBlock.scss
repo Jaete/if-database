@@ -11,11 +11,7 @@
   padding: $spacing-2 0;
 
   & + & {
-    border-top: 1px solid rgba($gold-100, 0.08);
-
-    @include light {
-      border-top-color: $color-border-inverse;
-    }
+    border-top: 1px solid $color-border;
   }
 
   @include mobile {
@@ -26,11 +22,7 @@
 
 .defensesLabel {
   padding-top: $spacing-1;
-  @include caption($gold-200, $font-weight-semibold);
-
-  @include light {
-    color: $gold-500;
-  }
+  @include caption($color-accent, $font-weight-semibold);
 }
 
 .defensesValue {

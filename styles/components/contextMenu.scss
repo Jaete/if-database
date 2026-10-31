@@ -7,11 +7,9 @@
   max-width: 260px;
   padding: $spacing-2 0;
   background: $surface-elevated;
-  border: 1px solid $neutral-400;
+  border: 1px solid $color-border;
   border-radius: $radius-md;
-  box-shadow:
-    0 4px 16px rgba(0, 0, 0, 0.4),
-    0 0 0 1px rgba($gold-100, 0.06);
+  @include elevation(3);
   animation: contextMenuFadeIn 0.12s ease-out;
 }
 
@@ -23,17 +21,17 @@
   padding: $spacing-2 $spacing-4;
   background: none;
   border: none;
-  color: $neutral-2000;
+  color: $color-text;
   text-align: left;
   cursor: pointer;
-  @include main-sm($neutral-2000, normal, 1.4);
+  @include main-sm($color-text, normal, 1.4);
   transition:
     background 0.12s ease,
     color 0.12s ease;
 
   &:hover {
     background: $accent-overlay-hover;
-    color: $gold-100;
+    color: $color-accent;
   }
 
   &--disabled {
@@ -50,7 +48,7 @@
   width: 16px;
   height: 16px;
   flex-shrink: 0;
-  color: $gold-200;
+  color: $color-accent;
 }
 
 .contextMenuItem__label {
@@ -60,7 +58,7 @@
 .contextMenu__separator {
   height: 1px;
   margin: $spacing-2 0;
-  background: $neutral-400;
+  background: $color-border;
 }
 
 @keyframes contextMenuFadeIn {

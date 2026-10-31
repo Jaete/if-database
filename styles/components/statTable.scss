@@ -11,9 +11,9 @@
 
   thead td {
     padding: $spacing-2 $spacing-3;
-    background: rgba($primary-100, 0.12);
-    border-bottom: 1px solid rgba($gold-100, 0.2);
-    @include caption($gold-200, $font-weight-bold);
+    background: $accent-overlay-hover;
+    border-bottom: 1px solid with-alpha($color-accent-line, 0.3);
+    @include caption($color-accent, $font-weight-bold);
 
     strong {
       font-weight: inherit;
@@ -26,15 +26,7 @@
     }
 
     & + tr {
-      border-top: 1px solid rgba($gold-100, 0.06);
-    }
-  }
-
-  @include light {
-    border-color: $color-border-inverse;
-
-    thead td {
-      color: $gold-500;
+      border-top: 1px solid $color-border;
     }
   }
 }
@@ -42,18 +34,10 @@
 .statTableKey {
   min-width: 80px;
   padding: $spacing-2 $spacing-3;
-  @include mono-sm($gold-200, $font-weight-semibold, 1.4);
-
-  @include light {
-    color: $gold-500;
-  }
+  @include mono-sm($color-accent, $font-weight-semibold, 1.4);
 }
 
 .statTableValue {
   padding: $spacing-2 $spacing-3;
   @include mono-sm($color-text, $font-weight-regular, 1.4);
-
-  @include light {
-    color: $color-text-inverse;
-  }
 }

@@ -32,42 +32,25 @@
     box-shadow 0.2s ease;
   @include focus-ring;
 
-  @include light {
-    background-color: $neutral-2200;
-    border-color: $color-border-inverse;
-  }
-
   @include mobile {
     height: $spacing-11;
   }
 
   &:hover {
     background-color: $surface-raised;
-    border-color: rgba($gold-100, 0.35);
+    border-color: with-alpha($color-accent-line, 0.35);
     box-shadow: $glow-gold;
-
-    @include light {
-      background-color: $neutral-2300;
-    }
   }
 
   &:active {
     background-color: $surface-elevated;
     transform: translateY(1px);
-
-    @include light {
-      background-color: $neutral-2400;
-    }
   }
 
   // A última aberta no detalhe, marcada ao voltar à lista.
   &[aria-current='true'] {
-    border-color: $gold-300;
+    border-color: $color-accent-line-2;
     background-color: $surface-raised;
-
-    @include light {
-      background-color: $neutral-2300;
-    }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -86,20 +69,19 @@
   display: grid;
   place-items: center;
   background: linear-gradient(180deg, $surface-elevated, $surface-raised);
-  border-right: 1px solid rgba($gold-100, 0.35);
-  @include cinzel-lg($gold-100, $font-weight-bold, 1, 0, center);
-
-  @include light {
-    background: linear-gradient(180deg, $neutral-2400, $neutral-2300);
-    color: $gold-500;
-  }
+  border-right: 1px solid with-alpha($color-accent-line, 0.35);
+  @include cinzel-lg($color-accent, $font-weight-bold, 1, 0, center);
 
   @include mobile {
     flex-basis: $spacing-11;
   }
 
   .spellbookRow[aria-current='true'] & {
-    background: linear-gradient(180deg, rgba($gold-100, 0.18), $surface-raised);
+    background: linear-gradient(
+      180deg,
+      with-alpha($color-accent-line, 0.18),
+      $surface-raised
+    );
   }
 }
 
@@ -131,16 +113,11 @@
   @include cinzel-sm($color-text, $font-weight-bold, 1.5, 0.06em);
 
   @include light {
-    color: $color-text-inverse;
     text-shadow: none;
   }
 
   .spellbookRow:hover & {
-    color: $gold-100;
-
-    @include light {
-      color: $gold-500;
-    }
+    color: $color-accent;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -154,7 +131,6 @@
   @include caption($color-text-muted, $font-weight-semibold);
 
   @include light {
-    color: $color-text-muted-inverse;
     text-shadow: none;
   }
 
@@ -202,8 +178,15 @@
     opacity 0.25s ease,
     transform 0.35s ease;
 
+  // No claro a gravura recua para o papel até a linha ser focada.
+  @include light {
+    filter: grayscale(0.6) sepia(0.25) brightness(1.08) contrast(0.9);
+    opacity: 0.75;
+  }
+
   .spellbookRow:hover & {
     opacity: 1;
+    filter: none;
     transform: scale(1.04);
   }
 
@@ -219,7 +202,7 @@
 .spellbookRowSigil {
   position: absolute;
   inset: 0;
-  color: $gold-300;
+  color: $color-accent-line-2;
 
   // A névoa da cor da escola.
   &::before {
