@@ -6,6 +6,10 @@
 $embed-entry-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
 
 .embedEntry {
+  // Sempre escura, nos dois temas: são duas artes escuras disputando atenção,
+  // e o jogo de "acende um, apaga o outro" só funciona sobre o escuro. Sobre o
+  // pergaminho a arte virava um véu branco e o painel recuado continuava claro.
+  @include theme-scope(dark);
   --entry-lit-dur: 0.6s;
   --entry-zoom-dur: 1.2s;
   position: relative;
@@ -43,10 +47,6 @@ $embed-entry-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
   @include cinzel-xs($color-accent, $font-weight-semibold, 1, 0.24em, center);
   text-transform: uppercase;
   text-shadow: 0 1px 2px rgba(#{$shadow-ink}, 0.85);
-
-  @include light {
-    text-shadow: none;
-  }
 
   @include mobile {
     left: $spacing-4;
@@ -139,13 +139,6 @@ $embed-entry-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
     filter var(--entry-lit-dur) $embed-entry-ease,
     opacity var(--entry-lit-dur) $embed-entry-ease,
     transform var(--entry-zoom-dur) $embed-entry-ease;
-
-  // Gravura: cinza e sépia multiplicados sobre o papel (o fundo do painel).
-  @include light {
-    filter: grayscale(1) sepia(0.3) brightness(1.1) contrast(0.85);
-    opacity: 0.55;
-    mix-blend-mode: multiply;
-  }
 }
 
 // Ornamento (Emblem)
@@ -233,11 +226,6 @@ $embed-entry-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
     0 1px 2px rgba($neutral-100, 0.85),
     0 0 24px rgba($neutral-100, 0.5);
   transition: color var(--entry-lit-dur) $embed-entry-ease;
-
-  // Texto escuro sobre o pergaminho: a sombra viraria um borrão.
-  @include light {
-    text-shadow: none;
-  }
   @include gold-decorative-line;
 
   &::after {
@@ -321,12 +309,6 @@ $embed-entry-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
 @mixin entry-receded {
   .embedEntryArt {
     filter: grayscale(0.9) brightness(0.3);
-
-    // No claro recua para o papel, em vez de escurecer.
-    @include light {
-      filter: grayscale(1) sepia(0.3) brightness(1.1) contrast(0.85);
-      opacity: 0.35;
-    }
   }
 
   .embedEntryGlyph {
@@ -362,11 +344,6 @@ $embed-entry-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
 @media (hover: none) {
   .embedEntryArt {
     filter: grayscale(0.35) brightness(0.7);
-
-    @include light {
-      filter: grayscale(0.7) sepia(0.3) brightness(1.1) contrast(0.85);
-      opacity: 0.8;
-    }
   }
 
   .embedEntryPanel:active .embedEntryArt {
