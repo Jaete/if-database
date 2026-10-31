@@ -9,6 +9,9 @@ import type {
   ITalent,
   IContentBlock,
 } from './class.d';
+import { CLASS_ROLES } from '../l10n/classes';
+
+const CLASS_ROLE_IDS = CLASS_ROLES.map((role) => role.id);
 
 const LevelSchema = new Schema<IClassLevel>(
   {
@@ -143,6 +146,9 @@ const CharacterClassSchema = new Schema<ICharacterClass>(
     slug: { type: String, required: true, unique: true },
     aliases: [{ type: String, index: true }],
     description: String,
+    shortDescription: String,
+    roles: [{ type: String, enum: CLASS_ROLE_IDS }],
+    image: String,
 
     hitDie: String,
     hpAtFirstLevel: String,

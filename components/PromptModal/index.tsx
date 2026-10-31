@@ -109,14 +109,28 @@ const PromptForm = ({
             e.stopPropagation(),
         };
 
+        // Um editor próprio tem botões dentro: num <label>, clicar no texto do
+        // rótulo ativaria o primeiro deles. Vira um grupo nomeado.
+        if (field.render) {
+          return (
+            <div
+              key={field.name}
+              className={handles.promptLabel}
+              role="group"
+              aria-label={field.label}
+            >
+              {field.label}
+              {field.render(values[field.name] ?? '', (next) =>
+                setValues((prev) => ({ ...prev, [field.name]: next }))
+              )}
+            </div>
+          );
+        }
+
         return (
           <label key={field.name} className={handles.promptLabel}>
             {field.label}
-            {field.render ? (
-              field.render(values[field.name] ?? '', (next) =>
-                setValues((prev) => ({ ...prev, [field.name]: next }))
-              )
-            ) : field.options ? (
+            {field.options ? (
               <select {...shared}>
                 {field.options.map((option) => (
                   <option key={option.value} value={option.value}>

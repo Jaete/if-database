@@ -153,3 +153,13 @@ export function useAuth(): IAuthContext {
   }
   return context;
 }
+
+/**
+ * Como `useAuth`, mas devolve `null` fora do provider em vez de lançar.
+ *
+ * O layout do embed não tem `AuthProvider` (é uma página para iframe, sem
+ * sessão), e os componentes compartilhados com o app precisam funcionar lá.
+ */
+export function useOptionalAuth(): IAuthContext | null {
+  return useContext(AuthContext);
+}

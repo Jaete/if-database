@@ -13,6 +13,7 @@ import type {
 import {
   classSlug,
   featureKey,
+  parseClassRoles,
   parseGrants,
   parseSlotCell,
 } from '@/db/l10n/classes';
@@ -189,6 +190,11 @@ export function useClassData(initial: ICharacterClass) {
       return save({
         name: values.name,
         description: values.description || undefined,
+        // Strings vazias, e não `undefined`: o JSON descarta o `undefined`, e
+        // aí apagar o texto ou a imagem nunca chegaria ao banco.
+        shortDescription: values.shortDescription ?? '',
+        image: values.image ?? '',
+        roles: parseClassRoles(values.roles),
         hitDie: values.hitDie || undefined,
         hpAtFirstLevel: values.hpAtFirstLevel || undefined,
         hpPerLevel: values.hpPerLevel || undefined,

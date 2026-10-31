@@ -12,10 +12,11 @@ import type {
   ITalent,
 } from '@/db/classes/class.d';
 import { formatSlotCell } from '@/db/l10n/classes';
-import { useCssHandles } from '@/hooks/useCssHandles';
-import { useAuth } from '@/app/context/AuthContext';
+import { applyModifiers, useCssHandles } from '@/hooks/useCssHandles';
+import { useOptionalAuth } from '@/app/context/AuthContext';
 import ConfirmModal from '../ConfirmModal';
 import Modal from '../Modal';
+import withClassEditors from '../ClassFieldEditors';
 import PromptModal from '../PromptModal';
 import {
   CloseIcon,
@@ -37,6 +38,17 @@ import '@/styles/components/classGrid.scss';
 
 interface IProps {
   characterClass: ICharacterClass;
+  /** Onde mora o seletor de classes (o "← Classes"). O embed usa `/embed/classes`. */
+  basePath?: string;
+  /** Embed no fórum: respiro menor e roda limitada pela altura do iframe. */
+  compact?: boolean;
+  /** Esconde toda a edição, mesmo para quem pode editar. */
+  readOnly?: boolean;
+  /**
+   * Aberta por cima do seletor: o "← Classes" fecha o overlay em vez de
+   * navegar para `basePath`.
+   */
+  onBack?: () => void;
 }
 
 /**
@@ -139,6 +151,20 @@ function overviewFields(k: ICharacterClass) {
       placeholder: 'ex.: Druida',
     },
     {
+      name: 'image',
+      label: 'Imagem (URL)',
+      required: false,
+      initialValue: text(k.image),
+      placeholder: 'https://… (retrato vertical, ~3:4)',
+    },
+    {
+      name: 'roles',
+      label: 'Papéis',
+      required: false,
+      initialValue: (k.roles ?? []).join(','),
+      placeholder: 'ex.: controle, dps',
+    },
+    {
       name: 'hitDie',
       label: 'Dado de vida',
       required: false,
@@ -216,6 +242,14 @@ function overviewFields(k: ICharacterClass) {
       required: false,
       initialValue: text(k.description),
       placeholder: 'O que a classe é.',
+    },
+    {
+      name: 'shortDescription',
+      label: 'Descrição curta (texto do card)',
+      type: 'multiline' as const,
+      required: false,
+      initialValue: text(k.shortDescription),
+      placeholder: 'Uma ou duas frases.',
     },
   ];
 }
@@ -443,9 +477,17 @@ function talentFields(talent?: ITalent) {
   ];
 }
 
-const ClassData = ({ characterClass: initial }: IProps) => {
+const ClassData = ({
+  characterClass: initial,
+  basePath = '/classes',
+  compact = false,
+  readOnly = false,
+  onBack,
+}: IProps) => {
   const handles = useCssHandles(ClassDataHandles);
-  const { canEdit } = useAuth();
+  // O embed não tem AuthProvider: sem contexto, ninguém edita.
+  const auth = useOptionalAuth();
+  const canEdit = !readOnly && (auth?.canEdit ?? false);
   const {
     characterClass: k,
     error,
@@ -652,10 +694,20 @@ const ClassData = ({ characterClass: initial }: IProps) => {
   };
 
   return (
-    <div className={handles.codexDetail}>
-      <Link href="/classes" className={handles.codexBack} prefetch={false}>
-        ← Classes
-      </Link>
+    <div
+      className={`${handles.codexDetail}${
+        compact ? ` ${applyModifiers(handles.codexDetail, 'compact')}` : ''
+      }`}
+    >
+      {onBack ? (
+        <button type="button" className={handles.codexBack} onClick={onBack}>
+          ← Classes
+        </button>
+      ) : (
+        <Link href={basePath} className={handles.codexBack} prefetch={false}>
+          ← Classes
+        </Link>
+      )}
       <h1 className={handles.codexDetailTitle}>{k.name}</h1>
       {descriptionDraft !== null ? (
         <div className={handles.codexIntroEditor}>
@@ -1270,7 +1322,7 @@ const ClassData = ({ characterClass: initial }: IProps) => {
         onClose={() => setEditingOverview(false)}
         title="Características de classe"
         confirmLabel="Salvar"
-        fields={overviewFields(k)}
+        fields={withClassEditors(overviewFields(k))}
         onSubmit={saveOverview}
       />
 

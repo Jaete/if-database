@@ -1,17 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { classFromPrompt, classPromptFields } from '@/db/l10n/classes';
 import { applyModifiers, useCssHandles } from '@/hooks/useCssHandles';
-import { useAuth } from '@/app/context/AuthContext';
-import {
-  DownloadIcon,
-  LinkIcon,
-  PlusIcon,
-  SpellbookIcon,
-  SwordIcon,
-} from '../Icons';
+import { useOptionalAuth } from '@/app/context/AuthContext';
+import { DownloadIcon, LinkIcon, PlusIcon } from '../Icons';
+import ClassCarousel from '../ClassCarousel';
+import ClassData from '../ClassData';
+import withClassEditors from '../ClassFieldEditors';
 import PromptModal from '../PromptModal';
 import {
   useClassGrid,
@@ -23,6 +19,12 @@ import '@/styles/components/classGrid.scss';
 
 interface IProps {
   initialClasses: IClassOption[];
+  /** Onde moram as páginas das classes. O embed usa `/embed/classes`. */
+  basePath?: string;
+  /** Embed no fórum: sem subtítulo nem barra de ações, título e busca numa linha. */
+  compact?: boolean;
+  /** Esconde toda a edição, mesmo para quem pode editar. */
+  readOnly?: boolean;
 }
 
 /**
@@ -32,11 +34,17 @@ interface IProps {
  * arquétipos e talentos — isso não cabe num modal, e vive na página de detalhe.
  * A importação do fórum é o caminho de autoria desse conteúdo.
  */
-const ClassGrid = ({ initialClasses }: IProps) => {
+const ClassGrid = ({
+  initialClasses,
+  basePath = '/classes',
+  compact = false,
+  readOnly = false,
+}: IProps) => {
   const handles = useCssHandles(ClassGridHandles);
-  const { canEdit } = useAuth();
+  // O embed não tem AuthProvider: sem contexto, ninguém edita.
+  const auth = useOptionalAuth();
+  const canEdit = !readOnly && (auth?.canEdit ?? false);
   const {
-    classes,
     visible,
     isCompact,
     query,
@@ -45,9 +53,13 @@ const ClassGrid = ({ initialClasses }: IProps) => {
     busy,
     save,
     loadForEdit,
+    viewing,
+    openClass,
+    closeClass,
     remove,
     importTopic,
     linkSpells,
+    reload,
   } = useClassGrid(initialClasses);
 
   // `null` = fechado, `undefined` = classe nova.
@@ -61,70 +73,92 @@ const ClassGrid = ({ initialClasses }: IProps) => {
     if (full) setEditing(full);
   };
 
-  return (
-    <div className={handles.codex}>
-      <header className={handles.codexHeader}>
-        <h1 className={handles.codexTitle}>CLASSES</h1>
-        <p className={handles.codexSubtitle}>
-          O que cada classe adquire a cada nível, e as magias que ela conjura.
-        </p>
-      </header>
+  const search = (
+    <input
+      className={handles.codexSearch}
+      value={query}
+      onChange={(event) => setQuery(event.target.value)}
+      placeholder={compact ? 'Buscar classe...' : 'Buscar classe pelo nome...'}
+      aria-label="Buscar classe pelo nome"
+    />
+  );
 
-      <div
-        className={`${handles.codexTools}${
-          isCompact ? ` ${applyModifiers(handles.codexTools, 'compact')}` : ''
-        }`}
-      >
-        <input
-          className={handles.codexSearch}
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder="Buscar classe pelo nome..."
-          aria-label="Buscar classe pelo nome"
-        />
-        {canEdit && (
-          <div className={handles.codexActions}>
-            {/* Só ícone: a barra acompanha a rolagem, e três rótulos em caixa
-                alta ocupariam a largura toda em tela estreita. O nome de cada
-                ação vive no `aria-label` e no `title`, que é de onde sai a
-                dica ao parar o ponteiro. */}
-            <button
-              type="button"
-              className={handles.codexAction}
-              onClick={() => setImporting(true)}
-              disabled={busy}
-              aria-label="Importar classe do fórum"
-              title="Importar do fórum"
-            >
-              <DownloadIcon />
-              <span className={handles.codexActionLabel}>
-                Importar do fórum
-              </span>
-            </button>
-            <button
-              type="button"
-              className={handles.codexAction}
-              onClick={linkSpells}
-              disabled={busy}
-              aria-label="Vincular magias às classes"
-              title="Vincular magias"
-            >
-              <LinkIcon />
-              <span className={handles.codexActionLabel}>Vincular magias</span>
-            </button>
-            <button
-              type="button"
-              className={handles.codexAction}
-              onClick={() => setEditing(undefined)}
-              aria-label="Criar nova classe"
-              title="Nova classe"
-            >
-              <PlusIcon />
-              <span className={handles.codexActionLabel}>Nova classe</span>
-            </button>
+  return (
+    <div
+      className={`${handles.codex}${
+        compact ? ` ${applyModifiers(handles.codex, 'compact')}` : ''
+      }`}
+    >
+      {compact ? (
+        <div className={handles.codexEmbedHead}>
+          <h1 className={handles.codexTitle}>Classes</h1>
+          {search}
+        </div>
+      ) : (
+        <>
+          <header className={handles.codexHeader}>
+            <h1 className={handles.codexTitle}>CLASSES</h1>
+            <p className={handles.codexSubtitle}>
+              O que cada classe adquire a cada nível, e as magias que ela
+              conjura.
+            </p>
+          </header>
+
+          <div
+            className={`${handles.codexTools}${
+              isCompact
+                ? ` ${applyModifiers(handles.codexTools, 'compact')}`
+                : ''
+            }`}
+          >
+            {search}
+            {canEdit && (
+              <div className={handles.codexActions}>
+                {/* Só ícone: a barra acompanha a rolagem, e três rótulos em
+                    caixa alta ocupariam a largura toda em tela estreita. O
+                    nome de cada ação vive no `aria-label` e no `title`, que é
+                    de onde sai a dica ao parar o ponteiro. */}
+                <button
+                  type="button"
+                  className={handles.codexAction}
+                  onClick={() => setImporting(true)}
+                  disabled={busy}
+                  aria-label="Importar classe do fórum"
+                  title="Importar do fórum"
+                >
+                  <DownloadIcon />
+                  <span className={handles.codexActionLabel}>
+                    Importar do fórum
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  className={handles.codexAction}
+                  onClick={linkSpells}
+                  disabled={busy}
+                  aria-label="Vincular magias às classes"
+                  title="Vincular magias"
+                >
+                  <LinkIcon />
+                  <span className={handles.codexActionLabel}>
+                    Vincular magias
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  className={handles.codexAction}
+                  onClick={() => setEditing(undefined)}
+                  aria-label="Criar nova classe"
+                  title="Nova classe"
+                >
+                  <PlusIcon />
+                  <span className={handles.codexActionLabel}>Nova classe</span>
+                </button>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </>
+      )}
 
       {feedback && (
         <p
@@ -137,78 +171,50 @@ const ClassGrid = ({ initialClasses }: IProps) => {
         </p>
       )}
 
-      <p className={handles.codexCount}>
-        {`${visible.length} de ${classes.length} classe(s)`}
-      </p>
+      {visible.length === 0 ? (
+        <p className={handles.codexEmpty}>Nenhuma classe encontrada.</p>
+      ) : (
+        // A chave é a busca: cada filtro remonta o trilho, que volta ao
+        // primeiro resultado em foco.
+        <ClassCarousel
+          key={query}
+          classes={visible}
+          basePath={basePath}
+          canEdit={canEdit}
+          onEdit={openEditor}
+          onOpen={openClass}
+        />
+      )}
 
-      <ul className={handles.codexList}>
-        {visible.length === 0 && (
-          <li className={handles.codexEmpty}>
-            Nenhuma classe encontrada. Importe um tópico do fórum para começar.
-          </li>
-        )}
-        {visible.map((klass) => (
-          <li key={klass.slug}>
-            <div className={handles.codexRow}>
-              {/* O selo carrega a única informação que distingue as duas
-                  metades do códice, então o ícone precisa de nome: sem o
-                  rótulo, quem usa leitor de tela ouviria um <span> vazio onde
-                  antes havia um "M". */}
-              <span
-                className={handles.codexBadge}
-                role="img"
-                aria-label={
-                  klass.isSpellcaster ? 'Classe mágica' : 'Classe marcial'
-                }
-                title={klass.isSpellcaster ? 'Classe mágica' : 'Classe marcial'}
-              >
-                {klass.isSpellcaster ? <SpellbookIcon /> : <SwordIcon />}
-              </span>
-              {/* Nome e selo dividem a mesma célula da grade: a linha tem
-                  quatro colunas fixas, e um filho a mais quebraria para baixo
-                  em vez de ficar ao lado. */}
-              <span className={handles.codexNameCell}>
-                <Link
-                  href={`/classes/${klass.slug}`}
-                  className={handles.codexName}
-                  prefetch={false}
-                >
-                  {klass.name}
-                </Link>
-                {klass.isUnique && (
-                  <span
-                    className={handles.codexUnique}
-                    title={
-                      klass.takenBy
-                        ? `Classe única, com ${klass.takenBy.name}`
-                        : 'Classe única, sem dono no momento'
-                    }
-                  >
-                    {klass.takenBy ? `única · ${klass.takenBy.name}` : 'única'}
-                  </span>
-                )}
-              </span>
-              <span className={handles.codexMeta}>{klass.hitDie ?? ''}</span>
-              {canEdit && (
-                <button
-                  type="button"
-                  className={handles.codexButton}
-                  onClick={() => openEditor(klass)}
-                >
-                  EDITAR
-                </button>
-              )}
-            </div>
-          </li>
-        ))}
-      </ul>
+      {viewing && (
+        <div
+          className={handles.codexOverlay}
+          role="dialog"
+          aria-modal="true"
+          aria-label={viewing.name}
+        >
+          <ClassData
+            // Outra classe aberta é outro estado de edição inteiro.
+            key={viewing.slug}
+            characterClass={viewing}
+            basePath={basePath}
+            compact={compact}
+            readOnly={readOnly}
+            onBack={() => {
+              closeClass();
+              // O que foi editado lá dentro (nome, papéis, PV) aparece no card.
+              if (canEdit) reload();
+            }}
+          />
+        </div>
+      )}
 
       <PromptModal
         isOpen={editing !== null}
         onClose={() => setEditing(null)}
         title={editing ? 'Editar classe' : 'Nova classe'}
         confirmLabel={editing ? 'Salvar' : 'Adicionar'}
-        fields={classPromptFields(editing ?? undefined)}
+        fields={withClassEditors(classPromptFields(editing ?? undefined))}
         onDelete={editing ? () => remove(editing) : undefined}
         deleteLabel="Excluir classe"
         onSubmit={(values) =>

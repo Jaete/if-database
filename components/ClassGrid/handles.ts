@@ -8,20 +8,13 @@ const ClassGridHandles = [
   'codexTools',
   'codexSearch',
   'codexActions',
-  'codexButton',
   'codexAction',
   'codexActionLabel',
   'codexFeedback',
   'codexFeedbackError',
-  'codexCount',
-  'codexList',
-  'codexRow',
-  'codexBadge',
-  'codexName',
-  'codexNameCell',
-  'codexUnique',
-  'codexMeta',
+  'codexEmbedHead',
   'codexEmpty',
+  'codexOverlay',
 ] as const;
 
 export default ClassGridHandles;

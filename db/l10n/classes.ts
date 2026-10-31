@@ -1,5 +1,5 @@
 import type ICharacterClass from '../classes/class';
-import type { IClassGrant } from '../classes/class';
+import type { ClassRole, IClassGrant } from '../classes/class';
 
 /**
  * Rótulos e normalização de classes de personagem.
@@ -71,6 +71,45 @@ export const splitSpellClasses = (raw?: string): string[] => {
   ];
 };
 
+/**
+ * Papéis de uma classe, na ordem em que o modal os oferece.
+ *
+ * O `id` é o que fica no banco — estável, sem acento — e o `label` é só
+ * exibição. Renomear um rótulo não toca em nenhum documento.
+ */
+export const CLASS_ROLES: readonly { id: ClassRole; label: string }[] = [
+  { id: 'dps', label: 'DPS' },
+  { id: 'tank', label: 'Tank' },
+  { id: 'suporte', label: 'Suporte' },
+  { id: 'curandeiro', label: 'Curandeiro' },
+  { id: 'controle', label: 'Controle' },
+  { id: 'utilidade', label: 'Utilidade' },
+];
+
+export const classRoleLabel = (role: ClassRole): string =>
+  CLASS_ROLES.find((item) => item.id === role)?.label ?? role;
+
+/**
+ * "controle, DPS" → ['controle', 'dps'].
+ *
+ * Aceita o id ou o rótulo, em qualquer caixa, e descarta o que não é papel
+ * nem repete um já lido: a ordem importa (o primeiro é o principal) e um
+ * texto livre não pode inventar papel que o card não sabe desenhar.
+ */
+export const parseClassRoles = (raw?: string): ClassRole[] => {
+  const known = new Map<string, ClassRole>();
+  for (const role of CLASS_ROLES) {
+    known.set(role.id, role.id);
+    known.set(classSlug(role.label), role.id);
+  }
+  const roles: ClassRole[] = [];
+  for (const token of (raw ?? '').split(',')) {
+    const role = known.get(classSlug(token));
+    if (role && !roles.includes(role)) roles.push(role);
+  }
+  return roles;
+};
+
 /** Campos escalares da classe, para o modal de edição. */
 export const CLASS_FIELDS: readonly {
   name: keyof ICharacterClass;
@@ -99,6 +138,9 @@ export const CLASS_FIELDS: readonly {
 export interface IClassFormSource {
   name?: string;
   description?: string;
+  shortDescription?: string;
+  roles?: ClassRole[];
+  image?: string;
   aliases?: string[];
   hitDie?: string;
   hpAtFirstLevel?: string;
@@ -114,6 +156,23 @@ export const classPromptFields = (klass?: IClassFormSource) => [
     required: true,
     initialValue: klass?.name ?? '',
     placeholder: 'ex.: Druida',
+  },
+  // Texto puro aqui: este módulo não conhece React. A interface troca os dois
+  // por editores próprios (miniatura, chips) via `render`, e o valor continua
+  // sendo o mesmo texto.
+  {
+    name: 'image',
+    label: 'Imagem (URL)',
+    required: false,
+    initialValue: klass?.image ?? '',
+    placeholder: 'https://… (retrato vertical, ~3:4)',
+  },
+  {
+    name: 'roles',
+    label: 'Papéis',
+    required: false,
+    initialValue: (klass?.roles ?? []).join(','),
+    placeholder: 'ex.: controle, dps',
   },
   ...CLASS_FIELDS.map((field) => ({
     name: field.name as string,
@@ -149,6 +208,14 @@ export const classPromptFields = (klass?: IClassFormSource) => [
     initialValue: klass?.description ?? '',
     placeholder: 'O que a classe é.',
   },
+  {
+    name: 'shortDescription',
+    label: 'Descrição curta (texto do card)',
+    type: 'multiline' as const,
+    required: false,
+    initialValue: klass?.shortDescription ?? '',
+    placeholder: 'Uma ou duas frases.',
+  },
 ];
 
 /** Monta a classe a partir do que o modal devolveu. */
@@ -163,6 +230,9 @@ export const classFromPrompt = (
     next[key] = values[key] ?? '';
   }
   next.description = values.description ?? '';
+  next.shortDescription = values.shortDescription ?? '';
+  next.image = values.image ?? '';
+  next.roles = parseClassRoles(values.roles);
   // Sempre escrito, inclusive como `false`: é um interruptor, e omitir o
   // "não" deixaria a classe única para sempre depois do primeiro "sim".
   next.isUnique = values.isUnique === 'sim';

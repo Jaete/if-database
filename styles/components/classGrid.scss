@@ -13,6 +13,24 @@
   }
 }
 
+// O seletor precisa de palco mais largo que a leitura da classe: cabem três
+// cards de 20rem lado a lado, com os vizinhos esmaecendo nas bordas.
+.codex {
+  max-width: 76rem;
+}
+
+// O mesmo respiro do embed, para a roda e as seções caberem sem rolar muito.
+.codexDetail--compact {
+  min-height: 0;
+  padding: $spacing-4 $spacing-5 $spacing-6;
+  max-width: none;
+
+  // A roda limitada pela altura do iframe: a de 40rem não caberia.
+  .classWheelStage {
+    width: min(100%, 60dvh);
+  }
+}
+
 .codexHeader {
   text-align: center;
   margin-bottom: $spacing-6;
@@ -45,7 +63,8 @@
   flex-wrap: wrap;
   align-items: center;
   margin: 0 (-$spacing-5) $spacing-4;
-  padding: $spacing-3 $spacing-5;
+  // O palco é de 76rem, mas busca e ações seguem na largura de leitura.
+  padding: $spacing-3 max($spacing-5, calc(50% - 32rem));
   // A faixa transparente no fim é o que evita o corte reto contra o conteúdo
   // que desliza por baixo.
   background: linear-gradient(
@@ -99,25 +118,6 @@
   display: flex;
   gap: $spacing-2;
   flex-wrap: wrap;
-}
-
-.codexButton {
-  padding: $spacing-3 $spacing-4;
-  border-radius: $radius-md;
-  border: 1px solid $color-border-strong;
-  background-color: $surface-raised;
-  cursor: pointer;
-  @include caption($color-text, $font-weight-semibold);
-  @include focus-ring;
-
-  &:hover {
-    background-color: $accent-overlay-hover;
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: default;
-  }
 }
 
 // Mesmo botão redondo do bestiário (.crgCompactActionBtn): é o padrão de ação
@@ -192,92 +192,158 @@
   background-color: $error-bg;
 }
 
-.codexCount {
-  @include caption($color-text-subtle, $font-weight-regular);
-  margin-bottom: $spacing-2;
-}
-
-.codexList {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-2;
-}
-
 .codexEmpty {
-  padding: $spacing-6;
-  text-align: center;
+  padding: $spacing-12 $spacing-6;
   @include main-sm($color-text-muted, $font-weight-regular, 1.5, 0, center);
 }
 
-.codexRow {
-  display: grid;
-  grid-template-columns: auto minmax(8rem, 1fr) auto auto;
-  align-items: center;
-  gap: $spacing-3;
-  padding: $spacing-3;
-  border-radius: $radius-md;
-  border: 1px solid $color-border;
-  background-color: $surface;
+// ── Embed no fórum (modificador --compact) ─────────────────
+//
+// O iframe ocupa ~70% da tela do fórum e não rola: os cards esticam até a
+// altura que sobra, e quem encolhe é a imagem — o texto nunca fica cortado
+// por falta de espaço. Cabe de 600 a 750px de altura.
 
-  &:hover {
-    border-color: $color-border-strong;
-  }
-}
-
-// O selo era uma letra; agora é um ícone, e por isso virou caixa flex: uma
-// letra se centraliza com `text-align`, um <svg> não.
-.codexBadge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  // Maior que o selo da letra: um desenho com miolo (a faísca sobre o livro,
-  // a guarda da espada) vira borrão abaixo de ~18px, e aí as duas marcas
-  // deixam de se distinguir à distância de leitura da lista.
-  width: $spacing-8;
-  height: $spacing-8;
-  border-radius: $radius-full;
-  border: 1px solid rgba($primary-100, 0.4);
-  color: $primary-100;
-
-  svg {
-    width: 1.125rem;
-    height: 1.125rem;
-  }
-}
-
-.codexName {
-  @include main-md($color-text, $font-weight-semibold);
-  text-decoration: none;
-  @include focus-ring;
-
-  &:hover {
-    color: $primary-100;
-  }
-}
-
-.codexNameCell {
+.codex--compact {
   display: flex;
-  align-items: center;
-  gap: $spacing-3;
-  min-width: 0;
-}
+  flex-direction: column;
+  height: 100dvh;
+  min-height: 0;
+  max-width: none;
+  padding: $spacing-4 0 $spacing-3;
 
-// Classe única na listagem. Âmbar, e não dourado: o dourado desta página é
-// ornamento, e isto é um estado — a classe está tomada.
-.codexUnique {
-  flex-shrink: 0;
-  padding: $spacing-1 $spacing-2;
-  border: 1px solid $warning-border;
-  border-radius: $radius-sm;
-  background: $warning-bg;
-  @include caption($warning, $font-weight-semibold);
-}
+  // O recuo à direita é o do botão de fechar do fórum, que fica por cima.
+  .codexEmbedHead {
+    display: flex;
+    align-items: center;
+    gap: $spacing-4;
+    padding: 0 $spacing-12 $spacing-2 $spacing-5;
+  }
 
-.codexMeta {
-  @include main-xs($color-text-subtle, $font-weight-regular);
+  .codexTitle {
+    @include cinzel-xl($color-text, $font-weight-bold, 1.2, 0.08em, left);
+    @include gold-gradient-text;
+  }
+
+  .codexSearch {
+    flex: 0 1 16rem;
+    margin-left: auto;
+    padding: $spacing-2 $spacing-3;
+    @include main-sm($color-text, $font-weight-regular);
+  }
+
+  .codexFeedback,
+  .codexEmpty {
+    margin-inline: $spacing-5;
+  }
+
+  .pick {
+    --pick-card-w: 21rem;
+    --pick-card-h: 100%;
+    --pick-gap: #{$spacing-5};
+    --pick-fade: 4rem;
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .pickStage {
+    display: flex;
+    flex: 1 1 auto;
+    width: 100%;
+    max-width: none;
+    min-height: 0;
+  }
+
+  .pickTrack {
+    flex: 1;
+    align-items: stretch;
+    padding-block: $spacing-3;
+  }
+
+  .pickCard {
+    height: auto;
+    min-height: 0;
+
+    &--open {
+      overflow-y: auto;
+    }
+  }
+
+  .pickDesc {
+    -webkit-line-clamp: 2;
+  }
+
+  .pickCard--open .pickDesc {
+    -webkit-line-clamp: unset;
+  }
+
+  .pickRows {
+    grid-template-columns: 7.75rem 1fr;
+
+    dd {
+      -webkit-line-clamp: 1;
+    }
+  }
+
+  .pickCard--open .pickRows dd {
+    -webkit-line-clamp: unset;
+  }
+
+  .pickSpacer {
+    min-height: $spacing-2;
+  }
+
+  .pickTop {
+    padding: $spacing-2 $spacing-3;
+  }
+
+  .pickBody {
+    gap: $spacing-2;
+    padding-bottom: $spacing-3;
+  }
+
+  .pickArrow {
+    width: $spacing-10;
+    height: $spacing-10;
+  }
+
+  // Contador e losangos na mesma linha, numa linha só: com o contador ao lado,
+  // duas linhas de losangos o deixariam solto no canto. Em tela estreita não
+  // cabe, e voltam a empilhar.
+  @include desktop {
+    .pickPager {
+      flex-direction: row;
+      justify-content: center;
+      gap: $spacing-4;
+      padding-top: $spacing-1;
+    }
+
+    .pickPips {
+      flex-wrap: nowrap;
+      max-width: none;
+    }
+  }
+
+  // iframe baixo: aperta mais um pouco.
+  @media (max-height: 660px) {
+    .pickDesc {
+      -webkit-line-clamp: 1;
+    }
+
+    .pickCard--open .pickDesc {
+      -webkit-line-clamp: unset;
+    }
+
+    .pickHead {
+      padding-top: $spacing-6;
+      margin-top: -$spacing-6;
+    }
+
+    .pickClasp {
+      padding-top: $spacing-2;
+    }
+  }
 }
 
 // ── Detalhe da classe ──────────────────────────────────────
@@ -285,6 +351,11 @@
 .codexBack {
   @include caption($color-text-muted, $font-weight-semibold);
   text-decoration: none;
+  // Também é botão, quando a classe está aberta por cima do seletor.
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
   @include focus-ring;
 
   &:hover {
@@ -931,5 +1002,20 @@
 
   &:hover {
     background: $error-bg;
+  }
+}
+
+// A classe aberta por cima do seletor, sem trocar de página.
+.codexOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 950;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background-color: $color-bg;
+  @include fade-in(0.2s);
+
+  @include light {
+    background-color: $color-bg-inverse;
   }
 }

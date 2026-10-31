@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type ICharacterClass from '@/db/classes/class.d';
+import type { ClassRole, IClassProficiencies } from '@/db/classes/class.d';
 import { classSlug, type IClassFormSource } from '@/db/l10n/classes';
 
 export interface IClassOption {
@@ -11,6 +12,13 @@ export interface IClassOption {
   hitDie?: string;
   isSpellcaster?: boolean;
   isUnique?: boolean;
+  /** O que o card do seletor mostra. Todos vêm da projeção magra. */
+  shortDescription?: string;
+  roles?: ClassRole[];
+  image?: string;
+  hpAtFirstLevel?: string;
+  hpPerLevel?: string;
+  proficiencies?: IClassProficiencies;
   /** Quem está com a classe única. Derivado do vínculo das fichas. */
   takenBy?: { id: string; name: string; slug: string };
 }
@@ -99,6 +107,39 @@ export function useClassGrid(initial: IClassOption[]) {
     []
   );
 
+  // A classe aberta por cima do seletor (clique no card em foco).
+  const [viewing, setViewing] = useState<ICharacterClass | null>(null);
+
+  const openClass = useCallback(async (klass: IClassOption) => {
+    const res = await fetch(`/api/classes/${klass.slug}`);
+    if (!res.ok) return fail(res, 'Não consegui abrir a classe.');
+    setViewing(await res.json());
+  }, []);
+
+  const closeClass = useCallback(() => setViewing(null), []);
+
+  // Enquanto a classe está aberta: a página atrás não rola, e o Esc fecha.
+  useEffect(() => {
+    if (!viewing) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      // Um modal da própria classe (a roda, um editor) fica com o Esc.
+      if (document.querySelector('.modal--open')) return;
+      // Consumido aqui: no embed, o Esc não chega a fechar o modal do fórum.
+      event.preventDefault();
+      setViewing(null);
+    };
+    // Na captura, para rodar antes da ponte do embed.
+    document.addEventListener('keydown', onKeyDown, true);
+    return () => {
+      document.removeEventListener('keydown', onKeyDown, true);
+      document.body.style.overflow = previous;
+    };
+  }, [viewing]);
+
   const remove = useCallback(
     async (klass: IClassOption) => {
       const res = await fetch(`/api/classes/${klass.slug}`, {
@@ -173,8 +214,12 @@ export function useClassGrid(initial: IClassOption[]) {
     busy,
     save,
     loadForEdit,
+    viewing,
+    openClass,
+    closeClass,
     remove,
     importTopic,
     linkSpells,
+    reload,
   };
 }

@@ -89,7 +89,9 @@ export async function getUniqueClassHolders(): Promise<
 export async function getClassOptions(holderId?: string) {
   const [classes, holders] = await Promise.all([
     CharacterClassModel.find()
-      .select('_id name slug hitDie isSpellcaster isUnique')
+      .select(
+        '_id name slug hitDie isSpellcaster isUnique shortDescription roles image hpAtFirstLevel hpPerLevel proficiencies.armor proficiencies.weapons proficiencies.tools proficiencies.savingThrows proficiencies.skills'
+      )
       .sort({ name: 1 })
       .lean<Record<string, unknown>[]>(),
     getUniqueClassHolders(),

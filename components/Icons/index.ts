@@ -29,3 +29,12 @@ export { default as UserIcon } from './UserIcon';
 
 export { default as PaperDollIcon } from './PaperDollIcon';
 export { default as PortraitPlaceholderIcon } from './PortraitPlaceholderIcon';
+
+export { default as ClassRoleIcon } from './ClassRoleIcon';
+export { default as RoleControlIcon } from './RoleControlIcon';
+export { default as RoleDpsIcon } from './RoleDpsIcon';
+export { default as RoleHealerIcon } from './RoleHealerIcon';
+export { default as RoleSupportIcon } from './RoleSupportIcon';
+export { default as RoleTankIcon } from './RoleTankIcon';
+export { default as RoleUtilityIcon } from './RoleUtilityIcon';
+export { default as AstrolabeIcon } from './AstrolabeIcon';

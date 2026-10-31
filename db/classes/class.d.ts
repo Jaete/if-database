@@ -135,6 +135,10 @@ export interface ITalent {
   affectsSpellcasting?: boolean;
 }
 
+/** Ids estáveis dos papéis; os rótulos em pt-BR vivem em `CLASS_ROLES`. */
+export type ClassRole =
+  'dps' | 'tank' | 'suporte' | 'curandeiro' | 'controle' | 'utilidade';
+
 export interface IClassProficiencies {
   armor?: string;
   weapons?: string;
@@ -222,6 +226,12 @@ export interface ICharacterClass extends Document {
   aliases?: string[];
 
   description?: string;
+  /** O texto do card do seletor — uma ou duas frases, não a descrição longa. */
+  shortDescription?: string;
+  /** Papéis em ordem de prioridade: o primeiro é o destaque do card. */
+  roles?: ClassRole[];
+  /** URL da arte do card. Sem upload: o arquivo mora fora do app. */
+  image?: string;
 
   hitDie?: string;
   hpAtFirstLevel?: string;
