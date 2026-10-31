@@ -11,8 +11,21 @@
 // The DOM never changes between bands: the dossier is the same header, moved
 // with `grid-template-areas`.
 
+// Dossier column width in Desk / Desk XL. Named because the "Editar ficha"
+// button is placed against its right edge, not only the grid.
+$sheet-dossier: 22rem;
+$sheet-dossier-xl: 24rem;
+
 // ── Wide ────────────────────────────────────────────────────
 @include wide {
+  // The forum's enlarged view puts its close X over the sheet's top-right
+  // corner, which is where this button lives at smaller sizes. Here it steps
+  // left, clear of the X.
+  .sheetEditToggle {
+    right: $spacing-16;
+    top: $spacing-4;
+  }
+
   .sheetHud {
     grid-template-columns: 8.5rem minmax(0, 1fr) minmax(16rem, 20rem);
     padding: $spacing-6 $spacing-7 $spacing-5;
@@ -146,7 +159,7 @@
 @include desk {
   .playerSheet {
     display: grid;
-    grid-template-columns: 22rem minmax(0, 1fr);
+    grid-template-columns: $sheet-dossier minmax(0, 1fr);
     grid-template-rows: auto minmax(0, 1fr) auto auto;
     grid-template-areas:
       'hud body'
@@ -318,11 +331,33 @@
     white-space: normal;
   }
 
-  // Leaves room for the "Editar ficha" button, now over the panel.
+  // "Editar ficha" goes to the dossier's top-right corner, over the art: the
+  // sheet's own top-right corner is under the forum modal's close X, and the
+  // dossier is where the character's identity already is. The ◆ ornament that
+  // sits in that corner gives way to it.
+  .sheetEditToggle {
+    top: $spacing-4;
+    right: auto;
+    left: $sheet-dossier;
+    transform: translateX(calc(-100% - #{$spacing-4}));
+    // Over artwork, which stays dark in both themes.
+    @include theme-scope(dark);
+
+    // The secondary style is see-through; over the art it needs a backing.
+    &--editing {
+      background: with-alpha($surface, 0.85);
+    }
+  }
+
+  .playerSheet:has(.sheetEditToggle) .sheetHud::after {
+    display: none;
+  }
+
+  // Only the forum modal's X to clear now, not the button.
   .sheetScreenHead {
     flex-direction: column;
     align-items: flex-start;
-    padding-right: $spacing-20 * 2;
+    padding-right: $spacing-8;
   }
 
   .sheetScreenSub {
@@ -333,7 +368,11 @@
 // ── Desk XL ─────────────────────────────────────────────────
 @include desk-xl {
   .playerSheet {
-    grid-template-columns: 24rem minmax(0, 1fr);
+    grid-template-columns: $sheet-dossier-xl minmax(0, 1fr);
+  }
+
+  .sheetEditToggle {
+    left: $sheet-dossier-xl;
   }
 
   .playerSheetBody {
