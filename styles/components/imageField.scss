@@ -1,0 +1,32 @@
+@use '../../styles/globals' as *;
+
+.imageField {
+  display: flex;
+  align-items: center;
+  gap: $spacing-3;
+  width: 100%;
+}
+
+.imageThumb {
+  border-radius: $radius-sm;
+  border: 1px solid $color-border-strong;
+  background: $surface-raised center / cover no-repeat;
+}
+
+// 3:4, a proporção do retrato do card de classe.
+.imageThumb--portrait {
+  flex: 0 0 $spacing-12;
+  height: $spacing-16;
+}
+
+// 5:3, a faixa da linha de magia.
+.imageThumb--landscape {
+  flex: 0 0 $spacing-20;
+  height: $spacing-12;
+}
+
+.imageHint {
+  @include main-xs($color-text-muted, $font-weight-regular);
+  text-transform: none;
+  letter-spacing: 0;
+}

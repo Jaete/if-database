@@ -12,7 +12,6 @@ import { useAuth } from '@/app/context/AuthContext';
 import PromptModal from '../PromptModal';
 import { useTalentGrid } from './useTalentGrid';
 import TalentGridHandles from './handles';
-import '@/styles/components/spellGrid.scss';
 import '@/styles/components/talentGrid.scss';
 
 /**

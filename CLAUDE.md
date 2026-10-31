@@ -201,6 +201,10 @@ $success-bg / $success-border
 $warning-bg / $warning-border
 $error-bg / $error-border
 $info-bg / $info-border
+
+// Semantic — spell schools (accent only: side bar, glyph, haze; never text/fill):
+// $school-abjuracao … $school-transmutacao, $school-outra, and the $school-colors map
+// ($school-adivinhacao-light is its light-mode variant)
 ```
 
 ### Theming (CSS custom properties)
@@ -218,6 +222,8 @@ Component `.scss` files should keep using the `$color-*` Sass variables directly
 | Segoe UI/Roboto (sans) | `main-*`     | Body text, labels, descriptions                  |
 
 Sizes: `xs`(12px) `sm`(14px) `md`(16px) `lg`(18px) `xl`(20px) `2xl`(24px) `3xl`(32px).
+
+Display size: `$font-size-display` (`clamp(2.5rem, 4.2vw, 4rem)`) for hero titles above `3xl` — set it as `font-size` after the `cinzel-*` mixin.
 
 Extended mixins: `caption($color, $weight)` (10px, uppercase, letter-spacing) and `stat-value($color, $weight: bold)` (22px, monospace, centered — for RPG stat displays).
 
@@ -237,17 +243,13 @@ Extended mixins: `caption($color, $weight)` (10px, uppercase, letter-spacing) an
 **"Premium" decorative mixins** (`styles/config/_mixins.scss` — previously undocumented, already used across the codebase, use these instead of hand-rolling gold/glow/elevation effects):
 
 ```scss
-@include gold-border($width: 1px, $opacity: 0.4)
-  // gradient gold border via ::before mask
-  @include gold-decorative-line($width: 48px, $height: 2px)
-  // gold underline via ::after
+@include gold-border($width: 1px, $opacity: 0.4) // gradient gold border via ::before mask
+  @include gold-decorative-line($width: 48px, $height: 2px) // gold underline via ::after
   @include gold-gradient-text // gold gradient text-fill
   @include premium-input-focus // gold focus ring for inputs
   @include gold-glow($intensity: 1) // gold box-shadow glow
-  @include premium-card($padding: $spacing-5)
-  // card surface + border + hover glow
-  @include corner-ornament($size: 8px, $color: $gold-100, $opacity: 0.3)
-  // ◆ corner decoration via ::before
+  @include premium-card($padding: $spacing-5) // card surface + border + hover glow
+  @include corner-ornament($size: 8px, $color: $gold-100, $opacity: 0.3) // ◆ corner decoration via ::before
   @include elevation($level: 0-4) // box-shadow elevation scale
   @include noise-texture($opacity: 0.03); // fixed noise overlay via ::after
 ```

@@ -1,12 +1,22 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type ISpell from '@/db/spells/spell.d';
 import { spellSlug } from '@/db/l10n/spells';
 
+// Quão abaixo do topo um grupo conta como "o que está à vista" no índice.
+const SPY_OFFSET = 120;
+
+const CIRCLES = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
+
+export interface ISpellGroup {
+  circle: number;
+  spells: ISpell[];
+}
+
 /**
- * Estado do grimório: a lista, a busca e as três escritas (criar, editar,
- * importar).
+ * Estado do grimório: a lista agrupada por círculo, a busca, o índice, a magia
+ * aberta no detalhe e as escritas (criar, editar, importar).
  *
  * Extraído do componente porque é tudo efeito e rede; o `index.tsx` fica só
  * com a apresentação, como o CLAUDE.md pede para um organismo.
@@ -18,6 +28,15 @@ export function useSpellGrid(initialSpells: ISpell[]) {
   // de uma escrita, que é um evento.
   const [spells, setSpells] = useState<ISpell[]>(initialSpells);
   const [query, setQuery] = useState('');
+  // A magia aberta por cima da lista e a última que foi aberta (fica marcada
+  // ao voltar). Guardar o slug, e não o documento, mantém o detalhe em dia
+  // depois de uma edição.
+  const [viewingSlug, setViewingSlug] = useState<string | null>(null);
+  const [currentSlug, setCurrentSlug] = useState<string | null>(null);
+  const [classNames, setClassNames] = useState<Record<string, string> | null>(
+    null
+  );
+  const [scrolledCircle, setScrolledCircle] = useState<number | null>(null);
   const [feedback, setFeedback] = useState<{
     text: string;
     isError: boolean;
@@ -68,7 +87,17 @@ export function useSpellGrid(initialSpells: ISpell[]) {
               slug: spellSlug(data.name ?? ''),
             }),
           });
-      return report(res, existing ? 'Magia atualizada.' : 'Magia criada.');
+      const ok = await report(
+        res,
+        existing ? 'Magia atualizada.' : 'Magia criada.'
+      );
+      // O slug acompanha o nome: sem isto, renomear fecharia o detalhe aberto.
+      if (ok && existing && data.name) {
+        const next = spellSlug(data.name);
+        setViewingSlug((slug) => (slug === existing.slug ? next : slug));
+        setCurrentSlug((slug) => (slug === existing.slug ? next : slug));
+      }
+      return ok;
     },
     [report]
   );
@@ -78,7 +107,12 @@ export function useSpellGrid(initialSpells: ISpell[]) {
       const res = await fetch(`/api/spells/${spell.slug}`, {
         method: 'DELETE',
       });
-      return report(res, `"${spell.name}" removida do grimório.`);
+      const ok = await report(res, `"${spell.name}" removida do grimório.`);
+      if (ok) {
+        setViewingSlug((slug) => (slug === spell.slug ? null : slug));
+        setCurrentSlug((slug) => (slug === spell.slug ? null : slug));
+      }
+      return ok;
     },
     [report]
   );
@@ -113,21 +147,133 @@ export function useSpellGrid(initialSpells: ISpell[]) {
     [load]
   );
 
+  // Círculo e depois nome: o círculo é o que o jogador escolhe primeiro.
   const visible = useMemo(() => {
     const needle = spellSlug(query);
     const found = needle
       ? spells.filter((spell) => spellSlug(spell.name).includes(needle))
       : spells;
-    // Sem ordenação por círculo nem categoria, como combinado: só o nome, para
-    // a lista não mudar de ordem a cada importação.
-    return [...found].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+    return [...found].sort(
+      (a, b) => a.circle - b.circle || a.name.localeCompare(b.name, 'pt-BR')
+    );
   }, [spells, query]);
+
+  // Só os círculos com resultado; durante a busca, a contagem é a filtrada.
+  const groups = useMemo<ISpellGroup[]>(
+    () =>
+      CIRCLES.map((circle) => ({
+        circle,
+        spells: visible.filter((spell) => spell.circle === circle),
+      })).filter((group) => group.spells.length > 0),
+    [visible]
+  );
+
+  const viewing = useMemo(
+    () => spells.find((spell) => spell.slug === viewingSlug) ?? null,
+    [spells, viewingSlug]
+  );
+
+  // O grupo à vista é o último cujo topo já passou do limite; o índice marca
+  // esse. Vale o primeiro quando a busca tirou o que estava marcado.
+  const activeCircle =
+    groups.find((group) => group.circle === scrolledCircle)?.circle ??
+    groups[0]?.circle ??
+    null;
+
+  useEffect(() => {
+    const update = () => {
+      let active: number | null = null;
+      for (const circle of CIRCLES) {
+        const el = document.getElementById(`spellbook-group-${circle}`);
+        if (el && el.getBoundingClientRect().top <= SPY_OFFSET) active = circle;
+      }
+      setScrolledCircle(active);
+    };
+    // Depois do render da busca, para medir a lista nova.
+    const frame = requestAnimationFrame(update);
+    window.addEventListener('scroll', update, { passive: true });
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener('scroll', update);
+    };
+  }, [groups]);
+
+  const jumpToCircle = useCallback((circle: number) => {
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+    document.getElementById(`spellbook-group-${circle}`)?.scrollIntoView({
+      behavior: reduced.matches ? 'auto' : 'smooth',
+      block: 'start',
+    });
+  }, []);
+
+  // O vínculo guarda ids; os chips precisam dos nomes. Busca uma vez, na
+  // primeira abertura, e não no carregamento: a maioria das visitas à lista
+  // nunca abre um detalhe.
+  const loadClassNames = useCallback(async () => {
+    try {
+      const res = await fetch('/api/classes/options');
+      if (!res.ok) return;
+      const options: { _id: string; name: string }[] = await res.json();
+      setClassNames(Object.fromEntries(options.map((o) => [o._id, o.name])));
+    } catch {
+      // Sem os nomes, o detalhe cai no texto do fórum.
+    }
+  }, []);
+
+  const openSpell = useCallback(
+    (spell: ISpell) => {
+      setViewingSlug(spell.slug);
+      setCurrentSlug(spell.slug);
+      if (!classNames) void loadClassNames();
+    },
+    [classNames, loadClassNames]
+  );
+
+  const closeSpell = useCallback(() => {
+    setViewingSlug(null);
+    // A linha continua montada por baixo do detalhe: devolve o foco a ela.
+    if (viewingSlug) {
+      document
+        .querySelector<HTMLElement>(`[data-slug="${CSS.escape(viewingSlug)}"]`)
+        ?.focus({ preventScroll: true });
+    }
+  }, [viewingSlug]);
+
+  // Enquanto a magia está aberta: a página atrás não rola, e o Esc fecha.
+  useEffect(() => {
+    if (!viewingSlug) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      // O modal de edição fica com o Esc.
+      if (document.querySelector('.modal--open')) return;
+      // Consumido aqui: no embed, o Esc não chega a fechar o modal do fórum.
+      event.preventDefault();
+      closeSpell();
+    };
+    // Na captura, para rodar antes da ponte do embed.
+    document.addEventListener('keydown', onKeyDown, true);
+    return () => {
+      document.removeEventListener('keydown', onKeyDown, true);
+      document.body.style.overflow = previous;
+    };
+  }, [viewingSlug, closeSpell]);
 
   return {
     spells,
     visible,
+    groups,
     query,
     setQuery,
+    activeCircle,
+    jumpToCircle,
+    viewing,
+    currentSlug,
+    classNames,
+    openSpell,
+    closeSpell,
     feedback,
     save,
     remove,

@@ -1,0 +1,526 @@
+@use '../../styles/globals' as *;
+
+@each $key, $value in $school-colors {
+  .spellDetail--#{$key} {
+    --school: #{$value};
+  }
+}
+
+.spellDetail--adivinhacao {
+  @include light {
+    --school: #{$school-adivinhacao-light};
+  }
+}
+
+// A magia aberta por cima do grimório, sem trocar de página. Mesmo z-index do
+// overlay de classe (`.codexOverlay`); os modais ficam acima (1000).
+.spellDetail {
+  position: fixed;
+  inset: 0;
+  z-index: 950;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background-color: $color-bg;
+  @include fade-in(0.2s);
+
+  @include light {
+    background-color: $color-bg-inverse;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+.spellDetailBar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-3;
+  padding: $spacing-3 $spacing-5;
+  // A arte passa por baixo da barra.
+  background: linear-gradient(180deg, $color-bg 55%, transparent);
+
+  @include light {
+    background: linear-gradient(180deg, $color-bg-inverse 55%, transparent);
+  }
+
+  @include mobile {
+    padding: $spacing-3 $spacing-4;
+  }
+
+  // O X do fórum fica sobre o canto direito do iframe.
+  .spellDetail--compact & {
+    padding-right: calc($spacing-14 + $spacing-2);
+  }
+}
+
+.spellDetailBack,
+.spellDetailEdit {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-2;
+  padding: $spacing-2 $spacing-4;
+  border-radius: $radius-full;
+  border: 1px solid $color-border-strong;
+  background-color: $surface-raised;
+  cursor: pointer;
+  @include cinzel-sm($color-text, $font-weight-bold, 1.5, 0.04em);
+  @include focus-ring;
+
+  @include light {
+    background-color: $neutral-2300;
+    border-color: $color-border-inverse;
+    color: $color-text-inverse;
+  }
+
+  svg {
+    width: $spacing-4;
+    height: $spacing-4;
+  }
+
+  &:hover {
+    border-color: rgba($gold-100, 0.35);
+    color: $gold-100;
+
+    @include light {
+      color: $gold-500;
+    }
+  }
+}
+
+.spellDetailEdit {
+  border-color: rgba($primary-100, 0.5);
+}
+
+.spellDetailHero {
+  position: relative;
+  margin-top: calc(-1 * $spacing-16);
+  height: clamp(14rem, 42vh, 24rem);
+  overflow: hidden;
+
+  @include mobile {
+    height: 15rem;
+  }
+
+  .spellDetail--compact & {
+    height: clamp(10rem, 34vh, 16rem);
+  }
+}
+
+.spellDetailHeroImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  // Só o alfa conta na máscara: funde no fundo da página nos dois temas.
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    $neutral-100 45%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(180deg, $neutral-100 45%, transparent 100%);
+}
+
+// Sem arte: o astrolábio com o glifo da escola, mais baixo.
+.spellDetailHero--empty {
+  display: grid;
+  place-items: center;
+  height: clamp(11rem, 30vh, 16rem);
+  color: $gold-300;
+  background: radial-gradient(
+    40% 70% at 50% 55%,
+    color-mix(in srgb, var(--school) 14%, transparent),
+    transparent 75%
+  );
+
+  @include mobile {
+    height: 11rem;
+  }
+
+  .spellDetail--compact & {
+    height: clamp(8rem, 24vh, 12rem);
+  }
+}
+
+.spellDetailRing {
+  width: 13rem;
+  height: 13rem;
+  opacity: 0.4;
+
+  @include mobile {
+    width: 10rem;
+    height: 10rem;
+  }
+}
+
+.spellDetailGlyph {
+  position: absolute;
+  width: $spacing-12;
+  height: $spacing-12;
+  color: var(--school);
+  opacity: 0.85;
+}
+
+.spellDetailMain {
+  position: relative;
+  max-width: 64rem;
+  margin: calc(-1 * $spacing-12) auto 0;
+  padding: 0 $spacing-5 $spacing-16;
+
+  .spellDetailHero--empty + & {
+    margin-top: calc(-1 * $spacing-4);
+  }
+
+  @include mobile {
+    padding: 0 $spacing-4 $spacing-12;
+  }
+
+  .spellDetail--compact & {
+    padding-bottom: $spacing-8;
+  }
+}
+
+.spellDetailTitleBlock {
+  display: flex;
+  align-items: flex-end;
+  gap: $spacing-4;
+  margin-bottom: $spacing-8;
+
+  @include mobile {
+    gap: $spacing-3;
+    margin-bottom: $spacing-6;
+  }
+}
+
+.spellDetailSeal {
+  flex: none;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  width: $spacing-16;
+  height: $spacing-16;
+  border-radius: $radius-md;
+  background: linear-gradient(180deg, $surface-elevated, $surface-raised);
+  border: 1px solid rgba($gold-100, 0.35);
+  box-shadow:
+    0 8px 24px rgba($neutral-100, 0.5),
+    $glow-primary;
+  text-align: center;
+
+  @include light {
+    background: linear-gradient(180deg, $neutral-2400, $neutral-2300);
+    border-color: rgba($gold-400, 0.45);
+  }
+
+  @include mobile {
+    width: $spacing-14;
+    height: $spacing-14;
+  }
+}
+
+.spellDetailSealNumber {
+  display: block;
+  @include cinzel-2xl($gold-100, $font-weight-bold, 1, 0, center);
+
+  @include light {
+    color: $gold-500;
+  }
+}
+
+.spellDetailSealLabel {
+  display: block;
+  margin-top: $spacing-1;
+  @include caption($color-text-muted, $font-weight-semibold, 1.2, 1px, center);
+
+  @include light {
+    color: $color-text-muted-inverse;
+  }
+}
+
+.spellDetailTitleText {
+  min-width: 0;
+}
+
+.spellDetailName {
+  margin: 0;
+  overflow-wrap: anywhere;
+  text-shadow: 0 1px 2px rgba($neutral-100, 0.85);
+  @include cinzel-3xl($color-text, $font-weight-bold, 1.15, 0.04em);
+
+  @include light {
+    color: $color-text-inverse;
+    text-shadow: none;
+  }
+
+  @include mobile {
+    @include cinzel-2xl($color-text, $font-weight-bold, 1.15, 0.04em);
+
+    @include light {
+      color: $color-text-inverse;
+    }
+  }
+}
+
+.spellDetailSchool {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-2;
+  margin-top: $spacing-2;
+  @include main-sm($color-text-muted, $font-weight-regular);
+
+  @include light {
+    color: $color-text-muted-inverse;
+  }
+}
+
+.spellDetailSchoolGlyph {
+  width: $spacing-5;
+  height: $spacing-5;
+  color: var(--school);
+}
+
+.spellDetailSchoolText {
+  color: $color-text;
+
+  @include light {
+    color: $color-text-inverse;
+  }
+}
+
+.spellDetailBody {
+  display: grid;
+  grid-template-columns: 19rem minmax(0, 1fr);
+  gap: $spacing-10;
+  align-items: start;
+
+  @include mobile {
+    grid-template-columns: minmax(0, 1fr);
+    gap: $spacing-6;
+  }
+}
+
+.spellDetailBody--solo {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.spellDetailSheet {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-5;
+  min-width: 0;
+
+  @include mobile {
+    order: 1;
+  }
+}
+
+.spellDetailQuad {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  overflow: hidden;
+  background-color: $color-border;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+
+  @include light {
+    background-color: $color-border-inverse;
+    border-color: $color-border-inverse;
+  }
+}
+
+.spellDetailQuadCell {
+  min-width: 0;
+  padding: $spacing-3 $spacing-4;
+  background-color: $surface;
+
+  &:only-child,
+  &:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+
+  @include light {
+    background-color: $neutral-2200;
+  }
+}
+
+.spellDetailLabel {
+  display: block;
+  margin-bottom: $spacing-1;
+  @include caption($color-text-muted, $font-weight-semibold);
+
+  @include light {
+    color: $color-text-muted-inverse;
+  }
+}
+
+.spellDetailValue {
+  overflow-wrap: anywhere;
+  @include main-md($color-text, $font-weight-regular, 1.45);
+
+  @include light {
+    color: $color-text-inverse;
+  }
+}
+
+.spellDetailFields {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+}
+
+.spellDetailField {
+  display: grid;
+  grid-template-columns: 7.5rem minmax(0, 1fr);
+  gap: $spacing-3;
+  padding: $spacing-2 0;
+  border-bottom: 1px solid $color-border;
+
+  @include light {
+    border-color: $color-border-inverse;
+  }
+}
+
+.spellDetailFieldTerm {
+  margin: 0;
+  padding-top: $spacing-1;
+  @include caption($color-text-muted, $font-weight-semibold);
+
+  @include light {
+    color: $color-text-muted-inverse;
+  }
+}
+
+.spellDetailFieldValue {
+  margin: 0;
+  overflow-wrap: anywhere;
+  @include main-sm($color-text, $font-weight-regular, 1.45);
+
+  @include light {
+    color: $color-text-inverse;
+  }
+}
+
+.spellDetailClassesHead {
+  margin: 0 0 $spacing-2;
+  @include caption($color-text-muted, $font-weight-semibold);
+
+  @include light {
+    color: $color-text-muted-inverse;
+  }
+}
+
+.spellDetailChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-2;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.spellDetailChip {
+  padding: $spacing-1 $spacing-3;
+  border-radius: $radius-full;
+  border: 1px solid rgba($gold-100, 0.35);
+  background-color: $surface-raised;
+  @include cinzel-xs($color-text, $font-weight-semibold, 1.5);
+
+  @include light {
+    background-color: $neutral-2300;
+    color: $color-text-inverse;
+  }
+}
+
+// Texto do fórum, sem classe vinculada.
+.spellDetailChip--loose {
+  border-style: dashed;
+  border-color: $color-border-strong;
+  background-color: transparent;
+  @include main-xs($color-text-muted, $font-weight-regular);
+
+  @include light {
+    background-color: transparent;
+    color: $color-text-muted-inverse;
+    border-color: $color-border-inverse;
+  }
+}
+
+.spellDetailSource {
+  margin: 0;
+  @include main-xs($color-text-muted, $font-weight-regular, 1.6);
+
+  @include light {
+    color: $color-text-muted-inverse;
+  }
+}
+
+.spellDetailSourceLink {
+  color: $gold-100;
+  @include focus-ring;
+
+  @include light {
+    color: $gold-500;
+  }
+}
+
+.spellDetailDescription {
+  min-width: 0;
+  max-width: 68ch;
+  @include main-md($color-text, $font-weight-regular, 1.7);
+
+  @include light {
+    color: $color-text-inverse;
+  }
+
+  @include mobile {
+    order: 2;
+  }
+
+  p {
+    margin: 0 0 $spacing-4;
+  }
+
+  // Capitular no primeiro parágrafo.
+  > p:first-child:not(.spellDetailEmpty)::first-letter {
+    float: left;
+    padding: 0.08em $spacing-2 0 0;
+    font-family: 'Cinzel', serif;
+    font-size: 3.1em;
+    font-weight: $font-weight-bold;
+    line-height: 0.9;
+    color: $gold-100;
+
+    @include light {
+      color: $gold-500;
+    }
+  }
+
+  ul {
+    margin: 0 0 $spacing-4;
+    padding-left: $spacing-5;
+  }
+
+  li {
+    margin-bottom: $spacing-2;
+
+    &::marker {
+      color: $gold-300;
+    }
+  }
+}
+
+.spellDetailEmpty {
+  font-style: italic;
+  color: $color-text-muted;
+
+  @include light {
+    color: $color-text-muted-inverse;
+  }
+}

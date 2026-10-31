@@ -32,6 +32,9 @@ export interface ISpell extends Document {
   use?: string;
   description?: string;
 
+  /** URL da arte (paisagem). Vazio mostra o astrolábio no lugar. */
+  image?: string;
+
   /**
    * Classes a que a magia pertence (N:N). Derivado do texto livre de
    * `classes`, que permanece como procedência — a seta é sempre

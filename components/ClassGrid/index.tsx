@@ -7,6 +7,7 @@ import { useOptionalAuth } from '@/app/context/AuthContext';
 import { DownloadIcon, LinkIcon, PlusIcon } from '../Icons';
 import ClassCarousel from '../ClassCarousel';
 import ClassData from '../ClassData';
+import EmbedBackLink from '../EmbedBackLink';
 import withClassEditors from '../ClassFieldEditors';
 import PromptModal from '../PromptModal';
 import {
@@ -91,6 +92,7 @@ const ClassGrid = ({
     >
       {compact ? (
         <div className={handles.codexEmbedHead}>
+          <EmbedBackLink />
           <h1 className={handles.codexTitle}>Classes</h1>
           {search}
         </div>

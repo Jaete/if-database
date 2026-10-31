@@ -1,5 +1,5 @@
 import type { IPromptField } from '../PromptModal';
-import ImageField from './ImageField';
+import ImageField from '../ImageField';
 import RolesField from './RolesField';
 import '@/styles/components/classFieldEditors.scss';
 

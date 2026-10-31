@@ -1,57 +1,116 @@
 @use '../../styles/globals' as *;
 
-.grimoire {
+.spellbook {
   min-height: 100dvh;
-  padding: $spacing-10 $spacing-5 calc($spacing-10 + 3.5rem);
-  margin: 0 auto;
-  max-width: 60rem;
-  background-color: $neutral-100;
+  background-color: $color-bg;
 
   @include light {
-    background-color: $neutral-2100;
+    background-color: $color-bg-inverse;
   }
 }
 
-.grimoireHeader {
+.spellbookInner {
+  max-width: 56rem;
+  margin: 0 auto;
+  // O respiro de baixo é o do menu fixo.
+  padding: $spacing-10 $spacing-5 calc($spacing-10 + $spacing-14);
+
+  @include mobile {
+    padding: $spacing-6 $spacing-4 calc($spacing-10 + $spacing-14);
+  }
+
+  .spellbook--compact & {
+    max-width: none;
+    padding: $spacing-4 $spacing-5 $spacing-8;
+  }
+}
+
+.spellbookHeader {
   text-align: center;
   margin-bottom: $spacing-6;
 }
 
-.grimoireTitle {
+.spellbookTitle {
   @include cinzel-3xl($color-text, $font-weight-bold, 1.2, 0.08em, center);
   @include gold-gradient-text;
+
+  @include mobile {
+    @include cinzel-2xl($color-text, $font-weight-bold, 1.2, 0.08em, center);
+    @include gold-gradient-text;
+  }
 }
 
-.grimoireSubtitle {
+.spellbookSubtitle {
   @include main-sm($color-text-muted, $font-weight-regular, 1.5, 0, center);
   margin-top: $spacing-2;
+
+  @include mobile {
+    @include main-xs($color-text-muted, $font-weight-regular, 1.5, 0, center);
+  }
 }
 
-.grimoireTools {
+.spellbookTools {
   display: flex;
   gap: $spacing-3;
   flex-wrap: wrap;
   align-items: center;
-  margin-bottom: $spacing-4;
+  margin-bottom: $spacing-3;
 }
 
-.grimoireSearch {
+.spellbookSearchWrap {
+  position: relative;
   flex: 1 1 16rem;
-  padding: $spacing-3;
+  display: flex;
+  align-items: center;
+}
+
+.spellbookSearchIcon {
+  position: absolute;
+  left: $spacing-3;
+  width: $spacing-4;
+  height: $spacing-4;
+  color: $color-text-muted;
+  pointer-events: none;
+}
+
+.spellbookSearch {
+  width: 100%;
+  padding: $spacing-3 $spacing-3 $spacing-3 $spacing-10;
   border-radius: $radius-md;
   border: 1px solid $color-border;
   background-color: $surface;
   @include main-md($color-text, $font-weight-regular);
   @include premium-input-focus;
+
+  &::placeholder {
+    color: $color-text-muted;
+  }
+
+  @include light {
+    background-color: $neutral-2200;
+    border-color: $color-border-inverse;
+    color: $color-text-inverse;
+  }
 }
 
-.grimoireActions {
+.spellbookActions {
   display: flex;
   gap: $spacing-2;
+
+  @include mobile {
+    width: 100%;
+
+    > * {
+      flex: 1;
+      justify-content: center;
+    }
+  }
 }
 
-.grimoireButton,
-.grimoireImport {
+.spellbookButton {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-2;
   padding: $spacing-3 $spacing-4;
   border-radius: $radius-md;
   border: 1px solid $color-border-strong;
@@ -60,86 +119,272 @@
   @include caption($color-text, $font-weight-semibold);
   @include focus-ring;
 
+  svg {
+    width: $spacing-4;
+    height: $spacing-4;
+  }
+
   &:hover {
     background-color: $accent-overlay-hover;
+    border-color: rgba($gold-100, 0.35);
+  }
+
+  @include light {
+    background-color: $neutral-2300;
+    border-color: $color-border-inverse;
+    color: $color-text-inverse;
   }
 }
 
-.grimoireImport {
+.spellbookImport {
   border-color: rgba($primary-100, 0.5);
 }
 
-.grimoireFeedback {
+.spellbookFeedback {
   margin-bottom: $spacing-3;
   padding: $spacing-3;
   border-radius: $radius-md;
   border: 1px solid $success-border;
   background-color: $success-bg;
   @include main-sm($color-text, $font-weight-regular);
+
+  @include light {
+    color: $color-text-inverse;
+  }
 }
 
-.grimoireFeedbackError {
+.spellbookFeedbackError {
   border-color: $error-border;
   background-color: $error-bg;
 }
 
-.grimoireCount {
-  @include caption($color-text-subtle, $font-weight-regular);
-  margin-bottom: $spacing-2;
-}
+.spellbookCount {
+  margin-bottom: $spacing-4;
+  @include main-xs($color-text-muted, $font-weight-regular);
 
-.grimoireList {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-2;
-}
-
-.grimoireEmpty {
-  padding: $spacing-6;
-  text-align: center;
-  @include main-sm($color-text-muted, $font-weight-regular, 1.5, 0, center);
-}
-
-.grimoireRow {
-  width: 100%;
-  display: grid;
-  // A terceira coluna é a que encolhe: o resumo é informação de apoio, o nome
-  // e o círculo não podem ser cortados.
-  grid-template-columns: auto minmax(8rem, max-content) minmax(0, 1fr);
-  align-items: center;
-  gap: $spacing-3;
-  padding: $spacing-3;
-  text-align: left;
-  border-radius: $radius-md;
-  border: 1px solid $color-border;
-  background-color: $surface;
-  cursor: pointer;
-  @include focus-ring;
-
-  &:hover {
-    background-color: $accent-overlay;
-    border-color: $color-border-strong;
+  @include light {
+    color: $color-text-muted-inverse;
   }
 }
 
-.grimoireCircle {
-  @include mono-sm($primary-100, $font-weight-bold, 1, 0, center);
-  min-width: $spacing-6;
-  padding: $spacing-1;
-  border-radius: $radius-full;
-  border: 1px solid rgba($primary-100, 0.4);
+// Embed: título, busca e contagem numa linha, com o recuo do X do fórum.
+.spellbookEmbedHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-4;
+  padding-right: $spacing-14;
+  margin-bottom: $spacing-4;
+
+  .spellbookTitle {
+    flex: none;
+    @include cinzel-xl($color-text, $font-weight-bold, 1.2, 0.08em, left);
+    @include gold-gradient-text;
+  }
+
+  .spellbookSearchWrap {
+    flex: 1 1 12rem;
+
+    @include mobile {
+      flex: 1 0 100%;
+      order: 3;
+      margin-right: -$spacing-14;
+    }
+  }
+
+  .spellbookSearch {
+    padding-block: $spacing-2;
+    @include main-sm($color-text, $font-weight-regular);
+
+    @include light {
+      color: $color-text-inverse;
+    }
+  }
+
+  .spellbookCount {
+    flex: none;
+    margin: 0;
+
+    @include mobile {
+      display: none;
+    }
+  }
 }
 
-.grimoireName {
-  @include main-md($color-text, $font-weight-semibold);
+// Índice por círculo: coluna sticky à esquerda, como os recortes de dedo de
+// um livro; no mobile, vira uma faixa horizontal grudada no topo.
+.spellbookBody {
+  display: grid;
+  grid-template-columns: $spacing-10 minmax(0, 1fr);
+  gap: $spacing-4;
+  align-items: start;
+
+  @include mobile {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .spellbook--compact & {
+    grid-template-columns: $spacing-8 minmax(0, 1fr);
+    gap: $spacing-3;
+
+    @include mobile {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0;
+    }
+  }
 }
 
-.grimoireMeta {
-  @include main-xs($color-text-subtle, $font-weight-regular);
-  overflow: hidden;
-  text-overflow: ellipsis;
+.spellbookIndex {
+  position: sticky;
+  top: $spacing-4;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-1;
+
+  @include mobile {
+    top: 0;
+    z-index: 4;
+    flex-direction: row;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding: $spacing-2 $spacing-4;
+    margin: 0 (-$spacing-4);
+    background-color: $color-bg;
+
+    @include light {
+      background-color: $color-bg-inverse;
+    }
+  }
+}
+
+.spellbookIndexItem {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: $spacing-10;
+  height: $spacing-8;
+  border: 1px solid $color-border;
+  border-radius: $radius-sm;
+  background-color: $surface;
+  cursor: pointer;
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease;
+  @include cinzel-sm($color-text-muted, $font-weight-bold, 1);
+  @include focus-ring;
+
+  &:hover:not(:disabled) {
+    color: $color-text;
+    border-color: $color-border-strong;
+  }
+
+  &[aria-current='true'] {
+    color: $gold-100;
+    border-color: rgba($gold-100, 0.35);
+    background-color: $surface-raised;
+  }
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+
+  @include light {
+    background-color: $neutral-2200;
+    border-color: $color-border-inverse;
+
+    &[aria-current='true'] {
+      color: $gold-500;
+      background-color: $neutral-2300;
+    }
+  }
+
+  @include mobile {
+    width: $spacing-11;
+    height: $spacing-11;
+  }
+
+  .spellbook--compact & {
+    @include desktop {
+      width: $spacing-8;
+      height: $spacing-6;
+      @include cinzel-xs($color-text-muted, $font-weight-bold, 1);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+.spellbookGroups {
+  min-width: 0;
+}
+
+.spellbookGroup {
+  margin-bottom: $spacing-6;
+  // O índice horizontal do mobile cobre o topo: o salto para aqui para abaixo
+  // dele.
+  @include mobile {
+    scroll-margin-top: $spacing-15;
+  }
+}
+
+.spellbookGroupHead {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: $spacing-3;
+  padding: $spacing-3 0 $spacing-2;
+  background-color: $color-bg;
+
+  @include light {
+    background-color: $color-bg-inverse;
+  }
+
+  // Grudam logo abaixo da faixa do índice.
+  @include mobile {
+    top: $spacing-15;
+  }
+}
+
+.spellbookGroupTitle {
   white-space: nowrap;
+  @include cinzel-md($gold-100, $font-weight-bold, 1.5, 0.06em);
+
+  @include light {
+    color: $gold-500;
+  }
+}
+
+.spellbookGroupRule {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, rgba($gold-100, 0.35), transparent);
+}
+
+.spellbookGroupCount {
+  white-space: nowrap;
+  @include caption($color-text-muted, $font-weight-semibold);
+
+  @include light {
+    color: $color-text-muted-inverse;
+  }
+}
+
+.spellbookList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-1;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.spellbookEmpty {
+  padding: $spacing-10 0;
+  @include main-sm($color-text-muted, $font-weight-regular, 1.5, 0, center);
 }

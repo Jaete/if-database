@@ -1,11 +1,7 @@
 /**
- * Reaproveita as classes do grimório: o `useCssHandles` deste projeto é
- * identidade, então declarar o mesmo nome aqui rende a mesma classe global, e
- * as duas páginas são o mesmo objeto na tela — cabeçalho, busca, lista de
- * linhas clicáveis. Ver styles/components/spellGrid.scss.
- *
- * Só o filtro por categoria é próprio: o grimório filtra por nome e pronto,
- * enquanto o talento geral vem agrupado em oito categorias pelo fórum.
+ * Os nomes `grimoire*` vêm do tempo em que o grimório e o catálogo de talentos
+ * eram a mesma tela; as regras agora moram em styles/components/talentGrid.scss.
+ * O grimório usa `spellbook*`.
  */
 const TalentGridHandles = [
   'grimoire',

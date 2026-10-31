@@ -1,3 +1,5 @@
+@use 'sass:color';
+
 $primary-100: #9c841c;
 $primary-200: #836e12;
 $primary-300: #685607;
@@ -78,3 +80,28 @@ $error-bg: rgba($error, 0.12);
 $error-border: rgba($error, 0.35);
 $info-bg: rgba($info, 0.12);
 $info-border: rgba($info, 0.35);
+
+// Semantic — spell schools (grimoire). Accent only: the row's side bar, the
+// school glyph and the haze behind the placeholder — never text or fills.
+// `adivinhacao` has a darker light-mode variant below.
+$school-abjuracao: $info;
+$school-adivinhacao: $neutral-2900;
+$school-adivinhacao-light: $neutral-800;
+$school-conjuracao: $warning;
+$school-encantamento: color.mix($error, $neutral-2000, 55%);
+$school-evocacao: $error;
+$school-ilusao: color.mix($info, $error, 50%);
+$school-necromancia: color.mix($success, $neutral-500, 50%);
+$school-transmutacao: $success;
+$school-outra: $neutral-1000;
+$school-colors: (
+  'abjuracao': $school-abjuracao,
+  'adivinhacao': $school-adivinhacao,
+  'conjuracao': $school-conjuracao,
+  'encantamento': $school-encantamento,
+  'evocacao': $school-evocacao,
+  'ilusao': $school-ilusao,
+  'necromancia': $school-necromancia,
+  'transmutacao': $school-transmutacao,
+  'outra': $school-outra,
+);

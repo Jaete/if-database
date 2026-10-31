@@ -24,6 +24,7 @@ const SpellSchema = new Schema<ISpell>(
     spellResistance: String,
     use: String,
     description: String,
+    image: String,
 
     classIds: [
       { type: Schema.Types.ObjectId, ref: 'CharacterClass', index: true },

@@ -1,3 +1,4 @@
+export { default as ArrowLeftIcon } from './ArrowLeftIcon';
 export { default as ChevronRightIcon } from './ChevronRightIcon';
 export { default as CoinIcon } from './CoinIcon';
 export { default as CloseIcon } from './CloseIcon';
@@ -38,3 +39,5 @@ export { default as RoleSupportIcon } from './RoleSupportIcon';
 export { default as RoleTankIcon } from './RoleTankIcon';
 export { default as RoleUtilityIcon } from './RoleUtilityIcon';
 export { default as AstrolabeIcon } from './AstrolabeIcon';
+export { default as SpellSchoolIcon } from './SpellSchoolIcon';
+export { default as SearchIcon } from './SearchIcon';

@@ -1,0 +1,361 @@
+@use '../../styles/globals' as *;
+
+// Escura de propósito, mesmo num SO em tema claro: são painéis de imagem
+// com gradiente, e a tela vive dentro do fórum escuro. (O `colorScheme` do
+// layout do embed não muda `prefers-color-scheme`, então isto é escolha.)
+$embed-entry-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+
+.embedEntry {
+  --entry-lit-dur: 0.6s;
+  --entry-zoom-dur: 1.2s;
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  min-height: 100dvh;
+  overflow: hidden;
+  background: $color-bg;
+  color: $color-text;
+  @include fade-in(0.3s);
+
+  @include mobile {
+    flex-direction: column;
+    padding-top: $spacing-14;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    --entry-lit-dur: 0.15s;
+  }
+}
+
+// Alinhado ao eixo do X do fórum; o recuo dos lados é o dele.
+.embedEntryHeading {
+  position: absolute;
+  z-index: 5;
+  top: $spacing-3;
+  left: $spacing-14;
+  right: $spacing-14;
+  height: $spacing-8;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  @include cinzel-xs($gold-100, $font-weight-semibold, 1, 0.24em, center);
+  text-transform: uppercase;
+  text-shadow: 0 1px 2px rgba($neutral-100, 0.85);
+
+  @include mobile {
+    left: $spacing-4;
+    justify-content: flex-start;
+    letter-spacing: 0.18em;
+  }
+}
+
+.embedEntryPanel {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+  isolation: isolate;
+  color: $color-text;
+  text-decoration: none;
+  cursor: pointer;
+  outline: none;
+
+  @include mobile {
+    min-height: 12rem;
+  }
+
+  // Costura: fio dourado que some nas pontas.
+  & + & {
+    &::before {
+      content: '';
+      position: absolute;
+      z-index: 4;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: 1px;
+      pointer-events: none;
+      background: linear-gradient(
+        180deg,
+        transparent,
+        rgba($gold-100, 0.35) 30%,
+        rgba($gold-100, 0.35) 70%,
+        transparent
+      );
+
+      @include mobile {
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: auto;
+        width: auto;
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba($gold-100, 0.35) 25%,
+          rgba($gold-100, 0.35) 75%,
+          transparent
+        );
+      }
+    }
+  }
+
+  // Foco por dentro: o iframe cortaria um anel para fora.
+  &:focus-visible {
+    outline: 2px solid $gold-100;
+    outline-offset: calc(#{$spacing-3} * -1);
+  }
+}
+
+.embedEntryPanel--plain {
+  background: radial-gradient(
+    circle at 50% 40%,
+    $surface-raised 0%,
+    $color-bg 72%
+  );
+}
+
+.embedEntryArt {
+  position: absolute;
+  inset: 0;
+  z-index: -3;
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  filter: grayscale(0.7) brightness(0.5);
+  transform: scale(1);
+  transition:
+    filter var(--entry-lit-dur) $embed-entry-ease,
+    transform var(--entry-zoom-dur) $embed-entry-ease;
+}
+
+// Ornamento (Emblem)
+.embedEntryGlyph {
+  position: absolute;
+  z-index: -2;
+  left: 50%;
+  top: 40%;
+  width: min(62%, 30rem);
+  aspect-ratio: 1;
+  max-width: 100%;
+  translate: -50% -50%;
+  color: $gold-300;
+  opacity: 0.22;
+  transition:
+    opacity var(--entry-lit-dur) $embed-entry-ease,
+    color var(--entry-lit-dur) $embed-entry-ease;
+
+  svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+    overflow: visible;
+  }
+
+  @include mobile {
+    left: auto;
+    right: calc(#{$spacing-4} * -1);
+    top: 50%;
+    width: min(58%, 13rem);
+    translate: 0 -50%;
+  }
+}
+
+.embedEntryGlyphRing {
+  transform-box: view-box;
+  transform-origin: 50% 50%;
+  transition: transform var(--entry-zoom-dur) $embed-entry-ease;
+}
+
+.embedEntryGlyphMask {
+  fill: $color-bg;
+  stroke: none;
+}
+
+// Gradiente de leitura: base para o texto, topo para o título geral e o X.
+.embedEntryShade {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(
+    to top,
+    rgba($color-bg, 0.94) 0%,
+    rgba($color-bg, 0.72) 26%,
+    rgba($color-bg, 0.12) 58%,
+    rgba($color-bg, 0.5) 100%
+  );
+}
+
+.embedEntryBody {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: $spacing-3;
+  max-width: 38rem;
+  padding: 0 $spacing-16 $spacing-16;
+
+  @include mobile {
+    gap: $spacing-2;
+    padding: 0 $spacing-6 $spacing-6;
+  }
+}
+
+.embedEntryMark {
+  @include cinzel-xs($gold-100, $font-weight-regular, 1);
+}
+
+.embedEntryTitle {
+  margin: 0;
+  @include cinzel-3xl($color-text, $font-weight-bold, 1.05, 0.06em);
+  font-size: $font-size-display;
+  text-shadow:
+    0 1px 2px rgba($neutral-100, 0.85),
+    0 0 24px rgba($neutral-100, 0.5);
+  transition: color var(--entry-lit-dur) $embed-entry-ease;
+  @include gold-decorative-line;
+
+  &::after {
+    margin-top: $spacing-3;
+    transition: width var(--entry-lit-dur) $embed-entry-ease;
+  }
+
+  @include mobile {
+    @include cinzel-3xl($color-text, $font-weight-bold, 1.05, 0.06em);
+  }
+}
+
+.embedEntrySub {
+  margin: 0;
+  @include main-lg($color-text-muted, $font-weight-regular);
+  transition: color var(--entry-lit-dur) $embed-entry-ease;
+
+  @include mobile {
+    @include main-sm($color-text-muted, $font-weight-regular);
+  }
+}
+
+.embedEntryCta {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-2;
+  margin-top: $spacing-2;
+  @include main-xs($color-text-muted, $font-weight-semibold, 1, 0.14em);
+  text-transform: uppercase;
+  transition: color var(--entry-lit-dur) $embed-entry-ease;
+
+  svg {
+    width: 14px;
+    height: 14px;
+    transition: transform var(--entry-lit-dur) $embed-entry-ease;
+  }
+
+  @include mobile {
+    margin-top: $spacing-1;
+  }
+}
+
+// Aceso. O hover só vale onde existe ponteiro de verdade: no toque, o
+// navegador deixa `:hover` preso no painel tocado, e o vizinho ficaria
+// recuado depois de voltar do outro embed.
+@mixin entry-lit {
+  .embedEntryArt {
+    filter: grayscale(0) brightness(1);
+    transform: scale(1.04);
+  }
+
+  .embedEntryGlyph {
+    opacity: 0.55;
+    color: $gold-100;
+  }
+
+  .embedEntryGlyphRing {
+    transform: rotate(15deg);
+  }
+
+  .embedEntryTitle::after {
+    width: calc(#{$spacing-12} * 2);
+  }
+
+  .embedEntrySub {
+    color: $color-text;
+  }
+
+  .embedEntryCta {
+    color: $gold-100;
+
+    svg {
+      transform: translateX($spacing-1);
+    }
+  }
+}
+
+// Recuado: o outro painel, enquanto um está aceso.
+@mixin entry-receded {
+  .embedEntryArt {
+    filter: grayscale(0.9) brightness(0.3);
+  }
+
+  .embedEntryGlyph {
+    opacity: 0.12;
+  }
+
+  .embedEntryTitle {
+    color: $color-text-muted;
+  }
+}
+
+.embedEntryPanel:focus-visible {
+  @include entry-lit;
+}
+
+.embedEntry:has(.embedEntryPanel:focus-visible)
+  .embedEntryPanel:not(:focus-visible) {
+  @include entry-receded;
+}
+
+@media (hover: hover) {
+  .embedEntryPanel:hover {
+    @include entry-lit;
+  }
+
+  .embedEntry:has(.embedEntryPanel:hover)
+    .embedEntryPanel:not(:hover, :focus-visible) {
+    @include entry-receded;
+  }
+}
+
+// Toque: sem hover, o repouso é menos escuro e :active acende.
+@media (hover: none) {
+  .embedEntryArt {
+    filter: grayscale(0.35) brightness(0.7);
+  }
+
+  .embedEntryPanel:active .embedEntryArt {
+    filter: grayscale(0) brightness(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .embedEntryArt,
+  .embedEntryGlyphRing,
+  .embedEntryCta svg,
+  .embedEntryTitle::after {
+    transition-property: filter, opacity, color;
+  }
+
+  .embedEntryPanel:is(:hover, :focus-visible) {
+    .embedEntryArt,
+    .embedEntryGlyphRing,
+    .embedEntryCta svg {
+      transform: none;
+    }
+  }
+}

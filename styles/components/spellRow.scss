@@ -1,0 +1,282 @@
+@use '../../styles/globals' as *;
+
+// A cor da escola é só acento (barra, glifo, névoa): chega por `--school`.
+@each $key, $value in $school-colors {
+  .spellbookRow--#{$key} {
+    --school: #{$value};
+  }
+}
+
+.spellbookRow--adivinhacao {
+  @include light {
+    --school: #{$school-adivinhacao-light};
+  }
+}
+
+.spellbookRow {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  height: $spacing-10;
+  padding: 0;
+  overflow: hidden;
+  cursor: pointer;
+  text-align: left;
+  background-color: $surface;
+  border: 1px solid $color-border;
+  border-radius: $radius-sm;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+  @include focus-ring;
+
+  @include light {
+    background-color: $neutral-2200;
+    border-color: $color-border-inverse;
+  }
+
+  @include mobile {
+    height: $spacing-11;
+  }
+
+  &:hover {
+    background-color: $surface-raised;
+    border-color: rgba($gold-100, 0.35);
+    box-shadow: $glow-gold;
+
+    @include light {
+      background-color: $neutral-2300;
+    }
+  }
+
+  &:active {
+    background-color: $surface-elevated;
+    transform: translateY(1px);
+
+    @include light {
+      background-color: $neutral-2400;
+    }
+  }
+
+  // A última aberta no detalhe, marcada ao voltar à lista.
+  &[aria-current='true'] {
+    border-color: $gold-300;
+    background-color: $surface-raised;
+
+    @include light {
+      background-color: $neutral-2300;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+
+    &:active {
+      transform: none;
+    }
+  }
+}
+
+.spellbookRowCircle {
+  position: relative;
+  z-index: 2;
+  flex: 0 0 $spacing-10;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(180deg, $surface-elevated, $surface-raised);
+  border-right: 1px solid rgba($gold-100, 0.35);
+  @include cinzel-lg($gold-100, $font-weight-bold, 1, 0, center);
+
+  @include light {
+    background: linear-gradient(180deg, $neutral-2400, $neutral-2300);
+    color: $gold-500;
+  }
+
+  @include mobile {
+    flex-basis: $spacing-11;
+  }
+
+  .spellbookRow[aria-current='true'] & {
+    background: linear-gradient(180deg, rgba($gold-100, 0.18), $surface-raised);
+  }
+}
+
+.spellbookRowText {
+  position: relative;
+  z-index: 2;
+  flex: 1 1 auto;
+  min-width: 0;
+  align-self: center;
+  display: flex;
+  align-items: baseline;
+  gap: $spacing-3;
+  padding: 0 $spacing-4;
+
+  @include mobile {
+    padding: 0 $spacing-3;
+  }
+}
+
+// Sombra só no escuro: sobre a arte, garante a leitura do nome.
+.spellbookRowName {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-transform: uppercase;
+  text-shadow: 0 1px 2px rgba($neutral-100, 0.85);
+  transition: color 0.2s ease;
+  @include cinzel-sm($color-text, $font-weight-bold, 1.5, 0.06em);
+
+  @include light {
+    color: $color-text-inverse;
+    text-shadow: none;
+  }
+
+  .spellbookRow:hover & {
+    color: $gold-100;
+
+    @include light {
+      color: $gold-500;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+.spellbookRowSchool {
+  flex: none;
+  text-shadow: 0 1px 2px rgba($neutral-100, 0.85);
+  @include caption($color-text-muted, $font-weight-semibold);
+
+  @include light {
+    color: $color-text-muted-inverse;
+    text-shadow: none;
+  }
+
+  @include mobile {
+    display: none;
+  }
+}
+
+// Por baixo do texto, com o gradiente horizontal na máscara (que só lê o
+// alfa, então independe do tema).
+.spellbookRowArt {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  right: $spacing-1;
+  bottom: 0;
+  width: min(46%, 22rem);
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba($neutral-100, 0.35) 30%,
+    $neutral-100 72%
+  );
+  mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba($neutral-100, 0.35) 30%,
+    $neutral-100 72%
+  );
+
+  @include mobile {
+    width: 42%;
+  }
+}
+
+.spellbookRowImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 40%;
+  opacity: 0.62;
+  transition:
+    opacity 0.25s ease,
+    transform 0.35s ease;
+
+  .spellbookRow:hover & {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+
+    .spellbookRow:hover & {
+      transform: none;
+    }
+  }
+}
+
+.spellbookRowSigil {
+  position: absolute;
+  inset: 0;
+  color: $gold-300;
+
+  // A névoa da cor da escola.
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+      60% 140% at 85% 50%,
+      color-mix(in srgb, var(--school) 16%, transparent),
+      transparent 70%
+    );
+  }
+}
+
+.spellbookRowRing {
+  position: absolute;
+  top: 50%;
+  right: $spacing-8;
+  width: 9rem;
+  height: 9rem;
+  translate: 0 -50%;
+  rotate: var(--rot, 0deg);
+  opacity: 0.32;
+  transition: opacity 0.25s ease;
+
+  .spellbookRow:hover & {
+    opacity: 0.55;
+  }
+
+  @include mobile {
+    right: $spacing-6;
+    width: 7rem;
+    height: 7rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+.spellbookRowGlyph {
+  position: absolute;
+  top: 50%;
+  right: $spacing-4;
+  width: $spacing-5;
+  height: $spacing-5;
+  translate: 0 -50%;
+  color: var(--school);
+  opacity: 0.85;
+}
+
+.spellbookRowSchoolBar {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: $spacing-1;
+  background-color: var(--school);
+}

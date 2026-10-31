@@ -1,23 +1,5 @@
 @use '../../styles/globals' as *;
 
-// ── Imagem ─────────────────────────────────────────────────
-
-.imageField {
-  display: flex;
-  align-items: center;
-  gap: $spacing-3;
-  width: 100%;
-}
-
-// 3:4, a proporção do retrato do card.
-.imageThumb {
-  flex: 0 0 $spacing-12;
-  height: $spacing-16;
-  border-radius: $radius-sm;
-  border: 1px solid $color-border-strong;
-  background: $surface-raised center / cover no-repeat;
-}
-
 // ── Papéis ─────────────────────────────────────────────────
 
 .rolesField {

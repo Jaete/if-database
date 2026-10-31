@@ -133,6 +133,13 @@ export const grimoireSpellFields = (spell?: Partial<ISpell>) => [
     initialValue: spell?.circle === undefined ? '' : String(spell.circle),
     placeholder: '0 para truques',
   },
+  {
+    name: 'image',
+    label: 'Imagem (URL)',
+    required: false,
+    initialValue: spell?.image ?? '',
+    placeholder: 'https://…',
+  },
   ...SPELL_FIELDS.map((field) => ({
     name: field.name as string,
     label: field.label,
@@ -157,6 +164,8 @@ export const grimoireSpellFromPrompt = (
   const next: Record<string, unknown> = {
     name: values.name,
     circle: Number(values.circle) || 0,
+    // Sempre escrita, mesmo vazia: é assim que a arte é removida.
+    image: values.image ?? '',
   };
   for (const key of [
     ...SPELL_FIELDS.map((f) => f.name as string),
@@ -166,4 +175,50 @@ export const grimoireSpellFromPrompt = (
     if (values[key]) next[key] = values[key];
   }
   return next as Partial<ISpell>;
+};
+
+/** O número que vai no selo do círculo: `T` para truque. */
+export const circleLabel = (circle: number): string =>
+  circle === 0 ? 'T' : String(circle);
+
+/** O nome do círculo, para cabeçalhos e rótulos de acessibilidade. */
+export const circleTitle = (circle: number): string =>
+  circle === 0 ? 'Truques' : `${circle}º círculo`;
+
+export const SPELL_SCHOOLS = [
+  { key: 'abjuracao', prefix: 'abjur', label: 'Abjuração' },
+  { key: 'adivinhacao', prefix: 'adivinh', label: 'Adivinhação' },
+  { key: 'conjuracao', prefix: 'conjur', label: 'Conjuração' },
+  { key: 'encantamento', prefix: 'encant', label: 'Encantamento' },
+  { key: 'evocacao', prefix: 'evoc', label: 'Evocação' },
+  { key: 'ilusao', prefix: 'ilus', label: 'Ilusão' },
+  { key: 'necromancia', prefix: 'necro', label: 'Necromancia' },
+  { key: 'transmutacao', prefix: 'transmut', label: 'Transmutação' },
+] as const;
+
+export type SpellSchoolKey = (typeof SPELL_SCHOOLS)[number]['key'] | 'outra';
+
+/**
+ * A escola canônica de um texto livre ("Evocação [Fogo]", "Ilusão (Sensação)").
+ *
+ * Casa pelo prefixo, sem acento nem caixa; o que não for reconhecido
+ * ("Universal", vazio) cai em `outra`. Só serve para escolher cor e glifo: o
+ * texto original continua sendo o que a magia mostra.
+ */
+export const spellSchoolKey = (school?: string): SpellSchoolKey => {
+  const normalized = (school ?? '')
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .trim();
+  return (
+    SPELL_SCHOOLS.find((s) => normalized.startsWith(s.prefix))?.key ?? 'outra'
+  );
+};
+
+/** Nome curto da escola para a linha da lista. */
+export const spellSchoolLabel = (school?: string): string => {
+  const key = spellSchoolKey(school);
+  const known = SPELL_SCHOOLS.find((s) => s.key === key);
+  return known?.label ?? school?.split(/[\s([]/)[0] ?? '';
 };
