@@ -9,6 +9,7 @@ import {
   type KeyboardEvent,
   type MouseEvent,
   type PointerEvent,
+  type UIEvent,
 } from 'react';
 
 /** Cards renderizados de cada lado do central, antes de medir o palco. */
@@ -25,6 +26,11 @@ const FLICK_MIN_VELOCITY = 0.4;
 /** Roda horizontal: deslocamento acumulado para um passo, e a pausa que encerra o gesto. */
 const WHEEL_THRESHOLD = 40;
 const WHEEL_QUIET_MS = 250;
+/** Saltos de mais de 1 card viram um voo de passos de 1, até este teto. */
+const STEPPER_INTERVAL_MS = 80;
+const STEPPER_MAX_STEPS = 8;
+/** O clique que sobra de um arrasto só é suprimido durante esta janela. */
+const SUPPRESS_CLICK_MS = 100;
 
 export const mod = (value: number, size: number) =>
   ((value % size) + size) % size;
@@ -58,6 +64,12 @@ export function useClassCarousel(count: number) {
   const focusAfterRef = useRef(false);
   const suppressClickRef = useRef(false);
   const wheelRef = useRef({ accum: 0, locked: false, timer: 0 });
+  // A posição virtual como verdade síncrona: o stepper e os gestos rápidos
+  // precisam do valor mais recente, não do último render.
+  const virtualRef = useRef(0);
+  const stepperRef = useRef(0);
+  const steppingRef = useRef(false);
+  const suppressTimerRef = useRef(0);
 
   const [virtual, setVirtual] = useState(0);
   const [measuredReach, setMeasuredReach] = useState(DEFAULT_REACH);
@@ -66,23 +78,59 @@ export function useClassCarousel(count: number) {
   const reach = count > 1 ? measuredReach : 0;
   const focused = count > 0 ? mod(virtual, count) : 0;
 
-  const go = (delta: number) => {
-    if (count > 1) setVirtual((value) => value + delta);
+  const apply = (next: number) => {
+    virtualRef.current = next;
+    setVirtual(next);
   };
+
+  const cancelStepper = () => {
+    window.clearTimeout(stepperRef.current);
+    steppingRef.current = false;
+  };
+
+  // Anda `delta` cards. Mais de 1 vira um voo de passos de 1 (a transição
+  // re-mira a cada passo, sem pop-in), cancelável por qualquer novo input;
+  // acima do teto, ou com movimento reduzido, a troca é direta.
+  const move = (delta: number) => {
+    cancelStepper();
+    if (count < 2 || delta === 0) return;
+    const reduced = window.matchMedia(
+      '(prefers-reduced-motion: reduce)'
+    ).matches;
+    if (
+      Math.abs(delta) === 1 ||
+      Math.abs(delta) > STEPPER_MAX_STEPS ||
+      reduced
+    ) {
+      apply(virtualRef.current + delta);
+      return;
+    }
+    const direction = Math.sign(delta);
+    let remaining = Math.abs(delta);
+    steppingRef.current = true;
+    const tick = () => {
+      remaining -= 1;
+      if (remaining === 0) steppingRef.current = false;
+      apply(virtualRef.current + direction);
+      if (remaining > 0) {
+        stepperRef.current = window.setTimeout(tick, STEPPER_INTERVAL_MS);
+      }
+    };
+    tick();
+  };
+
+  const go = (delta: number) => move(delta);
 
   // Vai para a posição virtual `position` (clique num vizinho, Tab).
-  const goTo = (position: number) => {
-    if (count > 1) setVirtual(position);
-  };
+  const goTo = (position: number) => move(position - virtualRef.current);
 
-  // Para um índice da lista, pelo caminho mais curto.
+  // Para um índice da lista, pelo caminho mais curto. Devolve o delta.
   const goToIndex = (index: number) => {
-    if (count < 2) return;
-    setVirtual((value) => {
-      let delta = mod(index - mod(value, count), count);
-      if (delta > count / 2) delta -= count;
-      return value + delta;
-    });
+    if (count < 2) return 0;
+    let delta = mod(index - mod(virtualRef.current, count), count);
+    if (delta > count / 2) delta -= count;
+    move(delta);
+    return delta;
   };
 
   // Mede o palco: quantos cards cabem de cada lado do central, mais um de
@@ -111,13 +159,29 @@ export function useClassCarousel(count: number) {
 
   // O foco do teclado acompanha o card central, depois que ele chega ao DOM.
   useEffect(() => {
-    if (!focusAfterRef.current) return;
+    // Num voo de vários passos o foco só vai no último.
+    if (!focusAfterRef.current || steppingRef.current) return;
     focusAfterRef.current = false;
     const center = trackRef.current?.children[reach];
     skipFocusRef.current = true;
     center?.querySelector('a')?.focus({ preventScroll: true });
     skipFocusRef.current = false;
   }, [virtual, reach]);
+
+  // Soltar fora do trilho (ou um cancelamento) também encerra o toque.
+  useEffect(() => {
+    const release = () => {
+      pointerRef.current = false;
+    };
+    window.addEventListener('pointerup', release);
+    window.addEventListener('pointercancel', release);
+    return () => {
+      window.removeEventListener('pointerup', release);
+      window.removeEventListener('pointercancel', release);
+      window.clearTimeout(stepperRef.current);
+      window.clearTimeout(suppressTimerRef.current);
+    };
+  }, []);
 
   // Roda/trackpad horizontal: 1 passo por gesto. Precisa de ouvinte nativo
   // não passivo para poder impedir o "voltar" do navegador.
@@ -134,9 +198,17 @@ export function useClassCarousel(count: number) {
         wheel.locked = false;
       }, WHEEL_QUIET_MS);
       if (wheel.locked) return;
-      wheel.accum += event.deltaX;
+      // Firefox manda linhas (1) ou páginas (2), não pixels.
+      const unit =
+        event.deltaMode === 1
+          ? 16
+          : event.deltaMode === 2
+            ? track.clientWidth
+            : 1;
+      wheel.accum += event.deltaX * unit;
       if (Math.abs(wheel.accum) >= WHEEL_THRESHOLD) {
-        setVirtual((value) => value + Math.sign(wheel.accum));
+        cancelStepper();
+        apply(virtualRef.current + Math.sign(wheel.accum));
         wheel.locked = true;
       }
     };
@@ -148,7 +220,8 @@ export function useClassCarousel(count: number) {
   }, [count]);
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (count < 2) return;
+    if (count < 2 || event.altKey || event.ctrlKey || event.metaKey) return;
+    let moved = true;
     switch (event.key) {
       case 'ArrowLeft':
         go(-1);
@@ -157,16 +230,16 @@ export function useClassCarousel(count: number) {
         go(1);
         break;
       case 'Home':
-        goToIndex(0);
+        moved = goToIndex(0) !== 0;
         break;
       case 'End':
-        goToIndex(count - 1);
+        moved = goToIndex(count - 1) !== 0;
         break;
       default:
         return;
     }
     event.preventDefault();
-    focusAfterRef.current = true;
+    if (moved) focusAfterRef.current = true;
   };
 
   // Tab para um card fora do centro o centraliza, senão o foco cairia num
@@ -200,6 +273,8 @@ export function useClassCarousel(count: number) {
   const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
     pointerRef.current = true;
     suppressClickRef.current = false;
+    // Um segundo dedo não reinicia o arrasto em curso.
+    if (!event.isPrimary || dragRef.current) return;
     // Só toque e caneta arrastam: o mouse mantém a seleção de texto do card.
     if (count < 2 || event.pointerType === 'mouse') return;
     dragRef.current = {
@@ -258,11 +333,26 @@ export function useClassCarousel(count: number) {
       fast && Math.abs(dx) < threshold ? drag.velocity : dx
     );
     suppressClickRef.current = Math.abs(dx) > AXIS_SLOP;
+    window.clearTimeout(suppressTimerRef.current);
+    suppressTimerRef.current = window.setTimeout(() => {
+      suppressClickRef.current = false;
+    }, SUPPRESS_CLICK_MS);
     endDrag();
     if (direction !== 0 && (Math.abs(dx) > threshold || fast)) {
       // Arrastar para a esquerda traz o próximo.
       go(-direction);
     }
+  };
+
+  // A captura se perdeu sem soltar (o navegador tomou o gesto): volta ao atual.
+  const onLostPointerCapture = () => {
+    if (dragRef.current?.active) endDrag();
+  };
+
+  // Rede contra o scroll do trilho (foco, script): ele nunca deve rolar.
+  const onScroll = (event: UIEvent<HTMLDivElement>) => {
+    if (event.currentTarget.scrollLeft !== 0)
+      event.currentTarget.scrollLeft = 0;
   };
 
   const onPointerCancel = () => {
@@ -287,5 +377,7 @@ export function useClassCarousel(count: number) {
     onPointerMove,
     onPointerUp,
     onPointerCancel,
+    onLostPointerCapture,
+    onScroll,
   };
 }

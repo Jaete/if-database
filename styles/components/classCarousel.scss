@@ -48,7 +48,7 @@
 // `grid-area: 1 / 1`) e se afastam por `translate`; a célula tem a altura do
 // maior card montado, então o "Ver tudo" (card aberto, `height: auto`) estica
 // o trilho como quando os cards eram itens de fluxo. A largura é a do palco,
-// e o que passa dela é cortado (`overflow: hidden`), como a máscara pede.
+// e o que passa dela é cortado (`overflow: clip`, que ao contrário de `hidden` não rola nem por foco), como a máscara pede.
 .pickTrack {
   position: relative;
   display: grid;
@@ -56,7 +56,7 @@
   align-items: center;
   // Só para o JS ler o vão já resolvido em px (passo = largura + vão).
   column-gap: var(--pick-gap);
-  overflow: hidden;
+  overflow: clip;
   padding-block: $spacing-6;
   // O gesto horizontal é nosso (pointer events); a rolagem vertical da
   // página continua.

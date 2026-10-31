@@ -27,6 +27,8 @@ interface IProps {
   clone?: boolean;
   /** Posição relativa ao card central, em passos: -1 é o vizinho da esquerda. */
   offset: number;
+  /** Longe do centro (buffer fora da tela): inerte, fora da ordem do Tab. */
+  dormant?: boolean;
   basePath: string;
   /** Só o app mostra o lápis; o embed é somente leitura. */
   canEdit: boolean;
@@ -53,6 +55,7 @@ const ClassCard = ({
   focused,
   clone = false,
   offset,
+  dormant = false,
   basePath,
   canEdit,
   onEdit,
@@ -138,7 +141,7 @@ const ClassCard = ({
       aria-roledescription="classe"
       aria-label={`${index + 1} de ${total}: ${klass.name}`}
       aria-hidden={clone || undefined}
-      inert={clone || undefined}
+      inert={clone || dormant || undefined}
       style={{ '--pick-offset': offset } as CSSProperties}
       onClick={onCardClick}
     >
@@ -156,6 +159,8 @@ const ClassCard = ({
             sizes="21rem"
             // A URL é cadastrada à mão e pode ser de qualquer host: o
             // otimizador exigiria cada domínio liberado no next.config.
+            // Os cards de buffer já têm a arte quando deslizam para dentro.
+            loading="eager"
             unoptimized
           />
         ) : (

@@ -61,6 +61,8 @@ const ClassCarousel = ({
     onPointerMove,
     onPointerUp,
     onPointerCancel,
+    onLostPointerCapture,
+    onScroll,
   } = useClassCarousel(count);
 
   const current = classes[focused];
@@ -113,6 +115,8 @@ const ClassCarousel = ({
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
           onPointerCancel={onPointerCancel}
+          onLostPointerCapture={onLostPointerCapture}
+          onScroll={onScroll}
         >
           {items.map(({ position, offset, klass, clone }) => (
             <ClassCard
@@ -122,6 +126,8 @@ const ClassCarousel = ({
               total={count}
               focused={offset === 0}
               clone={clone}
+              // Só o central e os vizinhos imediatos entram na ordem do Tab.
+              dormant={Math.abs(offset) > 1}
               offset={offset}
               basePath={basePath}
               canEdit={canEdit}
