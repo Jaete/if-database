@@ -18,6 +18,13 @@
     opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
     visibility 0.3s ease;
 
+  @include mobile {
+    // A folha ocupa a tela toda: sem a reserva da barra inferior.
+    &:has(.modalShell--sheet) {
+      padding-bottom: 0;
+    }
+  }
+
   &--visible {
     opacity: 1;
     visibility: visible;
@@ -47,6 +54,54 @@
         max-width: 800px;
       }
     }
+  }
+
+  // Variante de folha (detalhe da classe): larga, com o conteúdo sem respiro
+  // e, no mobile, em tela cheia.
+  .modalShell--sheet {
+    max-width: min(64rem, 100%);
+
+    .modal {
+      max-height: 85dvh;
+    }
+
+    .header {
+      flex-wrap: wrap;
+      align-items: flex-start;
+      padding-bottom: 0;
+    }
+
+    .content {
+      padding: 0;
+    }
+
+    @include mobile {
+      width: 100%;
+      max-width: none;
+      height: 100%;
+
+      .modal {
+        height: 100%;
+        max-height: none;
+        border: 0;
+        border-radius: 0;
+      }
+    }
+  }
+
+  .titleGroup {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .eyebrow {
+    @include caption($color-text-muted, $font-weight-semibold);
+    margin: 0 0 $spacing-1;
+  }
+
+  .headerExtra {
+    flex: 0 0 100%;
+    min-width: 0;
   }
 
   .modal {

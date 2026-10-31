@@ -199,6 +199,7 @@ const ClassGrid = ({
             // Outra classe aberta é outro estado de edição inteiro.
             key={viewing.slug}
             characterClass={viewing}
+            takenBy={visible.find((c) => c.slug === viewing.slug)?.takenBy}
             basePath={basePath}
             compact={compact}
             readOnly={readOnly}

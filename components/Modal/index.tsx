@@ -16,9 +16,28 @@ interface IProps {
   // Mostra uma régua de atalhos para as seções do conteúdo, descobertas a
   // partir dos `.section` renderizados aqui dentro.
   sectionRail?: boolean;
+  // Sobretítulo acima do título (ex.: o nome da classe).
+  eyebrow?: string;
+  // Faixa abaixo do título, ainda dentro do cabeçalho (ex.: troca de seção).
+  headerExtra?: React.ReactNode;
+  // `sheet`: modal largo, sem respiro no conteúdo (quem o preenche cuida do
+  // próprio) e folha de tela cheia no mobile.
+  variant?: 'default' | 'sheet';
+  // Classe extra na casca, para o dono do conteúdo tematizá-lo.
+  className?: string;
 }
 
-const Modal = ({ isOpen, onClose, title, children, sectionRail }: IProps) => {
+const Modal = ({
+  isOpen,
+  onClose,
+  title,
+  children,
+  sectionRail,
+  eyebrow,
+  headerExtra,
+  variant = 'default',
+  className,
+}: IProps) => {
   const handles = useCssHandles(ModalHandles);
   const contentRef = useRef<HTMLDivElement>(null);
   useModal(isOpen, onClose);
@@ -51,14 +70,25 @@ const Modal = ({ isOpen, onClose, title, children, sectionRail }: IProps) => {
       <div
         className={`${handles.modalShell}${
           sectionRail ? ` ${applyModifiers(handles.modalShell, 'railed')}` : ''
-        }`}
+        }${
+          variant === 'sheet'
+            ? ` ${applyModifiers(handles.modalShell, 'sheet')}`
+            : ''
+        }${className ? ` ${className}` : ''}`}
       >
         <div
           className={`${handles.modal}${isOpen ? ` ${applyModifiers(handles.modal, 'open')}` : ''}`}
           onClick={(e) => e.stopPropagation()}
         >
           <header className={handles.header}>
-            {title && <h2 className={handles.title}>{title}</h2>}
+            {eyebrow ? (
+              <div className={handles.titleGroup}>
+                <p className={handles.eyebrow}>{eyebrow}</p>
+                {title && <h2 className={handles.title}>{title}</h2>}
+              </div>
+            ) : (
+              title && <h2 className={handles.title}>{title}</h2>
+            )}
             <button
               className={handles.closeButton}
               onClick={onClose}
@@ -66,6 +96,9 @@ const Modal = ({ isOpen, onClose, title, children, sectionRail }: IProps) => {
             >
               &times;
             </button>
+            {headerExtra && (
+              <div className={handles.headerExtra}>{headerExtra}</div>
+            )}
           </header>
           <div className={handles.content} ref={contentRef}>
             {children}

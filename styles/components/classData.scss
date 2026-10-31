@@ -1,0 +1,1005 @@
+@use '../../styles/globals' as *;
+@use './classTheme' as *;
+
+// A página de detalhe da classe. As seções do modal vivem em classSection.scss
+// e o astrolábio em classWheel.scss.
+
+.clsPage {
+  @include class-theme;
+  position: relative;
+  min-height: 100dvh;
+  background-color: var(--cls-bg);
+  color: var(--cls-text);
+
+  &--compact {
+    min-height: 0;
+  }
+}
+
+// ── Controles compartilhados ────────────────────────────────
+
+.clsIconBtn {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: $spacing-9;
+  height: $spacing-9;
+  padding: 0;
+  border: 1px solid var(--cls-border-strong);
+  border-radius: $radius-full;
+  background: transparent;
+  color: var(--cls-muted);
+  cursor: pointer;
+  @include focus-ring;
+
+  svg {
+    width: $spacing-4;
+    height: $spacing-4;
+  }
+
+  &:hover {
+    border-color: $gold-200;
+    color: var(--cls-accent);
+  }
+
+  &--sm {
+    width: $spacing-7;
+    height: $spacing-7;
+
+    svg {
+      width: $spacing-3;
+      height: $spacing-3;
+    }
+  }
+
+  &--danger:hover {
+    border-color: $error-border;
+    color: $error;
+  }
+}
+
+.clsGhostBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-1;
+  min-height: $spacing-8;
+  padding: $spacing-1 $spacing-3;
+  border: 1px dashed var(--cls-border-strong);
+  border-radius: $radius-full;
+  background: transparent;
+  white-space: nowrap;
+  cursor: pointer;
+  @include caption(var(--cls-muted), $font-weight-semibold);
+  @include focus-ring;
+
+  svg {
+    width: $spacing-3;
+    height: $spacing-3;
+  }
+
+  &:hover {
+    border-color: $primary-100;
+    color: var(--cls-accent);
+  }
+}
+
+.clsBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-2;
+  min-height: $spacing-9;
+  padding: $spacing-2 $spacing-4;
+  border-radius: $radius-sm;
+  cursor: pointer;
+  @include cinzel-sm(var(--cls-text), $font-weight-bold, 1.2);
+  @include focus-ring;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+
+  &--primary {
+    border: 1px solid $primary-100;
+    background: $primary-100;
+    color: $neutral-100;
+
+    &:hover:not(:disabled) {
+      border-color: $gold-200;
+      background: $gold-200;
+    }
+  }
+
+  &--ghost {
+    border: 1px solid var(--cls-border);
+    background: transparent;
+    color: var(--cls-muted);
+
+    &:hover:not(:disabled) {
+      border-color: var(--cls-border-strong);
+      color: var(--cls-text);
+    }
+  }
+
+  &--danger {
+    border: 1px solid $error-border;
+    background: transparent;
+    color: $error;
+
+    &:hover:not(:disabled) {
+      background: $error-bg;
+    }
+  }
+}
+
+// ── Barra de topo (a mesma do detalhe de magia) ─────────────
+
+.clsBar {
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-3;
+  padding: $spacing-3 $spacing-5;
+  // A arte passa por baixo da barra.
+  background: linear-gradient(180deg, var(--cls-bg) 55%, transparent);
+
+  // O X do fórum fica sobre o canto direito do iframe.
+  .clsPage--compact & {
+    padding: $spacing-3 $spacing-14 $spacing-2 $spacing-4;
+  }
+
+  @include mobile {
+    position: absolute;
+    left: 0;
+    right: 0;
+    padding: $spacing-3 $spacing-4;
+    background: linear-gradient(
+      180deg,
+      rgba(var(--cls-ink), 0.55),
+      transparent
+    );
+  }
+}
+
+.clsBack,
+.clsEditBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-2;
+  min-height: $spacing-10;
+  padding: $spacing-2 $spacing-4;
+  border: 1px solid var(--cls-border-strong);
+  border-radius: $radius-full;
+  background-color: var(--cls-raised);
+  text-decoration: none;
+  cursor: pointer;
+  @include cinzel-sm(var(--cls-text), $font-weight-bold, 1, 0.04em);
+  @include focus-ring;
+
+  svg {
+    width: $spacing-4;
+    height: $spacing-4;
+  }
+
+  &:hover {
+    border-color: $gold-200;
+    color: var(--cls-accent);
+  }
+
+  @include mobile {
+    justify-content: center;
+    width: $spacing-11;
+    height: $spacing-11;
+    padding: 0;
+    background-color: color-mix(in srgb, var(--cls-surface) 75%, transparent);
+  }
+}
+
+.clsEditBtn {
+  border-color: rgba($primary-100, 0.5);
+}
+
+.clsBarLabel {
+  @include mobile {
+    display: none;
+  }
+}
+
+// ── Hero: identidade à esquerda, astrolábio à direita ───────
+
+.clsHero {
+  --astro: min(34rem, 42vw);
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: $spacing-8;
+  align-items: center;
+  max-width: 78rem;
+  margin: 0 auto;
+  padding: 0 $spacing-8 $spacing-8;
+
+  // Vinheta do palco: a mesma do seletor, agora atrás da roda.
+  &::before {
+    content: '';
+    position: absolute;
+    z-index: 0;
+    right: 0;
+    top: -$spacing-16;
+    width: calc(var(--astro) + 12rem);
+    height: calc(var(--astro) + 10rem);
+    background: radial-gradient(
+      closest-side,
+      var(--cls-raised) 0%,
+      transparent 100%
+    );
+    pointer-events: none;
+  }
+
+  > * {
+    position: relative;
+    z-index: 1;
+    min-width: 0;
+  }
+
+  // O iframe é a viewport: a roda é limitada pela altura dele.
+  .clsPage--compact & {
+    --astro: min(30rem, 40vw, calc(100vh - 12rem));
+    gap: $spacing-6;
+    padding: 0 $spacing-4 $spacing-4 $spacing-6;
+  }
+
+  @include mobile {
+    display: block;
+    padding: 0 $spacing-4 $spacing-6;
+
+    &::before {
+      display: none;
+    }
+
+    .clsPage--compact & {
+      padding: 0 $spacing-4 $spacing-6;
+    }
+  }
+}
+
+// Retrato de topo: só no mobile.
+.clsArt {
+  display: none;
+
+  @include mobile {
+    display: block;
+    position: relative;
+    height: min(30rem, 120vw);
+    margin: 0 (-$spacing-4);
+    overflow: hidden;
+
+    // Funde no fundo da página nos dois temas: só o alfa conta na máscara.
+    img {
+      object-fit: cover;
+      object-position: center 25%;
+      -webkit-mask-image: linear-gradient(180deg, black 50%, transparent 100%);
+      mask-image: linear-gradient(180deg, black 50%, transparent 100%);
+    }
+
+    &--empty {
+      display: grid;
+      place-items: center;
+      height: $spacing-16 * 4;
+      background: radial-gradient(
+        circle at 50% 55%,
+        rgba($gold-100, 0.12),
+        transparent 60%
+      );
+
+      .clsSigil {
+        position: static;
+        translate: none;
+        width: $spacing-20 * 2.4;
+      }
+    }
+
+    .clsImageBtn {
+      opacity: 1;
+      bottom: auto;
+      top: calc(#{$spacing-3} + #{$spacing-13});
+      left: auto;
+      right: $spacing-4;
+      translate: none;
+    }
+  }
+}
+
+.clsIdent {
+  @include mobile {
+    position: relative;
+    margin-top: -$spacing-18;
+
+    .clsArt--empty + & {
+      margin-top: 0;
+    }
+  }
+}
+
+.clsKicker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-3;
+  margin-bottom: $spacing-4;
+}
+
+.clsKind {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-2;
+  @include caption(var(--cls-muted), $font-weight-semibold, 1.2, 1px);
+}
+
+.clsKindIcon {
+  display: grid;
+  place-items: center;
+  width: $spacing-8;
+  height: $spacing-8;
+  border: 1px solid rgba($primary-100, 0.5);
+  border-radius: $radius-full;
+  color: var(--cls-accent);
+
+  svg {
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+}
+
+.clsUnique {
+  display: inline-block;
+  padding: $spacing-1 $spacing-2;
+  border: 1px solid $warning-border;
+  border-radius: $radius-sm;
+  background: color-mix(in srgb, var(--cls-surface) 70%, #{$warning} 12%);
+  @include caption(var(--cls-unique), $font-weight-semibold);
+}
+
+.clsName {
+  margin: 0;
+  overflow-wrap: anywhere;
+  @include cinzel-3xl(var(--cls-text), $font-weight-bold, 1.05, 0.04em);
+  font-size: $font-size-display;
+  @include gold-gradient-text;
+
+  // Sobre o pergaminho o dourado claro some: o gradiente escurece.
+  @include light {
+    background-image: linear-gradient(135deg, $gold-500, $gold-600);
+  }
+
+  // Embed e mobile: o degrau 3xl da escala, sem o tamanho de vitrine.
+  .clsPage--compact & {
+    @include cinzel-3xl(var(--cls-text), $font-weight-bold, 1.05, 0.04em);
+  }
+
+  @include mobile {
+    @include cinzel-3xl(var(--cls-text), $font-weight-bold, 1.05, 0.04em);
+  }
+}
+
+.clsClasp {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+  max-width: 30rem;
+  margin: $spacing-5 0;
+  @include caption($gold-300, $font-weight-regular, 1, 0);
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba($gold-100, 0.45));
+  }
+
+  &::after {
+    background: linear-gradient(90deg, rgba($gold-100, 0.45), transparent);
+  }
+
+  .clsPage--compact & {
+    margin: $spacing-4 0;
+  }
+}
+
+.clsLead {
+  max-width: 38rem;
+  margin: 0;
+  @include main-lg(var(--cls-text), $font-weight-regular, 1.6);
+
+  .clsPage--compact & {
+    @include main-md(var(--cls-text), $font-weight-regular, 1.6);
+  }
+
+  @include mobile {
+    @include main-md(var(--cls-text), $font-weight-regular, 1.6);
+  }
+}
+
+// PV: sai do nó "Dados" e fica sempre à vista.
+.clsVitals {
+  display: grid;
+  // O dado tem a largura do próprio texto; os dois PV dividem o resto.
+  grid-template-columns: minmax(max-content, auto) minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1px;
+  max-width: 40rem;
+  margin: $spacing-6 0 0;
+  overflow: hidden;
+  border: 1px solid var(--cls-border);
+  border-radius: $radius-md;
+  background: var(--cls-border);
+
+  @include mobile {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.clsVital {
+  min-width: 0;
+  padding: $spacing-3 $spacing-4;
+  background: var(--cls-surface);
+
+  dt {
+    margin-bottom: $spacing-1;
+    @include caption(var(--cls-muted), $font-weight-semibold);
+  }
+
+  dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+    @include main-sm(var(--cls-text), $font-weight-medium, 1.4);
+  }
+
+  // O dado é o número que se lê de longe; o "por nível" é nota abaixo dele.
+  &--die dd {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-1;
+  }
+
+  @include mobile {
+    &--die {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+
+      dt {
+        margin: 0;
+      }
+    }
+  }
+}
+
+.clsVitalDie {
+  @include mono-2xl(var(--cls-accent), $font-weight-bold, 1);
+  white-space: nowrap;
+}
+
+.clsVitalNote {
+  @include main-xs(var(--cls-muted), $font-weight-regular, 1.3);
+}
+
+// ── Retrato em arco, no centro do astrolábio ────────────────
+
+.clsPortrait {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  top: 50%;
+  width: 38%;
+  aspect-ratio: 3 / 4;
+  translate: -50% -50%;
+  margin: 0;
+  border: 1px solid rgba($gold-100, 0.6);
+  // Meia-lua no topo.
+  border-radius: 50% 50% #{$radius-md} #{$radius-md} / 37.5% 37.5% #{$radius-md}
+    #{$radius-md};
+  background: var(--cls-surface);
+  // Moldura dupla: um vão na cor do fundo e um fio dourado por fora.
+  outline: calc(#{$spacing-1} * 1.5) solid var(--cls-bg);
+  @include elevation(3);
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: calc(#{$spacing-1} * -1.5 - 1px);
+    border: 1px solid rgba($gold-100, 0.22);
+    border-radius: inherit;
+    pointer-events: none;
+  }
+
+  // Sombra interna que assenta a base do retrato.
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow: inset 0 (-$spacing-10) $spacing-8 (-$spacing-6)
+      rgba(var(--cls-ink), 0.55);
+    pointer-events: none;
+  }
+
+  &--empty {
+    background:
+      radial-gradient(
+        circle at 50% 45%,
+        rgba($gold-100, 0.12) 0%,
+        transparent 60%
+      ),
+      linear-gradient(180deg, var(--cls-raised), var(--cls-surface));
+
+    &::after {
+      display: none;
+    }
+  }
+
+  &:hover .clsImageBtn {
+    opacity: 1;
+  }
+}
+
+.clsPortraitImage {
+  object-fit: cover;
+  border-radius: inherit;
+}
+
+// O selo do card sem imagem: astrolábio com o ícone do papel principal.
+.clsSigil {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: 86%;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  color: $gold-300;
+  opacity: 0.7;
+}
+
+.clsSigilRing {
+  width: 100%;
+  height: 100%;
+}
+
+.clsSigilRole {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: $gold-100;
+
+  svg {
+    width: 24%;
+    height: 24%;
+  }
+}
+
+.clsImageBtn {
+  position: absolute;
+  left: 50%;
+  bottom: $spacing-3;
+  z-index: 2;
+  translate: -50% 0;
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-1;
+  padding: $spacing-1 $spacing-3;
+  border: 1px solid var(--cls-border-strong);
+  border-radius: $radius-full;
+  background: color-mix(in srgb, var(--cls-surface) 85%, transparent);
+  white-space: nowrap;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  @include caption(var(--cls-text), $font-weight-semibold);
+  @include focus-ring;
+
+  svg {
+    width: $spacing-3;
+    height: $spacing-3;
+  }
+
+  &:hover {
+    border-color: $gold-200;
+    color: var(--cls-accent);
+  }
+
+  &:focus-visible {
+    opacity: 1;
+  }
+
+  // Sem imagem, o botão é o convite para pôr uma.
+  .clsPortrait--empty & {
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+// ── Candidato (só editores) ─────────────────────────────────
+
+.clsCandidate {
+  max-width: 78rem;
+  margin: 0 auto $spacing-8;
+  padding: 0 $spacing-8;
+
+  @include mobile {
+    padding: 0 $spacing-4;
+  }
+}
+
+.clsCandidateBox {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: $spacing-3 $spacing-8;
+  align-items: start;
+  padding: $spacing-5 $spacing-6;
+  border: 1px solid $warning-border;
+  border-radius: $radius-lg;
+  background: $warning-bg;
+
+  @include mobile {
+    grid-template-columns: minmax(0, 1fr);
+    padding: $spacing-4;
+  }
+}
+
+.clsCandidateTitle {
+  margin: 0;
+  @include cinzel-lg(var(--cls-text), $font-weight-bold, 1.3);
+}
+
+.clsCandidateWhy {
+  max-width: 60ch;
+  margin: $spacing-1 0 0;
+  @include main-sm(var(--cls-muted), $font-weight-regular, 1.5);
+
+  a {
+    color: var(--cls-accent);
+  }
+}
+
+.clsCandidateMeter {
+  display: flex;
+  align-items: center;
+  gap: $spacing-3;
+  margin-top: $spacing-3;
+  @include mono-xs(var(--cls-text), $font-weight-bold, 1);
+
+  span {
+    flex: 0 1 $spacing-16 * 3;
+    height: calc(#{$spacing-1} * 1.5);
+    overflow: hidden;
+    border-radius: $radius-full;
+    background: var(--cls-border-strong);
+  }
+
+  i {
+    display: block;
+    height: 100%;
+    background: $warning;
+  }
+}
+
+.clsCandidateGroups {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: $spacing-3;
+  margin: 0;
+}
+
+.clsCandidateGroup {
+  padding: $spacing-3;
+  border: 1px solid var(--cls-border);
+  border-radius: $radius-md;
+  background: var(--cls-surface);
+
+  dt {
+    @include caption(var(--cls-muted), $font-weight-semibold);
+  }
+
+  dd {
+    margin: $spacing-1 0 0;
+    @include main-xs(var(--cls-text), $font-weight-regular, 1.5);
+  }
+}
+
+.clsCandidateActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: $spacing-2;
+
+  @include mobile {
+    justify-content: flex-start;
+  }
+}
+
+// ── Corpo: ficha lateral + "Sobre a classe" ─────────────────
+
+.clsBody {
+  display: grid;
+  grid-template-columns: $spacing-20 * 3.8 minmax(0, 1fr);
+  gap: $spacing-12;
+  align-items: start;
+  max-width: 78rem;
+  margin: 0 auto;
+  padding: $spacing-10 $spacing-8 $spacing-16;
+  border-top: 1px solid var(--cls-border);
+
+  .clsPage--compact & {
+    gap: $spacing-10;
+    padding: $spacing-8 $spacing-6 $spacing-10;
+  }
+
+  @include mobile {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-8;
+    padding: $spacing-8 $spacing-4 $spacing-12;
+
+    .clsPage--compact & {
+      padding: $spacing-8 $spacing-4 $spacing-12;
+    }
+  }
+}
+
+.clsSheet {
+  position: sticky;
+  top: $spacing-18;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-6;
+  min-width: 0;
+
+  .clsPage--compact & {
+    top: $spacing-14;
+  }
+
+  @include mobile {
+    position: static;
+  }
+}
+
+.clsSheetHead {
+  display: flex;
+  align-items: center;
+  gap: $spacing-3;
+  margin: 0 0 $spacing-4;
+}
+
+.clsSheetTitle {
+  margin: 0;
+  @include caption(var(--cls-muted), $font-weight-semibold);
+
+  // Fora do cabeçalho com lápis, o título precisa do próprio respiro.
+  div > & {
+    margin-bottom: $spacing-3;
+  }
+
+  .clsSheetHead > & {
+    margin: 0;
+  }
+}
+
+.clsFields {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+}
+
+.clsField {
+  display: grid;
+  grid-template-columns: $spacing-20 + $spacing-2 minmax(0, 1fr);
+  gap: $spacing-3;
+  padding: $spacing-2 0;
+  border-bottom: 1px solid var(--cls-border);
+
+  dt {
+    margin: 0;
+    padding-top: calc(#{$spacing-1} * 0.8);
+    @include caption(var(--cls-muted), $font-weight-semibold, 1.3);
+  }
+
+  dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+    @include main-sm(var(--cls-text), $font-weight-regular, 1.45);
+  }
+}
+
+.clsRaw {
+  margin: 0;
+  @include main-sm(var(--cls-text), $font-weight-regular, 1.5);
+  white-space: pre-line;
+}
+
+.clsEquip {
+  margin: 0;
+  padding-left: $spacing-5;
+  @include main-sm(var(--cls-text), $font-weight-regular, 1.5);
+
+  li {
+    margin-bottom: $spacing-1;
+  }
+
+  li::marker {
+    color: $gold-300;
+  }
+}
+
+.clsChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-2;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.clsChip {
+  padding: $spacing-1 $spacing-3;
+  border: 1px solid var(--cls-border-strong);
+  border-radius: $radius-full;
+  @include main-xs(var(--cls-muted), $font-weight-regular, 1.5);
+}
+
+.clsSource {
+  margin: 0;
+  @include main-xs(var(--cls-muted), $font-weight-regular, 1.6);
+
+  a {
+    color: var(--cls-accent);
+  }
+}
+
+// ── Sobre a classe ──────────────────────────────────────────
+
+.clsAbout {
+  min-width: 0;
+}
+
+.clsAboutHead {
+  display: flex;
+  align-items: center;
+  gap: $spacing-3;
+  margin: 0 0 $spacing-4;
+}
+
+.clsAboutTitle {
+  margin: 0;
+  @include cinzel-xl(var(--cls-text), $font-weight-bold, 1.3, 0.04em);
+}
+
+.clsAboutBody {
+  max-width: 68ch;
+
+  .clsDescText,
+  .clsDescBullets {
+    @include main-md(var(--cls-text), $font-weight-regular, 1.7);
+    max-width: none;
+    margin: 0 0 $spacing-4;
+  }
+
+  .clsDescBullets {
+    padding-left: $spacing-5;
+  }
+
+  // Capitular: a primeira letra do texto.
+  > div:first-child > .clsDescText:first-child::first-letter {
+    float: left;
+    padding: 0.08em $spacing-2 0 0;
+    @include cinzel-3xl(var(--cls-accent), $font-weight-bold, 0.9);
+    // Proporcional ao corpo do texto, não um degrau da escala: a capitular
+    // ocupa sempre duas linhas e meia do parágrafo em que está.
+    font-size: 3.1em;
+  }
+}
+
+.clsAboutAdd {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-2;
+  width: 100%;
+  max-width: 68ch;
+  min-height: $spacing-20 + $spacing-6;
+  border: 1px dashed var(--cls-border-strong);
+  border-radius: $radius-md;
+  background: transparent;
+  cursor: pointer;
+  @include cinzel-sm(var(--cls-muted), $font-weight-semibold, 1.2);
+  @include focus-ring;
+
+  svg {
+    width: $spacing-4;
+    height: $spacing-4;
+  }
+
+  &:hover {
+    border-color: $primary-100;
+    color: var(--cls-accent);
+  }
+}
+
+.clsAboutEmpty {
+  margin: 0;
+  @include main-md(var(--cls-muted), $font-weight-regular, 1.7);
+  font-style: italic;
+}
+
+.clsAboutEditor {
+  max-width: 68ch;
+}
+
+.clsAboutInput {
+  display: block;
+  width: 100%;
+  min-height: $spacing-20 * 3.6;
+  padding: $spacing-4;
+  border: 1px solid $gold-200;
+  border-radius: $radius-md;
+  background: var(--cls-surface);
+  resize: vertical;
+  @include main-md(var(--cls-text), $font-weight-regular, 1.7);
+  @include premium-input-focus;
+}
+
+.clsAboutFoot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-3;
+  margin-top: $spacing-3;
+}
+
+.clsAboutHint {
+  flex: 1 1 14rem;
+  @include main-xs(var(--cls-muted), $font-weight-regular, 1.5);
+
+  kbd {
+    padding: 0 $spacing-1;
+    border: 1px solid var(--cls-border-strong);
+    border-radius: $radius-sm;
+    @include mono-xs(var(--cls-text), $font-weight-regular, 1.5);
+  }
+}
+
+.clsNote {
+  max-width: 68ch;
+  margin: $spacing-6 0 0;
+  padding: $spacing-3 $spacing-4;
+  border: 1px solid var(--cls-border);
+  border-radius: $radius-md;
+  @include main-xs(var(--cls-muted), $font-weight-regular, 1.5);
+}
+
+// ── Toast: Salvando… / erro ─────────────────────────────────
+
+.clsToast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(#{$spacing-6} + env(safe-area-inset-bottom, 0px));
+  z-index: 1100;
+  translate: -50% 0;
+  padding: $spacing-2 $spacing-4;
+  border: 1px solid rgba($gold-100, 0.35);
+  border-radius: $radius-md;
+  background: var(--cls-float);
+  @include main-sm(var(--cls-text), $font-weight-regular, 1.5);
+
+  &--error {
+    border-color: $error-border;
+    background: color-mix(in srgb, var(--cls-float) 85%, #{$error} 15%);
+  }
+}

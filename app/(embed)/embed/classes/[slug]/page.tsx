@@ -2,7 +2,7 @@ import { cache } from 'react';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { connectDB } from '@/lib/db';
-import { getClassBySlug } from '@/services/class.service';
+import { getClassBySlug, getClassHolder } from '@/services/class.service';
 import ClassData from '@/components/ClassData';
 import EmbedCloseBridge from '@/components/EmbedCloseBridge';
 
@@ -32,12 +32,14 @@ export default async function EmbedClassPage({ params }: { params: Params }) {
   if (!klass) notFound();
 
   const serialized = JSON.parse(JSON.stringify(klass));
+  const holder = await getClassHolder(serialized);
   return (
     <main>
       {/* FORUM_ORIGIN é server-only e desce como prop, igual à árvore. */}
       <EmbedCloseBridge forumOrigin={process.env.FORUM_ORIGIN ?? ''} />
       <ClassData
         characterClass={serialized}
+        takenBy={holder}
         basePath="/embed/classes"
         compact
         readOnly

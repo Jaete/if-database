@@ -5,6 +5,7 @@ import { useCssHandles } from '@/hooks/useCssHandles';
 import { formatSlotCell, parseSlotCell } from '@/db/l10n/classes';
 import { CloseIcon } from '../../Icons';
 import SlotsFieldHandles from './handles';
+import '@/styles/components/slotsField.scss';
 
 const MAX_CIRCLE = 9;
 const ORDINALS = ['', '1º', '2º', '3º', '4º', '5º', '6º', '7º', '8º', '9º'];

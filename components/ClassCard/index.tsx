@@ -3,7 +3,6 @@
 import { Fragment, type MouseEvent } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { classRoleLabel } from '@/db/l10n/classes';
 import { applyModifiers, useCssHandles } from '@/hooks/useCssHandles';
 import type { IClassOption } from '../ClassGrid/useClassGrid';
 import {
@@ -13,6 +12,7 @@ import {
   SpellbookIcon,
   SwordIcon,
 } from '../Icons';
+import ClassRoles from '../ClassRoles';
 import { useClassCard } from './useClassCard';
 import ClassCardHandles from './handles';
 import '@/styles/components/classCard.scss';
@@ -56,7 +56,7 @@ const ClassCard = ({
   const handles = useCssHandles(ClassCardHandles);
   const { bodyRef, open, overflowing, toggle } = useClassCard(focused);
 
-  const [primary, ...secondary] = klass.roles ?? [];
+  const [primary] = klass.roles ?? [];
   const kind = klass.isSpellcaster ? 'Classe mágica' : 'Classe marcial';
   const KindIcon = klass.isSpellcaster ? SpellbookIcon : SwordIcon;
   const proficiencies = klass.proficiencies;
@@ -206,25 +206,7 @@ const ClassCard = ({
             {klass.name}
           </Link>
         </h3>
-        {primary && (
-          <ul className={handles.pickRoles} aria-label="Papéis">
-            <li
-              className={`${handles.pickRole} ${applyModifiers(handles.pickRole, 'primary')}`}
-            >
-              <span className={handles.pickRoleIcon}>
-                <ClassRoleIcon role={primary} />
-              </span>
-              {classRoleLabel(primary)}
-              <span className={handles.pickSrOnly}> (principal)</span>
-            </li>
-            {secondary.map((role) => (
-              <li key={role} className={handles.pickRole}>
-                <ClassRoleIcon role={role} />
-                {classRoleLabel(role)}
-              </li>
-            ))}
-          </ul>
-        )}
+        <ClassRoles roles={klass.roles} />
       </div>
 
       <div className={handles.pickClasp} aria-hidden="true">

@@ -76,6 +76,19 @@ export async function getUniqueClassHolders(): Promise<
 }
 
 /**
+ * Com quem está uma classe única, para o selo "única · Nome" do detalhe.
+ * Sem dono (ou classe não única), devolve `undefined`.
+ */
+export async function getClassHolder(klass: {
+  _id?: unknown;
+  isUnique?: boolean;
+}): Promise<{ id: string; name: string; slug: string } | undefined> {
+  if (!klass.isUnique || !klass._id) return undefined;
+  const holders = await getUniqueClassHolders();
+  return holders.get(String(klass._id));
+}
+
+/**
  * Projeção magra, para a listagem e o seletor da ficha.
  *
  * A classe completa carrega 20 níveis mais características e talentos; mandar

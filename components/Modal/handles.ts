@@ -3,8 +3,11 @@ const ModalHandles = [
   'modalShell',
   'modal',
   'header',
+  'titleGroup',
+  'eyebrow',
   'title',
   'closeButton',
+  'headerExtra',
   'content',
 ] as const;
 

@@ -1,21 +1,26 @@
 @use '../../styles/globals' as *;
 
+// A roda de seções: astrolábio no desktop, lista com fio de ouro no mobile.
+// As cores `--cls-*` vêm da página (ClassData).
+
 .classWheel {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: $spacing-6;
-  margin: $spacing-8 0 $spacing-10;
-}
-
-.classWheelStage {
-  position: relative;
-  width: min(100%, $spacing-20 * 8);
-  aspect-ratio: 1;
+  padding-inline: $spacing-10;
 
   @include mobile {
     display: none;
   }
+}
+
+.classWheelStage {
+  --orb: calc(var(--astro) * 0.13);
+  position: relative;
+  width: var(--astro);
+  max-width: 100%;
+  aspect-ratio: 1;
+  margin-block: $spacing-8;
 }
 
 .classWheelLines {
@@ -24,152 +29,253 @@
   width: 100%;
   height: 100%;
   overflow: visible;
-
-  circle,
-  line {
-    fill: none;
-    stroke: $gold-100;
-    stroke-width: 0.35;
-  }
-}
-
-.classWheelCenter {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: $spacing-1;
-  width: $spacing-16 + $spacing-20;
-  height: $spacing-16 + $spacing-20;
-  transform: translate(-50%, -50%);
-  border: 1px solid $gold-100;
-  border-radius: $radius-full;
-  background: $neutral-100;
   color: $gold-100;
+  pointer-events: none;
 
-  @include light {
-    background: $neutral-2100;
+  * {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+  }
+
+  [data-kind='ring'] {
+    opacity: 0.55;
+  }
+
+  [data-kind='outer'] {
+    opacity: 0.25;
+    stroke-dasharray: 2 6;
+  }
+
+  [data-kind='tick'],
+  [data-kind='spoke'] {
+    opacity: 0.35;
   }
 }
 
-.classWheelMark {
-  width: auto;
-  height: $spacing-20;
-}
-
-.classWheelCenterName {
-  @include cinzel-xs($gold-100, $font-weight-medium, 1.2, 0, center);
-  max-width: $spacing-16 + $spacing-4;
+.classWheelNodes {
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .classWheelNode {
   position: absolute;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: $spacing-20 + $spacing-8;
-  margin: 0;
+  z-index: 2;
+  width: var(--orb);
+  height: var(--orb);
+  translate: -50% -50%;
   padding: 0;
-  transform: translate(-50%, calc(#{$spacing-9} * -1));
   border: 0;
+  border-radius: $radius-full;
   background: none;
-  color: $color-text;
+  color: var(--cls-text);
   cursor: pointer;
-
   @include focus-ring($gold-100);
 
-  @include light {
-    color: $color-text-inverse;
+  &:focus-visible {
+    outline-offset: $spacing-1;
   }
 
   &:hover .classWheelOrb,
   &:focus-visible .classWheelOrb {
+    background: var(--cls-raised);
     box-shadow: 0 0 $spacing-4 rgba($gold-100, 0.45);
+  }
+
+  &:hover .classWheelLabel {
+    color: var(--cls-accent);
+  }
+
+  // Seção aberta no modal: orbe preenchido.
+  &[aria-expanded='true'] .classWheelOrb {
+    background: $gold-300;
+    color: $neutral-100;
   }
 }
 
 .classWheelOrb {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: $spacing-18;
-  height: $spacing-18;
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
   border: 1px solid $gold-100;
   border-radius: $radius-full;
-  background: $neutral-100;
-  color: $gold-100;
-
-  @include light {
-    background: $neutral-2100;
-  }
+  background: var(--cls-bg);
+  color: var(--cls-accent);
+  transition:
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
 
   svg {
-    width: $spacing-10;
-    height: $spacing-10;
+    width: 52%;
+    height: 52%;
   }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+// Selo de contagem no canto do orbe.
+.classWheelCount {
+  position: absolute;
+  top: calc(#{$spacing-1} / -2);
+  right: calc(#{$spacing-1} * -1.5);
+  display: grid;
+  place-items: center;
+  min-width: $spacing-6;
+  height: $spacing-6;
+  padding: 0 $spacing-1;
+  border: 1px solid rgba($gold-100, 0.6);
+  border-radius: $radius-full;
+  background: var(--cls-raised);
+  @include mono-xs(var(--cls-text), $font-weight-bold, 1);
 }
 
 .classWheelLabel {
-  @include cinzel-xs($color-text, $font-weight-medium, 1.2, 0, center);
-  margin-top: $spacing-2;
+  position: absolute;
+  left: 50%;
+  top: calc(100% + #{$spacing-2});
+  translate: -50% 0;
+  width: max-content;
+  max-width: $spacing-20 + $spacing-16 - $spacing-4;
+  @include cinzel-sm(
+    var(--cls-text),
+    $font-weight-semibold,
+    1.2,
+    0.03em,
+    center
+  );
 
-  @include light {
-    color: $color-text-inverse;
+  // O nó do topo põe o rótulo acima, para não invadir o retrato.
+  .classWheelNode--up & {
+    top: auto;
+    bottom: calc(100% + #{$spacing-2});
   }
 }
 
-.classWheelList {
-  display: none;
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-
-  @include mobile {
-    display: flex;
-    flex-direction: column;
-    gap: $spacing-3;
-  }
-}
-
-.classWheelListButton {
-  display: flex;
+.classWheelAdd,
+.classWheelSpineAdd {
+  display: inline-flex;
   align-items: center;
-  gap: $spacing-3;
-  width: 100%;
-  padding: $spacing-3 $spacing-4;
-  border: 1px solid rgba($gold-100, 0.45);
-  border-radius: $radius-md;
+  gap: $spacing-1;
+  min-height: $spacing-8;
+  padding: $spacing-1 $spacing-3;
+  border: 1px dashed var(--cls-border-strong);
+  border-radius: $radius-full;
   background: transparent;
-  color: $color-text;
+  white-space: nowrap;
   cursor: pointer;
-  @include cinzel-sm($color-text, $font-weight-medium, 1.2);
-  @include focus-ring($gold-100);
-
-  @include light {
-    color: $color-text-inverse;
-  }
+  @include caption(var(--cls-muted), $font-weight-semibold);
+  @include focus-ring;
 
   svg {
-    width: $spacing-5;
-    height: $spacing-5;
-    color: $gold-100;
-    flex-shrink: 0;
+    width: $spacing-3;
+    height: $spacing-3;
+  }
+
+  &:hover {
+    border-color: $primary-100;
+    color: var(--cls-accent);
   }
 }
 
 .classWheelAdd {
-  @include cinzel-sm($gold-100, $font-weight-medium, 1.2);
-  padding: $spacing-2 $spacing-4;
-  border: 1px solid rgba($gold-100, 0.45);
-  border-radius: $radius-full;
-  background: transparent;
-  color: $gold-100;
+  margin-top: -$spacing-2;
+}
+
+// ── A roda desenrolada (mobile) ─────────────────────────────
+
+.classWheelSpine {
+  display: none;
+
+  @include mobile {
+    display: block;
+    padding: 0 0 $spacing-6;
+  }
+}
+
+.classWheelSpineHead {
+  margin: 0 0 $spacing-2;
+  @include caption(var(--cls-muted), $font-weight-semibold);
+}
+
+.classWheelSpineList {
+  position: relative;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  // O fio de ouro que liga os orbes.
+  &::before {
+    content: '';
+    position: absolute;
+    left: 1.375rem;
+    top: $spacing-6;
+    bottom: $spacing-6;
+    width: 1px;
+    background: rgba($gold-100, 0.45);
+  }
+}
+
+.classWheelSpineButton {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: $spacing-3;
+  width: 100%;
+  min-height: $spacing-14;
+  padding: $spacing-1 0;
+  border: 0;
+  background: none;
+  color: var(--cls-text);
+  text-align: left;
   cursor: pointer;
-  @include focus-ring($gold-100);
+  @include focus-ring;
+
+  .classWheelOrb {
+    position: relative;
+    inset: auto;
+    flex: none;
+    width: $spacing-11;
+    height: $spacing-11;
+
+    svg {
+      width: 1.375rem;
+      height: 1.375rem;
+    }
+  }
+
+  &[aria-expanded='true'] .classWheelOrb {
+    background: $gold-300;
+    color: $neutral-100;
+  }
+
+  &:active .classWheelOrb {
+    background: var(--cls-raised);
+  }
+
+  > svg {
+    width: $spacing-4;
+    height: $spacing-4;
+    color: var(--cls-muted);
+  }
+}
+
+.classWheelSpineLabel {
+  flex: 1;
+  @include cinzel-md(var(--cls-text), $font-weight-semibold, 1.2, 0.03em);
+}
+
+.classWheelSpineCount {
+  min-width: $spacing-6;
+  text-align: right;
+  white-space: nowrap;
+  @include mono-xs(var(--cls-muted), $font-weight-bold, 1, 0, right);
+}
+
+.classWheelSpineAdd {
+  margin: $spacing-2 0 0 $spacing-14;
 }

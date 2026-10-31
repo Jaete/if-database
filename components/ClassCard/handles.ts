@@ -14,9 +14,6 @@ const ClassCardHandles = [
   'pickUnique',
   'pickName',
   'pickNameLink',
-  'pickRoles',
-  'pickRole',
-  'pickRoleIcon',
   'pickClasp',
   'pickBody',
   'pickDesc',
@@ -25,7 +22,6 @@ const ClassCardHandles = [
   'pickGroupTitle',
   'pickRows',
   'pickMore',
-  'pickSrOnly',
 ] as const;
 
 export default ClassCardHandles;

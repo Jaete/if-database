@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { connectDB } from '@/lib/db';
-import { getClassBySlug } from '@/services/class.service';
+import { getClassBySlug, getClassHolder } from '@/services/class.service';
 import ClassData from '@/components/ClassData';
 
 export const dynamic = 'force-dynamic';
@@ -16,9 +16,10 @@ export default async function ClassPage({
   if (!result.success || !result.data) notFound();
 
   const serialized = JSON.parse(JSON.stringify(result.data));
+  const holder = await getClassHolder(serialized);
   return (
     <main>
-      <ClassData characterClass={serialized} />
+      <ClassData characterClass={serialized} takenBy={holder} />
     </main>
   );
 }

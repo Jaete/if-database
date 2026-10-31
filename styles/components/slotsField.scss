@@ -1,0 +1,111 @@
+@use '../../styles/globals' as *;
+
+// ── Editor de espaços de magia (dentro do modal de nível) ──
+//
+// Mora aqui, e não em promptModal.scss, porque o editor é do ClassData: o
+// modal é genérico e não conhece círculo de magia.
+.slotsField {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-2;
+  width: 100%;
+}
+
+.slotsEmpty {
+  @include main-sm($color-text-muted, $font-weight-regular);
+}
+
+.slotsRow {
+  display: flex;
+  align-items: center;
+  gap: $spacing-3;
+}
+
+.slotsCircle {
+  min-width: 2rem;
+  @include cinzel-sm($color-text, $font-weight-semibold, 1.2);
+}
+
+.slotsStepper {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid $color-border;
+  border-radius: $radius-sm;
+  background: $surface-raised;
+}
+
+.slotsStep {
+  padding: $spacing-1 $spacing-3;
+  border: 0;
+  background: transparent;
+  color: $color-text;
+  cursor: pointer;
+  @include main-md($color-text, $font-weight-bold);
+  @include focus-ring($primary-100);
+
+  &:hover:not(:disabled) {
+    color: $gold-100;
+  }
+
+  // No piso do nível anterior o "−" apaga em vez de sumir: a borda do que é
+  // permitido continua visível, que é o que explica por que não desce mais.
+  &:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+}
+
+.slotsCount {
+  min-width: 2rem;
+  font-variant-numeric: tabular-nums;
+  @include mono-md($color-text, $font-weight-bold, 1.2, 0, center);
+}
+
+.slotsFloor {
+  @include caption($color-text-subtle, $font-weight-semibold);
+}
+
+.slotsRemove {
+  display: inline-flex;
+  align-items: center;
+  padding: $spacing-1;
+  border: 0;
+  border-radius: $radius-sm;
+  background: transparent;
+  color: $color-text-subtle;
+  cursor: pointer;
+
+  @include focus-ring($error);
+
+  &:hover {
+    color: $error;
+  }
+}
+
+.slotsAdd {
+  align-self: flex-start;
+  padding: $spacing-1 $spacing-3;
+  border: 1px dashed $color-border-strong;
+  border-radius: $radius-sm;
+  background: transparent;
+  cursor: pointer;
+
+  @include main-xs($color-text-muted, $font-weight-medium);
+  @include focus-ring($primary-100);
+
+  &:hover {
+    border-color: $primary-100;
+    border-style: solid;
+    color: $color-text;
+    background: $accent-overlay;
+  }
+}
+
+.slotsAddSelect {
+  align-self: flex-start;
+  padding: $spacing-1 $spacing-3;
+  border: 1px solid $primary-100;
+  border-radius: $radius-sm;
+  background: $surface-raised;
+  @include main-sm($color-text, $font-weight-regular);
+}
