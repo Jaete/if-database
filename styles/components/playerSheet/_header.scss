@@ -103,6 +103,11 @@ $portrait-size-compact: 4.5rem;
   color: $color-text-muted;
 }
 
+// Only from the wide band up; below it the epithet lives in Crônica.
+.sheetEpithetHud {
+  display: none;
+}
+
 .sheetXp {
   margin-top: $spacing-2;
   display: flex;
@@ -149,6 +154,9 @@ $portrait-size-compact: 4.5rem;
   flex-direction: column;
   gap: $spacing-3;
   justify-content: center;
+  // Clears the "Editar ficha" button, which sits over this column's top edge
+  // and would otherwise cover the HP number when there is also a Chi bar.
+  padding-top: $spacing-9;
 }
 
 .sheetResource {
@@ -245,6 +253,7 @@ $portrait-size-compact: 4.5rem;
 
   .sheetResources {
     grid-column: 1 / -1;
+    padding-top: 0;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: $spacing-4;

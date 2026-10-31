@@ -48,38 +48,44 @@ const ChroniclePanel = ({ player }: IProps) => {
   );
 
   return (
-    <>
-      <div className={handles.sheetChronicle}>
-        <Portrait image={player.image} name={player.name} variant="chronicle" />
-        <div>
-          {(editable || player.subtitle) && (
-            <span className={handles.sheetEpithet}>
-              <EditableText
-                path="subtitle"
-                label="Epíteto"
-                placeholder="Epíteto"
-              >
-                {player.subtitle}
-              </EditableText>
-            </span>
-          )}
-          {(editable || appearance.length > 0) && (
-            <Block title="Aparência">
-              {prose('appearance', 'Aparência', appearance)}
-            </Block>
-          )}
+    <div className={handles.sheetChronicleWrap}>
+      <div className={handles.sheetStory}>
+        <div className={handles.sheetChronicle}>
+          <Portrait
+            image={player.image}
+            name={player.name}
+            variant="chronicle"
+          />
+          <div>
+            {(editable || player.subtitle) && (
+              <span className={handles.sheetEpithet}>
+                <EditableText
+                  path="subtitle"
+                  label="Epíteto"
+                  placeholder="Epíteto"
+                >
+                  {player.subtitle}
+                </EditableText>
+              </span>
+            )}
+            {(editable || appearance.length > 0) && (
+              <Block title="Aparência">
+                {prose('appearance', 'Aparência', appearance)}
+              </Block>
+            )}
+          </div>
         </div>
+
+        {(editable || backstory.length > 0) && (
+          <Block title="História">
+            {prose('backstory', 'História', backstory)}
+          </Block>
+        )}
+
+        {!hasText && !editable && (
+          <p className={handles.sheetEmpty}>Nenhuma crônica registrada.</p>
+        )}
       </div>
-
-      {(editable || backstory.length > 0) && (
-        <Block title="História">
-          {prose('backstory', 'História', backstory)}
-        </Block>
-      )}
-
-      {!hasText && !editable && (
-        <p className={handles.sheetEmpty}>Nenhuma crônica registrada.</p>
-      )}
 
       {hasRegistry && (
         <div className={handles.sheetRegistry}>
@@ -112,7 +118,7 @@ const ChroniclePanel = ({ player }: IProps) => {
           )}
         </div>
       )}
-    </>
+    </div>
   );
 };
 

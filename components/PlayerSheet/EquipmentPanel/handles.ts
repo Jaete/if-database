@@ -1,4 +1,6 @@
 const EquipmentPanelHandles = [
+  'sheetEquip',
+  'sheetEquipBag',
   'sheetDoll',
   'sheetDollFigure',
   'sheetEquipSlot',

@@ -4,10 +4,12 @@
  * identidade, então declarar o nome aqui rende a mesma classe global.
  */
 const ArchetypePanelHandles = [
+  'sheetMasterLayout',
   'sheetMasterList',
   'sheetMasterGroup',
   'sheetMasterRow',
   'sheetMasterName',
+  'sheetMasterSummary',
   'sheetMasterOrigin',
   'sheetMasterRead',
   'sheetMasterEdit',

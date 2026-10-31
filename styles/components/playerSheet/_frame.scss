@@ -12,14 +12,18 @@ body:has(.playerSheetStage) {
 }
 
 .playerSheetStage {
-  max-width: 43.75rem;
-  margin-inline: auto;
+  // The container lives here, not on `.playerSheet`: at desk widths the sheet
+  // itself turns into a grid, and an element cannot query its own container.
+  // `size` (not `inline-size`) so the height can be queried too (the rail drops
+  // its descriptions on short iframes) and `cqh` works for the dossier portrait.
+  container: playerSheet / size;
+  width: 100%;
+  height: 100dvh;
 }
 
 .playerSheet {
-  container: playerSheet / inline-size;
   position: relative;
-  height: min(56.25rem, 100dvh);
+  height: 100%;
   // Coluna flex, e não um grid de linhas fixas: as faixas opcionais (estilo de
   // narração, barra de salvar) entram e saem conforme a permissão, e um
   // `grid-template-rows` com número fixo de trilhas faria a linha flexível
@@ -46,6 +50,7 @@ body:has(.playerSheetStage) {
 }
 
 .playerSheetPanel {
+  container: sheetPanel / inline-size;
   position: relative;
   min-width: 0;
   min-height: 0;
@@ -266,6 +271,42 @@ body:has(.playerSheetStage) {
 .sheetDetailText {
   white-space: pre-line;
   @include main-sm($color-text, $font-weight-regular, 1.6);
+}
+
+// Ficha curta do leitor (escola, alcance...): células de uma grade separadas por
+// linhas finas, como a barra de conjuração.
+.sheetDetailMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1px;
+  margin: $spacing-1 0 $spacing-2;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  background: $color-border;
+  overflow: hidden;
+}
+
+.sheetDetailMetaItem {
+  flex: 1 1 calc(50% - 1px);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: $spacing-2 $spacing-3;
+  background: $surface;
+
+  &--wide {
+    flex-basis: 100%;
+  }
+}
+
+.sheetDetailMetaKey {
+  text-transform: uppercase;
+  @include caption($color-text-muted, $font-weight-semibold, 1.4);
+}
+
+.sheetDetailMetaValue {
+  margin: 0;
+  @include main-xs($color-text, $font-weight-regular);
 }
 
 .sheetEmpty {

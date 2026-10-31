@@ -43,7 +43,7 @@ const EquipmentPanel = ({ player }: IProps) => {
   };
 
   return (
-    <>
+    <div className={handles.sheetEquip}>
       <div className={handles.sheetDoll} data-listnav>
         {EQUIPMENT_SLOTS.map((s, i) => {
           const it = readItem(equipment?.[s.key]);
@@ -105,46 +105,51 @@ const EquipmentPanel = ({ player }: IProps) => {
         text={item ? item.description : 'Nenhum item equipado neste espaço.'}
       />
 
-      <Block title="Bolsa">
-        <div className={handles.sheetPurse}>
-          <div className={handles.sheetGil}>
-            <span className={handles.sheetCaption}>Gil</span>
-            <b className={handles.sheetGilValue}>
-              <EditableText path="equipment.gil" label="Gil" as="number">
-                {equipment?.gil !== undefined
-                  ? formatNumber(equipment.gil)
-                  : DASH}
-              </EditableText>
-            </b>
-          </div>
-          <div>
-            <span className={handles.sheetCaption}>
-              Mochila · {pack.length} {pack.length === 1 ? 'item' : 'itens'}
-            </span>
-            {/* A mochila é um texto só, separado por ";" ou quebra de linha —
+      <div className={handles.sheetEquipBag}>
+        <Block title="Bolsa">
+          <div className={handles.sheetPurse}>
+            <div className={handles.sheetGil}>
+              <span className={handles.sheetCaption}>Gil</span>
+              <b className={handles.sheetGilValue}>
+                <EditableText path="equipment.gil" label="Gil" as="number">
+                  {equipment?.gil !== undefined
+                    ? formatNumber(equipment.gil)
+                    : DASH}
+                </EditableText>
+              </b>
+            </div>
+            <div>
+              <span className={handles.sheetCaption}>
+                Mochila · {pack.length} {pack.length === 1 ? 'item' : 'itens'}
+              </span>
+              {/* A mochila é um texto só, separado por ";" ou quebra de linha —
                 por isso edita como textarea e não como lista. */}
-            <EditableText
-              path="equipment.backpack"
-              label="Mochila"
-              as="multiline"
-              placeholder="Mochila vazia"
-            >
-              {pack.length > 0 ? (
-                <ul className={handles.sheetPack}>
-                  {pack.map((entry, i) => (
-                    <li key={`${entry}:${i}`} className={handles.sheetPackItem}>
-                      {entry}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className={handles.sheetEmpty}>Mochila vazia.</p>
-              )}
-            </EditableText>
+              <EditableText
+                path="equipment.backpack"
+                label="Mochila"
+                as="multiline"
+                placeholder="Mochila vazia"
+              >
+                {pack.length > 0 ? (
+                  <ul className={handles.sheetPack}>
+                    {pack.map((entry, i) => (
+                      <li
+                        key={`${entry}:${i}`}
+                        className={handles.sheetPackItem}
+                      >
+                        {entry}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className={handles.sheetEmpty}>Mochila vazia.</p>
+                )}
+              </EditableText>
+            </div>
           </div>
-        </div>
-      </Block>
-    </>
+        </Block>
+      </div>
+    </div>
   );
 };
 

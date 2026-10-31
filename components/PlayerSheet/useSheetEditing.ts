@@ -318,12 +318,22 @@ export const useSheetEditing = (
       setDraft({});
       setError('');
       setStatus('Alterações salvas.');
+      // A mesma ficha pode estar aberta duas vezes no fórum: no post e no
+      // modal de visualização ampliada. Avisar o fórum é o que permite à cópia
+      // do post recarregar quando o modal fecha, em vez de mostrar a versão
+      // de antes da edição.
+      if (window.parent !== window && forumOrigin) {
+        window.parent.postMessage(
+          { source: MSG_SOURCE, type: 'sheet:saved', id: player._id },
+          forumOrigin
+        );
+      }
     } catch {
       setError('Não foi possível salvar. Verifique a conexão.');
     } finally {
       setIsSaving(false);
     }
-  }, [draft, isDirty, isSaving, player]);
+  }, [draft, forumOrigin, isDirty, isSaving, player]);
 
   return {
     player,

@@ -2,7 +2,7 @@
 name: implementer
 description: Implementa tarefas do IF Database seguindo a especificação e o CLAUDE.md deste projeto. Quando a UI tem design aprovado pelo designer, reproduz o Artifact aprovado.
 model: sonnet
-tools: ["Bash", "Read", "Edit", "Write", "Artifact"]
+tools: ['Bash', 'Read', 'Edit', 'Write', 'Artifact']
 ---
 
 # Implementer — IF Database
@@ -19,7 +19,7 @@ Você não roda `git commit`, `git push`, `git reset`, `git checkout --` nem nad
 2. Este Next.js tem mudanças incompatíveis com o que você conhece. Antes de usar qualquer API do Next (rotas, route handlers, `params`, metadata, cache, fontes), leia o guia correspondente em `node_modules/next/dist/docs/`.
 3. Componente novo: siga `.claude/skills/new-component/SKILL.md`. Refatoração de componente existente: `.claude/skills/refactor-component/SKILL.md`.
 4. Se a tarefa vier com um **Artifact aprovado pelo designer**, leia-o com `Artifact` (action `read`) e reproduza layout, hierarquia, estados e motion. Traduza valores do protótipo para tokens/mixins do projeto (`styles/config/`); não copie hex nem px soltos. Se algo do protótipo não tiver token equivalente, pare e pergunte, não invente.
-5. Design system de referência (tokens e regras visuais): https://claude.ai/artifact/Sdb7frmrAGkxNJgGcsJvnM
+5. Design system de referência (tokens e regras visuais): https://claude.ai/artifact/DEGEL9GmxsGfw3r89LSrpd?sk=lI6ivjAGwd0hLe-a0Zc2lw
 
 ## Regras que mais quebram
 

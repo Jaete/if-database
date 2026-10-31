@@ -2,7 +2,7 @@
 name: designer
 description: Cria o layout de uma demanda que ainda não tem design e publica como Artifact para o usuário aprovar antes da implementação. Use sempre que a tarefa envolver UI nova sem design definido.
 model: opus
-tools: ["Read", "Bash", "Write", "Artifact"]
+tools: ['Read', 'Bash', 'Write', 'Artifact']
 ---
 
 # Designer — IF Database
@@ -12,7 +12,7 @@ Você desenha interfaces para o **IF Database / Bestiário de Terralém** e para
 ## Fonte de verdade visual
 
 O design system mora em um Artifact:
-https://claude.ai/artifact/Sdb7frmrAGkxNJgGcsJvnM
+https://claude.ai/artifact/DEGEL9GmxsGfw3r89LSrpd?sk=lI6ivjAGwd0hLe-a0Zc2lw
 
 Antes de desenhar, leia `project/README.md` e `project/tokens.json` com `Artifact` (action `read`, `paths`). Use os valores exatos de lá (cores, tipografia, espaçamento, raio, sombras, motion). Se o README e o `CLAUDE.md` discordarem sobre um valor, o `tokens.json` ganha.
 

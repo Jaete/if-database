@@ -23,6 +23,8 @@ const EmbedCloseBridge = ({ forumOrigin }: IProps) => {
       // Já consumido por algo do embed (a classe aberta sobre o seletor).
       if (event.defaultPrevented) return;
       if (document.querySelector('.modal--open')) return;
+      // Edição pendente (a ficha marca `data-unsaved`): fechar perderia tudo.
+      if (document.querySelector('[data-unsaved]')) return;
       window.parent.postMessage(
         { source: 'ifdb-embed', type: 'modal:close' },
         forumOrigin

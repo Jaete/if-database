@@ -1,0 +1,343 @@
+@use '../../../styles/globals' as *;
+@use 'vars' as *;
+
+// Grids of each screen by the width left for the panel itself (container
+// `sheetPanel`), whatever the band of the sheet:
+//
+//   narrow  < 30rem        phone
+//   (base)  30rem – 47.4rem  the original layout
+//   wide    ≥ 47.5rem      reader beside the list, attributes in one row
+//   vast    ≥ 68.75rem     one more column wherever there is room
+
+// ── Narrow ──────────────────────────────────────────────────
+@include panel-narrow {
+  .sheetAttrs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sheetIdentity,
+  .sheetPairs,
+  .sheetSkillGroups,
+  .sheetPurse,
+  .sheetSpells,
+  .sheetProfessions,
+  .sheetRegistry {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sheetSaves {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .sheetDoll {
+    grid-template-columns: minmax(0, 1fr) 4.5rem minmax(0, 1fr);
+  }
+
+  .sheetChronicle {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sheetPortrait--chronicle {
+    width: 8.75rem;
+  }
+}
+
+// ── Wide ────────────────────────────────────────────────────
+@include panel-wide {
+  // Status: the six attributes in one row, then identity on the left and
+  // senses/defenses on the right. Only the grid areas move; the DOM keeps its
+  // order (identity, attributes, senses, defenses).
+  .sheetStatus {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    grid-template-areas:
+      'attrs attrs'
+      'ident senses'
+      'ident defenses';
+    gap: $spacing-7 $spacing-8;
+    align-items: start;
+  }
+
+  .sheetStatusIdent {
+    grid-area: ident;
+  }
+
+  .sheetStatusAttrs {
+    grid-area: attrs;
+  }
+
+  .sheetStatusSenses {
+    grid-area: senses;
+  }
+
+  .sheetStatusDefenses {
+    grid-area: defenses;
+  }
+
+  .sheetStatusSenses .sheetPairs,
+  .sheetStatusDefenses .sheetPairs {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sheetAttrs {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: $spacing-3;
+  }
+
+  .sheetAttr {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: repeat(4, auto);
+    justify-items: center;
+    gap: $spacing-1 * 0.5;
+    padding: $spacing-3 $spacing-2;
+    text-align: center;
+    background: linear-gradient(180deg, $surface-raised, $surface);
+  }
+
+  .sheetAttrAbbr {
+    @include cinzel-md($color-accent, $font-weight-semibold, 1.2, 1px);
+  }
+
+  .sheetAttrLabel {
+    display: block;
+    @include main-xs($color-text-muted, $font-weight-regular);
+  }
+
+  .sheetAttrMod {
+    grid-row: auto;
+    grid-column: auto;
+    justify-self: center;
+    margin: $spacing-1 0;
+    font-size: $font-size-sheet-attr-mod;
+  }
+
+  .sheetAttrBreakdown {
+    white-space: normal;
+  }
+
+  // Skills: three groups per row, and the origin of each bonus written out
+  // instead of hidden in a hover popover.
+  .sheetSkillGroups {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .sheetSaveValue {
+    @include mono-xl($color-text, $font-weight-bold, 1.3);
+  }
+
+  .sheetBonusPop {
+    position: static;
+    width: auto;
+    max-width: none;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    @include main-xs($color-text-muted, $font-weight-regular);
+  }
+
+  // Reader beside the list (abilities, archetype, spells).
+  .sheetMasterLayout,
+  .sheetSpellLayout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 22rem;
+    gap: $spacing-7;
+    align-items: start;
+
+    > .sheetDetail {
+      display: block;
+    }
+  }
+
+  .sheetMasterSummary {
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    @include main-xs($color-text-muted, $font-weight-regular);
+  }
+
+  .sheetMasterName {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sheetMasterRow[data-current='true'] {
+    background: $accent-overlay-hover;
+    box-shadow: inset 0 0 0 1px with-alpha($color-accent-line, 0.45);
+  }
+
+  // Spells: the cast bar in a single row, each spell with school, time, range.
+  .sheetCastbar {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+  }
+
+  .sheetCastCell:nth-child(n + 4) {
+    border-top: 0;
+  }
+
+  .sheetCastCell:not(:first-child) {
+    border-left: 1px solid $color-border;
+  }
+
+  .sheetSpells {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sheetSpell {
+    padding: $spacing-1 $spacing-2;
+    border-radius: $radius-sm;
+
+    &:hover {
+      background: $accent-overlay;
+    }
+
+    &[data-current='true'] {
+      background: $accent-overlay-hover;
+      box-shadow: inset 0 0 0 1px with-alpha($color-accent-line, 0.45);
+    }
+  }
+
+  .sheetSpellName {
+    @include main-md(inherit, $font-weight-regular);
+  }
+
+  .sheetSpellMetaLine {
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    @include main-xs($color-text-muted, $font-weight-regular, 1.5);
+  }
+
+  // Equipment: doll and detail side by side, the bag below.
+  .sheetEquip {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    grid-template-areas:
+      'doll detail'
+      'bag bag';
+    gap: $spacing-6 $spacing-7;
+    align-items: start;
+  }
+
+  .sheetEquip > .sheetDoll {
+    grid-area: doll;
+    grid-template-columns: minmax(0, 1fr) 8.5rem minmax(0, 1fr);
+  }
+
+  .sheetEquip > .sheetDetail {
+    grid-area: detail;
+  }
+
+  .sheetEquipBag {
+    grid-area: bag;
+    min-width: 0;
+  }
+
+  .sheetDollFigure svg {
+    max-width: 8.5rem;
+  }
+
+  .sheetEquipSlot {
+    min-height: $spacing-15;
+  }
+
+  .sheetPack {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0 $spacing-4;
+  }
+
+  .sheetProfessions {
+    grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  }
+
+  .sheetProfessions > .sheetEditNote {
+    grid-column: 1 / -1;
+  }
+
+  .sheetChronicle {
+    grid-template-columns: 14rem minmax(0, 1fr);
+    gap: $spacing-8;
+  }
+
+  .sheetProse {
+    max-width: 72ch;
+  }
+}
+
+// ── Vast ────────────────────────────────────────────────────
+@include panel-vast {
+  .sheetStatus {
+    grid-template-columns:
+      minmax(0, 1.4fr)
+      minmax(0, 1fr)
+      minmax(0, 1fr);
+    grid-template-areas:
+      'attrs attrs attrs'
+      'ident senses defenses';
+  }
+
+  .sheetAttrMod {
+    font-size: $font-size-sheet-attr-mod-vast;
+  }
+
+  // One group per attribute.
+  .sheetSkillGroups {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .sheetMasterLayout,
+  .sheetSpellLayout {
+    grid-template-columns: minmax(0, 1fr) 28rem;
+  }
+
+  .sheetMasterList {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: $spacing-5 $spacing-6;
+    align-items: start;
+  }
+
+  .sheetCircles {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  .sheetEquip {
+    grid-template-columns:
+      minmax(0, 1.3fr)
+      minmax(0, 1fr)
+      minmax(0, 1fr);
+    grid-template-areas: 'doll detail bag';
+  }
+
+  .sheetPurse,
+  .sheetPack {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  // The registry becomes a fixed side column.
+  .sheetChronicleWrap {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 16rem;
+    gap: $spacing-10;
+    align-items: start;
+  }
+
+  .sheetRegistry {
+    position: sticky;
+    top: 0;
+    grid-template-columns: minmax(0, 1fr);
+    padding: $spacing-4;
+    border: 1px solid $color-border;
+    border-radius: $radius-lg;
+  }
+}

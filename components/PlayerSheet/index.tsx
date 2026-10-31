@@ -171,6 +171,9 @@ const PlayerSheet = ({ player: initialPlayer, forumOrigin }: IProps) => {
           ref={sheetRef}
           className={handles.playerSheet}
           data-view={view}
+          // Lido pelo EmbedCloseBridge: com alteração não salva, o Esc não
+          // fecha o modal do fórum e não joga a edição fora.
+          data-unsaved={isDirty || undefined}
           aria-label={`Ficha de ${player.name}`}
         >
           {canEdit && (

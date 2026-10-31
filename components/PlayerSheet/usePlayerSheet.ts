@@ -71,12 +71,18 @@ export const usePlayerSheet = (player: IPublicPlayer, editable = false) => {
       const list = menuRef.current;
       if (!item || !cursor || !list) return;
       cursor.style.height = `${item.offsetHeight}px`;
-      cursor.style.transform = `translateY(${item.offsetTop + list.offsetTop}px)`;
+      // The list scrolls when the rail is short (wide bands), the cursor does not.
+      cursor.style.transform = `translateY(${item.offsetTop + list.offsetTop - list.scrollTop}px)`;
     };
     place();
     window.addEventListener('resize', place);
+    const list = menuRef.current;
+    list?.addEventListener('scroll', place);
     document.fonts?.ready.then(place);
-    return () => window.removeEventListener('resize', place);
+    return () => {
+      window.removeEventListener('resize', place);
+      list?.removeEventListener('scroll', place);
+    };
   }, [cursorAt, isCompact, view]);
 
   // Focus moves only after the DOM it targets is on screen.

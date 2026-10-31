@@ -2,12 +2,78 @@
 
 $rail-width: 9.375rem;
 $ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-$compact-max: 35rem;
 
-// The sheet switches layout by its own width (container query), because inside
-// a 700px iframe the viewport is narrower than the project's `desktop` query.
+// Breakpoints, in rem so they follow the root font size. The sheet is laid out
+// by the width of its own iframe (`.playerSheetStage`, container `playerSheet`),
+// because inside the forum's 700px iframe the viewport is narrower than the
+// project's `desktop` query, and inside the 90vw modal it is wider.
+$compact-max: 34.9375rem; // below 35rem (560px): phone, drill-down menu
+$wide-min: 60rem; // 960px: bigger header, 224px rail
+$desk-min: 85rem; // 1360px: three columns (dossier | rail | panel)
+$desk-xl-min: 107.5rem; // 1720px: wider dossier and rail
+
+// The panel has its own container (`.playerSheetPanel`): its grids react to
+// the width left for it, whatever the band of the sheet.
+$panel-narrow-max: 29.9375rem; // below 30rem
+$panel-wide-min: 47.5rem; // 760px: reader beside the list
+$panel-vast-min: 68.75rem; // 1100px
+
+// Off-scale type steps asked by the layout design. They have no step in the
+// global scale, so they live here instead of being scattered as loose values.
+$font-size-sheet-name-wide: 1.875rem;
+$font-size-sheet-name-desk-xl: 2.25rem;
+$font-size-sheet-name-desk: 2rem;
+$font-size-sheet-resource-wide: 1.75rem;
+$font-size-sheet-resource-desk: 2rem;
+$font-size-sheet-title-desk-xl: 1.75rem;
+$font-size-sheet-attr-mod: 2rem;
+$font-size-sheet-attr-mod-vast: 2.5rem;
+
 @mixin compact {
   @container playerSheet (max-width: #{$compact-max}) {
+    @content;
+  }
+}
+
+@mixin wide {
+  @container playerSheet (min-width: #{$wide-min}) {
+    @content;
+  }
+}
+
+// Wide but short: the rail gives up its descriptions before it has to scroll.
+@mixin wide-short {
+  @container playerSheet (min-width: #{$wide-min}) and (max-height: 46rem) {
+    @content;
+  }
+}
+
+@mixin desk {
+  @container playerSheet (min-width: #{$desk-min}) {
+    @content;
+  }
+}
+
+@mixin desk-xl {
+  @container playerSheet (min-width: #{$desk-xl-min}) {
+    @content;
+  }
+}
+
+@mixin panel-narrow {
+  @container sheetPanel (max-width: #{$panel-narrow-max}) {
+    @content;
+  }
+}
+
+@mixin panel-wide {
+  @container sheetPanel (min-width: #{$panel-wide-min}) {
+    @content;
+  }
+}
+
+@mixin panel-vast {
+  @container sheetPanel (min-width: #{$panel-vast-min}) {
     @content;
   }
 }

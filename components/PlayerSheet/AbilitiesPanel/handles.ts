@@ -1,8 +1,10 @@
 const AbilitiesPanelHandles = [
+  'sheetMasterLayout',
   'sheetMasterList',
   'sheetMasterGroup',
   'sheetMasterRow',
   'sheetMasterName',
+  'sheetMasterSummary',
   'sheetMasterOrigin',
   'sheetMasterRead',
   'sheetMasterEdit',

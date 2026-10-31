@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { useCssHandles } from '@/hooks/useCssHandles';
 import { EyeIcon, PencilIcon } from '../../Icons';
 import Modal from '@/components/Modal';
+import DetailCard from '../DetailCard';
+import { useSideReader } from '../useSideReader';
 import PromptModal from '@/components/PromptModal';
 import { useEditing } from '../EditingContext';
 import AbilitiesPanelHandles from './handles';
@@ -62,10 +64,11 @@ type Editing = { path: string; at: number; entry: IAbility } | null;
 // sobrepõe o rascunho aos dados do jogador.
 const AbilitiesPanel = () => {
   const handles = useCssHandles(AbilitiesPanelHandles);
-  const [reading, setReading] = useState<IEntry | null>(null);
+  const reader = useSideReader<IEntry>();
   const [editing, setEditing] = useState<Editing>(null);
   const { editable, objects, setField, value } = useEditing();
   const className = String(value('class') ?? '').trim();
+  const keyOf = (entry: IEntry) => `${entry.path}:${entry.at}`;
 
   // Lido pelo contexto, e não direto do jogador, para a lista refletir o
   // rascunho enquanto não se salva.
@@ -85,6 +88,9 @@ const AbilitiesPanel = () => {
     group,
     entries: entries.filter((e) => e.group === group),
   })).filter((g) => editable || g.entries.length > 0);
+
+  const shown =
+    entries.find((entry) => keyOf(entry) === reader.selectedKey) ?? entries[0];
 
   const write = (path: string, at: number, entry: IAbility | null) => {
     const list = listOf(path);
@@ -111,17 +117,17 @@ const AbilitiesPanel = () => {
   const modals = (
     <>
       <Modal
-        isOpen={reading !== null}
-        onClose={() => setReading(null)}
-        title={reading?.name}
+        isOpen={reader.reading !== null}
+        onClose={() => reader.setReading(null)}
+        title={reader.reading?.name}
       >
-        {reading && (
+        {reader.reading && (
           <div className={handles.sheetReader}>
             <span className={handles.sheetReaderKicker}>
-              {kickerOf(reading)}
+              {kickerOf(reader.reading)}
             </span>
             <p className={handles.sheetReaderText}>
-              {reading.description || 'Sem descrição.'}
+              {reader.reading.description || 'Sem descrição.'}
             </p>
           </div>
         )}
@@ -167,69 +173,99 @@ const AbilitiesPanel = () => {
   );
 
   return (
-    <div className={handles.sheetMasterList} data-listnav>
-      {groups.map(({ group, entries: list }) => (
-        <div
-          key={group}
-          className={handles.sheetMasterGroup}
-          role="group"
-          aria-label={group}
-        >
-          <span className={handles.sheetCaption}>{group}</span>
-          {list.map((entry) => (
+    <>
+      <div className={handles.sheetMasterLayout}>
+        <div className={handles.sheetMasterList} data-listnav>
+          {groups.map(({ group, entries: list }) => (
             <div
-              key={`${entry.path}:${entry.at}`}
-              className={handles.sheetMasterRow}
+              key={group}
+              className={handles.sheetMasterGroup}
+              role="group"
+              aria-label={group}
             >
-              <span className={handles.sheetMasterName}>
-                {entry.name}
-                {/* A origem aparece na própria lista: sem isso, a única
-                    diferença visível entre o que a classe concede e o que foi
-                    digitado seria a ausência do lápis, e só em modo edição. */}
-                {entry.source === 'class' && (
-                  <span className={handles.sheetMasterOrigin}>classe</span>
-                )}
-              </span>
-              {/* O botão de ler é quem carrega o `data-opt`: é a ação da linha,
-                  e é por ele que as setas do teclado andam pela lista. */}
-              <button
-                type="button"
-                className={handles.sheetMasterRead}
-                data-opt
-                onClick={() => setReading(entry)}
-                aria-label={`Ler ${entry.name}`}
-              >
-                <EyeIcon />
-              </button>
-              {editable && entry.source !== 'class' && (
+              <span className={handles.sheetCaption}>{group}</span>
+              {list.map((entry) => {
+                const key = keyOf(entry);
+                return (
+                  <div
+                    key={key}
+                    className={handles.sheetMasterRow}
+                    data-current={key === (shown && keyOf(shown)) || undefined}
+                    onClick={() => reader.preview(key)}
+                    onMouseEnter={() => reader.preview(key)}
+                    onFocus={() => reader.preview(key)}
+                  >
+                    <span className={handles.sheetMasterName}>
+                      <span>
+                        {entry.name}
+                        {/* A origem aparece na própria lista: sem isso, a
+                            única diferença visível entre o que a classe
+                            concede e o que foi digitado seria a ausência do
+                            lápis, e só em modo edição. */}
+                        {entry.source === 'class' && (
+                          <span className={handles.sheetMasterOrigin}>
+                            classe
+                          </span>
+                        )}
+                      </span>
+                      {entry.description && (
+                        <span className={handles.sheetMasterSummary}>
+                          {entry.description}
+                        </span>
+                      )}
+                    </span>
+                    {/* O botão de ler é quem carrega o `data-opt`: é a ação da
+                        linha, e é por ele que as setas do teclado andam pela
+                        lista. */}
+                    <button
+                      type="button"
+                      className={handles.sheetMasterRead}
+                      data-opt
+                      onClick={() => reader.open(key, entry)}
+                      aria-label={`Ler ${entry.name}`}
+                    >
+                      <EyeIcon />
+                    </button>
+                    {editable && entry.source !== 'class' && (
+                      <button
+                        type="button"
+                        className={handles.sheetMasterEdit}
+                        onClick={() =>
+                          setEditing({ path: entry.path, at: entry.at, entry })
+                        }
+                        aria-label={`Editar ${entry.name}`}
+                      >
+                        <PencilIcon />
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+              {editable && (
                 <button
                   type="button"
-                  className={handles.sheetMasterEdit}
+                  className={handles.sheetMasterAdd}
                   onClick={() =>
-                    setEditing({ path: entry.path, at: entry.at, entry })
+                    setEditing({ path: ADD_PATH[group], at: -1, entry: {} })
                   }
-                  aria-label={`Editar ${entry.name}`}
                 >
-                  <PencilIcon />
+                  + Adicionar
                 </button>
               )}
             </div>
           ))}
-          {editable && (
-            <button
-              type="button"
-              className={handles.sheetMasterAdd}
-              onClick={() =>
-                setEditing({ path: ADD_PATH[group], at: -1, entry: {} })
-              }
-            >
-              + Adicionar
-            </button>
-          )}
         </div>
-      ))}
+        {shown && (
+          <DetailCard
+            id={reader.detailId}
+            kicker={kickerOf(shown)}
+            title={shown.name}
+            text={shown.description}
+          />
+        )}
+      </div>
       {modals}
-    </div>
+    </>
   );
 };
 

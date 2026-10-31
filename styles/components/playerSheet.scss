@@ -9,3 +9,6 @@
 @use 'playerSheet/panels';
 @use 'playerSheet/narration';
 @use 'playerSheet/editing';
+// Last on purpose: the wider bands override base rules from every file above.
+@use 'playerSheet/wide';
+@use 'playerSheet/panelBands';

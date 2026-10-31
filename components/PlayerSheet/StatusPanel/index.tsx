@@ -52,153 +52,165 @@ const StatusPanel = ({ player }: IProps) => {
   ].filter((t): t is string => !!t);
 
   return (
-    <>
+    <div className={handles.sheetStatus}>
       {identity.length > 0 && (
-        <Block title="Identidade">
-          <dl className={handles.sheetIdentity}>
-            {identity.map(({ path, label }) => (
-              <div key={path} className={handles.sheetIdentityItem}>
-                <dt className={handles.sheetIdentityTerm}>{label}</dt>
-                <dd className={handles.sheetIdentityValue}>
-                  <EditableText path={path} label={label}>
-                    {value(path)}
-                  </EditableText>
-                </dd>
-              </div>
-            ))}
-          </dl>
-        </Block>
+        <div className={handles.sheetStatusIdent}>
+          <Block title="Identidade">
+            <dl className={handles.sheetIdentity}>
+              {identity.map(({ path, label }) => (
+                <div key={path} className={handles.sheetIdentityItem}>
+                  <dt className={handles.sheetIdentityTerm}>{label}</dt>
+                  <dd className={handles.sheetIdentityValue}>
+                    <EditableText path={path} label={label}>
+                      {value(path)}
+                    </EditableText>
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </Block>
+        </div>
       )}
 
       {hasAttributes && (
-        <Block title="Atributos">
-          <div className={handles.sheetAttrs}>
-            {attributes.map(({ key, abbr, label, data }) => {
-              // Em edição, o modificador e o total vêm do rascunho a cada
-              // tecla, para o número grande acompanhar o que está sendo
-              // digitado. O servidor recalcula os dois na gravação, de modo que
-              // este cálculo é só apresentação.
-              const live = editable
-                ? Number(value(`playerStats.${key}.base`) ?? 0) +
-                  Number(value(`playerStats.${key}.raceBonus`) ?? 0) +
-                  Number(value(`playerStats.${key}.classBonus`) ?? 0)
-                : null;
+        <div className={handles.sheetStatusAttrs}>
+          <Block title="Atributos">
+            <div className={handles.sheetAttrs}>
+              {attributes.map(({ key, abbr, label, data }) => {
+                // Em edição, o modificador e o total vêm do rascunho a cada
+                // tecla, para o número grande acompanhar o que está sendo
+                // digitado. O servidor recalcula os dois na gravação, de modo que
+                // este cálculo é só apresentação.
+                const live = editable
+                  ? Number(value(`playerStats.${key}.base`) ?? 0) +
+                    Number(value(`playerStats.${key}.raceBonus`) ?? 0) +
+                    Number(value(`playerStats.${key}.classBonus`) ?? 0)
+                  : null;
 
-              return (
-                <div key={key} className={handles.sheetAttr} title={label}>
-                  <span className={handles.sheetAttrAbbr}>{abbr}</span>
-                  <span className={handles.sheetAttrMod}>
-                    {editable
-                      ? formatModifier(modifierOf(live ?? 0))
-                      : data
-                        ? formatModifier(data.modifier)
-                        : '—'}
-                  </span>
-                  <span className={handles.sheetAttrBreakdown}>
-                    {editable ? (
-                      <>
-                        <EditableText
-                          path={`playerStats.${key}.base`}
-                          label={`${label}: valor`}
-                          as="number"
-                          placeholder="0"
-                        >
-                          {value(`playerStats.${key}.base`)}
-                        </EditableText>{' '}
-                        <EditableText
-                          path={`playerStats.${key}.raceBonus`}
-                          label={`${label}: bônus de raça`}
-                          as="number"
-                          placeholder="+0"
-                        >
-                          {value(`playerStats.${key}.raceBonus`)}
-                        </EditableText>{' '}
-                        <EditableText
-                          path={`playerStats.${key}.classBonus`}
-                          label={`${label}: bônus de classe`}
-                          as="number"
-                          placeholder="+0"
-                        >
-                          {value(`playerStats.${key}.classBonus`)}
-                        </EditableText>{' '}
-                        = <b>{live}</b>
-                      </>
-                    ) : data && !data.flat ? (
-                      <>
-                        {data.base} {formatModifier(data.raceBonus ?? 0)}{' '}
-                        {formatModifier(data.classBonus ?? 0)} ={' '}
+                return (
+                  <div key={key} className={handles.sheetAttr} title={label}>
+                    <span className={handles.sheetAttrAbbr}>{abbr}</span>
+                    <span className={handles.sheetAttrLabel}>{label}</span>
+                    <span className={handles.sheetAttrMod}>
+                      {editable
+                        ? formatModifier(modifierOf(live ?? 0))
+                        : data
+                          ? formatModifier(data.modifier)
+                          : '—'}
+                    </span>
+                    <span className={handles.sheetAttrBreakdown}>
+                      {editable ? (
+                        <>
+                          <EditableText
+                            path={`playerStats.${key}.base`}
+                            label={`${label}: valor`}
+                            as="number"
+                            placeholder="0"
+                          >
+                            {value(`playerStats.${key}.base`)}
+                          </EditableText>{' '}
+                          <EditableText
+                            path={`playerStats.${key}.raceBonus`}
+                            label={`${label}: bônus de raça`}
+                            as="number"
+                            placeholder="+0"
+                          >
+                            {value(`playerStats.${key}.raceBonus`)}
+                          </EditableText>{' '}
+                          <EditableText
+                            path={`playerStats.${key}.classBonus`}
+                            label={`${label}: bônus de classe`}
+                            as="number"
+                            placeholder="+0"
+                          >
+                            {value(`playerStats.${key}.classBonus`)}
+                          </EditableText>{' '}
+                          = <b>{live}</b>
+                        </>
+                      ) : data && !data.flat ? (
+                        <>
+                          {data.base} {formatModifier(data.raceBonus ?? 0)}{' '}
+                          {formatModifier(data.classBonus ?? 0)} ={' '}
+                          <b>{data.total}</b>
+                        </>
+                      ) : data ? (
                         <b>{data.total}</b>
-                      </>
-                    ) : data ? (
-                      <b>{data.total}</b>
-                    ) : null}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-          <p className={handles.sheetLegend}>
-            {hasBreakdown ? 'Valor + Raça + Classe = Total. ' : ''}O número
-            grande é o modificador.
-          </p>
-        </Block>
+                      ) : null}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+            <p className={handles.sheetLegend}>
+              {hasBreakdown ? 'Valor + Raça + Classe = Total. ' : ''}O número
+              grande é o modificador.
+            </p>
+          </Block>
+        </div>
       )}
 
-      <Block title="Sentidos e Idiomas">
-        <div className={handles.sheetPairs}>
-          {/* Em leitura os sentidos são tags já formatadas ("Visão no escuro
+      <div className={handles.sheetStatusSenses}>
+        <Block title="Sentidos e Idiomas">
+          <div className={handles.sheetPairs}>
+            {/* Em leitura os sentidos são tags já formatadas ("Visão no escuro
               18,0 m"); editar exige o número cru, então em edição cada um vira
               uma linha própria. Idiomas e defesas são listas de tamanho
               variável e continuam somente-leitura por enquanto. */}
-          {editable ? (
-            SENSE_FIELDS.map(({ path, label, meters }) => (
-              <Field key={path} label={`${label}${meters ? ' (m)' : ''}`}>
-                <EditableText path={path} label={label} as="number">
-                  {value(path)}
-                </EditableText>
+            {editable ? (
+              SENSE_FIELDS.map(({ path, label, meters }) => (
+                <Field key={path} label={`${label}${meters ? ' (m)' : ''}`}>
+                  <EditableText path={path} label={label} as="number">
+                    {value(path)}
+                  </EditableText>
+                </Field>
+              ))
+            ) : (
+              <Field label="Sentidos">
+                <TagList items={senseTags} emptyLabel="Nenhum" />
               </Field>
-            ))
-          ) : (
-            <Field label="Sentidos">
-              <TagList items={senseTags} emptyLabel="Nenhum" />
+            )}
+            <Field label="Idiomas">
+              <EditableTagList
+                path="languages"
+                label="Idiomas"
+                emptyLabel="Nenhum"
+              />
             </Field>
-          )}
-          <Field label="Idiomas">
-            <EditableTagList
-              path="languages"
-              label="Idiomas"
-              emptyLabel="Nenhum"
-            />
-          </Field>
-        </div>
-      </Block>
+          </div>
+        </Block>
+      </div>
 
-      <Block title="Defesas">
-        <div className={handles.sheetPairs}>
-          <Field label="Resistências">
-            <EditableTagList path="defenses.resistances" label="Resistências" />
-          </Field>
-          <Field label="Vulnerabilidades">
-            <EditableTagList
-              path="defenses.vulnerabilities"
-              label="Vulnerabilidades"
-            />
-          </Field>
-          <Field label="Imunidades a dano">
-            <EditableTagList
-              path="defenses.damageImmunities"
-              label="Imunidades a dano"
-            />
-          </Field>
-          <Field label="Imunidades a condição">
-            <EditableTagList
-              path="defenses.conditionImmunities"
-              label="Imunidades a condição"
-            />
-          </Field>
-        </div>
-      </Block>
-    </>
+      <div className={handles.sheetStatusDefenses}>
+        <Block title="Defesas">
+          <div className={handles.sheetPairs}>
+            <Field label="Resistências">
+              <EditableTagList
+                path="defenses.resistances"
+                label="Resistências"
+              />
+            </Field>
+            <Field label="Vulnerabilidades">
+              <EditableTagList
+                path="defenses.vulnerabilities"
+                label="Vulnerabilidades"
+              />
+            </Field>
+            <Field label="Imunidades a dano">
+              <EditableTagList
+                path="defenses.damageImmunities"
+                label="Imunidades a dano"
+              />
+            </Field>
+            <Field label="Imunidades a condição">
+              <EditableTagList
+                path="defenses.conditionImmunities"
+                label="Imunidades a condição"
+              />
+            </Field>
+          </div>
+        </Block>
+      </div>
+    </div>
   );
 };
 

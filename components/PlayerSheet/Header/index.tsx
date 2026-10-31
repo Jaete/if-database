@@ -23,6 +23,11 @@ const Header = ({ player }: IProps) => {
     .filter(Boolean)
     .join(' · ');
 
+  // The epithet is edited in Crônica; here it is only shown (wide bands).
+  const draftEpithet = value('subtitle');
+  const epithet =
+    typeof draftEpithet === 'string' ? draftEpithet : player.subtitle;
+
   const hasXp = editable || (!!experience && experience.nextLevel > 0);
   // `hasXp` também é verdadeiro no modo de edição, quando ainda pode não haver
   // experiência nenhuma — daí a barra ter a sua própria checagem.
@@ -91,6 +96,7 @@ const Header = ({ player }: IProps) => {
             {player.race}
           </EditableText>
         </div>
+        {epithet && <span className={handles.sheetEpithetHud}>{epithet}</span>}
         {hasXp && (
           <div className={handles.sheetXp}>
             <div className={handles.sheetXpRow}>

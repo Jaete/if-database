@@ -1,0 +1,376 @@
+@use '../../../styles/globals' as *;
+@use 'vars' as *;
+
+// Bands of the sheet by the width of its own iframe. Below `wide` the layout is
+// the base one (plus `compact`, the phone drill-down, in the files above).
+//
+//   wide    ≥ 60rem   bigger header, 224px rail with counts and descriptions
+//   desk    ≥ 85rem   dossier | rail | panel (the sheet itself becomes a grid)
+//   desk-xl ≥ 107.5rem  wider dossier, bigger portrait and name
+//
+// The DOM never changes between bands: the dossier is the same header, moved
+// with `grid-template-areas`.
+
+// ── Wide ────────────────────────────────────────────────────
+@include wide {
+  .sheetHud {
+    grid-template-columns: 8.5rem minmax(0, 1fr) minmax(16rem, 20rem);
+    padding: $spacing-6 $spacing-7 $spacing-5;
+    gap: $spacing-5 $spacing-7;
+  }
+
+  .sheetHud > .sheetPortrait {
+    width: 8.5rem;
+  }
+
+  .sheetName {
+    font-size: $font-size-sheet-name-wide;
+  }
+
+  .sheetLine {
+    @include main-md($color-text, $font-weight-regular);
+  }
+
+  .sheetEpithetHud {
+    display: block;
+    font-style: italic;
+    @include cinzel-sm($color-accent, $font-weight-regular, 1.4);
+  }
+
+  .sheetResources {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: $spacing-5;
+    align-self: end;
+    padding-top: 0;
+  }
+
+  .sheetResource:only-child {
+    grid-column: 1 / -1;
+  }
+
+  .sheetResourceValue {
+    font-size: $font-size-sheet-resource-wide;
+  }
+
+  .sheetStrip {
+    padding-top: $spacing-4;
+  }
+
+  .sheetStripValue {
+    @include stat-value($color-text, $font-weight-bold, 1.3, 0, center);
+  }
+
+  .sheetNarration {
+    padding-inline: $spacing-7;
+  }
+
+  .playerSheetBody {
+    grid-template-columns: 14rem minmax(0, 1fr);
+  }
+
+  // The items grow to hold the count and the one-line description.
+  .sheetMenuItem {
+    min-height: $spacing-13;
+    padding: $spacing-1 $spacing-4 $spacing-1 $spacing-9;
+    flex-wrap: wrap;
+    align-content: center;
+    row-gap: 0;
+  }
+
+  .sheetMenuLabel {
+    flex: 1;
+  }
+
+  // With little height the list scrolls and the foot (Gil, Adoração) stays put.
+  .sheetMenu {
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  .sheetMenuMeta {
+    display: block;
+    text-transform: none;
+    @include mono-xs($color-text-muted, $font-weight-regular);
+  }
+
+  .sheetMenuDesc {
+    display: block;
+    flex-basis: 100%;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-transform: none;
+    text-decoration: none;
+    @include main-xs($color-text-muted, $font-weight-regular, 1.4);
+  }
+
+  .sheetCursor {
+    left: $spacing-4;
+  }
+
+  .sheetRailFoot {
+    flex-direction: row;
+    justify-content: space-between;
+    gap: $spacing-3;
+    padding: $spacing-3 $spacing-5 0;
+  }
+
+  .sheetRailValue--gil {
+    @include mono-xl($color-accent, $font-weight-bold, 1.4);
+  }
+
+  .sheetScreen {
+    padding: $spacing-7 $spacing-8 $spacing-8;
+    gap: $spacing-7;
+  }
+
+  .sheetStatus,
+  .sheetCircles,
+  .sheetStory,
+  .sheetChronicleWrap {
+    gap: $spacing-7;
+  }
+
+  .sheetScreenTitle {
+    @include cinzel-2xl($color-accent, $font-weight-semibold, 1.3, 1px);
+  }
+
+  .sheetHints {
+    padding-inline: $spacing-7;
+  }
+}
+
+// ── Desk: dossier | rail | panel ────────────────────────────
+@include desk {
+  .playerSheet {
+    display: grid;
+    grid-template-columns: 22rem minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
+    grid-template-areas:
+      'hud body'
+      'narr body'
+      'hints hints'
+      'save save';
+  }
+
+  .sheetHud {
+    grid-area: hud;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 0 0 $spacing-4;
+    gap: $spacing-4 0;
+    border-bottom: 0;
+
+    &::after {
+      top: $spacing-3;
+      left: auto;
+      right: $spacing-4;
+      z-index: 2;
+      opacity: 0.5;
+    }
+  }
+
+  // Portrait and name share the same grid cell: the name sits over the art.
+  .sheetHud > .sheetPortrait {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    width: 100%;
+    aspect-ratio: auto;
+    height: clamp(13rem, 40cqh, 26rem);
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .sheetPortraitImage {
+    object-position: 50% 15%;
+  }
+
+  // Over artwork, which stays dark in both themes.
+  .sheetPortraitBadge {
+    left: $spacing-4;
+    top: $spacing-4;
+    bottom: auto;
+    transform: none;
+    padding: $spacing-1 * 0.5 $spacing-2;
+    border-radius: $radius-sm;
+    @include theme-scope(dark);
+    background: with-alpha($color-bg, 0.75);
+    color: $color-accent;
+    box-shadow: 0 0 0 1px with-alpha($color-accent-line, 0.45);
+  }
+
+  .sheetWho {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    align-self: end;
+    position: relative;
+    z-index: 1;
+    padding: $spacing-20 $spacing-5 $spacing-4;
+    @include theme-scope(dark);
+    background: linear-gradient(
+      to top,
+      with-alpha($color-bg, 0.95) 0,
+      with-alpha($color-bg, 0.88) 50%,
+      transparent 100%
+    );
+  }
+
+  .sheetName {
+    font-size: $font-size-sheet-name-desk;
+  }
+
+  .sheetResources {
+    grid-column: 1 / -1;
+    padding-inline: $spacing-5;
+    align-self: auto;
+  }
+
+  .sheetResourceValue {
+    font-size: $font-size-sheet-resource-desk;
+  }
+
+  // CA / Velocidade / Proficiência / Percepção as 2×2 tiles.
+  .sheetStrip {
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: $spacing-2;
+    margin-inline: $spacing-5;
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  .sheetStripCell {
+    align-items: flex-start;
+    padding: $spacing-3 $spacing-4;
+    border: 1px solid $color-border;
+    border-radius: $radius-md;
+    background: $surface-raised;
+    text-align: left;
+  }
+
+  .sheetStripValue,
+  .sheetStripNote {
+    text-align: left;
+  }
+
+  // Narration card: 3 lines (2 while the save bar is up), the rest in the modal.
+  .sheetNarration {
+    grid-area: narr;
+    align-self: start;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    max-height: calc(100% - #{$spacing-4});
+    margin: 0 $spacing-5 $spacing-4;
+    padding: $spacing-3 $spacing-4;
+    overflow: hidden;
+    border: 1px solid $color-border;
+    border-radius: $radius-lg;
+  }
+
+  .sheetNarrationPreview {
+    display: -webkit-box;
+    flex: 0 1 auto;
+    min-height: 0;
+    white-space: normal;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    line-height: 1.55;
+    color: $color-text-muted;
+  }
+
+  .playerSheet:has(.sheetSaveBar) .sheetNarrationPreview {
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+
+  .sheetNarrationOpen {
+    flex: none;
+    align-self: flex-start;
+  }
+
+  .playerSheetBody {
+    grid-area: body;
+    border-left: 1px solid $color-border-strong;
+  }
+
+  .sheetHints {
+    grid-area: hints;
+  }
+
+  .sheetSaveBar {
+    grid-area: save;
+  }
+
+  // Gil and Adoração stay at the foot of the rail.
+  .sheetRailFoot {
+    flex-direction: column;
+    padding: $spacing-4 $spacing-5 0;
+  }
+
+  .sheetMenuItem {
+    min-height: $spacing-15;
+  }
+
+  .sheetMenuDesc {
+    white-space: normal;
+  }
+
+  // Leaves room for the "Editar ficha" button, now over the panel.
+  .sheetScreenHead {
+    flex-direction: column;
+    align-items: flex-start;
+    padding-right: $spacing-20 * 2;
+  }
+
+  .sheetScreenSub {
+    text-align: left;
+  }
+}
+
+// ── Desk XL ─────────────────────────────────────────────────
+@include desk-xl {
+  .playerSheet {
+    grid-template-columns: 24rem minmax(0, 1fr);
+  }
+
+  .playerSheetBody {
+    grid-template-columns: 15rem minmax(0, 1fr);
+  }
+
+  .sheetHud > .sheetPortrait {
+    height: clamp(14rem, 44cqh, 30rem);
+  }
+
+  .sheetName {
+    font-size: $font-size-sheet-name-desk-xl;
+  }
+
+  .sheetNarrationPreview {
+    -webkit-line-clamp: 5;
+    line-clamp: 5;
+  }
+
+  .sheetScreen {
+    padding: $spacing-8 $spacing-10 $spacing-10;
+  }
+
+  .sheetScreenTitle {
+    font-size: $font-size-sheet-title-desk-xl;
+  }
+}
+
+// ── Short ───────────────────────────────────────────────────
+// Last, so it beats the taller menu items above: with little height the rail
+// drops the descriptions before it has to scroll.
+@include wide-short {
+  .sheetMenuDesc {
+    display: none;
+  }
+
+  .sheetMenuItem {
+    min-height: $spacing-11;
+  }
+}

@@ -1,4 +1,6 @@
 const ChroniclePanelHandles = [
+  'sheetChronicleWrap',
+  'sheetStory',
   'sheetChronicle',
   'sheetEpithet',
   'sheetProse',

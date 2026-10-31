@@ -6,6 +6,8 @@ import { applyModifiers, useCssHandles } from '@/hooks/useCssHandles';
 import { formatModifier, modifierOf, spellSaveDC } from '@/lib/stats';
 import { CloseIcon, EyeIcon, PencilIcon } from '../../Icons';
 import Modal from '@/components/Modal';
+import DetailCard from '../DetailCard';
+import { useSideReader } from '../useSideReader';
 import PromptModal from '@/components/PromptModal';
 import SpellPicker from './SpellPicker';
 import { useSpellsPanel } from './useSpellsPanel';
@@ -94,7 +96,7 @@ const SpellsPanel = () => {
   const handles = useCssHandles(SpellsPanelHandles);
   const { editable, value, objects, setField } = useEditing();
   const [editingSpell, setEditingSpell] = useState<Picked>(null);
-  const [reading, setReading] = useState<IPlayerSpell | null>(null);
+  const reader = useSideReader<IPlayerSpell>();
   // Círculo cujo seletor está aberto. `null` fechado — e não um booleano,
   // porque o catálogo é buscado por círculo.
   const [picking, setPicking] = useState<number | null>(null);
@@ -210,6 +212,71 @@ const SpellsPanel = () => {
       ]
     : castCells;
 
+  /** Toda magia que tem ficha para ler, na ordem da tela. */
+  const readable = levels.flatMap((circle) => {
+    const spells = casting.linked
+      ? casting.inCircle(circle.level).map(({ spell }) => spell)
+      : (circle.spells ?? []);
+    return spells.filter(hasSpellDetail).map((spell) => ({
+      key: `${circle.level}:${spell.name}`,
+      label: CIRCLE_LABELS[circle.level] ?? `${circle.level}º Círculo`,
+      spell,
+    }));
+  });
+  const shown =
+    readable.find((item) => item.key === reader.selectedKey) ?? readable[0];
+
+  /** Escola, tempo e alcance numa linha: só aparece com o leitor ao lado. */
+  const metaLine = (spell: IPlayerSpell) =>
+    [spell.school, spell.castingTime, spell.range].filter(Boolean).join(' · ');
+
+  /** O nome (e o olho) de uma linha: só viram botões se há ficha para abrir. */
+  const spellText = (circleLevel: number, spell: IPlayerSpell) => {
+    if (!hasSpellDetail(spell)) return <span>{spell.name}</span>;
+    const key = `${circleLevel}:${spell.name}`;
+    return (
+      <>
+        <span className={handles.sheetSpellInfo}>
+          <button
+            type="button"
+            className={handles.sheetSpellName}
+            onClick={() => reader.open(key, spell)}
+          >
+            {spell.name}
+          </button>
+          {metaLine(spell) && (
+            <span className={handles.sheetSpellMetaLine}>
+              {metaLine(spell)}
+            </span>
+          )}
+        </span>
+        {/* O nome inteiro continua clicável; o olho é o que diz que ele é. Sem
+            ele, a única pista de que há descrição para ler era passar o
+            ponteiro. */}
+        <button
+          type="button"
+          className={handles.sheetSpellRead}
+          onClick={() => reader.open(key, spell)}
+          aria-label={`Ler ${spell.name}`}
+          tabIndex={-1}
+        >
+          <EyeIcon />
+        </button>
+      </>
+    );
+  };
+
+  /** Props de seleção da linha: hover, foco e clique trocam o leitor. */
+  const rowProps = (circleLevel: number, spell: IPlayerSpell) => {
+    const key = `${circleLevel}:${spell.name}`;
+    return {
+      'data-current': key === shown?.key || undefined,
+      onClick: () => reader.preview(key),
+      onMouseEnter: () => reader.preview(key),
+      onFocus: () => reader.preview(key),
+    };
+  };
+
   const metaList = (spell: IPlayerSpell) => (
     <dl className={handles.sheetSpellMeta}>
       {SPELL_FIELDS.filter((f) => spell[f.name]).map((f) => (
@@ -271,286 +338,269 @@ const SpellsPanel = () => {
         })}
       </div>
 
-      {levels.map((circle) => {
-        const total = circle.slotsTotal ?? 0;
-        const free = Math.max(0, total - (circle.slotsUsed ?? 0));
-        const label = CIRCLE_LABELS[circle.level] ?? `${circle.level}º Círculo`;
-        const spells = circle.spells ?? [];
-        // No modo ligado a lista é a das preparadas, montada das referências:
-        // os círculos resolvidos ainda não conhecem a escolha feita agora.
-        const linkedSpells = casting.linked
-          ? casting.inCircle(circle.level)
-          : null;
-        const count = linkedSpells ? linkedSpells.length : spells.length;
-        const at = stored.findIndex((l) => l.level === circle.level);
-        // O caminho só existe depois que o círculo existe; antes disso os
-        // espaços são escritos por writeLevel, que o cria.
-        const slotPath = (key: 'slotsUsed' | 'slotsTotal') =>
-          at >= 0 ? `${LEVELS_PATH}.${at}.${key}` : '';
+      <div className={handles.sheetSpellLayout}>
+        <div className={handles.sheetCircles}>
+          {levels.map((circle) => {
+            const total = circle.slotsTotal ?? 0;
+            const free = Math.max(0, total - (circle.slotsUsed ?? 0));
+            const label =
+              CIRCLE_LABELS[circle.level] ?? `${circle.level}º Círculo`;
+            const spells = circle.spells ?? [];
+            // No modo ligado a lista é a das preparadas, montada das referências:
+            // os círculos resolvidos ainda não conhecem a escolha feita agora.
+            const linkedSpells = casting.linked
+              ? casting.inCircle(circle.level)
+              : null;
+            const count = linkedSpells ? linkedSpells.length : spells.length;
+            const at = stored.findIndex((l) => l.level === circle.level);
+            // O caminho só existe depois que o círculo existe; antes disso os
+            // espaços são escritos por writeLevel, que o cria.
+            const slotPath = (key: 'slotsUsed' | 'slotsTotal') =>
+              at >= 0 ? `${LEVELS_PATH}.${at}.${key}` : '';
 
-        return (
-          <section
-            key={circle.level}
-            className={handles.sheetCircle}
-            aria-label={label}
-          >
-            <div className={handles.sheetCircleHead}>
-              <span className={handles.sheetCircleTitle}>{label}</span>
-              {circle.level === 0 ? (
-                <span className={handles.sheetSlotsNote}>
-                  {casting.linked
-                    ? `${casting.cantripCount}/${casting.cantripsKnown} conhecidos`
-                    : 'à vontade'}
-                </span>
-              ) : (
-                <span
-                  className={handles.sheetSlots}
-                  role={editable ? undefined : 'img'}
-                  aria-label={
-                    editable ? undefined : `${free} de ${total} espaços livres`
-                  }
-                >
-                  <span className={handles.sheetSlotGrid}>
-                    {Array.from({ length: total }, (_, i) => (
-                      <i
-                        key={i}
-                        className={`${handles.sheetSlot}${
-                          i < free ? ` ${handles.sheetSlot}--free` : ''
-                        }`}
-                      />
-                    ))}
-                  </span>
-                  <span className={handles.sheetSlotsNote}>
-                    {editable && casting.linked ? (
-                      <>
-                        <EditableText
-                          path={slotPath('slotsUsed')}
-                          label={`${label}: espaços usados`}
-                          as="number"
-                          placeholder="0"
-                          onWrite={(v) =>
-                            writeLevel(circle.level, {
-                              slotsUsed: Number(v) || 0,
-                            })
-                          }
+            return (
+              <section
+                key={circle.level}
+                className={handles.sheetCircle}
+                aria-label={label}
+              >
+                <div className={handles.sheetCircleHead}>
+                  <span className={handles.sheetCircleTitle}>{label}</span>
+                  {circle.level === 0 ? (
+                    <span className={handles.sheetSlotsNote}>
+                      {casting.linked
+                        ? `${casting.cantripCount}/${casting.cantripsKnown} conhecidos`
+                        : 'à vontade'}
+                    </span>
+                  ) : (
+                    <span
+                      className={handles.sheetSlots}
+                      role={editable ? undefined : 'img'}
+                      aria-label={
+                        editable
+                          ? undefined
+                          : `${free} de ${total} espaços livres`
+                      }
+                    >
+                      <span className={handles.sheetSlotGrid}>
+                        {Array.from({ length: total }, (_, i) => (
+                          <i
+                            key={i}
+                            className={`${handles.sheetSlot}${
+                              i < free ? ` ${handles.sheetSlot}--free` : ''
+                            }`}
+                          />
+                        ))}
+                      </span>
+                      <span className={handles.sheetSlotsNote}>
+                        {editable && casting.linked ? (
+                          <>
+                            <EditableText
+                              path={slotPath('slotsUsed')}
+                              label={`${label}: espaços usados`}
+                              as="number"
+                              placeholder="0"
+                              onWrite={(v) =>
+                                writeLevel(circle.level, {
+                                  slotsUsed: Number(v) || 0,
+                                })
+                              }
+                            >
+                              {circle.slotsUsed ?? 0}
+                            </EditableText>
+                            {` usados de ${total}`}
+                          </>
+                        ) : editable ? (
+                          <>
+                            <EditableText
+                              path={slotPath('slotsUsed')}
+                              label={`${label}: espaços usados`}
+                              as="number"
+                              placeholder="0"
+                              onWrite={(v) =>
+                                writeLevel(circle.level, {
+                                  slotsUsed: Number(v) || 0,
+                                })
+                              }
+                            >
+                              {circle.slotsUsed ?? 0}
+                            </EditableText>
+                            {' usados de '}
+                            <EditableText
+                              path={slotPath('slotsTotal')}
+                              label={`${label}: espaços totais`}
+                              as="number"
+                              placeholder="0"
+                              onWrite={(v) =>
+                                writeLevel(circle.level, {
+                                  slotsTotal: Number(v) || 0,
+                                })
+                              }
+                            >
+                              {total}
+                            </EditableText>
+                          </>
+                        ) : (
+                          `${free}/${total} livres`
+                        )}
+                      </span>
+                    </span>
+                  )}
+                </div>
+                {linkedSpells ? (
+                  count > 0 ? (
+                    <ul className={handles.sheetSpells}>
+                      {linkedSpells.map(({ spellId, spell }) => (
+                        <li
+                          key={spellId}
+                          className={handles.sheetSpell}
+                          {...rowProps(circle.level, spell)}
                         >
-                          {circle.slotsUsed ?? 0}
-                        </EditableText>
-                        {` usados de ${total}`}
-                      </>
-                    ) : editable ? (
-                      <>
-                        <EditableText
-                          path={slotPath('slotsUsed')}
-                          label={`${label}: espaços usados`}
-                          as="number"
-                          placeholder="0"
-                          onWrite={(v) =>
-                            writeLevel(circle.level, {
-                              slotsUsed: Number(v) || 0,
-                            })
-                          }
-                        >
-                          {circle.slotsUsed ?? 0}
-                        </EditableText>
-                        {' usados de '}
-                        <EditableText
-                          path={slotPath('slotsTotal')}
-                          label={`${label}: espaços totais`}
-                          as="number"
-                          placeholder="0"
-                          onWrite={(v) =>
-                            writeLevel(circle.level, {
-                              slotsTotal: Number(v) || 0,
-                            })
-                          }
-                        >
-                          {total}
-                        </EditableText>
-                      </>
-                    ) : (
-                      `${free}/${total} livres`
-                    )}
-                  </span>
-                </span>
-              )}
-            </div>
-            {linkedSpells ? (
-              count > 0 ? (
-                <ul className={handles.sheetSpells}>
-                  {linkedSpells.map(({ spellId, spell }) => (
-                    <li key={spellId} className={handles.sheetSpell}>
-                      {/* O nome só vira botão quando há ficha para abrir; uma
-                          magia escolhida agora ainda não tem a ficha do
-                          grimório, que chega na próxima leitura. */}
-                      {hasSpellDetail(spell) ? (
-                        <>
-                          <button
-                            type="button"
-                            className={handles.sheetSpellName}
-                            onClick={() => setReading(spell)}
-                          >
-                            {spell.name}
-                          </button>
-                          {/* O nome inteiro continua clicável; o olho é o que
-                              diz que ele é. Sem ele, a única pista de que há
-                              descrição para ler era passar o ponteiro. */}
-                          <button
-                            type="button"
-                            className={handles.sheetSpellRead}
-                            onClick={() => setReading(spell)}
-                            aria-label={`Ler ${spell.name}`}
-                            tabIndex={-1}
-                          >
-                            <EyeIcon />
-                          </button>
-                        </>
-                      ) : (
-                        <span>{spell.name}</span>
-                      )}
-                      {editable && (
-                        <button
-                          type="button"
-                          className={handles.sheetSpellEdit}
-                          onClick={() => casting.unprepare(spellId)}
-                          aria-label={`Desmarcar ${spell.name}`}
-                        >
-                          <CloseIcon />
-                        </button>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                !editable && (
-                  <p className={handles.sheetEmpty}>
-                    {circle.level === 0
-                      ? 'Nenhum truque conhecido.'
-                      : 'Nenhuma magia preparada.'}
-                  </p>
-                )
-              )
-            ) : spells.length > 0 ? (
-              <ul className={handles.sheetSpells}>
-                {spells.map((spell, i) => (
-                  <li
-                    key={`${spell.name}:${i}`}
-                    className={`${handles.sheetSpell}${
-                      spell.prepared ? '' : ` ${handles.sheetSpell}--off`
-                    }`}
-                  >
-                    {/* O nome só vira botão quando há ficha para abrir; sem
-                        detalhe, continua o mesmo <span> de sempre. */}
-                    {hasSpellDetail(spell) ? (
-                      <>
-                        <button
-                          type="button"
-                          className={handles.sheetSpellName}
-                          onClick={() => setReading(spell)}
-                        >
-                          {spell.name}
-                        </button>
-                        <button
-                          type="button"
-                          className={handles.sheetSpellRead}
-                          onClick={() => setReading(spell)}
-                          aria-label={`Ler ${spell.name}`}
-                          tabIndex={-1}
-                        >
-                          <EyeIcon />
-                        </button>
-                      </>
-                    ) : (
-                      <span>{spell.name}</span>
-                    )}
-                    {circle.level !== 0 &&
-                      (editable ? (
-                        <button
-                          type="button"
-                          className={`${handles.sheetSpellBadge} ${applyModifiers(
-                            handles.sheetSpellBadge,
-                            spell.prepared ? 'prepared' : 'known'
-                          )}`}
-                          onClick={() =>
-                            writeSpell(circle.level, i, {
-                              ...spell,
-                              prepared: !spell.prepared,
-                            })
-                          }
-                          aria-pressed={spell.prepared}
-                        >
-                          {spell.prepared ? 'Preparada' : 'Conhecida'}
-                        </button>
-                      ) : (
-                        <span
-                          className={`${handles.sheetSpellBadge} ${applyModifiers(
-                            handles.sheetSpellBadge,
-                            spell.prepared ? 'prepared' : 'known'
-                          )}`}
-                        >
-                          {spell.prepared ? 'Preparada' : 'Conhecida'}
-                        </span>
+                          {spellText(circle.level, spell)}
+                          {editable && (
+                            <button
+                              type="button"
+                              className={handles.sheetSpellEdit}
+                              onClick={() => casting.unprepare(spellId)}
+                              aria-label={`Desmarcar ${spell.name}`}
+                            >
+                              <CloseIcon />
+                            </button>
+                          )}
+                        </li>
                       ))}
-                    {editable && (
-                      <button
-                        type="button"
-                        className={handles.sheetSpellEdit}
-                        onClick={() =>
-                          setEditingSpell({ level: circle.level, at: i, spell })
-                        }
-                        aria-label={`Editar ${spell.name}`}
+                    </ul>
+                  ) : (
+                    !editable && (
+                      <p className={handles.sheetEmpty}>
+                        {circle.level === 0
+                          ? 'Nenhum truque conhecido.'
+                          : 'Nenhuma magia preparada.'}
+                      </p>
+                    )
+                  )
+                ) : spells.length > 0 ? (
+                  <ul className={handles.sheetSpells}>
+                    {spells.map((spell, i) => (
+                      <li
+                        key={`${spell.name}:${i}`}
+                        className={`${handles.sheetSpell}${
+                          spell.prepared ? '' : ` ${handles.sheetSpell}--off`
+                        }`}
+                        {...rowProps(circle.level, spell)}
                       >
-                        <PencilIcon />
-                      </button>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              !editable && (
-                <p className={handles.sheetEmpty}>Nenhuma magia registrada.</p>
-              )
-            )}
-            {editable &&
-              (casting.linked ? (
-                // Ligada à classe, a magia se escolhe; não se digita. O botão
-                // continua clicável sem espaço livre: o seletor é também onde
-                // se vê o que a classe conhece.
-                <button
-                  type="button"
-                  className={handles.sheetSpellAdd}
-                  onClick={() => setPicking(circle.level)}
-                >
-                  {circle.level === 0
-                    ? '+ Escolher truque'
-                    : '+ Preparar magia'}
-                  {` (${casting.countOf(circle.level)}/${casting.limitOf(circle.level)})`}
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  className={handles.sheetSpellAdd}
-                  onClick={() =>
-                    setEditingSpell({
-                      level: circle.level,
-                      at: -1,
-                      // Truque não se prepara: já nasce ativo.
-                      spell: { name: '', prepared: circle.level === 0 },
-                    })
-                  }
-                >
-                  + Adicionar magia
-                </button>
-              ))}
-          </section>
-        );
-      })}
+                        {spellText(circle.level, spell)}
+                        {circle.level !== 0 &&
+                          (editable ? (
+                            <button
+                              type="button"
+                              className={`${handles.sheetSpellBadge} ${applyModifiers(
+                                handles.sheetSpellBadge,
+                                spell.prepared ? 'prepared' : 'known'
+                              )}`}
+                              onClick={() =>
+                                writeSpell(circle.level, i, {
+                                  ...spell,
+                                  prepared: !spell.prepared,
+                                })
+                              }
+                              aria-pressed={spell.prepared}
+                            >
+                              {spell.prepared ? 'Preparada' : 'Conhecida'}
+                            </button>
+                          ) : (
+                            <span
+                              className={`${handles.sheetSpellBadge} ${applyModifiers(
+                                handles.sheetSpellBadge,
+                                spell.prepared ? 'prepared' : 'known'
+                              )}`}
+                            >
+                              {spell.prepared ? 'Preparada' : 'Conhecida'}
+                            </span>
+                          ))}
+                        {editable && (
+                          <button
+                            type="button"
+                            className={handles.sheetSpellEdit}
+                            onClick={() =>
+                              setEditingSpell({
+                                level: circle.level,
+                                at: i,
+                                spell,
+                              })
+                            }
+                            aria-label={`Editar ${spell.name}`}
+                          >
+                            <PencilIcon />
+                          </button>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  !editable && (
+                    <p className={handles.sheetEmpty}>
+                      Nenhuma magia registrada.
+                    </p>
+                  )
+                )}
+                {editable &&
+                  (casting.linked ? (
+                    // Ligada à classe, a magia se escolhe; não se digita. O botão
+                    // continua clicável sem espaço livre: o seletor é também onde
+                    // se vê o que a classe conhece.
+                    <button
+                      type="button"
+                      className={handles.sheetSpellAdd}
+                      onClick={() => setPicking(circle.level)}
+                    >
+                      {circle.level === 0
+                        ? '+ Escolher truque'
+                        : '+ Preparar magia'}
+                      {` (${casting.countOf(circle.level)}/${casting.limitOf(circle.level)})`}
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      className={handles.sheetSpellAdd}
+                      onClick={() =>
+                        setEditingSpell({
+                          level: circle.level,
+                          at: -1,
+                          // Truque não se prepara: já nasce ativo.
+                          spell: { name: '', prepared: circle.level === 0 },
+                        })
+                      }
+                    >
+                      + Adicionar magia
+                    </button>
+                  ))}
+              </section>
+            );
+          })}
 
-      {levels.length === 0 && (
-        <p className={handles.sheetEmpty}>
-          Nenhum círculo de magia registrado.
-        </p>
-      )}
+          {levels.length === 0 && (
+            <p className={handles.sheetEmpty}>
+              Nenhum círculo de magia registrado.
+            </p>
+          )}
+        </div>
+        {shown && (
+          <DetailCard
+            id={reader.detailId}
+            kicker={shown.label}
+            title={shown.spell.name}
+            text={shown.spell.description}
+            meta={SPELL_FIELDS.filter((field) => shown.spell[field.name]).map(
+              (field) => ({
+                label: field.label,
+                value: String(shown.spell[field.name]),
+                wide: field.name === 'components' || field.name === 'classes',
+              })
+            )}
+          />
+        )}
+      </div>
 
       {casting.linked && (
         <SpellPicker
@@ -573,15 +623,17 @@ const SpellsPanel = () => {
       )}
 
       <Modal
-        isOpen={reading !== null}
-        onClose={() => setReading(null)}
-        title={reading?.name ?? ''}
+        isOpen={reader.reading !== null}
+        onClose={() => reader.setReading(null)}
+        title={reader.reading?.name ?? ''}
       >
-        {reading && (
+        {reader.reading && (
           <>
-            {metaList(reading)}
-            {reading.description && (
-              <p className={handles.sheetSpellText}>{reading.description}</p>
+            {metaList(reader.reading)}
+            {reader.reading.description && (
+              <p className={handles.sheetSpellText}>
+                {reader.reading.description}
+              </p>
             )}
           </>
         )}

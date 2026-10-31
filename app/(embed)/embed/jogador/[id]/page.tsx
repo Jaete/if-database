@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { connectDB } from '@/lib/db';
 import { getPlayerById } from '@/services/player.service';
 import PlayerSheet from '@/components/PlayerSheet';
+import EmbedCloseBridge from '@/components/EmbedCloseBridge';
 
 type Params = Promise<{ id: string }>;
 
@@ -46,6 +47,9 @@ export default async function EmbedPlayerPage({ params }: { params: Params }) {
         player={player}
         forumOrigin={process.env.FORUM_ORIGIN ?? ''}
       />
+      {/* Na visualização ampliada, o Esc dado com o foco na ficha fecha o
+          modal do fórum. No post, a mensagem é ignorada lá do outro lado. */}
+      <EmbedCloseBridge forumOrigin={process.env.FORUM_ORIGIN ?? ''} />
     </main>
   );
 }

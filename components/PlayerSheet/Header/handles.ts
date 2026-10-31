@@ -5,6 +5,7 @@ const HeaderHandles = [
   'sheetName',
   'sheetLine',
   'sheetLineMuted',
+  'sheetEpithetHud',
   'sheetXp',
   'sheetXpRow',
   'sheetBar',
