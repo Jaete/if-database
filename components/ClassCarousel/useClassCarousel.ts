@@ -345,7 +345,12 @@ export function useClassCarousel(count: number) {
   };
 
   // A captura se perdeu sem soltar (o navegador tomou o gesto): volta ao atual.
-  const onLostPointerCapture = () => {
+  // No toque, o ponteiro já nasce capturado pelo elemento sob o dedo; ao
+  // capturá-lo no trilho, esse `lostpointercapture` borbulha até aqui e
+  // encerrava o arrasto no primeiro movimento. Só vale o evento do próprio
+  // trilho.
+  const onLostPointerCapture = (event: PointerEvent<HTMLDivElement>) => {
+    if (event.target !== event.currentTarget) return;
     if (dragRef.current?.active) endDrag();
   };
 

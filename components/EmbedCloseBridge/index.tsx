@@ -7,7 +7,8 @@ interface IProps {
 }
 
 /**
- * Leva o Esc do iframe até o modal do fórum que o hospeda.
+ * Ponte entre o embed e o modal do fórum que o hospeda: leva o Esc até ele e
+ * avisa quando um modal do embed está aberto (ver `modal:inner` abaixo).
  *
  * Com o foco dentro do iframe, a tecla nunca chega ao documento do fórum, e o
  * Esc só fecharia o modal até o primeiro clique no conteúdo. Um modal do
@@ -31,7 +32,34 @@ const EmbedCloseBridge = ({ forumOrigin }: IProps) => {
       );
     };
     document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
+
+    // Avisa o fórum quando um modal do próprio embed (Progressão, Talentos…)
+    // abre ou fecha: no celular ele ocupa o iframe inteiro e o X do modal do
+    // fórum, sobre o mesmo canto, fica escondido enquanto isso. Só manda
+    // mensagem quando o estado muda.
+    let innerOpen = false;
+    const syncInner = () => {
+      const open = Boolean(document.querySelector('.modal--open'));
+      if (open === innerOpen) return;
+      innerOpen = open;
+      window.parent.postMessage(
+        { source: 'ifdb-embed', type: 'modal:inner', open },
+        forumOrigin
+      );
+    };
+    const observer = new MutationObserver(syncInner);
+    observer.observe(document.body, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+    syncInner();
+
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      observer.disconnect();
+    };
   }, [forumOrigin]);
 
   return null;

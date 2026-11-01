@@ -212,9 +212,12 @@
 
     // Segunda linha, largura total; a margem desfaz o recuo do X do fórum.
     @include mobile {
-      flex: 1 0 100%;
+      flex: 1 0 auto;
       order: 3;
-      margin: 0 (-$spacing-12) 0 0;
+      // Estende até a borda direita menos o respiro (`$spacing-5`), por baixo
+      // do recuo do X do fórum.
+      flex-basis: calc(100% + #{$spacing-12 - $spacing-5});
+      margin: 0 (-($spacing-12 - $spacing-5)) 0 0;
     }
   }
 
@@ -228,6 +231,13 @@
     --pick-card-h: 100%;
     --pick-gap: #{$spacing-5};
     --pick-fade: 4rem;
+    @include mobile {
+      // Um card por vez, com uma fresta dos vizinhos. `cqi` é a largura do
+      // palco (o iframe), não a da janela do fórum.
+      --pick-card-w: calc(100cqi - #{$spacing-12});
+      --pick-gap: #{$spacing-3};
+      --pick-fade: 0rem;
+    }
     display: flex;
     flex: 1 1 auto;
     flex-direction: column;
@@ -240,6 +250,8 @@
     width: 100%;
     max-width: none;
     min-height: 0;
+    // No mobile o palco sangra o respiro da página; aqui o iframe já é a página.
+    margin-inline: 0;
   }
 
   .pickTrack {
@@ -254,6 +266,11 @@
   .pickCard {
     height: auto;
     min-height: 0;
+
+    // Vence o piso de 36rem do mobile: o iframe é baixo.
+    @include mobile {
+      min-height: 0;
+    }
 
     &--open {
       overflow-y: auto;
