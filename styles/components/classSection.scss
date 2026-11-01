@@ -314,6 +314,15 @@
   min-width: 16rem;
   line-height: 1.6;
   white-space: normal;
+  // Quando a linha quebra, a continuação começa na margem, não centralizada.
+  text-align: left;
+
+  // A largura mínima de 16rem estourava o iframe estreito: no celular a
+  // coluna cede e o texto quebra.
+  @include mobile {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
 }
 
 .clsProgTools {
@@ -331,6 +340,8 @@
   text-underline-offset: $spacing-1;
   cursor: pointer;
   font: inherit;
+  // Botão quebrado em várias linhas: o padrão dele é centralizar.
+  text-align: left;
   @include focus-ring;
 
   &:hover {

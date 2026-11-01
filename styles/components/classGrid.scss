@@ -293,6 +293,21 @@
     min-height: $spacing-2;
   }
 
+  // Iframe estreito: só arte, nome, papéis e a descrição curta. Os atributos e
+  // o "Ver tudo" saem; quem quer o resto abre a classe (toque no card em foco).
+  @include mobile {
+    .pickStats,
+    .pickMore {
+      display: none;
+    }
+
+    .pickDesc {
+      // 1px abaixo de `main-sm` (14px); não há degrau de token entre xs e sm.
+      font-size: 0.8125rem;
+      -webkit-line-clamp: 4;
+    }
+  }
+
   .pickTop {
     padding: $spacing-2 $spacing-3;
   }
