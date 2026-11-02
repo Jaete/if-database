@@ -1,0 +1,16 @@
+---
+description: Forumeiros limits learned while redesigning .forum-frontend
+globs: .forum-frontend/**
+alwaysApply: false
+---
+
+# Forum redesign constraints
+
+`.forum-frontend/` is gitignored. Copy a `backup-antes-*` snapshot before editing it.
+
+- New CSS lives in the readable sources (`css-home.css`, `css-viewforum.css`, `css-viewtopic.css`, `css-posting.css`) and is embedded minified by `python3 build-forum-css.py`. Never edit the generated `<style>`.
+- The panel CSS field will not take more than the original `css-forum-base.css` (~54k). Each template caps at 65535, and the panel counts extra (build estimate: length + line breaks + apostrophes + 64). `home-header.html` and `posting-body.html` sit near the cap. Check size before asking Victor to paste.
+- Do not use `:has()` on `body`, or `:has()` broadly. It cost 2–4.6s of style recalc every 5s because of the animated marquee. Page scope is a class on `<html>` (`ifdb`, `ifdb-home`, …), put back by a MutationObserver.
+- Never restyle SCEditor buttons, groups, or dropdowns. That wiped the icons on the live forum. Style the container only.
+- Post content (sheets, `[narracao]`, Forumeiros spoiler: closed = `.hidden`, open = `hidden="until-found"`) must not get generic rules.
+- The Forumeiros mobile version is off (panel › Versão clássica) so phones receive the responsive templates. The viewport meta is on only for redesigned pages.

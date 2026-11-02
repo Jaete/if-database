@@ -1,0 +1,17 @@
+---
+description: How to test forum SSO against localhost
+globs: .forum-frontend/**,services/forumAuth.service.ts,app/api/auth/**
+alwaysApply: false
+---
+
+# Forum SSO local testing
+
+The procedure lives in the README, section "Testando o SSO do fórum em localhost". Do not keep a second copy of the steps.
+
+- `npm run dev:https` (`next dev --experimental-https`).
+- On the forum origin: `localStorage.setItem('ifdb_dev_api_base', 'https://localhost:3000')`.
+- Only `localhost` / `127.0.0.1` are accepted. Anything else falls through to production.
+- The override covers mode 1 (the handshake) only. Mode 2 link interception, `collect.js`, and `tree-renderer.js` still hit production. Diagnose those against prod.
+- A change under `.forum-frontend/` still has to be pasted into the forum's global JS by hand.
+- `sso.js` state-machine checks can run with a fake `_userdata`, `sessionStorage`, and `fetch`, with no server.
+- The local test writes the nonce to the real forum profile and uses the MongoDB in `.env`. `FORUM_ORIGIN` must match the forum Origin exactly, with no trailing slash.

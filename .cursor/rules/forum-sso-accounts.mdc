@@ -1,0 +1,19 @@
+---
+description: Forum-linked admin accounts and why seed:admin must not touch them
+globs: services/forumAuth.service.ts,services/embedAuth.service.ts,app/api/auth/**,scripts/**
+alwaysApply: false
+---
+
+# Forum SSO accounts
+
+Verified against the live DB on 2026-09-30:
+
+- `jaete` is admin, `provider: 'forum'`, `forumUserId: 2`
+- `Nocturne` is admin, `forumUserId: 1`
+- There is no `hibari` account
+
+`resolveForumUser` stays viewer-only. The ticket comes from `window._userdata` and is forgeable, so any account with a role above viewer, or with a password, is refused (`conta_local`).
+
+`resolveVerifiedForumUser` runs after the user writes a server-issued nonce into their own forum profile. It returns the real DB role, admin included. Forum-linked admin is what that path exists to allow. Do not change `jaete` back to viewer.
+
+Promotion stays a manual DB edit. Do not run `npm run seed:admin` unless Victor asks. `scripts/seedAdmin.ts` does `deleteOne` then `create` with `provider: 'local'` and no `forumUserId`, which destroys the forum link.

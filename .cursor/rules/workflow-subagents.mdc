@@ -1,0 +1,22 @@
+---
+description: Three-tier subagent flow for IF Database — designer, implementer, reviewer
+alwaysApply: true
+---
+
+# Subagent workflow
+
+Spawn the existing subagents with the Task tool: `designer`, `implementer`, `reviewer`. Prompts in `.claude/agents/` still say to publish a Claude Artifact. There is no Artifact tool here, and Canvas is not a substitute.
+
+## When
+
+- No UI spec (no Figma, no approved layout): spawn `designer` first. Wait for Victor to approve before any product code.
+- A spec already exists, or the request is code-only: skip `designer`.
+- After implementation: spawn `reviewer`.
+
+## Prototype
+
+The designer writes one self-contained HTML file at `.cursor/prototypes/<kebab-name>.html`, with CSS and JS inline. Revisions overwrite that same file. Keep it out of `app/`, `components/`, and `styles/`. The designer step does not edit product code.
+
+Pass that path to the implementer. It reads the HTML and builds against `CLAUDE.md`, `.claude/skills/new-component/SKILL.md`, and `.claude/skills/refactor-component/SKILL.md`. Translate prototype values into `styles/config` tokens. Do not copy loose hex or px.
+
+The reviewer checks the diff against `CLAUDE.md` and the approved HTML. It runs `npm run type-check` and `npm run lint`. It does not edit files.

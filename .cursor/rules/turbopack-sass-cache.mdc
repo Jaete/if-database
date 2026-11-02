@@ -1,0 +1,12 @@
+---
+description: Turbopack dev cache ignores Sass partials reached via @forward
+alwaysApply: true
+---
+
+# Turbopack Sass cache
+
+Next 16 caches compiled component SCSS in `.next/dev/cache` (`experimental.turbopackFileSystemCacheForDev`). The cache survives a restart and is not invalidated when a forwarded partial changes.
+
+Adding or changing a token or mixin in `styles/config/*` (reached through `styles/_globals.scss` `@forward`) can make `next dev` return 500 with "Undefined variable" or "Undefined mixin" on every route. `npx sass` and `next build` still compile.
+
+Do not stop the dev server, delete the cache, or restart it. Tell Victor to stop the server, run `rm -rf .next/dev/cache`, and start it again. A plain restart is not enough.
