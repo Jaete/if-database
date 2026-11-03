@@ -643,6 +643,12 @@
   @include cls-flash;
 }
 
+// Item de uma lista de magias que ainda não aponta para o grimório.
+.clsCatalogUnlinked {
+  margin: $spacing-1 0 0;
+  @include main-sm($color-warning, $font-weight-regular);
+}
+
 // Item que é uma magia: o nome leva ao grimório, no mesmo traço dos links da
 // progressão.
 .clsSpellLink {

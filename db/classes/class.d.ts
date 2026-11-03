@@ -113,12 +113,61 @@ export interface IClassCatalogItem {
  * confirmado: a classe tem a lista, e quem sobe de nível escolhe itens dela.
  * O nome e a descrição são da lista; `items` é o que se escolhe.
  */
+export type CatalogKind = 'magias' | 'habilidades' | 'relacao';
+
+export interface IRelationFact {
+  label: string;
+  value: string;
+}
+
+export interface IRelationAbility {
+  name: string;
+  level?: number;
+  description: string;
+  tables?: IFeatureTable[];
+}
+
+export interface IRelationListItem {
+  rank: number;
+  name: string;
+}
+
+export interface IRelationEntity {
+  name: string;
+  slug: string;
+  subtitle?: string;
+  image?: string;
+  description?: string;
+  facts?: IRelationFact[];
+  abilities?: IRelationAbility[];
+  list?: {
+    label: string;
+    items: IRelationListItem[];
+  };
+  relatedSlugs: string[];
+}
+
+export interface IRelationGroup {
+  label: string;
+  unitSingular: string;
+  unitPlural: string;
+  entities: IRelationEntity[];
+}
+
 export interface IClassCatalog {
   name: string;
+  /** Define o editor e a tela dos itens. Ausente em listas antigas. */
+  kind?: CatalogKind;
+  /** Slug de `CATALOG_ICONS`; ausente cai na heurística do nome. */
+  icon?: string;
   /** Único dentro da classe, não globalmente. */
   slug: string;
   description?: string;
   items?: IClassCatalogItem[];
+  /** Primeiro grupo da tabela de relação (ex.: Ordens Deíficas). */
+  groupA?: IRelationGroup;
+  /** Segundo grupo da tabela de relação (ex.: Domínios). */
+  groupB?: IRelationGroup;
 }
 
 export interface ITalent {
@@ -220,6 +269,51 @@ export interface IContentBlock {
   tables?: IFeatureTable[];
 }
 
+export interface IClassDomainPower {
+  name: string;
+  /** Absent when the text does not declare a level. */
+  level?: number;
+  description: string;
+}
+
+export interface IClassDomainSpell {
+  circle: number;
+  name: string;
+}
+
+export interface IClassDomain {
+  name: string;
+  slug: string;
+  description: string;
+  powers: IClassDomainPower[];
+  spells: IClassDomainSpell[];
+}
+
+export interface IDivineOrderAbility {
+  name: string;
+  level: number;
+  description: string;
+  tables?: IFeatureTable[];
+}
+
+export interface IDivineOrder {
+  name: string;
+  slug: string;
+  deity?: string;
+  image?: string;
+  /** Introductory prose paragraphs. */
+  description: string;
+  /**
+   * Full spellcasting block. The UI derives the short heading from the first
+   * sentence and puts the rest in a collapsible.
+   */
+  spellcasting: string;
+  skill: string;
+  weapon: string;
+  domainSlugs: string[];
+  abilities: IDivineOrderAbility[];
+}
+
 export interface ICharacterClass extends Document {
   name: string;
   slug: string;
@@ -295,6 +389,9 @@ export interface ICharacterClass extends Document {
    * do Invocador.
    */
   contentBlocks?: IContentBlock[];
+
+  domains?: IClassDomain[];
+  divineOrders?: IDivineOrder[];
 
   /**
    * O que a importação extraiu mas não confiou. Ver `IClassCandidate`.

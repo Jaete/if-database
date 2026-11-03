@@ -1,0 +1,1765 @@
+@use '../globals' as *;
+
+// ── Modal shell ──────────────────────────────────────────────────────────────
+
+.overlay .modalShell.rcShell {
+  width: calc(100vw - #{$spacing-10});
+  max-width: 78rem;
+
+  .modal {
+    height: calc(100dvh - #{$spacing-10});
+    max-height: 60rem;
+  }
+
+  .content {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 0;
+  }
+
+  @include mobile {
+    width: 100%;
+    max-width: none;
+
+    .modal {
+      height: 100%;
+      max-height: none;
+    }
+  }
+}
+
+// Button reset — list every custom control explicitly so the reset and the
+// per-handle styles share the same specificity and cascade order wins.
+// A blanket `.rcShell button` would beat single-class selectors and strip
+// padding/borders from styled handles.
+.rcCrumb,
+.rcMenuItem,
+.rcRes,
+.rcColBtn,
+.rcRowBtn,
+.rcBtnGhost,
+.rcBtn,
+.rcChip,
+.rcCard > button,
+.rcTick,
+.rcRelOpen,
+.rcClose,
+.rcEditBtn,
+.rcAddBtn,
+.rcDeleteBtn,
+.rcAddItem,
+.rcDynRemove {
+  appearance: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+// ── Bar: breadcrumb + search ─────────────────────────────────────────────────
+
+.rcBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-3 $spacing-5;
+  padding: $spacing-3 $spacing-5;
+  border-top: 1px solid $color-border;
+  background: $surface;
+}
+
+.rcCrumbs {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: $spacing-1;
+}
+
+.rcCrumb {
+  padding: $spacing-1 $spacing-2;
+  border-radius: $radius-sm;
+  @include main-sm($color-text-muted, $font-weight-semibold, 1.3);
+  @include focus-ring;
+
+  &:hover {
+    color: $color-text;
+  }
+
+  &[aria-current='page'] {
+    color: $color-accent;
+  }
+
+  &--menu {
+    display: inline-flex;
+    align-items: center;
+    gap: $spacing-1;
+
+    svg {
+      width: $spacing-4;
+      height: $spacing-4;
+      transition: transform 0.15s ease;
+    }
+
+    &[aria-expanded='true'] svg {
+      transform: rotate(90deg);
+    }
+  }
+}
+
+.rcCrumbSep {
+  color: $color-text-subtle;
+  user-select: none;
+}
+
+.rcLong {
+  @include mobile {
+    display: none;
+  }
+}
+
+.rcMenu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 12;
+  display: grid;
+  width: max-content;
+  max-width: 22rem;
+  max-height: 20rem;
+  overflow-y: auto;
+  border: 1px solid $color-border;
+  border-radius: $radius-lg;
+  background: $surface-elevated;
+  @include elevation(3);
+}
+
+.rcMenuItem {
+  display: grid;
+  gap: $spacing-1 * 0.5;
+  padding: $spacing-3 $spacing-4;
+  border-bottom: 1px solid $color-border;
+  text-align: left;
+  @include focus-ring;
+
+  b {
+    @include cinzel-sm($color-text, $font-weight-bold, 1.3, 0.02em);
+  }
+
+  small {
+    @include main-xs($color-text-muted, $font-weight-regular, 1.4);
+  }
+
+  &:hover {
+    background: $accent-overlay;
+
+    b {
+      color: $color-accent;
+    }
+  }
+
+  &[aria-current='true'] {
+    background: $accent-overlay-hover;
+
+    b {
+      color: $color-accent;
+    }
+  }
+
+  &:last-child {
+    border-bottom: 0;
+  }
+}
+
+// ── Search ───────────────────────────────────────────────────────────────────
+
+.rcSearch {
+  position: relative;
+  flex: 1 1 14rem;
+  min-width: 0;
+}
+
+.rcSearchField {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+  padding: $spacing-2 $spacing-3;
+  border: 1px solid $color-border-control;
+  border-radius: $radius-md;
+  background: $color-input-bg;
+
+  svg {
+    flex-shrink: 0;
+    width: $spacing-4;
+    height: $spacing-4;
+    color: $color-text-muted;
+  }
+
+  input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    background: transparent;
+    outline: none;
+    @include main-sm($color-text, $font-weight-regular, 1.4);
+
+    &::placeholder {
+      color: $color-placeholder;
+    }
+  }
+
+  &:focus-within {
+    border-color: $color-focus;
+    box-shadow: 0 0 0 2px with-alpha($color-focus, 0.25);
+  }
+}
+
+.rcSearchKbd {
+  flex-shrink: 0;
+  padding: $spacing-1 * 0.5 $spacing-2;
+  border: 1px solid $color-border;
+  border-radius: $radius-sm;
+  @include mono-xs($color-text-muted, $font-weight-regular, 1);
+}
+
+.rcResults {
+  position: absolute;
+  top: calc(100% + $spacing-2);
+  right: 0;
+  left: 0;
+  z-index: 14;
+  display: grid;
+  max-height: 24rem;
+  overflow-y: auto;
+  border: 1px solid $color-border;
+  border-radius: $radius-lg;
+  background: $surface-elevated;
+  @include elevation(4);
+}
+
+.rcResGroup {
+  padding: $spacing-2 $spacing-4;
+  @include caption($color-accent, $font-weight-semibold, 1.3, 0.12em);
+}
+
+.rcRes {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0 $spacing-3;
+  padding: $spacing-2 $spacing-4;
+  text-align: left;
+  @include focus-ring;
+
+  b {
+    @include main-sm($color-text, $font-weight-semibold, 1.3);
+
+    mark {
+      background: $accent-overlay-hover;
+      color: $color-accent;
+    }
+  }
+
+  small {
+    grid-column: 1;
+    @include main-xs($color-text-muted, $font-weight-regular, 1.4);
+  }
+
+  i {
+    grid-row: 1 / 3;
+    grid-column: 2;
+    align-self: center;
+    font-style: normal;
+    @include mono-xs($color-text-muted, $font-weight-regular, 1);
+  }
+
+  &[aria-selected='true'] {
+    background: $accent-overlay;
+  }
+}
+
+.rcResEmpty {
+  padding: $spacing-5 $spacing-4;
+  @include main-sm($color-text-muted, $font-weight-regular, 1.6);
+}
+
+.rcSr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+// ── Stage ────────────────────────────────────────────────────────────────────
+
+.rcStage {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 0;
+  flex: 1 1 0;
+  overflow: hidden;
+}
+
+.rcView {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  outline: none;
+}
+
+.rcPad {
+  padding: $spacing-6 $spacing-5;
+
+  @include mobile {
+    padding: $spacing-5 $spacing-4;
+  }
+}
+
+// ── Tábua header ─────────────────────────────────────────────────────────────
+
+.rcTabHead {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: $spacing-3 $spacing-5;
+  align-items: end;
+  margin-bottom: $spacing-6;
+}
+
+.rcKicker {
+  @include caption($color-accent, $font-weight-semibold, 1.3, 0.12em);
+}
+
+.rcH3 {
+  @include cinzel-2xl($color-text, $font-weight-bold, 1.2, 0.04em);
+
+  &:focus {
+    outline: none;
+  }
+
+  @include mobile {
+    font-size: 1.375rem;
+  }
+}
+
+.rcLede {
+  margin: 0;
+  @include main-sm($color-text-muted, $font-weight-regular, 1.6);
+}
+
+.rcFilterLine {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: $spacing-2 $spacing-4;
+  @include main-sm($color-text-muted, $font-weight-regular, 1.5);
+
+  em {
+    font-style: normal;
+    color: $color-accent;
+    font-weight: $font-weight-semibold;
+  }
+
+  b {
+    color: $color-text;
+  }
+}
+
+.rcBtnGhost {
+  padding: $spacing-1 $spacing-3;
+  border: 1px solid $color-border-control;
+  border-radius: $radius-md;
+  @include main-xs($color-text-muted, $font-weight-semibold, 1.3);
+  @include focus-ring;
+
+  &:hover {
+    border-color: $color-accent-line;
+    color: $color-accent;
+  }
+}
+
+// ── Pin row + chips ──────────────────────────────────────────────────────────
+
+.rcPinRow {
+  display: none;
+  flex-wrap: wrap;
+  gap: $spacing-2;
+  margin-bottom: $spacing-5;
+
+  @include mobile {
+    display: flex;
+  }
+}
+
+.rcChip {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-2;
+  padding: $spacing-1 $spacing-3;
+  border: 1px solid $color-border-control;
+  border-radius: $radius-full;
+  @include main-xs($color-text, $font-weight-semibold, 1.3);
+  @include focus-ring;
+
+  small {
+    @include mono-xs($color-text-muted, $font-weight-regular, 1);
+  }
+
+  &:hover {
+    border-color: $color-accent-line;
+    color: $color-accent;
+  }
+
+  &[aria-pressed='true'] {
+    border-color: $color-accent-line;
+    background: $accent-overlay;
+    color: $color-accent;
+  }
+}
+
+.rcChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-2;
+  margin-top: $spacing-3;
+}
+
+// ── Matrix ───────────────────────────────────────────────────────────────────
+
+.rcTabGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 18rem;
+  gap: $spacing-5;
+  margin-bottom: $spacing-8;
+
+  @include mobile {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.rcMatrixWrap {
+  overflow-x: auto;
+  border: 1px solid $color-border;
+  border-radius: $radius-lg;
+
+  @include mobile {
+    display: none;
+  }
+}
+
+.rcMatrix {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.rcCorner {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  padding: $spacing-3 $spacing-4;
+  border-right: 1px solid $color-border;
+  border-bottom: 1px solid $color-border;
+  background: $surface-raised;
+  text-align: left;
+  @include caption($color-text-muted, $font-weight-semibold, 1.3, 0.12em);
+}
+
+.rcColHead {
+  padding: 0;
+  border-bottom: 1px solid $color-border;
+  background: $surface;
+  vertical-align: bottom;
+  transition: background 0.1s ease;
+
+  &--pin {
+    background: $accent-overlay;
+  }
+
+  &--hot {
+    background: $accent-overlay-hover;
+  }
+}
+
+.rcColBtn {
+  display: grid;
+  justify-items: center;
+  gap: $spacing-1;
+  width: 100%;
+  padding: $spacing-3 $spacing-2;
+  @include focus-ring;
+
+  span {
+    writing-mode: vertical-lr;
+    text-orientation: mixed;
+    white-space: nowrap;
+    @include main-xs($color-text-muted, $font-weight-semibold, 1.1);
+  }
+
+  small {
+    @include mono-xs($color-text-subtle, $font-weight-regular, 1);
+  }
+
+  &:hover span {
+    color: $color-accent;
+  }
+}
+
+.rcRow {
+  transition: opacity 0.15s ease;
+
+  &--out {
+    opacity: 0.25;
+  }
+
+  &--hot {
+    th {
+      background: $accent-overlay;
+    }
+  }
+
+  th {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    padding: 0;
+    border-right: 1px solid $color-border;
+    border-bottom: 1px solid $color-border;
+    background: $surface;
+    text-align: left;
+  }
+}
+
+.rcRowBtn {
+  display: grid;
+  gap: $spacing-1 * 0.5;
+  width: 100%;
+  padding: $spacing-3 $spacing-4;
+  text-align: left;
+  @include focus-ring;
+
+  b {
+    @include cinzel-sm($color-text, $font-weight-bold, 1.3, 0.02em);
+  }
+
+  small {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+    @include main-xs($color-text-muted, $font-weight-regular, 1.4);
+  }
+
+  &:hover b {
+    color: $color-accent;
+  }
+}
+
+.rcCell {
+  padding: $spacing-2;
+  border-bottom: 1px solid $color-border;
+  text-align: center;
+  transition: background 0.1s ease;
+
+  &--pin {
+    background: with-alpha($color-accent-line, 0.04);
+  }
+
+  &--hot {
+    background: $accent-overlay;
+  }
+}
+
+.rcPip {
+  display: inline-block;
+  width: $spacing-2;
+  height: $spacing-2;
+  border-radius: 1px;
+  background: $color-accent-line-2;
+  box-shadow: 0 0 $spacing-1 with-alpha($color-accent-line, 0.4);
+  transform: rotate(45deg);
+}
+
+// ── Cards (mobile) ───────────────────────────────────────────────────────────
+
+.rcCards {
+  display: none;
+  gap: $spacing-2;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  @include mobile {
+    display: grid;
+  }
+}
+
+.rcCard {
+  transition: opacity 0.15s ease;
+
+  &--out {
+    opacity: 0.25;
+  }
+
+  > button {
+    display: grid;
+    gap: $spacing-1;
+    width: 100%;
+    padding: $spacing-3 $spacing-4;
+    border: 1px solid $color-border;
+    border-radius: $radius-md;
+    text-align: left;
+    @include focus-ring;
+
+    b {
+      @include cinzel-sm($color-text, $font-weight-bold, 1.3, 0.02em);
+    }
+
+    small {
+      @include main-xs($color-text-muted, $font-weight-regular, 1.4);
+    }
+
+    &:hover {
+      border-color: with-alpha($color-accent-line, 0.5);
+      background: $accent-overlay;
+
+      b {
+        color: $color-accent;
+      }
+    }
+  }
+}
+
+.rcCardRels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-1 $spacing-3;
+  margin-top: $spacing-1;
+  @include main-xs($color-text-muted, $font-weight-regular, 1.3);
+
+  > span {
+    display: inline-flex;
+    align-items: center;
+    gap: $spacing-1;
+  }
+
+  &--hit {
+    color: $color-accent;
+    font-weight: $font-weight-semibold;
+
+    .rcPip {
+      background: $color-accent;
+    }
+  }
+}
+
+// ── Preview ──────────────────────────────────────────────────────────────────
+
+.rcPreview {
+  position: sticky;
+  top: 0;
+  display: grid;
+  gap: $spacing-4;
+  align-content: start;
+  padding: $spacing-5;
+  border: 1px solid $color-border;
+  border-radius: $radius-lg;
+  background: $surface-raised;
+  @include elevation(2);
+
+  @include mobile {
+    display: none;
+  }
+
+  h4 {
+    margin: 0;
+    @include gold-gradient-text;
+    @include cinzel-lg($color-accent, $font-weight-bold, 1.25, 0.02em);
+  }
+}
+
+.rcPreviewSub {
+  margin: $spacing-1 0 0;
+  @include main-sm($color-text-muted, $font-weight-regular, 1.4);
+}
+
+.rcBlurb {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  margin: 0;
+  @include main-sm($color-text, $font-weight-regular, 1.65);
+}
+
+.rcMini {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: $spacing-1 $spacing-3;
+  margin: 0;
+
+  dt {
+    @include caption($color-text-muted, $font-weight-semibold, 1.3, 0.06em);
+  }
+
+  dd {
+    margin: 0;
+    @include main-sm($color-text, $font-weight-semibold, 1.3);
+  }
+}
+
+.rcBtn {
+  @include focus-ring;
+
+  &--primary {
+    display: inline-flex;
+    align-items: center;
+    gap: $spacing-2;
+    justify-self: start;
+    padding: $spacing-2 $spacing-4;
+    border-radius: $radius-md;
+    @include btn-primary;
+    @include main-sm($color-text-on-accent, $font-weight-semibold, 1.3);
+
+    svg {
+      width: $spacing-4;
+      height: $spacing-4;
+    }
+  }
+}
+
+// ── Index ────────────────────────────────────────────────────────────────────
+
+.rcRelIndex {
+  display: grid;
+  gap: $spacing-6;
+
+  h4 {
+    margin: 0;
+    @include cinzel-lg($color-text, $font-weight-bold, 1.3, 0.03em);
+
+    small {
+      margin-left: $spacing-2;
+      @include mono-sm($color-text-muted, $font-weight-regular, 1);
+    }
+  }
+
+  p {
+    margin: $spacing-1 0 0;
+    @include main-sm($color-text-muted, $font-weight-regular, 1.5);
+  }
+}
+
+// ── Entity view ──────────────────────────────────────────────────────────────
+
+.rcEntity {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 18rem;
+  grid-template-areas:
+    'front rels'
+    'facts rels'
+    'abilities rels';
+  gap: $spacing-6;
+  align-items: start;
+
+  @include mobile {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'front'
+      'facts'
+      'rels'
+      'abilities';
+  }
+}
+
+.rcFront {
+  grid-area: front;
+  display: grid;
+  gap: $spacing-4;
+  min-width: 0;
+}
+
+.rcFiligree {
+  display: flex;
+  align-items: center;
+  gap: $spacing-3;
+  color: $color-accent-line;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      $color-accent-line,
+      transparent
+    );
+  }
+}
+
+.rcEditBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-2;
+  justify-self: start;
+  padding: $spacing-1 $spacing-3;
+  border: 1px solid $color-border-control !important;
+  border-radius: $radius-md;
+  @include main-xs($color-text-muted, $font-weight-semibold, 1.3);
+  @include focus-ring;
+
+  svg {
+    width: $spacing-4;
+    height: $spacing-4;
+  }
+
+  &:hover {
+    border-color: $color-accent-line !important;
+    color: $color-accent;
+  }
+}
+
+// ── Facts ────────────────────────────────────────────────────────────────────
+
+.rcFacts {
+  grid-area: facts;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: 1px;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid $color-border;
+  border-radius: $radius-lg;
+  background: $color-border;
+
+  @include mobile {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.rcFact {
+  display: grid;
+  gap: $spacing-1;
+  padding: $spacing-4;
+  background: $surface;
+
+  dt {
+    @include caption($color-text-muted, $font-weight-semibold, 1.3, 0.08em);
+  }
+
+  dd {
+    margin: 0;
+    @include cinzel-md($color-text, $font-weight-bold, 1.3, 0.02em);
+  }
+
+  details summary {
+    display: inline-flex;
+    align-items: center;
+    gap: $spacing-1;
+    margin-top: $spacing-1;
+    cursor: pointer;
+    @include main-xs($color-accent, $font-weight-semibold, 1.3);
+
+    svg {
+      width: $spacing-3;
+      height: $spacing-3;
+      transition: transform 0.15s ease;
+    }
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+  }
+
+  details[open] summary svg {
+    transform: rotate(90deg);
+  }
+
+  details > div,
+  details > p {
+    overflow-y: auto;
+    max-height: 12rem;
+  }
+
+  details p {
+    margin: $spacing-2 0 0;
+    @include main-sm($color-text, $font-weight-regular, 1.6);
+  }
+}
+
+.rcFactNote {
+  @include main-xs($color-text-muted, $font-weight-regular, 1.5);
+}
+
+.rcFactMissing {
+  @include main-xs($color-text-muted, $font-weight-regular, 1.5);
+  font-style: italic;
+}
+
+// ── Abilities ────────────────────────────────────────────────────────────────
+
+.rcAbilities {
+  grid-area: abilities;
+  min-width: 0;
+}
+
+.rcAbilitiesHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: $spacing-4;
+  margin-bottom: $spacing-5;
+
+  h4 {
+    margin: 0;
+    @include cinzel-xl($color-text, $font-weight-bold, 1.3, 0.03em);
+  }
+}
+
+.rcRuler {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: repeat(20, minmax(0, 1fr));
+  gap: 2px;
+  margin-bottom: $spacing-6;
+  padding: $spacing-3 0 $spacing-3;
+  border-bottom: 1px solid $color-border;
+  background: $surface-float;
+
+  @include mobile {
+    grid-template-columns: repeat(20, $spacing-6);
+    margin-inline: -$spacing-4;
+    padding-inline: $spacing-4;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+}
+
+.rcTick {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: $spacing-2;
+  padding: $spacing-4 0 0;
+  border: 0;
+  @include mono-xs($color-text-muted, $font-weight-regular, 1);
+
+  &::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    bottom: -$spacing-3;
+    left: 0;
+    height: 2px;
+    background: $color-border-strong;
+  }
+
+  &--gift {
+    color: $color-text;
+    font-weight: $font-weight-bold;
+
+    &::after {
+      background: $color-accent-line-2;
+    }
+
+    .rcPip {
+      width: $spacing-2 - $spacing-1 * 0.5;
+      height: $spacing-2 - $spacing-1 * 0.5;
+      box-shadow: none;
+    }
+
+    &:hover {
+      color: $color-accent;
+    }
+  }
+
+  @include focus-ring;
+}
+
+.rcLvl {
+  display: grid;
+  grid-template-columns: $spacing-14 minmax(0, 1fr);
+  gap: $spacing-6;
+  padding: 0 0 $spacing-8;
+  scroll-margin-top: $spacing-18;
+
+  & + & {
+    padding-top: $spacing-8;
+    border-top: 1px solid $color-border;
+  }
+
+  @include mobile {
+    grid-template-columns: minmax(0, 1fr);
+    gap: $spacing-3;
+  }
+}
+
+.rcSeal {
+  position: sticky;
+  top: $spacing-19;
+  display: grid;
+  align-self: start;
+  place-content: center;
+  width: $spacing-14;
+  height: $spacing-14;
+  border: 1px solid with-alpha($color-accent-line, 0.45);
+  border-radius: $radius-md;
+  background: linear-gradient(180deg, $surface-elevated, $surface-raised);
+  text-align: center;
+
+  b {
+    @include cinzel-xl($color-accent, $font-weight-bold, 1);
+  }
+
+  small {
+    margin-top: $spacing-1 * 0.5;
+    @include caption($color-text-muted, $font-weight-semibold, 1, 0.12em);
+  }
+
+  &--none b {
+    color: $color-text-muted;
+  }
+
+  @include mobile {
+    .rcLvl > & {
+      position: static;
+      display: inline-flex;
+      align-items: baseline;
+      justify-self: start;
+      gap: $spacing-2;
+      width: auto;
+      height: auto;
+      padding: $spacing-1 $spacing-3;
+
+      b {
+        font-size: 1rem;
+      }
+    }
+  }
+}
+
+.rcLvlItems {
+  display: grid;
+  gap: $spacing-8;
+  min-width: 0;
+}
+
+.rcAbility {
+  min-width: 0;
+  border-radius: $radius-sm;
+  scroll-margin-top: $spacing-20;
+}
+
+.rcAbilityHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: $spacing-3;
+
+  h5 {
+    margin: 0;
+    @include cinzel-xl($color-text, $font-weight-bold, 1.3, 0.02em);
+
+    @include mobile {
+      font-size: 1.125rem;
+    }
+  }
+}
+
+.rcLvlTag {
+  @include caption($color-text-muted, $font-weight-semibold, 1.3, 0.1em);
+}
+
+.rcBody {
+  display: grid;
+  gap: $spacing-3;
+  margin-top: $spacing-3;
+  min-width: 0;
+}
+
+// ── Related sidebar ──────────────────────────────────────────────────────────
+
+.rcRels {
+  grid-area: rels;
+  position: sticky;
+  top: 0;
+  display: grid;
+  gap: $spacing-3;
+  align-content: start;
+  max-height: calc(min(100dvh - #{$spacing-10}, 60rem) - 12rem);
+  padding: $spacing-5;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px solid $color-border;
+  border-radius: $radius-lg;
+  background: linear-gradient(180deg, $surface-elevated, $surface-raised);
+  @include elevation(2);
+
+  @include mobile {
+    position: static;
+    max-height: none;
+    margin-bottom: $spacing-8;
+    overflow: visible;
+    @include elevation(1);
+  }
+}
+
+.rcRelsHead {
+  display: grid;
+  gap: $spacing-1;
+
+  h4 {
+    margin: 0;
+    @include cinzel-lg($color-text, $font-weight-bold, 1.25, 0.03em);
+  }
+
+  p {
+    margin: 0;
+    @include main-sm($color-text-muted, $font-weight-regular, 1.5);
+  }
+}
+
+.rcRelList {
+  display: grid;
+  gap: $spacing-2;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rcRelItem {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: $spacing-1 $spacing-3;
+  padding: $spacing-3 $spacing-2 $spacing-3 $spacing-3;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  background: $surface;
+  cursor: pointer;
+
+  b {
+    @include cinzel-sm($color-text, $font-weight-bold, 1.3, 0.02em);
+  }
+
+  > span {
+    display: -webkit-box;
+    grid-column: 1;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    @include main-xs($color-text-muted, $font-weight-regular, 1.45);
+  }
+
+  em {
+    grid-column: 1;
+    font-style: normal;
+    @include main-xs($color-text-muted, $font-weight-regular, 1.4);
+
+    b {
+      font: inherit;
+      color: $color-text;
+      font-weight: $font-weight-semibold;
+      letter-spacing: 0;
+    }
+  }
+
+  &:hover {
+    border-color: with-alpha($color-accent-line, 0.5);
+    background: $accent-overlay;
+
+    b {
+      color: $color-accent;
+    }
+  }
+}
+
+.rcRelOpen {
+  display: grid;
+  grid-row: 1 / 3;
+  grid-column: 2;
+  place-items: center;
+  width: $spacing-7;
+  height: $spacing-7;
+  border: 0;
+  border-radius: $radius-sm;
+  color: $color-text-muted;
+  @include focus-ring;
+
+  &:hover {
+    background: $accent-overlay-hover;
+    color: $color-accent;
+  }
+
+  svg {
+    width: $spacing-4;
+    height: $spacing-4;
+  }
+}
+
+.rcGrantedBy {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-2;
+}
+
+// ── Panel ────────────────────────────────────────────────────────────────────
+
+.rcScrim {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  background: $overlay;
+  animation: rcFade 0.2s ease;
+}
+
+.rcPanel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  width: min(32rem, 100%);
+  border-left: 1px solid with-alpha($color-accent-line, 0.25);
+  background: $surface-elevated;
+  animation: rcSlide 0.25s ease;
+  @include elevation(4);
+
+  @include mobile {
+    width: 100%;
+    border-left: 0;
+  }
+}
+
+.rcPanelHead {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: $spacing-1 $spacing-4;
+  padding: $spacing-5 $spacing-5 $spacing-4;
+  border-bottom: 1px solid $color-border;
+
+  h3 {
+    margin: 0;
+    @include cinzel-2xl($color-text, $font-weight-bold, 1.2, 0.03em);
+
+    &:focus {
+      outline: none;
+    }
+  }
+
+  .rcProse {
+    grid-column: 1 / -1;
+    margin-top: $spacing-2;
+  }
+
+  .rcDescText {
+    @include main-sm($color-text, $font-weight-regular, 1.6);
+  }
+}
+
+.rcClose {
+  display: grid;
+  align-self: start;
+  place-items: center;
+  width: $spacing-9;
+  height: $spacing-9;
+  border: 0;
+  border-radius: $radius-md;
+  color: $color-text-muted;
+  @include focus-ring;
+
+  &:hover {
+    color: $color-accent;
+  }
+
+  svg {
+    width: $spacing-5;
+    height: $spacing-5;
+  }
+}
+
+.rcPanelBody {
+  display: grid;
+  gap: $spacing-6;
+  align-content: start;
+  padding: $spacing-5;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
+  h4 {
+    margin: 0 0 $spacing-3;
+    @include caption($color-text-muted, $font-weight-semibold, 1.3, 0.12em);
+  }
+}
+
+// ── Ladder (ranked list) ─────────────────────────────────────────────────────
+
+.rcLadder {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  background: $surface;
+  list-style: none;
+
+  li {
+    display: grid;
+    grid-template-columns: $spacing-12 minmax(0, 1fr);
+    align-items: center;
+    border-top: 1px solid $color-border;
+    scroll-margin-top: $spacing-4;
+
+    &:first-child {
+      border-top: 0;
+    }
+  }
+
+  strong {
+    display: grid;
+    align-self: stretch;
+    place-items: center;
+    padding: $spacing-3 0;
+    border-right: 1px solid with-alpha($color-accent-line, 0.3);
+    background: $surface-raised;
+    @include mono-sm($color-accent, $font-weight-bold, 1, 0, center);
+  }
+
+  span {
+    padding: $spacing-2 $spacing-4;
+    @include main-sm($color-text, $font-weight-semibold, 1.4);
+  }
+}
+
+// ── Prose ────────────────────────────────────────────────────────────────────
+
+.rcProse {
+  display: grid;
+  gap: $spacing-3;
+  min-width: 0;
+
+  > div {
+    display: grid;
+    gap: $spacing-3;
+    min-width: 0;
+  }
+
+  &--drop > div:first-child > .rcDescText:first-child::first-letter {
+    float: left;
+    margin: $spacing-1 $spacing-2 0 0;
+    @include gold-gradient-text;
+    @include cinzel-3xl($color-accent, $font-weight-bold, 0.9);
+  }
+}
+
+.rcDescText {
+  margin: 0;
+  @include main-md($color-text, $font-weight-regular, 1.75);
+
+  @include mobile {
+    font-size: 0.9375rem;
+  }
+}
+
+.rcDescBullets {
+  display: grid;
+  gap: $spacing-1;
+  margin: 0;
+  padding-left: $spacing-5;
+  @include main-md($color-text, $font-weight-regular, 1.6);
+
+  li::marker {
+    color: $color-accent-line-2;
+  }
+
+  .rcDescBullets {
+    margin-top: $spacing-1;
+  }
+
+  @include mobile {
+    font-size: 0.9375rem;
+  }
+}
+
+.rcDescTable {
+  overflow-x: auto;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  background: $surface;
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    @include main-sm($color-text, $font-weight-regular, 1.4);
+  }
+
+  th {
+    padding: $spacing-2 $spacing-3;
+    border-bottom: 1px solid $color-border-strong;
+    background: $surface;
+    text-align: left;
+    white-space: nowrap;
+    @include caption($color-text-muted, $font-weight-semibold, 1.3, 0.12em);
+  }
+
+  td {
+    padding: $spacing-2 $spacing-3;
+    border-bottom: 1px solid $color-border;
+    color: $color-text;
+  }
+
+  tr:last-child {
+    th,
+    td {
+      border-bottom: 0;
+    }
+  }
+}
+
+// ── Flash ────────────────────────────────────────────────────────────────────
+
+.rcFlash {
+  animation: rcFlash 1.4s ease;
+}
+
+@keyframes rcFlash {
+  0%,
+  40% {
+    background-color: $accent-overlay-hover;
+    box-shadow: 0 0 0 $spacing-2 $accent-overlay-hover;
+  }
+
+  100% {
+    background-color: transparent;
+    box-shadow: none;
+  }
+}
+
+@keyframes rcFade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes rcSlide {
+  from {
+    opacity: 0;
+    transform: translateX($spacing-8);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rcScrim,
+  .rcPanel,
+  .rcFlash {
+    animation: none;
+  }
+}
+
+// ── Edit actions ──────────────────────────────────────────────────────────────
+
+.rcEditActions {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+  margin-left: auto;
+}
+
+.rcAddBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-1;
+  padding: $spacing-1 $spacing-3;
+  border: 1px solid $color-border-control;
+  border-radius: $radius-md;
+  @include main-xs($color-text-muted, $font-weight-semibold, 1.3);
+  @include focus-ring;
+
+  svg {
+    width: $spacing-3;
+    height: $spacing-3;
+  }
+
+  &:hover {
+    border-color: $color-accent-line;
+    color: $color-accent;
+  }
+}
+
+.rcDeleteBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-2;
+  padding: $spacing-2 $spacing-4;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  @include main-sm($color-error, $font-weight-semibold, 1.3);
+  @include focus-ring($color-error);
+
+  svg {
+    width: $spacing-4;
+    height: $spacing-4;
+  }
+
+  &:hover {
+    background: $error-bg;
+    border-color: $error-border;
+  }
+}
+
+// ── Empty state ───────────────────────────────────────────────────────────────
+
+.rcEmptyState {
+  @include flex-col-center;
+  gap: $spacing-4;
+  padding: $spacing-12 $spacing-8;
+  text-align: center;
+
+  h4 {
+    @include cinzel-lg($color-text, $font-weight-bold, 1.3, 0.02em);
+  }
+
+  p {
+    max-width: 24rem;
+    @include main-sm($color-text-muted, $font-weight-regular, 1.5);
+  }
+}
+
+.rcEmptyDiamond {
+  @include cinzel-3xl($color-accent-line, $font-weight-regular, 1);
+  opacity: 0.5;
+}
+
+.rcEmptyActions {
+  @include flex-row-center;
+  gap: $spacing-3;
+  margin-top: $spacing-4;
+}
+
+// ── Entity editor ─────────────────────────────────────────────────────────────
+
+.rcEditorBody {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-4;
+  padding: $spacing-5;
+  overflow-y: auto;
+  max-height: 60vh;
+
+  > label {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-1;
+  }
+}
+
+.rcEditorFoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-3;
+  padding: $spacing-4 $spacing-5;
+  border-top: 1px solid $color-border;
+}
+
+.rcFieldLabel {
+  @include caption($color-text-muted, $font-weight-semibold, 1.3, 0.06em);
+}
+
+.rcFieldReq {
+  color: $color-error;
+}
+
+.rcFieldInput {
+  width: 100%;
+  padding: $spacing-2 $spacing-3;
+  border: 1px solid $color-border-control;
+  border-radius: $radius-md;
+  @include main-sm($color-text, $font-weight-regular, 1.5);
+  @include field-input;
+
+  &--num {
+    width: $spacing-16;
+    flex-shrink: 0;
+    text-align: center;
+  }
+}
+
+.rcSep {
+  border: 0;
+  border-top: 1px solid $color-border;
+  margin: $spacing-2 0;
+}
+
+// ── Disclosure ────────────────────────────────────────────────────────────────
+
+.rcDisclosure {
+  border: 1px solid $color-border;
+  border-radius: $radius-lg;
+  overflow: hidden;
+
+  &[open] > .rcDisclosureTrigger .rcDisclosureArrow {
+    transform: rotate(90deg);
+  }
+}
+
+.rcDisclosureTrigger {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+  width: 100%;
+  padding: $spacing-3 $spacing-4;
+  cursor: pointer;
+  @include main-sm($color-text, $font-weight-semibold, 1.3);
+  list-style: none;
+
+  &::-webkit-details-marker {
+    display: none;
+  }
+
+  &:hover {
+    background: $accent-overlay;
+  }
+}
+
+.rcDisclosureArrow {
+  @include main-xs($color-text-muted, $font-weight-regular, 1);
+  transition: transform 0.15s ease;
+}
+
+.rcDisclosureCount {
+  margin-left: auto;
+  @include caption($color-text-subtle, $font-weight-regular, 1.3, 0.04em);
+}
+
+.rcDisclosureBody {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-3;
+  padding: $spacing-3 $spacing-4 $spacing-4;
+  border-top: 1px solid $color-border;
+  overflow-y: auto;
+  max-height: 20rem;
+}
+
+// ── Dynamic items ─────────────────────────────────────────────────────────────
+
+.rcDynItem {
+  display: flex;
+  align-items: flex-start;
+  gap: $spacing-2;
+  padding: $spacing-3;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  background: $surface;
+}
+
+.rcDynFields {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-2;
+  min-width: 0;
+}
+
+.rcDynRow {
+  display: flex;
+  gap: $spacing-2;
+  align-items: center;
+}
+
+.rcDynRowWide {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $spacing-2;
+}
+
+.rcDynRemove {
+  flex-shrink: 0;
+  padding: $spacing-1;
+  border-radius: $radius-sm;
+  @include focus-ring($color-error);
+
+  svg {
+    width: $spacing-4;
+    height: $spacing-4;
+    color: $color-text-subtle;
+  }
+
+  &:hover svg {
+    color: $color-error;
+  }
+}
+
+.rcAddItem {
+  align-self: flex-start;
+  padding: $spacing-1 $spacing-3;
+  border: 1px dashed $color-border-control;
+  border-radius: $radius-md;
+  @include main-xs($color-accent, $font-weight-semibold, 1.3);
+  @include focus-ring;
+
+  &:hover {
+    border-color: $color-accent-line;
+    background: $accent-overlay;
+  }
+}
+
+// ── Checkbox grid ─────────────────────────────────────────────────────────────
+
+.rcCheckGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+  gap: $spacing-2;
+}
+
+.rcCheckItem {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+  padding: $spacing-2 $spacing-3;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  cursor: pointer;
+  @include main-sm($color-text, $font-weight-regular, 1.3);
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+
+  &:hover {
+    border-color: $color-accent-line;
+  }
+
+  &--checked {
+    border-color: $color-accent-line;
+    background: $accent-overlay;
+  }
+}
+
+.rcCheckBox {
+  @include flex-center;
+  flex-shrink: 0;
+  width: $spacing-5;
+  height: $spacing-5;
+  border: 1px solid $color-border-control;
+  border-radius: $radius-sm;
+  @include main-xs($color-text-on-accent, $font-weight-bold, 1);
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+
+  &--checked {
+    background: $color-accent-fill;
+    border-color: $color-accent-fill;
+  }
+}

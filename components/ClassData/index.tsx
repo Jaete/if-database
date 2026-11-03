@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type ICharacterClass from '@/db/classes/class.d';
+import type { CatalogKind } from '@/db/classes/class.d';
 import { applyModifiers, useCssHandles } from '@/hooks/useCssHandles';
 import { useOptionalAuth } from '@/app/context/AuthContext';
 import ConfirmModal from '../ConfirmModal';
@@ -14,6 +15,9 @@ import Sheet from './Sheet';
 import About from './About';
 import SectionModal from './SectionModal';
 import type { IRemoval, ISectionActions } from './SectionModal/types';
+import DivineCodex from './DivineCodex';
+import RelationCodex from './RelationCodex';
+import CatalogKindPicker from './CatalogKindPicker';
 import {
   archetypeFields,
   catalogFields,
@@ -21,9 +25,11 @@ import {
   featureFields,
   levelFields,
   overviewFields,
+  relationCatalogFields,
   talentFields,
 } from './fields';
-import { buildSections } from './sections';
+import { buildSections, CATALOG_PREFIX } from './sections';
+import { effectiveKind } from './catalogKind';
 import { nextLevelNumber, useClassData } from './useClassData';
 import ClassDataHandles from './handles';
 import '@/styles/components/classData.scss';
@@ -91,6 +97,9 @@ const ClassData = ({
     removeCatalog,
     saveCatalogItem,
     removeCatalogItem,
+    saveRelationCatalog,
+    saveRelationEntity,
+    removeRelationEntity,
     saveTalent,
     removeTalent,
   } = useClassData(initial);
@@ -102,6 +111,11 @@ const ClassData = ({
   const [editingOverview, setEditingOverview] = useState(false);
   const [archetypeAt, setArchetypeAt] = useState<number | null>(null);
   const [catalogAt, setCatalogAt] = useState<number | null>(null);
+  // Criar uma lista tem dois passos: o tipo (picker) e depois o formulário.
+  const [pickingKind, setPickingKind] = useState(false);
+  const [newCatalogKind, setNewCatalogKind] = useState<CatalogKind | null>(
+    null
+  );
   const [catalogItemAt, setCatalogItemAt] = useState<[number, number] | null>(
     null
   );
@@ -134,6 +148,9 @@ const ClassData = ({
   ];
 
   const nodes = buildSections(k, canEdit);
+  const catalogKind = catalogItemAt
+    ? effectiveKind(k.catalogs?.[catalogItemAt[0]])
+    : undefined;
 
   const actions: ISectionActions = {
     canEdit,
@@ -183,7 +200,7 @@ const ClassData = ({
         openId={openNode}
         onOpen={openSection}
         onEditImage={canEdit ? () => setEditingOverview(true) : undefined}
-        onAddList={canEdit ? () => setCatalogAt(-1) : undefined}
+        onAddList={canEdit ? () => setPickingKind(true) : undefined}
       />
 
       {canEdit && k.candidate && (
@@ -217,8 +234,23 @@ const ClassData = ({
 
       <SectionModal
         characterClass={k}
-        nodes={nodes}
-        openId={openNode}
+        nodes={nodes.filter(
+          (n) =>
+            n.id !== 'dominios' &&
+            !(
+              n.id.startsWith(CATALOG_PREFIX) &&
+              k.catalogs?.find((c) => `${CATALOG_PREFIX}${c.slug}` === n.id)
+                ?.kind === 'relacao'
+            )
+        )}
+        openId={
+          openNode === 'dominios' ||
+          (openNode?.startsWith(CATALOG_PREFIX) &&
+            k.catalogs?.find((c) => `${CATALOG_PREFIX}${c.slug}` === openNode)
+              ?.kind === 'relacao')
+            ? null
+            : openNode
+        }
         actions={actions}
         onClose={() => {
           setFocus(null);
@@ -368,15 +400,32 @@ const ClassData = ({
         }
       />
 
+      <CatalogKindPicker
+        isOpen={pickingKind}
+        onClose={() => setPickingKind(false)}
+        onPick={(kind) => {
+          setNewCatalogKind(kind);
+          setPickingKind(false);
+          setCatalogAt(NEW_LEVEL);
+        }}
+      />
+
       <PromptModal
-        isOpen={catalogAt !== null}
-        onClose={() => setCatalogAt(null)}
+        isOpen={
+          catalogAt !== null &&
+          (newCatalogKind ?? k.catalogs?.[catalogAt ?? 0]?.kind) !== 'relacao'
+        }
+        onClose={() => {
+          setCatalogAt(null);
+          setNewCatalogKind(null);
+        }}
         title={catalogAt === -1 ? 'Nova lista' : 'Editar lista'}
         confirmLabel="Salvar"
         fields={catalogFields(
           catalogAt !== null && catalogAt >= 0
             ? k.catalogs?.[catalogAt]
-            : undefined
+            : undefined,
+          newCatalogKind ?? undefined
         )}
         onDelete={
           catalogAt !== null && catalogAt >= 0
@@ -390,14 +439,58 @@ const ClassData = ({
       />
 
       <PromptModal
+        isOpen={
+          catalogAt !== null &&
+          (newCatalogKind ?? k.catalogs?.[catalogAt ?? 0]?.kind) === 'relacao'
+        }
+        onClose={() => {
+          setCatalogAt(null);
+          setNewCatalogKind(null);
+        }}
+        title={
+          catalogAt === -1
+            ? 'Nova tabela de relação'
+            : 'Editar tabela de relação'
+        }
+        confirmLabel={catalogAt === -1 ? 'Criar' : 'Salvar'}
+        fields={relationCatalogFields(
+          catalogAt !== null && catalogAt >= 0
+            ? k.catalogs?.[catalogAt]
+            : undefined
+        )}
+        onDelete={
+          catalogAt !== null && catalogAt >= 0
+            ? () => removeCatalog(catalogAt)
+            : undefined
+        }
+        deleteLabel="Remover tabela"
+        onSubmit={(values) =>
+          catalogAt !== null && saveRelationCatalog(catalogAt, values)
+        }
+      />
+
+      <PromptModal
         isOpen={catalogItemAt !== null}
         onClose={() => setCatalogItemAt(null)}
-        title={catalogItemAt?.[1] === -1 ? 'Novo item' : 'Editar item'}
+        title={
+          catalogItemAt?.[1] === -1
+            ? catalogKind === 'magias'
+              ? 'Nova magia'
+              : catalogKind === 'habilidades'
+                ? 'Nova habilidade'
+                : 'Novo item'
+            : catalogKind === 'magias'
+              ? 'Editar magia'
+              : catalogKind === 'habilidades'
+                ? 'Editar habilidade'
+                : 'Editar item'
+        }
         confirmLabel="Salvar"
         fields={catalogItemFields(
           catalogItemAt && catalogItemAt[1] >= 0
             ? k.catalogs?.[catalogItemAt[0]]?.items?.[catalogItemAt[1]]
-            : undefined
+            : undefined,
+          catalogKind
         )}
         onDelete={
           catalogItemAt && catalogItemAt[1] >= 0
@@ -427,6 +520,54 @@ const ClassData = ({
         deleteLabel="Remover"
         onSubmit={(values) => talentAt !== null && saveTalent(talentAt, values)}
       />
+
+      {((k.divineOrders?.length ?? 0) > 0 || (k.domains?.length ?? 0) > 0) && (
+        <DivineCodex
+          isOpen={openNode === 'dominios'}
+          onClose={() => setOpenNode(null)}
+          className={k.name}
+          orders={k.divineOrders ?? []}
+          domains={k.domains ?? []}
+        />
+      )}
+
+      {(k.catalogs ?? []).map((catalog, catIdx) =>
+        catalog.kind === 'relacao' ? (
+          <RelationCodex
+            key={catalog.slug}
+            isOpen={openNode === `${CATALOG_PREFIX}${catalog.slug}`}
+            onClose={() => setOpenNode(null)}
+            className={k.name}
+            catalogName={catalog.name}
+            catalogIcon={catalog.icon}
+            catalogDescription={catalog.description}
+            groupA={
+              catalog.groupA ?? {
+                label: '',
+                unitSingular: '',
+                unitPlural: '',
+                entities: [],
+              }
+            }
+            groupB={
+              catalog.groupB ?? {
+                label: '',
+                unitSingular: '',
+                unitPlural: '',
+                entities: [],
+              }
+            }
+            canEdit={canEdit}
+            onSaveEntity={(group, entityIndex, entity) =>
+              saveRelationEntity(catIdx, group, entityIndex, entity)
+            }
+            onRemoveEntity={(group, entityIndex) =>
+              removeRelationEntity(catIdx, group, entityIndex)
+            }
+            onEditCatalog={() => setCatalogAt(catIdx)}
+          />
+        ) : null
+      )}
     </div>
   );
 };

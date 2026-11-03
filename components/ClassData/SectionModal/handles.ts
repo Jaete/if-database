@@ -48,6 +48,7 @@ const SectionModalHandles = [
   'clsArchName',
   'clsArchFeats',
   'clsCatalogItem',
+  'clsCatalogUnlinked',
   'clsSpellLink',
   'clsSrOnly',
   'clsTalents',

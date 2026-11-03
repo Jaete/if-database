@@ -1,6 +1,8 @@
 import type { ComponentType, SVGProps } from 'react';
 import type ICharacterClass from '@/db/classes/class.d';
+import { resolveCatalogIcon } from './catalogIcons';
 import {
+  HaloSwordIcon,
   ListIcon,
   ScrollIcon,
   ShieldIcon,
@@ -67,20 +69,35 @@ export function buildSections(
       unit: 'talentos',
     });
   }
+  if ((k.divineOrders?.length ?? 0) > 0 || (k.domains?.length ?? 0) > 0) {
+    nodes.push({
+      id: 'dominios',
+      label: 'Ordens & Domínios',
+      icon: HaloSwordIcon,
+      count: k.divineOrders?.length ?? 0,
+      unit: 'ordens deíficas',
+    });
+  }
   for (const catalog of k.catalogs ?? []) {
     nodes.push({
       id: `${CATALOG_PREFIX}${catalog.slug}`,
       label: catalog.name,
-      icon:
-        catalog.slug === 'artes-divinas'
+      // O ícone escolhido vence; a heurística só cobre listas sem `icon`.
+      icon: catalog.icon
+        ? resolveCatalogIcon(catalog.icon)
+        : catalog.slug === 'artes-divinas'
           ? SunIcon
           : // Lista de magias do grimório: todo item aponta para uma magia.
             (catalog.items?.length ?? 0) > 0 &&
               catalog.items!.every((item) => item.spell)
             ? SpellbookIcon
             : ListIcon,
-      count: catalog.items?.length ?? 0,
-      unit: 'itens',
+      count:
+        catalog.kind === 'relacao'
+          ? (catalog.groupA?.entities?.length ?? 0) +
+            (catalog.groupB?.entities?.length ?? 0)
+          : (catalog.items?.length ?? 0),
+      unit: catalog.kind === 'relacao' ? 'entidades' : 'itens',
     });
   }
   return nodes;

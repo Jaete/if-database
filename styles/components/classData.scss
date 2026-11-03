@@ -257,7 +257,7 @@
     // Funde no fundo da página nos dois temas: só o alfa conta na máscara.
     img {
       object-fit: cover;
-      object-position: center 25%;
+      object-position: center top;
       -webkit-mask-image: linear-gradient(180deg, black 50%, transparent 100%);
       mask-image: linear-gradient(180deg, black 50%, transparent 100%);
     }
@@ -550,6 +550,7 @@
 
 .clsPortraitImage {
   object-fit: cover;
+  object-position: center top;
   border-radius: inherit;
 }
 

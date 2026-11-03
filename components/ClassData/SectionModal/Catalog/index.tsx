@@ -5,6 +5,7 @@ import type { IClassCatalog } from '@/db/classes/class.d';
 import { useCssHandles } from '@/hooks/useCssHandles';
 import { ChevronRightIcon, PlusIcon } from '../../../Icons';
 import Description from '../../Description';
+import { effectiveKind } from '../../catalogKind';
 import ClassDataHandles from '../../handles';
 import { flashTarget } from '../flashTarget';
 import ItemTools from '../ItemTools';
@@ -39,6 +40,8 @@ const Catalog = ({ catalog, index, actions }: IProps) => {
   };
   const { canEdit } = actions;
   const items = catalog.items ?? [];
+  const kind = effectiveKind(catalog);
+  const isSpells = kind === 'magias';
 
   const flashTop = () =>
     flashTarget(contentRef.current, '[data-catalog]', handles.clsArch);
@@ -110,7 +113,7 @@ const Catalog = ({ catalog, index, actions }: IProps) => {
                 >
                   <div className={handles.clsFeatHead}>
                     <h4 className={handles.clsFeatName}>
-                      {item.spell ? (
+                      {item.spell && kind !== 'habilidades' ? (
                         <button
                           type="button"
                           className={handles.clsSpellLink}
@@ -145,7 +148,14 @@ const Catalog = ({ catalog, index, actions }: IProps) => {
                       />
                     )}
                   </div>
-                  <Description text={item.description} tables={item.tables} />
+                  {isSpells && !item.spell && (
+                    <p className={handles.clsCatalogUnlinked}>
+                      Magia não vinculada.
+                    </p>
+                  )}
+                  {!isSpells && (
+                    <Description text={item.description} tables={item.tables} />
+                  )}
                 </li>
               ))}
             </ul>
@@ -158,7 +168,11 @@ const Catalog = ({ catalog, index, actions }: IProps) => {
                 onClick={() => actions.edit.catalogItem(index, -1)}
               >
                 <PlusIcon />
-                Item
+                {isSpells
+                  ? 'Magia'
+                  : kind === 'habilidades'
+                    ? 'Habilidade'
+                    : 'Item'}
               </button>
             </div>
           )}

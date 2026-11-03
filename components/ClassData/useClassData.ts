@@ -3,11 +3,14 @@
 import { useCallback, useState } from 'react';
 import type ICharacterClass from '@/db/classes/class.d';
 import type {
+  CatalogKind,
   IArchetype,
   IClassCatalog,
   IClassCatalogItem,
   IClassFeature,
   IClassLevel,
+  IRelationEntity,
+  IRelationGroup,
   ITalent,
 } from '@/db/classes/class.d';
 import {
@@ -324,6 +327,8 @@ export function useClassData(initial: ICharacterClass) {
       const next: IClassCatalog = {
         name: values.name,
         slug: classSlug(values.name),
+        kind: (values.kind as CatalogKind) || current?.kind,
+        icon: values.icon || current?.icon,
         description: values.description || undefined,
         items: current?.items ?? [],
       };
@@ -357,9 +362,17 @@ export function useClassData(initial: ICharacterClass) {
       const current = items[itemIndex];
       const next: IClassCatalogItem = {
         name: values.name,
-        description: values.description || undefined,
+        // O editor de cada tipo só mostra parte dos campos; o que ele não
+        // mostra continua como estava.
+        description:
+          values.description === undefined
+            ? current?.description
+            : values.description || undefined,
         tables: current?.tables,
-        spell: values.spell?.trim() || undefined,
+        spell:
+          values.spell === undefined
+            ? current?.spell
+            : values.spell.trim() || undefined,
       };
       if (itemIndex < 0) items.push(next);
       else items[itemIndex] = next;
@@ -378,6 +391,102 @@ export function useClassData(initial: ICharacterClass) {
       const items = [...(catalog.items ?? [])];
       items.splice(itemIndex, 1);
       catalogs[catalogIndex] = { ...catalog, items };
+      return save({ catalogs });
+    },
+    [characterClass.catalogs, save]
+  );
+
+  /**
+   * Grava os metadados de uma tabela de relação: nome, descrição, ícone e
+   * labels dos grupos. As entidades dentro dos grupos são editadas por
+   * `saveRelationEntity`.
+   */
+  const saveRelationCatalog = useCallback(
+    (index: number, values: Record<string, string>) => {
+      const catalogs = [...(characterClass.catalogs ?? [])];
+      const current = catalogs[index];
+      const next: IClassCatalog = {
+        name: values.name,
+        slug: classSlug(values.name),
+        kind: 'relacao',
+        icon: values.icon || current?.icon,
+        description: values.description || undefined,
+        items: current?.items ?? [],
+        groupA: {
+          label: values.groupALabel,
+          unitSingular: values.groupASingular,
+          unitPlural: values.groupAPlural,
+          entities: current?.groupA?.entities ?? [],
+        },
+        groupB: {
+          label: values.groupBLabel,
+          unitSingular: values.groupBSingular,
+          unitPlural: values.groupBPlural,
+          entities: current?.groupB?.entities ?? [],
+        },
+      };
+      if (index < 0) catalogs.push(next);
+      else catalogs[index] = next;
+      return save({ catalogs });
+    },
+    [characterClass.catalogs, save]
+  );
+
+  /**
+   * Grava uma entidade dentro de um grupo (A ou B) de uma tabela de relação.
+   *
+   * O `entity` é o objeto completo, montado pelo editor do RelationCodex,
+   * não um `Record<string, string>` como os outros editores.
+   */
+  const saveRelationEntity = useCallback(
+    (
+      catalogIndex: number,
+      group: 'groupA' | 'groupB',
+      entityIndex: number,
+      entity: IRelationEntity
+    ) => {
+      const catalogs = [...(characterClass.catalogs ?? [])];
+      const catalog = catalogs[catalogIndex];
+      if (!catalog) return;
+
+      const grp: IRelationGroup = {
+        ...(catalog[group] ?? {
+          label: '',
+          unitSingular: '',
+          unitPlural: '',
+          entities: [],
+        }),
+      };
+      const entities = [...grp.entities];
+      if (entityIndex < 0) entities.push(entity);
+      else entities[entityIndex] = entity;
+      grp.entities = entities;
+
+      catalogs[catalogIndex] = { ...catalog, [group]: grp };
+      return save({ catalogs });
+    },
+    [characterClass.catalogs, save]
+  );
+
+  const removeRelationEntity = useCallback(
+    (catalogIndex: number, group: 'groupA' | 'groupB', entityIndex: number) => {
+      const catalogs = [...(characterClass.catalogs ?? [])];
+      const catalog = catalogs[catalogIndex];
+      if (!catalog) return;
+
+      const grp: IRelationGroup = {
+        ...(catalog[group] ?? {
+          label: '',
+          unitSingular: '',
+          unitPlural: '',
+          entities: [],
+        }),
+      };
+      const entities = [...grp.entities];
+      entities.splice(entityIndex, 1);
+      grp.entities = entities;
+
+      catalogs[catalogIndex] = { ...catalog, [group]: grp };
       return save({ catalogs });
     },
     [characterClass.catalogs, save]
@@ -429,6 +538,9 @@ export function useClassData(initial: ICharacterClass) {
     removeCatalog,
     saveCatalogItem,
     removeCatalogItem,
+    saveRelationCatalog,
+    saveRelationEntity,
+    removeRelationEntity,
     saveTalent,
     removeTalent,
   };

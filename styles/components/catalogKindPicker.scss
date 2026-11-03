@@ -1,0 +1,89 @@
+@use '../../styles/globals' as *;
+
+.kindIntro {
+  margin: 0 0 $spacing-4;
+  @include main-sm($color-text-muted, $font-weight-regular);
+}
+
+.kindGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: $spacing-4;
+  min-width: min(100%, 34rem);
+
+  @include mobile {
+    grid-template-columns: 1fr;
+    min-width: 0;
+  }
+}
+
+.kindIcon {
+  @include flex-center;
+  width: $spacing-14;
+  height: $spacing-14;
+  border: 1px solid with-alpha($color-accent-line, 0.3);
+  border-radius: $radius-full;
+  background: $accent-overlay;
+  color: $color-accent;
+
+  svg {
+    width: $spacing-7;
+    height: $spacing-7;
+  }
+}
+
+.kindCard {
+  @include flex-col-center;
+  gap: $spacing-3;
+  padding: $spacing-6 $spacing-4;
+  border: 1px solid $color-border;
+  border-radius: $radius-lg;
+  background: $surface-raised;
+  text-align: center;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+  @include elevation(1);
+  @include focus-ring;
+
+  &:hover:not(:disabled) {
+    border-color: $color-accent-line-2;
+    transform: translateY(-2px);
+    @include elevation(2);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+
+    .kindIcon {
+      color: $color-text-subtle;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+
+    &:hover:not(:disabled) {
+      transform: none;
+    }
+  }
+}
+
+.kindName {
+  @include cinzel-md($color-text, $font-weight-bold, 1.2, 0.03em);
+}
+
+.kindDesc {
+  @include main-sm($color-text-muted, $font-weight-regular);
+}
+
+.kindBadge {
+  padding: $spacing-1 $spacing-2;
+  border: 1px solid $warning-border;
+  border-radius: $radius-full;
+  background: $warning-bg;
+  @include caption($color-warning, $font-weight-semibold);
+}

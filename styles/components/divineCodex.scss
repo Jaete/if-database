@@ -1,0 +1,1650 @@
+@use '../globals' as *;
+
+// ── Casca do modal ───────────────────────────────────────────────────────────
+
+.overlay .modalShell.dvShell {
+  width: calc(100vw - #{$spacing-10});
+  max-width: 78rem;
+
+  .modal {
+    height: calc(100dvh - #{$spacing-10});
+    max-height: 60rem;
+  }
+
+  .content {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 0;
+  }
+
+  @include mobile {
+    width: 100%;
+    max-width: none;
+
+    .modal {
+      height: 100%;
+      max-height: none;
+    }
+  }
+}
+
+// Resets for the custom controls: they keep the typography of their own rule.
+.dvCrumb,
+.dvMenuItem,
+.dvRes,
+.dvColBtn,
+.dvRowBtn,
+.dvBtnGhost,
+.dvBtn,
+.dvChip,
+.dvCard > button,
+.dvTick,
+.dvElem,
+.dvDomOpen,
+.dvClose {
+  appearance: none;
+  margin: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.dvSr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.dvKicker {
+  @include caption($color-accent, $font-weight-semibold, 1.3, 0.12em);
+}
+
+.dvH3 {
+  @include cinzel-2xl($color-text, $font-weight-bold, 1.2, 0.04em);
+}
+
+.dvLede {
+  @include main-sm($color-text-muted, $font-weight-regular, 1.6);
+  max-width: 62ch;
+}
+
+// ── Barra: caminho + busca ───────────────────────────────────────────────────
+
+.dvBar {
+  display: grid;
+  grid-template-columns: auto minmax(12rem, 1fr);
+  align-items: center;
+  gap: $spacing-3;
+  margin: $spacing-4 (-$spacing-6) 0;
+  padding: $spacing-3 $spacing-6;
+  border-top: 1px solid $color-border;
+  background: $surface-elevated;
+
+  @include mobile {
+    grid-template-columns: minmax(0, 1fr);
+    gap: $spacing-2;
+    margin-inline: -$spacing-4;
+    padding: $spacing-3 $spacing-4;
+  }
+}
+
+.dvCrumbs {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: $spacing-1;
+  min-width: 0;
+
+  @include mobile {
+    margin-left: -$spacing-2;
+  }
+}
+
+.dvCrumb {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-2;
+  padding: $spacing-2 $spacing-2;
+  border: 0;
+  border-radius: $radius-sm;
+  white-space: nowrap;
+  @include cinzel-sm($color-text-muted, $font-weight-semibold, 1.2, 0.03em);
+  @include focus-ring;
+
+  &:hover {
+    background: $accent-overlay-hover;
+    color: $color-text;
+  }
+
+  &[aria-current='page'] {
+    color: $color-accent;
+  }
+
+  svg {
+    width: $spacing-3;
+    height: $spacing-3;
+  }
+
+  // The order crumb opens a menu: its chevron points down.
+  &--menu svg {
+    transform: rotate(90deg);
+  }
+}
+
+.dvCrumbSep {
+  @include main-xs($color-text-muted, $font-weight-regular, 1);
+}
+
+.dvLong {
+  @include mobile {
+    display: none;
+  }
+}
+
+.dvMenu {
+  position: absolute;
+  top: calc(100% + #{$spacing-2});
+  left: 0;
+  z-index: 20;
+  width: 17rem;
+  max-height: 22rem;
+  overflow: auto;
+  padding: $spacing-2;
+  border: 1px solid $color-border-strong;
+  border-radius: $radius-lg;
+  background: $surface-float;
+  @include elevation(4);
+
+  @include mobile {
+    width: min(17rem, calc(100vw - #{$spacing-8}));
+  }
+}
+
+.dvMenuItem {
+  display: grid;
+  width: 100%;
+  padding: $spacing-2 $spacing-3;
+  border: 0;
+  border-radius: $radius-md;
+  text-align: left;
+  @include focus-ring;
+
+  b {
+    @include cinzel-sm($color-text, $font-weight-bold, 1.3, 0.02em);
+  }
+
+  small {
+    @include main-xs($color-text-muted, $font-weight-regular, 1.4);
+  }
+
+  &:hover,
+  &[aria-current='true'] {
+    background: $accent-overlay-hover;
+  }
+
+  &[aria-current='true'] b {
+    color: $color-accent;
+  }
+}
+
+// ── Busca ────────────────────────────────────────────────────────────────────
+
+.dvSearch {
+  position: relative;
+  min-width: 0;
+}
+
+.dvSearchField {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+  padding: $spacing-2 $spacing-3;
+  border-radius: $radius-md;
+  @include field-input;
+
+  &:focus-within {
+    border-color: $color-focus;
+    box-shadow: 0 0 0 2px with-alpha($color-focus, 0.25);
+  }
+
+  svg {
+    flex: none;
+    width: $spacing-4;
+    height: $spacing-4;
+    color: $color-text-muted;
+  }
+
+  input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    outline: none;
+    background: none;
+    @include main-sm($color-text, $font-weight-regular, 1.4);
+
+    &::placeholder {
+      color: $color-placeholder;
+    }
+
+    &::-webkit-search-cancel-button {
+      display: none;
+    }
+  }
+}
+
+.dvSearchKbd {
+  padding: $spacing-1 * 0.5 $spacing-1 * 1.5;
+  border: 1px solid $color-border-strong;
+  border-radius: $radius-sm;
+  @include mono-xs($color-text-muted, $font-weight-regular, 1);
+
+  @include mobile {
+    display: none;
+  }
+}
+
+.dvResults {
+  position: absolute;
+  top: calc(100% + #{$spacing-2});
+  left: 0;
+  right: 0;
+  z-index: 20;
+  min-width: min(26rem, 80vw);
+  max-height: min(28rem, 60dvh);
+  overflow: auto;
+  padding: $spacing-2;
+  border: 1px solid $color-border-strong;
+  border-radius: $radius-lg;
+  background: $surface-float;
+  @include elevation(4);
+
+  @include mobile {
+    position: fixed;
+    top: auto;
+    left: $spacing-3;
+    right: $spacing-3;
+    min-width: 0;
+  }
+}
+
+.dvResGroup {
+  padding: $spacing-3 $spacing-3 $spacing-1;
+  @include caption($color-text-muted, $font-weight-semibold, 1.3, 0.12em);
+}
+
+.dvRes {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: $spacing-1 * 0.5 $spacing-3;
+  width: 100%;
+  padding: $spacing-2 $spacing-3;
+  border: 0;
+  border-radius: $radius-md;
+  text-align: left;
+
+  b {
+    @include cinzel-sm($color-text, $font-weight-bold, 1.3, 0.02em);
+  }
+
+  small {
+    grid-column: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    @include main-xs($color-text-muted, $font-weight-regular, 1.4);
+  }
+
+  i {
+    grid-row: 1 / 3;
+    grid-column: 2;
+    align-self: center;
+    font-style: normal;
+    @include mono-xs($color-accent, $font-weight-regular, 1);
+  }
+
+  mark {
+    padding: 0;
+    border-radius: $radius-sm * 0.5;
+    background: $accent-overlay-hover;
+    color: $color-accent;
+  }
+
+  &[aria-selected='true'],
+  &:hover {
+    background: $accent-overlay-hover;
+  }
+}
+
+.dvResEmpty {
+  padding: $spacing-3;
+  @include main-sm($color-text-muted, $font-weight-regular, 1.5);
+  font-style: italic;
+}
+
+// ── Área de leitura ──────────────────────────────────────────────────────────
+
+.dvStage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.dvView {
+  height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-color: $color-accent-line-2 transparent;
+
+  &:focus {
+    outline: none;
+  }
+}
+
+.dvPad {
+  padding: $spacing-6 $spacing-6 $spacing-12;
+
+  @include mobile {
+    padding: $spacing-5 $spacing-4 $spacing-12;
+  }
+}
+
+// ── Tábua ────────────────────────────────────────────────────────────────────
+
+.dvTabHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: $spacing-4 $spacing-8;
+  margin-bottom: $spacing-5;
+
+  > div:first-child {
+    display: grid;
+    gap: $spacing-2;
+    min-width: 0;
+  }
+}
+
+.dvFilterLine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-2;
+  min-height: $spacing-9;
+  @include main-sm($color-text-muted, $font-weight-regular, 1.4);
+
+  b {
+    color: $color-text;
+    font-weight: $font-weight-semibold;
+  }
+
+  em {
+    color: $color-accent;
+    font-style: normal;
+    font-weight: $font-weight-semibold;
+  }
+}
+
+.dvBtnGhost {
+  padding: $spacing-2 $spacing-3;
+  border: 0;
+  border-radius: $radius-sm;
+  text-transform: uppercase;
+  @include main-xs($color-text-muted, $font-weight-semibold, 1, 0.06em);
+  @include focus-ring;
+
+  &:hover {
+    background: $accent-overlay-hover;
+    color: $color-accent;
+  }
+}
+
+.dvTabGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 18rem;
+  gap: $spacing-5;
+  align-items: start;
+
+  @include mobile {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.dvMatrixWrap {
+  overflow-x: auto;
+  border: 1px solid $color-border;
+  border-radius: $radius-lg;
+  background: $surface-raised;
+
+  @include mobile {
+    display: none;
+  }
+}
+
+.dvMatrix {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+
+  thead th {
+    padding: 0;
+    border-bottom: 1px solid $color-border-strong;
+    vertical-align: bottom;
+  }
+
+  tbody th {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    padding: 0;
+    border-right: 1px solid $color-border;
+    border-bottom: 1px solid $color-border;
+    background-color: $surface-raised;
+    text-align: left;
+  }
+
+  td {
+    height: $spacing-13;
+    padding: 0;
+    border-bottom: 1px solid $color-border;
+    text-align: center;
+  }
+
+  tbody tr:last-child {
+    th,
+    td {
+      border-bottom: 0;
+    }
+  }
+}
+
+.dvCorner {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  padding: $spacing-3;
+  background: $surface-raised;
+  text-align: left;
+  @include caption($color-text-muted, $font-weight-semibold, 1.3, 0.12em);
+}
+
+.dvColBtn {
+  display: grid;
+  justify-items: center;
+  gap: $spacing-2;
+  width: 100%;
+  min-width: $spacing-7;
+  padding: $spacing-3 0 $spacing-2;
+  border: 0;
+  border-radius: $radius-sm $radius-sm 0 0;
+  @include focus-ring;
+
+  span {
+    transform: rotate(180deg);
+    white-space: nowrap;
+    writing-mode: vertical-rl;
+    @include main-xs($color-text-muted, $font-weight-semibold, 1, 0.04em);
+  }
+
+  small {
+    @include mono-xs($color-text-muted, $font-weight-regular, 1);
+  }
+
+  &:hover span {
+    color: $color-text;
+  }
+
+  &[aria-pressed='true'] {
+    background: $accent-overlay-hover;
+    box-shadow: inset 0 (-$spacing-1 * 0.5) 0 $color-accent-line;
+
+    span {
+      color: $color-accent;
+      font-weight: $font-weight-bold;
+    }
+  }
+}
+
+.dvColHead--hot .dvColBtn span {
+  color: $color-text;
+}
+
+.dvRowBtn {
+  display: grid;
+  gap: $spacing-1 * 0.5;
+  width: 100%;
+  min-width: 12rem;
+  padding: $spacing-3;
+  border: 0;
+  text-align: left;
+  @include focus-ring;
+
+  &:focus-visible {
+    outline-offset: -2px;
+  }
+
+  b {
+    white-space: nowrap;
+    @include cinzel-sm($color-text, $font-weight-bold, 1.25, 0.02em);
+  }
+
+  small {
+    white-space: nowrap;
+    @include main-xs($color-text-muted, $font-weight-regular, 1.3);
+  }
+
+  em {
+    color: $color-accent;
+    font-style: normal;
+  }
+}
+
+// The tint rides on a gradient layer so sticky cells stay opaque.
+.dvRow--hot th,
+.dvRow--hot td,
+.dvCell--hot,
+.dvCell--pin {
+  background-image: linear-gradient(
+    $accent-overlay-hover,
+    $accent-overlay-hover
+  );
+}
+
+.dvRow--out {
+  th b {
+    color: $color-text-muted;
+    font-weight: $font-weight-semibold;
+  }
+
+  .dvPip {
+    opacity: 0.35;
+  }
+}
+
+.dvPip {
+  display: inline-block;
+  width: $spacing-2;
+  height: $spacing-2;
+  background: $color-accent-line-2;
+  box-shadow: 0 0 6px with-alpha($color-accent-line, 0.45);
+  transform: rotate(45deg);
+
+  @include light {
+    box-shadow: none;
+  }
+}
+
+// ── Prévia lateral ───────────────────────────────────────────────────────────
+
+.dvPreview {
+  position: sticky;
+  top: 0;
+  display: grid;
+  gap: $spacing-4;
+  padding: $spacing-5;
+  border: 1px solid $color-border;
+  border-radius: $radius-lg;
+  background: linear-gradient(180deg, $surface-elevated, $surface-raised);
+  @include elevation(2);
+
+  h4 {
+    margin: 0;
+    padding-bottom: $spacing-1 * 0.5;
+    @include cinzel-xl($color-text, $font-weight-bold, 1.2, 0.03em);
+    @include gold-gradient-text;
+  }
+
+  @include mobile {
+    display: none;
+  }
+}
+
+.dvPreviewDeity {
+  margin: $spacing-1 * 0.5 0 0;
+  @include main-sm($color-text-muted, $font-weight-regular, 1.4);
+
+  b {
+    color: $color-text;
+    font-weight: $font-weight-semibold;
+  }
+}
+
+.dvBlurb {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+  @include main-sm($color-text, $font-weight-regular, 1.6);
+}
+
+.dvMini {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: $spacing-2 $spacing-3;
+  margin: 0;
+  @include main-sm($color-text, $font-weight-regular, 1.4);
+
+  dt {
+    @include caption($color-text-muted, $font-weight-semibold, 1.9, 0.1em);
+  }
+
+  dd {
+    margin: 0;
+  }
+}
+
+.dvGiftList {
+  display: grid;
+  gap: $spacing-1;
+  margin: 0;
+  padding: $spacing-3 0 0;
+  border-top: 1px solid $color-border;
+  list-style: none;
+  @include main-sm($color-text, $font-weight-regular, 1.4);
+
+  li {
+    display: grid;
+    grid-template-columns: $spacing-9 minmax(0, 1fr);
+    gap: $spacing-2;
+  }
+
+  i {
+    font-style: normal;
+    @include mono-xs($color-accent, $font-weight-bold, 1.4);
+  }
+}
+
+.dvBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-2;
+  padding: $spacing-3 $spacing-4;
+  border: 1px solid transparent;
+  border-radius: $radius-md;
+  white-space: nowrap;
+  @include cinzel-sm($color-text-on-accent, $font-weight-bold, 1, 0.04em);
+
+  svg {
+    width: $spacing-4;
+    height: $spacing-4;
+  }
+
+  &--primary {
+    @include btn-primary;
+  }
+}
+
+// ── Índice de domínios ───────────────────────────────────────────────────────
+
+.dvDomIndex {
+  display: grid;
+  gap: $spacing-5;
+  margin-top: $spacing-8;
+
+  h4 {
+    display: flex;
+    align-items: center;
+    gap: $spacing-3;
+    margin: 0;
+    @include cinzel-lg($color-text, $font-weight-bold, 1.3, 0.03em);
+
+    &::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(
+        90deg,
+        with-alpha($color-accent-line, 0.35),
+        transparent
+      );
+    }
+
+    small {
+      order: 2;
+      @include mono-xs($color-text-muted, $font-weight-regular, 1);
+    }
+  }
+
+  p {
+    margin: (-$spacing-3) 0 0;
+    @include main-sm($color-text-muted, $font-weight-regular, 1.5);
+  }
+
+  section {
+    display: grid;
+    gap: $spacing-3;
+  }
+}
+
+.dvChips,
+.dvGrantedBy {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-2;
+}
+
+.dvChip {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: $spacing-2;
+  padding: $spacing-2 $spacing-3;
+  border: 1px solid $color-border-strong;
+  border-radius: $radius-full;
+  background: $surface-raised;
+  @include main-sm($color-text, $font-weight-medium, 1.2);
+  @include focus-ring;
+
+  small {
+    @include mono-xs($color-text-muted, $font-weight-regular, 1);
+  }
+
+  &:hover {
+    border-color: $color-accent-line;
+    color: $color-accent;
+  }
+
+  &[aria-pressed='true'] {
+    border-color: $color-accent-line;
+    background: $accent-overlay-hover;
+    color: $color-accent;
+    font-weight: $font-weight-semibold;
+  }
+}
+
+// Mobile-only: pin chips row and order cards replace the matrix.
+.dvPinRow {
+  display: none;
+  gap: $spacing-2;
+  margin: 0 (-$spacing-4) $spacing-4;
+  padding: 0 $spacing-4 $spacing-1;
+  overflow-x: auto;
+  scrollbar-width: none;
+
+  @include mobile {
+    display: flex;
+  }
+}
+
+.dvCards {
+  display: none;
+  gap: $spacing-3;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  @include mobile {
+    display: grid;
+  }
+}
+
+.dvCard {
+  border: 1px solid $color-border;
+  border-radius: $radius-lg;
+  background: linear-gradient(180deg, $surface-raised, $surface);
+  @include elevation(1);
+
+  > button {
+    display: grid;
+    gap: $spacing-1;
+    width: 100%;
+    padding: $spacing-4;
+    border: 0;
+    border-radius: $radius-lg;
+    text-align: left;
+    @include focus-ring;
+  }
+
+  b {
+    @include cinzel-md($color-text, $font-weight-bold, 1.25, 0.02em);
+  }
+
+  small {
+    @include main-xs($color-text-muted, $font-weight-regular, 1.4);
+  }
+
+  &--out {
+    opacity: 0.55;
+  }
+}
+
+.dvCardDoms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-1 $spacing-3;
+  margin-top: $spacing-2;
+  @include main-sm($color-text, $font-weight-medium, 1.4);
+
+  > span {
+    display: inline-flex;
+    align-items: center;
+    gap: $spacing-2;
+  }
+
+  .dvPip {
+    width: $spacing-2 - $spacing-1 * 0.5;
+    height: $spacing-2 - $spacing-1 * 0.5;
+    box-shadow: none;
+  }
+
+  &--hit {
+    color: $color-accent;
+    font-weight: $font-weight-bold;
+  }
+}
+
+// ── Ordem ────────────────────────────────────────────────────────────────────
+
+.dvOrder {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 18rem;
+  grid-template-areas:
+    'front doms'
+    'facts doms'
+    'gifts doms';
+  column-gap: $spacing-8;
+  align-items: start;
+
+  @include mobile {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'front'
+      'facts'
+      'doms'
+      'gifts';
+  }
+}
+
+.dvFront {
+  grid-area: front;
+  display: grid;
+  gap: $spacing-2;
+  padding-bottom: $spacing-6;
+
+  .dvH3 {
+    padding-bottom: $spacing-1 * 0.5;
+    font-size: clamp(2rem, 3.4vw, 3rem);
+    line-height: 1.05;
+    letter-spacing: 0.05em;
+    @include gold-gradient-text;
+  }
+
+  .dvProse {
+    max-width: 68ch;
+  }
+}
+
+.dvFiligree {
+  display: flex;
+  align-items: center;
+  gap: $spacing-3;
+  max-width: 14rem;
+  color: $color-accent-line-2;
+  @include caption($color-accent-line-2, $font-weight-regular);
+  letter-spacing: 0;
+  text-transform: none;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      with-alpha($color-accent-line, 0.6)
+    );
+  }
+
+  &::after {
+    transform: scaleX(-1);
+  }
+}
+
+.dvFacts {
+  grid-area: facts;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  margin: 0 0 $spacing-8;
+  overflow: hidden;
+  border: 1px solid $color-border;
+  border-radius: $radius-lg;
+  background: $color-border;
+
+  @include mobile {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.dvFact {
+  display: grid;
+  gap: $spacing-1;
+  align-content: start;
+  min-width: 0;
+  padding: $spacing-4;
+  background: $surface-raised;
+
+  dt {
+    @include caption($color-text-muted, $font-weight-semibold, 1.3, 0.12em);
+  }
+
+  dd {
+    margin: 0;
+    @include cinzel-md($color-text, $font-weight-bold, 1.3, 0.02em);
+  }
+
+  .dvFactNote {
+    @include main-sm($color-text-muted, $font-weight-regular, 1.5);
+  }
+
+  .dvFactMissing {
+    @include main-sm($color-text-muted, $font-weight-regular, 1.4);
+    font-style: italic;
+  }
+
+  details {
+    margin-top: $spacing-1;
+  }
+
+  summary {
+    display: inline-flex;
+    align-items: center;
+    gap: $spacing-2;
+    list-style: none;
+    cursor: pointer;
+    @include main-xs($color-accent, $font-weight-semibold, 1.4);
+    @include focus-ring;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+
+    svg {
+      width: $spacing-3;
+      height: $spacing-3;
+      transition: transform 0.2s ease;
+    }
+  }
+
+  details[open] summary svg {
+    transform: rotate(90deg);
+  }
+
+  details p {
+    margin: $spacing-2 0 0;
+    @include main-sm($color-text, $font-weight-regular, 1.6);
+  }
+}
+
+// ── Dádivas ──────────────────────────────────────────────────────────────────
+
+.dvGifts {
+  grid-area: gifts;
+  min-width: 0;
+}
+
+.dvGiftsHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: $spacing-4;
+  margin-bottom: $spacing-5;
+
+  h4 {
+    margin: 0;
+    @include cinzel-xl($color-text, $font-weight-bold, 1.3, 0.03em);
+  }
+}
+
+.dvRuler {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: repeat(20, minmax(0, 1fr));
+  gap: 2px;
+  margin-bottom: $spacing-6;
+  padding: $spacing-3 0 $spacing-3;
+  border-bottom: 1px solid $color-border;
+  background: $surface-float;
+
+  @include mobile {
+    grid-template-columns: repeat(20, $spacing-6);
+    margin-inline: -$spacing-4;
+    padding-inline: $spacing-4;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+}
+
+.dvTick {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: $spacing-2;
+  padding: $spacing-4 0 0;
+  border: 0;
+  @include mono-xs($color-text-muted, $font-weight-regular, 1);
+
+  &::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    bottom: -$spacing-3;
+    left: 0;
+    height: 2px;
+    background: $color-border-strong;
+  }
+
+  &--gift {
+    color: $color-text;
+    font-weight: $font-weight-bold;
+
+    &::after {
+      background: $color-accent-line-2;
+    }
+
+    .dvPip {
+      width: $spacing-2 - $spacing-1 * 0.5;
+      height: $spacing-2 - $spacing-1 * 0.5;
+      box-shadow: none;
+    }
+
+    &:hover {
+      color: $color-accent;
+    }
+  }
+
+  @include focus-ring;
+}
+
+.dvLvl {
+  display: grid;
+  grid-template-columns: $spacing-14 minmax(0, 1fr);
+  gap: $spacing-6;
+  padding: 0 0 $spacing-8;
+  scroll-margin-top: $spacing-18;
+
+  & + & {
+    padding-top: $spacing-8;
+    border-top: 1px solid $color-border;
+  }
+
+  @include mobile {
+    grid-template-columns: minmax(0, 1fr);
+    gap: $spacing-3;
+  }
+}
+
+.dvSeal {
+  position: sticky;
+  top: $spacing-19;
+  display: grid;
+  align-self: start;
+  place-content: center;
+  width: $spacing-14;
+  height: $spacing-14;
+  border: 1px solid with-alpha($color-accent-line, 0.45);
+  border-radius: $radius-md;
+  background: linear-gradient(180deg, $surface-elevated, $surface-raised);
+  text-align: center;
+
+  b {
+    @include cinzel-xl($color-accent, $font-weight-bold, 1);
+  }
+
+  small {
+    margin-top: $spacing-1 * 0.5;
+    @include caption($color-text-muted, $font-weight-semibold, 1, 0.12em);
+  }
+
+  @include mobile {
+    .dvLvl > & {
+      position: static;
+      display: inline-flex;
+      align-items: baseline;
+      justify-self: start;
+      gap: $spacing-2;
+      width: auto;
+      height: auto;
+      padding: $spacing-1 $spacing-3;
+
+      b {
+        font-size: 1rem;
+      }
+    }
+  }
+}
+
+.dvLvlItems {
+  display: grid;
+  gap: $spacing-8;
+  min-width: 0;
+}
+
+.dvAbility {
+  min-width: 0;
+  border-radius: $radius-sm;
+  scroll-margin-top: $spacing-20;
+}
+
+.dvAbilityHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: $spacing-3;
+
+  h5 {
+    margin: 0;
+    @include cinzel-xl($color-text, $font-weight-bold, 1.3, 0.02em);
+
+    @include mobile {
+      font-size: 1.125rem;
+    }
+  }
+}
+
+.dvLvlTag {
+  @include caption($color-text-muted, $font-weight-semibold, 1.3, 0.1em);
+}
+
+.dvBody {
+  display: grid;
+  gap: $spacing-3;
+  margin-top: $spacing-3;
+  min-width: 0;
+}
+
+// ── Seletor de cristal ───────────────────────────────────────────────────────
+
+.dvAttune {
+  display: grid;
+  gap: $spacing-2;
+  padding: $spacing-4;
+  border: 1px solid with-alpha($color-accent-line, 0.3);
+  border-radius: $radius-lg;
+  background: $accent-overlay;
+}
+
+.dvAttuneHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: $spacing-2 $spacing-4;
+
+  span {
+    @include caption($color-accent, $font-weight-semibold, 1.3, 0.12em);
+  }
+
+  small {
+    @include main-sm($color-text-muted, $font-weight-regular, 1.4);
+  }
+}
+
+.dvElems {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-2;
+}
+
+.dvElem {
+  padding: $spacing-2 $spacing-3;
+  border: 1px solid $color-border-control;
+  border-radius: $radius-md;
+  background: $surface;
+  @include main-sm($color-text-muted, $font-weight-semibold, 1.2);
+  @include focus-ring;
+
+  &:hover {
+    border-color: $color-accent-line;
+    color: $color-text;
+  }
+
+  &[aria-checked='true'] {
+    border-color: $color-accent-line;
+    background: $surface-raised;
+    color: $color-accent;
+    @include elevation(1);
+  }
+}
+
+// ── Domínios da ordem (coluna lateral) ───────────────────────────────────────
+
+.dvDoms {
+  grid-area: doms;
+  position: sticky;
+  top: 0;
+  display: grid;
+  gap: $spacing-3;
+  align-content: start;
+  max-height: calc(min(100dvh - #{$spacing-10}, 60rem) - 12rem);
+  padding: $spacing-5;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px solid $color-border;
+  border-radius: $radius-lg;
+  background: linear-gradient(180deg, $surface-elevated, $surface-raised);
+  @include elevation(2);
+
+  @include mobile {
+    position: static;
+    max-height: none;
+    margin-bottom: $spacing-8;
+    overflow: visible;
+    @include elevation(1);
+  }
+}
+
+.dvDomsHead {
+  display: grid;
+  gap: $spacing-1;
+
+  h4 {
+    margin: 0;
+    @include cinzel-lg($color-text, $font-weight-bold, 1.25, 0.03em);
+  }
+
+  p {
+    margin: 0;
+    @include main-sm($color-text-muted, $font-weight-regular, 1.5);
+  }
+}
+
+.dvDomList {
+  display: grid;
+  gap: $spacing-2;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dvDomItem {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: $spacing-1 $spacing-3;
+  padding: $spacing-3 $spacing-2 $spacing-3 $spacing-3;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  background: $surface;
+  cursor: pointer;
+
+  b {
+    @include cinzel-sm($color-text, $font-weight-bold, 1.3, 0.02em);
+  }
+
+  > span {
+    display: -webkit-box;
+    grid-column: 1;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    @include main-xs($color-text-muted, $font-weight-regular, 1.45);
+  }
+
+  em {
+    grid-column: 1;
+    font-style: normal;
+    @include main-xs($color-text-muted, $font-weight-regular, 1.4);
+
+    b {
+      font: inherit;
+      color: $color-text;
+      font-weight: $font-weight-semibold;
+      letter-spacing: 0;
+    }
+  }
+
+  &:hover {
+    border-color: with-alpha($color-accent-line, 0.5);
+    background: $accent-overlay;
+
+    b {
+      color: $color-accent;
+    }
+  }
+}
+
+.dvDomOpen {
+  display: grid;
+  grid-row: 1 / 3;
+  grid-column: 2;
+  place-items: center;
+  width: $spacing-7;
+  height: $spacing-7;
+  border: 0;
+  border-radius: $radius-sm;
+  color: $color-text-muted;
+  @include focus-ring;
+
+  &:hover {
+    background: $accent-overlay-hover;
+    color: $color-accent;
+  }
+
+  svg {
+    width: $spacing-4;
+    height: $spacing-4;
+  }
+}
+
+// ── Painel de domínio (desliza sobre a leitura) ──────────────────────────────
+
+.dvScrim {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  background: $overlay;
+  animation: dvFade 0.2s ease;
+}
+
+.dvPanel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  width: min(32rem, 100%);
+  border-left: 1px solid with-alpha($color-accent-line, 0.25);
+  background: $surface-elevated;
+  animation: dvSlide 0.25s ease;
+  @include elevation(4);
+
+  @include mobile {
+    width: 100%;
+    border-left: 0;
+  }
+}
+
+.dvPanelHead {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: $spacing-1 $spacing-4;
+  padding: $spacing-5 $spacing-5 $spacing-4;
+  border-bottom: 1px solid $color-border;
+
+  h3 {
+    margin: 0;
+    @include cinzel-2xl($color-text, $font-weight-bold, 1.2, 0.03em);
+
+    &:focus {
+      outline: none;
+    }
+  }
+
+  .dvProse {
+    grid-column: 1 / -1;
+    margin-top: $spacing-2;
+  }
+
+  .dvDescText {
+    @include main-sm($color-text, $font-weight-regular, 1.6);
+  }
+}
+
+.dvClose {
+  display: grid;
+  align-self: start;
+  place-items: center;
+  width: $spacing-9;
+  height: $spacing-9;
+  border: 0;
+  border-radius: $radius-md;
+  color: $color-text-muted;
+  @include focus-ring;
+
+  &:hover {
+    color: $color-accent;
+  }
+
+  svg {
+    width: $spacing-5;
+    height: $spacing-5;
+  }
+}
+
+.dvPanelBody {
+  display: grid;
+  gap: $spacing-6;
+  align-content: start;
+  padding: $spacing-5;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
+  h4 {
+    margin: 0 0 $spacing-3;
+    @include caption($color-text-muted, $font-weight-semibold, 1.3, 0.12em);
+  }
+}
+
+.dvPower {
+  display: grid;
+  grid-template-columns: $spacing-12 minmax(0, 1fr);
+  gap: $spacing-4;
+  padding: $spacing-4 0;
+  border-top: 1px solid $color-border;
+  border-radius: $radius-sm;
+  scroll-margin-top: $spacing-4;
+
+  &:first-of-type {
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  .dvSeal {
+    position: static;
+    width: $spacing-12;
+    height: $spacing-12;
+
+    b {
+      font-size: 1rem;
+    }
+  }
+
+  h5 {
+    margin: 0;
+    @include cinzel-md($color-text, $font-weight-bold, 1.3, 0.02em);
+  }
+
+  .dvProse {
+    margin-top: $spacing-1;
+  }
+
+  .dvDescText {
+    @include main-sm($color-text, $font-weight-regular, 1.65);
+  }
+}
+
+.dvLadder {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  background: $surface;
+  list-style: none;
+
+  li {
+    display: grid;
+    grid-template-columns: $spacing-12 minmax(0, 1fr);
+    align-items: center;
+    border-top: 1px solid $color-border;
+    scroll-margin-top: $spacing-4;
+
+    &:first-child {
+      border-top: 0;
+    }
+  }
+
+  strong {
+    display: grid;
+    align-self: stretch;
+    place-items: center;
+    padding: $spacing-3 0;
+    border-right: 1px solid with-alpha($color-accent-line, 0.3);
+    background: $surface-raised;
+    @include mono-sm($color-accent, $font-weight-bold, 1, 0, center);
+  }
+
+  span {
+    padding: $spacing-2 $spacing-4;
+    @include main-sm($color-text, $font-weight-semibold, 1.4);
+  }
+}
+
+// ── Texto renderizado ────────────────────────────────────────────────────────
+
+.dvProse {
+  display: grid;
+  gap: $spacing-3;
+  min-width: 0;
+
+  > div {
+    display: grid;
+    gap: $spacing-3;
+    min-width: 0;
+  }
+
+  &--drop > div:first-child > .dvDescText:first-child::first-letter {
+    float: left;
+    margin: $spacing-1 $spacing-2 0 0;
+    @include gold-gradient-text;
+    @include cinzel-3xl($color-accent, $font-weight-bold, 0.9);
+  }
+}
+
+.dvDescText {
+  margin: 0;
+  @include main-md($color-text, $font-weight-regular, 1.75);
+
+  @include mobile {
+    font-size: 0.9375rem;
+  }
+}
+
+.dvDescBullets {
+  display: grid;
+  gap: $spacing-1;
+  margin: 0;
+  padding-left: $spacing-5;
+  @include main-md($color-text, $font-weight-regular, 1.6);
+
+  li::marker {
+    color: $color-accent-line-2;
+  }
+
+  .dvDescBullets {
+    margin-top: $spacing-1;
+  }
+
+  @include mobile {
+    font-size: 0.9375rem;
+  }
+}
+
+.dvDescTable {
+  overflow-x: auto;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  background: $surface;
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    @include main-sm($color-text, $font-weight-regular, 1.4);
+  }
+
+  th {
+    padding: $spacing-2 $spacing-3;
+    border-bottom: 1px solid $color-border-strong;
+    background: $surface;
+    text-align: left;
+    white-space: nowrap;
+    @include caption($color-text-muted, $font-weight-semibold, 1.3, 0.12em);
+  }
+
+  tbody th {
+    border-bottom: 1px solid $color-border;
+    text-transform: none;
+    @include main-sm($color-text, $font-weight-semibold, 1.4);
+  }
+
+  td {
+    padding: $spacing-2 $spacing-3;
+    border-bottom: 1px solid $color-border;
+    color: $color-text;
+  }
+
+  tr:last-child {
+    th,
+    td {
+      border-bottom: 0;
+    }
+  }
+
+  tr[aria-current='true'] {
+    td {
+      background: $accent-overlay-hover;
+    }
+
+    th {
+      box-shadow: inset 2px 0 0 $color-accent-line;
+      background: $accent-overlay-hover;
+      color: $color-accent;
+    }
+  }
+}
+
+// ── Brilho ao chegar por busca ───────────────────────────────────────────────
+
+.dvFlash {
+  animation: dvFlash 1.4s ease;
+}
+
+@keyframes dvFlash {
+  0%,
+  40% {
+    background-color: $accent-overlay-hover;
+    box-shadow: 0 0 0 $spacing-2 $accent-overlay-hover;
+  }
+
+  100% {
+    background-color: transparent;
+    box-shadow: none;
+  }
+}
+
+@keyframes dvFade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes dvSlide {
+  from {
+    opacity: 0;
+    transform: translateX($spacing-8);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dvScrim,
+  .dvPanel,
+  .dvFlash {
+    animation: none;
+  }
+}

@@ -8,6 +8,16 @@ import type {
   IClassCatalogItem,
   ITalent,
   IContentBlock,
+  IClassDomain,
+  IClassDomainPower,
+  IClassDomainSpell,
+  IDivineOrder,
+  IDivineOrderAbility,
+  IRelationFact,
+  IRelationAbility,
+  IRelationListItem,
+  IRelationEntity,
+  IRelationGroup,
 } from './class.d';
 import { CLASS_ROLES } from '../l10n/classes';
 
@@ -80,12 +90,70 @@ const CatalogItemSchema = new Schema<IClassCatalogItem>(
   { _id: false }
 );
 
+const RelationFactSchema = new Schema<IRelationFact>(
+  {
+    label: { type: String, required: true },
+    value: { type: String, required: true },
+  },
+  { _id: false }
+);
+
+const RelationAbilitySchema = new Schema<IRelationAbility>(
+  {
+    name: { type: String, required: true },
+    level: Number,
+    description: { type: String, required: true },
+    tables: [TableSchema],
+  },
+  { _id: false }
+);
+
+const RelationListItemSchema = new Schema<IRelationListItem>(
+  {
+    rank: { type: Number, required: true },
+    name: { type: String, required: true },
+  },
+  { _id: false }
+);
+
+const RelationEntitySchema = new Schema<IRelationEntity>(
+  {
+    name: { type: String, required: true },
+    slug: { type: String, required: true },
+    subtitle: String,
+    image: String,
+    description: String,
+    facts: [RelationFactSchema],
+    abilities: [RelationAbilitySchema],
+    list: {
+      label: String,
+      items: [RelationListItemSchema],
+    },
+    relatedSlugs: [{ type: String }],
+  },
+  { _id: false }
+);
+
+const RelationGroupSchema = new Schema<IRelationGroup>(
+  {
+    label: { type: String, required: true },
+    unitSingular: { type: String, required: true },
+    unitPlural: { type: String, required: true },
+    entities: [RelationEntitySchema],
+  },
+  { _id: false }
+);
+
 const CatalogSchema = new Schema<IClassCatalog>(
   {
     name: { type: String, required: true },
     slug: { type: String, required: true },
+    kind: { type: String, enum: ['magias', 'habilidades', 'relacao'] },
+    icon: String,
     description: String,
     items: [CatalogItemSchema],
+    groupA: RelationGroupSchema,
+    groupB: RelationGroupSchema,
   },
   { _id: false }
 );
@@ -123,6 +191,60 @@ const ContentBlockSchema = new Schema<IContentBlock>(
     post: Number,
     sourceHint: String,
     tables: [TableSchema],
+  },
+  { _id: false }
+);
+
+const DomainPowerSchema = new Schema<IClassDomainPower>(
+  {
+    name: { type: String, required: true },
+    level: Number,
+    description: { type: String, required: true },
+  },
+  { _id: false }
+);
+
+const DomainSpellSchema = new Schema<IClassDomainSpell>(
+  {
+    circle: { type: Number, required: true },
+    name: { type: String, required: true },
+  },
+  { _id: false }
+);
+
+const ClassDomainSchema = new Schema<IClassDomain>(
+  {
+    name: { type: String, required: true },
+    slug: { type: String, required: true },
+    description: { type: String, required: true },
+    powers: [DomainPowerSchema],
+    spells: [DomainSpellSchema],
+  },
+  { _id: false }
+);
+
+const DivineOrderAbilitySchema = new Schema<IDivineOrderAbility>(
+  {
+    name: { type: String, required: true },
+    level: { type: Number, required: true },
+    description: { type: String, required: true },
+    tables: [TableSchema],
+  },
+  { _id: false }
+);
+
+const DivineOrderSchema = new Schema<IDivineOrder>(
+  {
+    name: { type: String, required: true },
+    slug: { type: String, required: true },
+    deity: String,
+    image: String,
+    description: { type: String, required: true },
+    spellcasting: { type: String, required: true },
+    skill: { type: String, required: true },
+    weapon: { type: String, required: true },
+    domainSlugs: [{ type: String }],
+    abilities: [DivineOrderAbilitySchema],
   },
   { _id: false }
 );
@@ -180,6 +302,8 @@ const CharacterClassSchema = new Schema<ICharacterClass>(
     importedAt: Date,
     unparsedSections: [{ type: String }],
     contentBlocks: [ContentBlockSchema],
+    domains: [ClassDomainSchema],
+    divineOrders: [DivineOrderSchema],
     candidate: CandidateSchema,
   },
   { timestamps: true }

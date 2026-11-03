@@ -1,0 +1,1115 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Tema Pergaminho</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&display=swap">
+<style>
+/* Layout: prancha vertical em capítulos — mecanismo, paleta, contraste, telas antes→depois, arte, divisão.
+   A moldura da prancha segue o tema de quem vê; cada mockup força o seu tema (.t-dark / .t-light),
+   exatamente como o theme-scope() proposto. Valores = styles/config/_colors.scss. */
+:root {
+  /* moldura da prancha — escuro primeiro, como o app */
+  --pg-bg: #0a0a0a; --pg-surface: #151515; --pg-raised: #1e1e1e;
+  --pg-text: #f5f5f5; --pg-muted: #979797; --pg-border: #2a2a2a; --pg-border-strong: #424242;
+  --pg-accent: #d4a843; --pg-line: #d4a843;
+  --ok: #4caf50; --bad: #f44336; --ok-bg: rgba(76,175,80,.14); --bad-bg: rgba(244,67,54,.14);
+  --f-display: 'Cinzel', 'Trajan Pro', Georgia, serif;
+  --f-body: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
+  --f-mono: Consolas, 'SFMono-Regular', Menlo, monospace;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) {
+  --pg-bg: #f0ece4; --pg-surface: #faf8f4; --pg-raised: #f5f2ec;
+  --pg-text: #0a0a0a; --pg-muted: #505050; --pg-border: #e1dacc; --pg-border-strong: #d2c8b4;
+  --pg-accent: #7a5a08; --pg-line: #9c7410;
+  --ok: #2e6530; --bad: #ae3229; --ok-bg: rgba(76,175,80,.12); --bad-bg: rgba(244,67,54,.1);
+  color-scheme: light;
+} }
+:root[data-theme="light"] {
+  --pg-bg: #f0ece4; --pg-surface: #faf8f4; --pg-raised: #f5f2ec;
+  --pg-text: #0a0a0a; --pg-muted: #505050; --pg-border: #e1dacc; --pg-border-strong: #d2c8b4;
+  --pg-accent: #7a5a08; --pg-line: #9c7410;
+  --ok: #2e6530; --bad: #ae3229; --ok-bg: rgba(76,175,80,.12); --bad-bg: rgba(244,67,54,.1);
+  color-scheme: light;
+}
+
+/* tokens do app, por escopo forçado (= theme-vars dark/light) */
+.t-dark {
+  --bg:#0a0a0a; --surface:#151515; --raised:#1e1e1e; --elevated:#262626; --float:#2e2e2e;
+  --overlay: rgba(10,10,10,.6);
+  --text:#f5f5f5; --muted:#979797; --subtle:#808080; --on-accent:#0a0a0a;
+  --border:#2a2a2a; --border-strong:#424242; --control:#707070;
+  --accent:#d4a843; --accent-hover:#c49a2c; --line:#d4a843; --line2:#b8891a; --fill:#9c841c;
+  --tint: rgba(156,132,28,.04); --tint-h: rgba(156,132,28,.08); --focus:#9c841c;
+  --input:#151515; --ph:#979797;
+  --success:#4caf50; --error:#f44336; --warning:#ff9800; --info:#2196f3;
+  --error-bg: rgba(244,67,54,.12); --error-border: rgba(244,67,54,.35);
+  --ink: 0,0,0;
+  --sh1: 0 1px 3px rgba(0,0,0,.3);
+  --sh2: 0 4px 12px rgba(0,0,0,.4), 0 0 0 1px rgba(212,168,67,.1);
+  --sh3: 0 8px 24px rgba(0,0,0,.5), 0 0 20px rgba(212,168,67,.12);
+  --sh4: 0 16px 40px rgba(0,0,0,.6), 0 0 30px rgba(212,168,67,.15);
+  --glow: 0 0 15px rgba(212,168,67,.15);
+  --gtext: linear-gradient(135deg, #d4a843, #9c841c, #b8891a);
+  --gfill: linear-gradient(135deg, #c49a2c, #9c841c);
+  --gfill-h: linear-gradient(135deg, #d4a843, #c49a2c);
+  --art-rest: brightness(.45) saturate(.65);
+  --art-rest-op: 1; --art-blend: normal;
+  color-scheme: dark; background: var(--bg); color: var(--text);
+}
+.t-light {
+  --bg:#faf8f4; --surface:#f5f2ec; --raised:#f0ece4; --elevated:#ebe6dc; --float:#faf8f4;
+  --overlay: rgba(59,44,6,.35);
+  --text:#0a0a0a; --muted:#505050; --subtle:#606060; --on-accent:#faf8f4;
+  --border:#e1dacc; --border-strong:#d2c8b4; --control:#808080;
+  --accent:#7a5a08; --accent-hover:#5c4204; --line:#9c7410; --line2:#7a5a08; --fill:#7a5a08;
+  --tint: rgba(156,116,16,.06); --tint-h: rgba(156,116,16,.12); --focus:#7a5a08;
+  --input:#faf8f4; --ph:#505050;
+  --success:#2e6530; --error:#ae3229; --warning:#845105; --info:#18619a;
+  --error-bg: rgba(244,67,54,.08); --error-border: rgba(244,67,54,.45);
+  --ink: 59,44,6;
+  --sh1: 0 1px 2px rgba(59,44,6,.1);
+  --sh2: 0 4px 12px rgba(59,44,6,.12), 0 0 0 1px rgba(156,116,16,.14);
+  --sh3: 0 8px 24px rgba(59,44,6,.16), 0 0 0 1px rgba(156,116,16,.18);
+  --sh4: 0 16px 40px rgba(59,44,6,.22), 0 0 0 1px rgba(156,116,16,.22);
+  --glow: 0 0 0 1px rgba(156,116,16,.35);
+  --gtext: linear-gradient(135deg, #7a5a08, #5c4204);
+  --gfill: linear-gradient(135deg, #7a5a08, #5c4204);
+  --gfill-h: #5c4204;
+  --art-rest: grayscale(.6) sepia(.25) brightness(1.08) contrast(.9);
+  --art-rest-op: .75; --art-blend: normal;
+  color-scheme: light; background: var(--bg); color: var(--text);
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--pg-bg); color: var(--pg-text);
+  font: 15px/1.6 var(--f-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 64px;
+}
+.wrap { max-width: 1180px; margin-inline: auto; }
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; }
+p { margin: 0; }
+code, .mono { font-family: var(--f-mono); font-size: .86em; }
+a { color: var(--pg-accent); }
+:focus-visible { outline: 2px solid var(--pg-accent); outline-offset: 2px; }
+
+/* ── abertura ─────────────────────────────── */
+.mast { padding-block: 56px 36px; display: grid; gap: 20px; grid-template-columns: minmax(0,1.3fr) minmax(0,1fr); align-items: end; border-bottom: 1px solid var(--pg-border-strong); }
+.mast h1 { font-size: clamp(2.2rem, 5vw, 3.6rem); letter-spacing: .06em; line-height: 1.05; }
+.mast h1 span { display: block; font-size: .32em; letter-spacing: .32em; color: var(--pg-accent); margin-bottom: 10px; font-weight: 600; }
+.mast p { color: var(--pg-muted); max-width: 60ch; }
+.thesis { display: grid; gap: 10px; }
+.thesis div { display: grid; grid-template-columns: 1.6rem 1fr; gap: 6px; }
+.thesis b { font-family: var(--f-display); color: var(--pg-accent); }
+@media (max-width: 760px) { .mast { grid-template-columns: 1fr; } }
+
+.chapter { padding-block: 48px 8px; display: grid; gap: 22px; }
+.chapter > header { display: grid; gap: 6px; max-width: 75ch; }
+.chapter > header .kicker { font: 600 11px/1 var(--f-body); letter-spacing: .22em; text-transform: uppercase; color: var(--pg-accent); }
+.chapter > header h2 { font-size: clamp(1.4rem, 2.6vw, 1.9rem); letter-spacing: .04em; }
+.chapter > header p { color: var(--pg-muted); }
+
+/* ── paleta ───────────────────────────────── */
+.palette { overflow-x: auto; border: 1px solid var(--pg-border); border-radius: 12px; background: var(--pg-surface); }
+.palette table { width: 100%; border-collapse: collapse; min-width: 640px; }
+.palette th, .palette td { padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--pg-border); vertical-align: middle; }
+.palette th { font: 600 10px/1.2 var(--f-body); letter-spacing: .14em; text-transform: uppercase; color: var(--pg-muted); background: var(--pg-raised); }
+.palette tr.tgroup td { font: 600 11px/1 var(--f-display); letter-spacing: .12em; color: var(--pg-accent); background: var(--pg-raised); padding-block: 10px; }
+.palette td.tok code { color: var(--pg-text); }
+.palette td.note { color: var(--pg-muted); font-size: 13px; }
+.sw { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.chip { width: 44px; height: 28px; border-radius: 6px; flex: none; border: 1px solid var(--pg-border-strong); position: relative; display: grid; place-items: center; font: 700 12px/1 var(--f-display); }
+.sw small { font-family: var(--f-mono); font-size: 12px; color: var(--pg-muted); }
+.new { font: 600 9px/1 var(--f-body); letter-spacing: .12em; text-transform: uppercase; border: 1px solid var(--pg-line); color: var(--pg-accent); border-radius: 99px; padding: 3px 6px; margin-left: 6px; }
+
+/* ── contraste ────────────────────────────── */
+.pairs { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; }
+.pair { border: 1px solid var(--pg-border); border-radius: 10px; overflow: hidden; background: var(--pg-surface); display: grid; }
+.pair .demo { display: grid; grid-template-columns: 1fr 1fr; }
+.pair .demo > div { padding: 12px; display: grid; gap: 2px; min-width: 0; }
+.pair .demo span { font-size: 15px; }
+.pair .demo small { font: 11px/1.2 var(--f-mono); opacity: .9; }
+.pair footer { display: flex; justify-content: space-between; gap: 8px; padding: 8px 12px; font-size: 12.5px; border-top: 1px solid var(--pg-border); align-items: center; flex-wrap: wrap; }
+.ratio { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.pass, .fail { font: 700 10px/1 var(--f-body); letter-spacing: .1em; padding: 4px 7px; border-radius: 99px; text-transform: uppercase; }
+.pass { color: var(--ok); background: var(--ok-bg); }
+.fail { color: var(--bad); background: var(--bad-bg); }
+.was { color: var(--pg-muted); font-size: 12px; }
+
+/* ── pares antes → depois ─────────────────── */
+.screen { display: grid; gap: 12px; }
+.screen > h3 { font-size: 1.1rem; letter-spacing: .05em; display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; }
+.screen > h3 small { font: 400 13px/1.4 var(--f-body); color: var(--pg-muted); letter-spacing: 0; }
+.ba { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 14px; }
+@media (max-width: 860px) { .ba { grid-template-columns: 1fr; } }
+.frame { border-radius: 12px; overflow: hidden; border: 1px solid var(--pg-border-strong); display: grid; grid-template-rows: auto 1fr; min-width: 0; }
+.frame > .cap { display: flex; justify-content: space-between; gap: 8px; padding: 7px 12px; font: 600 11px/1.3 var(--f-body); letter-spacing: .12em; text-transform: uppercase; background: var(--pg-raised); color: var(--pg-muted); border-bottom: 1px solid var(--pg-border-strong); }
+.frame > .cap em { font-style: normal; color: var(--bad); }
+.frame.after > .cap em { color: var(--ok); }
+.frame > .vp { position: relative; min-width: 0; overflow: hidden; }
+.fixes { margin: 0; padding-left: 18px; color: var(--pg-muted); font-size: 13.5px; display: grid; gap: 4px; }
+.fixes b { color: var(--pg-text); font-weight: 600; }
+.bug-pin { position: absolute; z-index: 5; width: 22px; height: 22px; border-radius: 99px; background: #f44336; color: #0a0a0a; font: 700 11px/22px var(--f-body); text-align: center; box-shadow: 0 0 0 3px rgba(244,67,54,.3); }
+
+/* ── primitivos dos mockups (todos via tokens de escopo) ── */
+.m { font-family: var(--f-body); font-size: 13px; line-height: 1.5; }
+.m .cz { font-family: var(--f-display); }
+.m .gtitle { background: var(--gtext); -webkit-background-clip: text; background-clip: text; color: transparent; font-family: var(--f-display); font-weight: 700; letter-spacing: .08em; }
+.m .caption { font: 600 10px/1.3 var(--f-body); letter-spacing: .12em; text-transform: uppercase; }
+.m .field { display: flex; align-items: center; gap: 8px; border: 1px solid var(--control); background: var(--input); color: var(--text); border-radius: 8px; padding: 8px 12px; min-width: 0; }
+.m .field .ph { color: var(--ph); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.m .field svg { color: var(--muted); flex: none; }
+.m .btn { font: 700 12px/1 var(--f-display); letter-spacing: .04em; border-radius: 8px; padding: 9px 14px; display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; border: 1px solid transparent; cursor: default; }
+.m .btn-primary { background: var(--gfill); color: var(--on-accent); box-shadow: var(--sh1); }
+.m .btn-secondary { border-color: var(--control); color: var(--text); background: transparent; }
+.m .btn-ghost { color: var(--muted); background: transparent; }
+.m .btn-danger { border-color: var(--error-border); color: var(--error); background: transparent; }
+.m .card { background: linear-gradient(180deg, var(--raised), var(--surface)); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--sh1); position: relative; overflow: hidden; }
+.m .orn::before { content: '\25C6'; position: absolute; top: 8px; left: 12px; font-size: 8px; color: var(--line); opacity: .5; }
+
+/* arte (conteúdo: igual nos dois temas) */
+.art { position: absolute; inset: 0; background:
+  radial-gradient(60% 50% at 30% 30%, rgba(196,120,48,.75), transparent 70%),
+  radial-gradient(50% 60% at 75% 65%, rgba(52,78,120,.8), transparent 70%),
+  radial-gradient(30% 30% at 55% 40%, rgba(230,200,140,.55), transparent 70%),
+  linear-gradient(160deg, #241a12, #3a2a1c 55%, #0f0c0a); }
+.art.b { background:
+  radial-gradient(55% 55% at 65% 35%, rgba(120,40,60,.8), transparent 70%),
+  radial-gradient(45% 50% at 25% 70%, rgba(40,90,80,.75), transparent 70%),
+  radial-gradient(25% 25% at 50% 45%, rgba(220,210,190,.5), transparent 70%),
+  linear-gradient(200deg, #1a1218, #2a1c26 55%, #0c0a0c); }
+.art.c { background:
+  radial-gradient(60% 55% at 40% 40%, rgba(90,60,140,.8), transparent 70%),
+  radial-gradient(40% 40% at 72% 72%, rgba(200,150,60,.6), transparent 70%),
+  linear-gradient(150deg, #120f1c, #221a30 60%, #0b0a10); }
+.art.d { background:
+  radial-gradient(55% 55% at 55% 35%, rgba(160,60,30,.85), transparent 70%),
+  radial-gradient(45% 50% at 20% 75%, rgba(60,60,60,.7), transparent 70%),
+  linear-gradient(170deg, #1c1009, #2c1a0e 55%, #0d0805); }
+.art::after { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(115deg, rgba(255,255,255,.025) 0 2px, transparent 2px 6px); }
+
+/* ════════ /classes ════════ */
+.codex { padding: 18px 18px 20px; display: grid; gap: 14px; }
+.codex .head { text-align: center; display: grid; gap: 4px; }
+.codex .head h4 { margin: 0; font-size: 26px; }
+.codex .head p { color: var(--muted); font-size: 12.5px; }
+.codex .tools { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 10px; align-items: center; }
+.codex .acts { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+@media (max-width: 520px) { .codex .tools { grid-template-columns: 1fr; } .codex .acts { justify-content: flex-start; } }
+.stage { display: flex; gap: 12px; justify-content: center; align-items: stretch; padding-top: 4px; }
+.pick { width: 44%; max-width: 210px; min-width: 0; border-radius: 12px; overflow: hidden; position: relative; border: 1px solid var(--border); background: var(--surface); display: grid; grid-template-rows: 150px auto; box-shadow: var(--sh1); }
+.pick.focus { box-shadow: var(--sh4); border-color: var(--line); }
+.pick.side { opacity: .9; transform: scale(.94); }
+.pick .pa { position: relative; overflow: hidden; }
+.pick .pa .art { filter: var(--art-rest); opacity: var(--art-rest-op); }
+.pick.focus .pa .art { filter: none; opacity: 1; }
+.pick .pa::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(var(--ink),.3) 0, transparent 35%, color-mix(in srgb, var(--surface) 80%, transparent) 80%, var(--surface)); }
+.pick .tag { position: absolute; top: 8px; left: 8px; z-index: 2; font: 600 9px/1 var(--f-body); letter-spacing: .14em; text-transform: uppercase; padding: 5px 7px; border-radius: 99px; border: 1px solid rgba(156,132,28,.5); background: color-mix(in srgb, var(--surface) 75%, transparent); color: var(--accent); }
+.pick .pb { padding: 0 12px 12px; display: grid; gap: 6px; margin-top: -26px; position: relative; z-index: 2; }
+.pick .name { font: 700 18px/1.15 var(--f-display); letter-spacing: .04em; color: var(--text); }
+.pick.focus .name { background: var(--gtext); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.pick .clasp { text-align: center; color: var(--line2); font-size: 9px; letter-spacing: .4em; }
+.pick dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 3px 8px; font-size: 11.5px; }
+.pick dt { color: var(--muted); }
+.pick dd { margin: 0; text-align: right; color: var(--text); font-weight: 500; }
+.pick .uniq { justify-self: start; font: 600 9px/1 var(--f-body); letter-spacing: .12em; text-transform: uppercase; padding: 4px 7px; border-radius: 99px; border: 1px solid rgba(255,152,0,.45); color: var(--warning); background: color-mix(in srgb, var(--surface) 70%, rgba(255,152,0,.12)); }
+
+/* ════════ cidadãos ════════ */
+.cg { padding: 16px; display: grid; gap: 12px; }
+.cg .h { display: grid; gap: 2px; }
+.cg .h h4 { margin: 0; font-size: 22px; }
+.cg .h p { color: var(--muted); font-size: 12px; }
+.cg .row { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px; align-items: center; }
+.cg .count { color: var(--muted); }
+.cc-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
+.cc { border-radius: 12px; overflow: hidden; border: 1px solid var(--border); background: linear-gradient(180deg, var(--raised), var(--surface)); box-shadow: var(--sh1); display: grid; grid-template-rows: 96px auto; }
+.cc .ci { position: relative; overflow: hidden; }
+.cc .ci::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 50%, var(--surface)); }
+.cc .cinfo { padding: 8px 10px 10px; display: grid; gap: 4px; }
+.cc .sub { font-size: 10.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cc .nm { font: 700 14px/1.25 var(--f-display); color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cc .acts { display: flex; justify-content: space-between; align-items: center; margin-top: 2px; }
+.cc .btn { padding: 6px 10px; font-size: 10.5px; }
+.dots { color: var(--muted); letter-spacing: 2px; font-weight: 700; }
+
+.dr { display: grid; grid-template-columns: minmax(0,.9fr) minmax(0,1.1fr); min-height: 100%; }
+@media (max-width: 520px) { .dr { grid-template-columns: 1fr; } .dr .behind { display: none; } }
+.dr .behind { position: relative; background: var(--bg); padding: 12px; }
+.dr .behind::after { content: ''; position: absolute; inset: 0; background: var(--overlay); }
+.dr .panel { background: var(--elevated); border-left: 2px solid color-mix(in srgb, var(--line) 25%, transparent); box-shadow: var(--sh4); display: grid; grid-template-rows: auto 1fr; }
+.dr .bar { background: var(--gfill); color: var(--on-accent); display: flex; justify-content: flex-end; padding: 6px 10px; font-size: 15px; }
+.dr .body { padding: 14px; display: grid; gap: 12px; align-content: start; }
+.dr .ttl { font: 700 22px/1.2 var(--f-display); letter-spacing: .03em; }
+.dr .ttl::after { content: ''; display: block; width: 64px; height: 2px; margin-top: 6px; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--line) 60%, transparent), var(--line), color-mix(in srgb, var(--line2) 60%, transparent), transparent); }
+.info { padding: 14px 14px 8px; }
+.info .ir { display: grid; grid-template-columns: 8.5em 1fr; gap: 8px; padding: 5px 0; border-top: 1px solid color-mix(in srgb, var(--line) 12%, transparent); }
+.info .ir:first-child { border-top: 0; }
+.info .ir span:first-child { color: var(--accent); font: 600 10px/1.9 var(--f-body); letter-spacing: .1em; text-transform: uppercase; }
+.info .ir span:last-child { color: var(--text); }
+.sec h5 { margin: 0 0 6px; font: 700 13px/1.4 var(--f-display); color: var(--accent); letter-spacing: .1em; border-bottom: 1px solid color-mix(in srgb, var(--line) 25%, transparent); padding-bottom: 4px; }
+.sec p { color: var(--muted); font-size: 12px; }
+
+/* ════════ menu principal ════════ */
+.menu { display: grid; place-items: center; padding: 30px 16px 34px; background-color: var(--bg); background-image: radial-gradient(60% 50% at 50% 0, color-mix(in srgb, var(--line) 8%, transparent), transparent 70%); gap: 22px; }
+.menu .tc { display: grid; justify-items: center; gap: 6px; padding-bottom: 14px; border-bottom: 2px solid var(--line2); position: relative; }
+.menu .tc::after { content: '\25C6'; position: absolute; bottom: -9px; font-size: 12px; color: var(--line2); background: var(--bg); padding: 0 6px; line-height: 1; }
+.menu h4 { margin: 0; font-size: 26px; letter-spacing: .12em; }
+.menu .sub { font: 700 13px/1 var(--f-mono); letter-spacing: .4em; color: var(--accent); }
+.menu nav { display: grid; gap: 8px; width: min(100%, 260px); }
+.menu nav a { display: block; text-align: center; text-decoration: none; padding: 10px; border-radius: 8px; border: 1px solid var(--border-strong); background: var(--surface); color: var(--text); font: 700 14px/1.2 var(--f-display); letter-spacing: .06em; box-shadow: var(--sh1); }
+.menu nav a.hover { border-color: var(--line); color: var(--accent); background: var(--tint-h); }
+
+/* ════════ detalhe da classe ════════ */
+.cls { padding: 16px; display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 16px; align-items: center; }
+@media (max-width: 520px) { .cls { grid-template-columns: 1fr; } }
+.cls .kind { font: 600 10px/1 var(--f-body); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+.cls .kind i { width: 18px; height: 18px; border-radius: 99px; border: 1px solid rgba(156,132,28,.5); display: grid; place-items: center; font-style: normal; color: var(--accent); font-size: 9px; }
+.cls h4 { margin: 6px 0 2px; font-size: 30px; letter-spacing: .04em; line-height: 1.05; }
+.cls .clasp { color: var(--line2); font-size: 9px; letter-spacing: .4em; }
+.cls .lead { color: var(--text); font-size: 13px; margin: 8px 0 10px; }
+.vitals { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 8px; }
+.vitals div { display: grid; gap: 2px; border-top: 1px solid var(--border-strong); padding-top: 6px; }
+.vitals dt { font: 600 9.5px/1.2 var(--f-body); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.vitals dd { margin: 0; font: 700 18px/1.1 var(--f-mono); color: var(--accent); }
+.vitals dd.s { font: 500 12px/1.3 var(--f-body); color: var(--text); }
+.cls .row { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
+.astro { position: relative; aspect-ratio: 1; max-width: 100%; width: 100%; }
+.astro svg { width: 100%; height: 100%; display: block; color: var(--line); }
+.astro .orb { position: absolute; width: 15%; aspect-ratio: 1; border-radius: 99px; border: 1px solid var(--line); background: var(--bg); color: var(--accent); display: grid; place-items: center; font: 700 10px/1 var(--f-mono); transform: translate(-50%,-50%); }
+.astro .orb.on { background: var(--fill); color: var(--on-accent); border-color: var(--fill); }
+.astro .core { position: absolute; left: 50%; top: 50%; width: 34%; aspect-ratio: 1; transform: translate(-50%,-50%); border-radius: 99px; overflow: hidden; border: 1px solid color-mix(in srgb, var(--line) 60%, transparent); box-shadow: var(--sh3); }
+.astro .core .art { filter: none; }
+.astro .imgbtn { position: absolute; left: 50%; top: 62%; transform: translateX(-50%); font: 600 9px/1 var(--f-body); letter-spacing: .1em; text-transform: uppercase; padding: 5px 8px; border-radius: 99px; z-index: 3; white-space: nowrap; }
+/* rótulo sobre arte: escopo escuro forçado nos dois temas */
+.on-art { --surface:#151515; --text:#f5f5f5; --border-strong:#424242; background: color-mix(in srgb, var(--surface) 85%, transparent); color: var(--text); border: 1px solid var(--border-strong); }
+.prog { grid-column: 1 / -1; overflow-x: auto; }
+.prog table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 420px; }
+.prog th { font: 600 9.5px/1.2 var(--f-body); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border-strong); }
+.prog td { padding: 6px 8px; border-bottom: 1px solid var(--border); color: var(--text); }
+.prog .seal { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 99px; border: 1px solid color-mix(in srgb, var(--line) 45%, transparent); font: 700 11px/1 var(--f-mono); color: var(--accent); }
+.prog .pips { display: inline-grid; grid-template-columns: repeat(2, 6px); gap: 4px; vertical-align: middle; }
+.prog .pips i { width: 6px; height: 6px; transform: rotate(45deg); border: 1px solid var(--line2); }
+.prog .grant { color: var(--text); text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--line) 50%, transparent); text-underline-offset: 3px; }
+
+/* ════════ grimório ════════ */
+.gr { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); min-height: 100%; }
+@media (max-width: 560px) { .gr { grid-template-columns: 1fr; } }
+.gr .list { padding: 14px; display: grid; gap: 10px; align-content: start; border-right: 1px solid var(--border); }
+.gr .list h4 { margin: 0; font-size: 22px; text-align: center; }
+.gr .list > p { text-align: center; color: var(--muted); font-size: 11.5px; }
+.idx { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; }
+.idx span { font: 700 11px/1 var(--f-display); padding: 6px 7px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); }
+.idx span.cur { color: var(--accent); border-color: color-mix(in srgb, var(--line) 35%, transparent); background: var(--raised); }
+.grp { display: flex; align-items: center; gap: 8px; }
+.grp b { font: 700 13px/1.4 var(--f-display); color: var(--accent); letter-spacing: .06em; }
+.grp i { flex: 1; height: 1px; background: linear-gradient(90deg, color-mix(in srgb, var(--line) 35%, transparent), transparent); }
+.grp small { font: 600 9.5px/1 var(--f-body); letter-spacing: .12em; color: var(--muted); }
+.srow { display: grid; grid-template-columns: 38px minmax(0,1fr) 58px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); overflow: hidden; position: relative; min-height: 44px; }
+.srow.cur { border-color: var(--line2); background: var(--raised); }
+.srow .circ { display: grid; place-items: center; font: 700 15px/1 var(--f-display); color: var(--accent); background: linear-gradient(180deg, var(--elevated), var(--raised)); border-right: 1px solid color-mix(in srgb, var(--line) 35%, transparent); }
+.srow .tx { padding: 6px 10px; display: grid; min-width: 0; }
+.srow .tx b { font: 700 12.5px/1.4 var(--f-display); letter-spacing: .05em; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.srow .tx small { font: 600 9.5px/1.3 var(--f-body); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.srow .gl { display: grid; place-items: center; color: var(--school); opacity: .85; }
+.srow .bar { position: absolute; right: 0; top: 0; bottom: 0; width: 3px; background: var(--school); }
+.gr .det { padding: 14px; display: grid; gap: 10px; align-content: start; background: var(--bg); }
+.det .hero { height: 70px; border-radius: 8px; position: relative; overflow: hidden; display: grid; place-items: center; color: var(--school); background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--school) 14%, transparent), transparent 70%); }
+.det .top { display: flex; gap: 10px; align-items: center; }
+.det .sealb { width: 46px; height: 46px; border-radius: 99px; display: grid; place-items: center; background: linear-gradient(180deg, var(--elevated), var(--raised)); border: 1px solid color-mix(in srgb, var(--line) 45%, transparent); flex: none; }
+.det .sealb b { font: 700 18px/1 var(--f-display); color: var(--accent); }
+.det .sealb small { display: block; font: 600 7px/1 var(--f-body); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); text-align: center; }
+.det h5 { margin: 0; font: 700 19px/1.15 var(--f-display); letter-spacing: .04em; color: var(--text); }
+.det .sch { font-size: 12px; color: var(--muted); }
+.det .sch b { color: var(--text); font-weight: 500; }
+.quad { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.quad div { background: var(--surface); padding: 6px 8px; display: grid; }
+.quad small { font: 600 9px/1.3 var(--f-body); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.quad span { font-size: 12px; color: var(--text); }
+.det .desc { font-size: 12.5px; color: var(--text); }
+.det .desc::first-letter { font: 700 26px/.9 var(--f-display); color: var(--accent); float: left; margin: 2px 4px 0 0; }
+
+/* ════════ entrada do embed ════════ */
+.entry { display: grid; grid-template-columns: 1fr 1fr; min-height: 300px; background: var(--bg); position: relative; }
+@media (max-width: 520px) { .entry { grid-template-columns: 1fr; } }
+.entry .hd { position: absolute; top: 12px; left: 0; right: 0; text-align: center; z-index: 4; font: 600 10px/1 var(--f-display); letter-spacing: .24em; color: var(--accent); }
+.ep { position: relative; overflow: hidden; display: grid; align-content: end; padding: 18px; min-height: 280px; }
+.ep + .ep { border-left: 1px solid color-mix(in srgb, var(--line) 30%, transparent); }
+.ep .art { filter: var(--entry-rest); opacity: var(--entry-op); mix-blend-mode: var(--entry-blend); }
+.ep.lit .art { filter: none; opacity: 1; mix-blend-mode: normal; }
+.ep .shade { position: absolute; inset: 0; background: linear-gradient(0deg, color-mix(in srgb, var(--bg) 94%, transparent) 0, color-mix(in srgb, var(--bg) 72%, transparent) 26%, color-mix(in srgb, var(--bg) 12%, transparent) 58%, color-mix(in srgb, var(--bg) 50%, transparent) 100%); }
+.ep .glyph { position: absolute; top: 34%; left: 50%; transform: translate(-50%,-50%); color: var(--line2); opacity: .3; }
+.ep.lit .glyph { opacity: .6; color: var(--accent); }
+.ep .tx { position: relative; z-index: 2; display: grid; gap: 6px; }
+.ep .mk { font: 400 10px/1 var(--f-display); letter-spacing: .3em; color: var(--accent); }
+.ep h5 { margin: 0; font: 700 26px/1.05 var(--f-display); letter-spacing: .06em; color: var(--text); text-shadow: var(--entry-ts); }
+.ep h5::after { content: ''; display: block; width: 48px; height: 2px; margin-top: 8px; background: linear-gradient(90deg, transparent, var(--line), transparent); }
+.ep p { color: var(--muted); font-size: 12.5px; }
+.ep.lit p { color: var(--text); }
+.ep .cta { font: 600 10px/1 var(--f-body); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.ep.lit .cta { color: var(--accent); }
+.t-dark .entry { --entry-rest: grayscale(.7) brightness(.5); --entry-op: 1; --entry-blend: normal; --entry-ts: 0 2px 12px rgba(0,0,0,.8); }
+.t-light .entry { --entry-rest: grayscale(1) sepia(.3) brightness(1.1) contrast(.85); --entry-op: .55; --entry-blend: multiply; --entry-ts: none; }
+
+/* ════════ PromptModal ════════ */
+.pm { position: relative; padding: 26px 16px; display: grid; place-items: center; background: var(--bg); min-height: 330px; }
+.pm .page { position: absolute; inset: 0; padding: 14px; display: grid; gap: 8px; align-content: start; opacity: .9; }
+.pm .page i { display: block; height: 10px; border-radius: 4px; background: var(--raised); }
+.pm .ov { position: absolute; inset: 0; background: var(--overlay); backdrop-filter: blur(3px); }
+.modal { position: relative; width: min(100%, 380px); border-radius: 12px; border: 1px solid var(--border-strong); background: linear-gradient(180deg, var(--elevated), var(--float)); box-shadow: var(--sh4); overflow: hidden; }
+.modal .mh { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+.modal .mh h5 { margin: 0; font: 700 17px/1.2 var(--f-display); color: var(--accent); letter-spacing: .03em; }
+.modal .mh span { color: var(--muted); font-size: 16px; }
+.modal .mb { padding: 14px 16px; display: grid; gap: 10px; }
+.modal label { display: grid; gap: 5px; }
+.modal label > span { color: var(--muted); }
+.modal .area { min-height: 64px; align-items: flex-start; line-height: 1.6; }
+.modal .mf { display: flex; justify-content: space-between; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--border); flex-wrap: wrap; }
+.modal .mf div { display: flex; gap: 6px; }
+.modal .field .val { color: var(--text); }
+
+/* ════════ seletor de tema (NavDrawer) ════════ */
+.navd { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); min-height: 380px; }
+@media (max-width: 640px) { .navd { grid-template-columns: 1fr; } .navd .peek { display: none; } }
+.nd { background: var(--elevated); border-right: 2px solid color-mix(in srgb, var(--line) 25%, transparent); display: grid; grid-template-rows: auto 1fr auto; box-shadow: var(--sh4); }
+.nd .nh { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--border); }
+.nd .brand { font: 600 15px/1.2 var(--f-display); letter-spacing: .14em; background: var(--gtext); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.nd nav a { display: flex; justify-content: space-between; padding: 11px 16px; border-top: 1px solid var(--border); color: var(--muted); text-decoration: none; font-weight: 500; letter-spacing: .03em; position: relative; }
+.nd nav a.act { color: var(--accent); background: var(--tint-h); }
+.nd nav a.act::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--gfill); }
+.nd nav a:first-child { border-top: 0; }
+.nd .foot { border-top: 1px solid var(--border); }
+.ts { padding: 12px 16px 12px; display: grid; gap: 7px; border-bottom: 1px solid var(--border); }
+.ts > .lb { font: 600 10px/1 var(--f-body); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.ts-rail { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 2px; border-radius: 8px; border: 1px solid var(--control); background: var(--surface); }
+.ts-opt { appearance: none; border: 1px solid transparent; background: transparent; color: var(--muted); border-radius: 6px; padding: 6px 4px; display: grid; justify-items: center; gap: 3px; font: 500 11px/1 var(--f-body); cursor: pointer; transition: background-color .2s ease, color .2s ease, border-color .2s ease; }
+.ts-opt:hover { color: var(--text); }
+.ts-opt[aria-checked="true"] { background: var(--raised); color: var(--accent); border-color: color-mix(in srgb, var(--line) 60%, transparent); box-shadow: var(--sh1); }
+.ts-opt:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.ts .hint { font: 600 10px/1.3 var(--f-body); letter-spacing: .08em; text-transform: uppercase; color: var(--subtle); min-height: 1.3em; }
+.acct { display: flex; gap: 10px; align-items: center; padding: 12px 16px; }
+.acct i { width: 30px; height: 30px; border-radius: 99px; border: 1px solid color-mix(in srgb, var(--line) 40%, transparent); background: var(--raised); display: grid; place-items: center; color: var(--accent); font-style: normal; font: 700 12px/1 var(--f-display); }
+.acct b { display: block; font-weight: 600; color: var(--text); }
+.acct small { font: 600 9.5px/1 var(--f-body); letter-spacing: .1em; text-transform: uppercase; color: var(--subtle); }
+.logout { padding: 11px 16px; border-top: 1px solid var(--border); color: var(--muted); font-weight: 500; }
+.peek { position: relative; padding: 18px; background: var(--bg); display: grid; gap: 10px; align-content: start; }
+.peek::after { content: ''; position: absolute; inset: 0; background: var(--overlay); pointer-events: none; }
+.peek .pl { height: 12px; border-radius: 4px; background: var(--raised); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ════════ regras de arte ════════ */
+.artgrid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 12px; }
+@media (max-width: 760px) { .artgrid { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+.artcell { border-radius: 12px; overflow: hidden; border: 1px solid var(--pg-border-strong); display: grid; grid-template-rows: auto auto; }
+.artcell .thumb { position: relative; height: 150px; overflow: hidden; background: var(--surface); }
+.artcell .thumb .art { filter: var(--art-rest); opacity: var(--art-rest-op); }
+.artcell.lit .thumb .art { filter: none; opacity: 1; }
+.artcell .thumb::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 45%, var(--surface)); }
+.artcell .thumb .pill { position: absolute; top: 8px; left: 8px; z-index: 2; font: 600 9px/1 var(--f-body); letter-spacing: .12em; text-transform: uppercase; padding: 5px 8px; border-radius: 99px; }
+.artcell .thumb b { position: absolute; left: 10px; bottom: 8px; z-index: 2; font: 700 15px/1.1 var(--f-display); color: var(--text); }
+.artcell figcaption { padding: 8px 10px; font-size: 12px; background: var(--pg-raised); color: var(--pg-muted); }
+.artcell figcaption b { color: var(--pg-text); font-weight: 600; }
+.rules { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px 22px; color: var(--pg-muted); font-size: 13.5px; margin: 0; padding: 0; list-style: none; }
+.rules li { display: grid; grid-template-columns: 1.4rem 1fr; }
+.rules li::before { content: '\25C6'; color: var(--pg-line); font-size: 9px; padding-top: 5px; }
+.rules b { color: var(--pg-text); font-weight: 600; }
+
+/* ════════ mecanismo / grupos ════════ */
+.mech { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.mcard { border: 1px solid var(--pg-border); border-radius: 12px; background: var(--pg-surface); padding: 16px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.mcard h3 { font-size: 1rem; letter-spacing: .05em; }
+.mcard p { color: var(--pg-muted); font-size: 13.5px; }
+.mcard pre { margin: 0; padding: 10px 12px; border-radius: 8px; background: var(--pg-bg); border: 1px solid var(--pg-border); overflow-x: auto; font: 12px/1.55 var(--f-mono); color: var(--pg-text); }
+.groups { overflow-x: auto; border: 1px solid var(--pg-border); border-radius: 12px; background: var(--pg-surface); }
+.groups table { width: 100%; border-collapse: collapse; min-width: 640px; font-size: 13.5px; }
+.groups th, .groups td { padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--pg-border); vertical-align: top; }
+.groups th { font: 600 10px/1.2 var(--f-body); letter-spacing: .14em; text-transform: uppercase; color: var(--pg-muted); background: var(--pg-raised); }
+.groups td:first-child { font: 700 14px/1.3 var(--f-display); color: var(--pg-accent); white-space: nowrap; }
+.groups td.files { color: var(--pg-muted); font-size: 12.5px; }
+.st { display: inline-block; font: 700 10px/1 var(--f-mono); padding: 3px 6px; border-radius: 4px; margin: 1px 2px 1px 0; border: 1px solid var(--pg-border-strong); }
+.tally { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; }
+@media (max-width: 600px) { .tally { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+.tally div { border: 1px solid var(--pg-border); border-radius: 10px; padding: 12px; background: var(--pg-surface); display: grid; gap: 2px; }
+.tally b { font: 700 28px/1 var(--f-display); font-variant-numeric: tabular-nums; }
+.tally span { color: var(--pg-muted); font-size: 12.5px; }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+
+<header class="mast">
+  <div>
+    <h1><span>IF Database · tema</span>Pergaminho</h1>
+  </div>
+  <div class="thesis">
+    <p>O tema claro do app inteiro e dos embeds: escada de tokens espelhando o escuro, um mecanismo único de tema com escolha manual, e a auditoria das 61 folhas. A especificação completa está em <code>light-mode-spec.md</code>.</p>
+    <div><b>◆</b><span>Os tokens semânticos viram custom properties de tema. Quem já usa token ganha o claro sem código novo.</span></div>
+    <div><b>◆</b><span>Ouro como texto passa a <code>$gold-500</code> no papel. O <code>$gold-100</code> fica em 2.09:1 e some.</span></div>
+    <div><b>◆</b><span>A arte continua escura. O que está em volta dela vira pergaminho.</span></div>
+  </div>
+</header>
+
+<!-- ═══════════════ MECANISMO ═══════════════ -->
+<section class="chapter" id="mecanismo">
+  <header>
+    <span class="kicker">Grupo 0 · infra de tema</span>
+    <h2>Um mecanismo, três estados</h2>
+    <p>Sem atributo, o app segue o sistema. <code>data-theme="light|dark"</code> no <code>&lt;html&gt;</code> vence a mídia. A API <code>@include light { }</code> continua igual nos componentes.</p>
+  </header>
+  <div class="mech">
+    <article class="mcard">
+      <h3>Tokens viram variáveis</h3>
+      <p>Mesmos nomes Sass, valor novo. Gerado de dois mapas que só citam primitivos existentes.</p>
+<pre>$color-text: var(--color-text);
+$surface:    var(--color-surface);
+$color-accent: var(--color-accent); // novo
+
+:root            { @include theme-vars(dark); }
+@include theme-root(light) {
+  @include theme-vars(light);
+}</pre>
+    </article>
+    <article class="mcard">
+      <h3>Mixin <code>light</code> reescrito</h3>
+      <p><code>:where()</code> zera a especificidade do prefixo: o override vence só por ordem de fonte, como o <code>@media</code> fazia.</p>
+<pre>@mixin light {
+  @media (prefers-color-scheme: light) {
+    :where(:root:not([data-theme='dark'])) &amp;
+      { @content; }
+  }
+  :where(:root[data-theme='light']) &amp;
+    { @content; }
+}</pre>
+    </article>
+    <article class="mcard">
+      <h3>Sem flash, sem herança no embed</h3>
+      <p>Script no <code>&lt;head&gt;</code> aplica a escolha salva em <code>ifdb-theme</code> antes da hidratação. O iframe do fórum tem <code>localStorage</code> particionado: o embed segue o sistema e aceita <code>?tema=claro|escuro</code>.</p>
+<pre>try{var t=localStorage
+  .getItem('ifdb-theme');
+ if(t==='light'||t==='dark')
+  document.documentElement
+   .dataset.theme=t}catch(e){}</pre>
+    </article>
+  </div>
+
+  <div class="screen">
+    <h3>Seletor de tema no menu lateral <small>Rodapé do NavDrawer, acima da conta. Teste com mouse ou ←/→: cada lado da prancha troca o próprio tema.</small></h3>
+    <div class="ba">
+      <div class="frame after"><div class="cap"><span>Menu lateral · escuro</span><em>funcional</em></div>
+        <div class="vp t-dark m" data-switch-host>
+          <div class="navd">
+            <aside class="nd">
+              <div class="nh"><span class="brand">Isekai Fantasy</span><span style="color:var(--muted)">✕</span></div>
+              <nav>
+                <a href="#mecanismo">Bestiário <span>›</span></a>
+                <a href="#mecanismo">Cidadãos <span>›</span></a>
+                <a href="#mecanismo" class="act">Classes <span>›</span></a>
+                <a href="#mecanismo">Grimório <span>›</span></a>
+                <a href="#mecanismo">Talentos <span>›</span></a>
+              </nav>
+              <div class="foot">
+                <div class="ts">
+                  <span class="lb" id="ts-a-l">Tema</span>
+                  <div class="ts-rail" role="radiogroup" aria-labelledby="ts-a-l">
+                    <button type="button" class="ts-opt" role="radio" aria-checked="false" tabindex="-1" data-v="system" id="ts-a-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M9 20h6M12 16v4"/></svg>Sistema</button>
+                    <button type="button" class="ts-opt" role="radio" aria-checked="false" tabindex="-1" data-v="light" id="ts-a-2"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M18.7 5.3l-1.4 1.4M6.7 17.3l-1.4 1.4"/></svg>Claro</button>
+                    <button type="button" class="ts-opt" role="radio" aria-checked="true" tabindex="0" data-v="dark" id="ts-a-3"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg>Escuro</button>
+                  </div>
+                  <span class="hint" data-hint></span>
+                  <span class="sr" aria-live="polite" data-live></span>
+                </div>
+                <div class="acct"><i>J</i><span><b>jaete</b><small>admin · fórum</small></span></div>
+                <div class="logout">Sair</div>
+              </div>
+            </aside>
+            <div class="peek"><div class="pl" style="width:60%"></div><div class="pl"></div><div class="pl" style="width:80%"></div><div class="pl" style="width:40%"></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="frame after"><div class="cap"><span>Menu lateral · pergaminho</span><em>funcional</em></div>
+        <div class="vp t-light m" data-switch-host>
+          <div class="navd">
+            <aside class="nd">
+              <div class="nh"><span class="brand">Isekai Fantasy</span><span style="color:var(--muted)">✕</span></div>
+              <nav>
+                <a href="#mecanismo">Bestiário <span>›</span></a>
+                <a href="#mecanismo" class="act">Cidadãos <span>›</span></a>
+                <a href="#mecanismo">Classes <span>›</span></a>
+                <a href="#mecanismo">Grimório <span>›</span></a>
+                <a href="#mecanismo">Talentos <span>›</span></a>
+              </nav>
+              <div class="foot">
+                <div class="ts">
+                  <span class="lb" id="ts-b-l">Tema</span>
+                  <div class="ts-rail" role="radiogroup" aria-labelledby="ts-b-l">
+                    <button type="button" class="ts-opt" role="radio" aria-checked="false" tabindex="-1" data-v="system" id="ts-b-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M9 20h6M12 16v4"/></svg>Sistema</button>
+                    <button type="button" class="ts-opt" role="radio" aria-checked="true" tabindex="0" data-v="light" id="ts-b-2"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M18.7 5.3l-1.4 1.4M6.7 17.3l-1.4 1.4"/></svg>Claro</button>
+                    <button type="button" class="ts-opt" role="radio" aria-checked="false" tabindex="-1" data-v="dark" id="ts-b-3"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg>Escuro</button>
+                  </div>
+                  <span class="hint" data-hint></span>
+                  <span class="sr" aria-live="polite" data-live></span>
+                </div>
+                <div class="acct"><i>N</i><span><b>Nocturne</b><small>admin · fórum</small></span></div>
+                <div class="logout">Sair</div>
+              </div>
+            </aside>
+            <div class="peek"><div class="pl" style="width:60%"></div><div class="pl"></div><div class="pl" style="width:80%"></div><div class="pl" style="width:40%"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <ul class="fixes">
+      <li><b>Radiogroup, não três botões com aria-pressed:</b> são opções exclusivas. Foco itinerante, setas movem e selecionam, Home/End vão às pontas.</li>
+      <li><b>Anúncio:</b> região <code>aria-live="polite"</code> diz "Tema claro aplicado" ou "Seguindo o tema do sistema".</li>
+      <li><b>Ícones novos</b> <code>ThemeSystemIcon</code>, <code>ThemeLightIcon</code>, <code>ThemeDarkIcon</code>. O <code>SunIcon</code> existente é a marca das Artes Divinas e não é reaproveitado.</li>
+      <li><b>Sem ouro de fundo:</b> o segmento ativo é superfície elevada com filete dourado e ícone em <code>$color-accent</code>.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═══════════════ PALETA ═══════════════ -->
+<section class="chapter" id="paleta">
+  <header>
+    <span class="kicker">Tokens</span>
+    <h2>A escada clara ao lado da escura</h2>
+    <p>Nenhum hex novo. Os valores derivados saem de <code>color.mix</code> entre primitivos do <code>_colors.scss</code>. Selo "novo" marca o token que ainda não existe.</p>
+  </header>
+  <div class="palette">
+    <table>
+      <thead><tr><th>Token Sass</th><th>Escuro</th><th>Pergaminho</th><th>Uso</th></tr></thead>
+      <tbody>
+        <tr class="tgroup"><td colspan="4">Superfícies · escada de elevação</td></tr>
+        <tr><td class="tok"><code>$color-bg</code></td><td><span class="sw"><span class="chip" style="background:#0a0a0a"></span><small>$neutral-100</small></span></td><td><span class="sw"><span class="chip" style="background:#faf8f4"></span><small>$neutral-2100</small></span></td><td class="note">fundo da página</td></tr>
+        <tr><td class="tok"><code>$surface</code></td><td><span class="sw"><span class="chip" style="background:#151515"></span><small>$neutral-200</small></span></td><td><span class="sw"><span class="chip" style="background:#f5f2ec"></span><small>$neutral-2200</small></span></td><td class="note">elevação 1 · cards, painéis</td></tr>
+        <tr><td class="tok"><code>$surface-raised</code></td><td><span class="sw"><span class="chip" style="background:#1e1e1e"></span><small>$neutral-300</small></span></td><td><span class="sw"><span class="chip" style="background:#f0ece4"></span><small>$neutral-2300</small></span></td><td class="note">elevação 2 · card aninhado</td></tr>
+        <tr><td class="tok"><code>$surface-elevated</code></td><td><span class="sw"><span class="chip" style="background:#262626"></span><small>#262626 (já existe)</small></span></td><td><span class="sw"><span class="chip" style="background:#ebe6dc"></span><small>$neutral-2400</small></span></td><td class="note">elevação 3 · drawer, dropdown</td></tr>
+        <tr><td class="tok"><code>$surface-float</code></td><td><span class="sw"><span class="chip" style="background:#2e2e2e"></span><small>#2e2e2e (já existe)</small></span></td><td><span class="sw"><span class="chip" style="background:#faf8f4"></span><small>$neutral-2100</small></span></td><td class="note">elevação 4 · modal (separa pela sombra)</td></tr>
+        <tr><td class="tok"><code>$overlay</code></td><td><span class="sw"><span class="chip" style="background:rgba(10,10,10,.6)"></span><small>$neutral-100 · 60%</small></span></td><td><span class="sw"><span class="chip" style="background:rgba(59,44,6,.35)"></span><small>nanquim sépia · 35%</small></span></td><td class="note">backdrop de modal e drawer</td></tr>
+        <tr class="tgroup"><td colspan="4">Texto</td></tr>
+        <tr><td class="tok"><code>$color-text</code></td><td><span class="sw"><span class="chip" style="background:#f5f5f5"></span><small>$neutral-2000</small></span></td><td><span class="sw"><span class="chip" style="background:#0a0a0a"></span><small>$neutral-100</small></span></td><td class="note">texto primário</td></tr>
+        <tr><td class="tok"><code>$color-text-muted</code></td><td><span class="sw"><span class="chip" style="background:#979797"></span><small>mix 1000/2000 80% · ajuste</small></span></td><td><span class="sw"><span class="chip" style="background:#505050"></span><small>$neutral-700</small></span></td><td class="note">secundário, placeholder</td></tr>
+        <tr><td class="tok"><code>$color-text-subtle</code></td><td><span class="sw"><span class="chip" style="background:#808080"></span><small>$neutral-1000 · ajuste</small></span></td><td><span class="sw"><span class="chip" style="background:#606060"></span><small>$neutral-800</small></span></td><td class="note">legenda, metadado</td></tr>
+        <tr><td class="tok"><code>$color-text-on-accent</code><span class="new">novo</span></td><td><span class="sw"><span class="chip" style="background:#9c841c;color:#0a0a0a">Aa</span><small>$neutral-100</small></span></td><td><span class="sw"><span class="chip" style="background:#7a5a08;color:#faf8f4">Aa</span><small>$neutral-2100</small></span></td><td class="note">texto sobre botão primário</td></tr>
+        <tr class="tgroup"><td colspan="4">Bordas</td></tr>
+        <tr><td class="tok"><code>$color-border</code></td><td><span class="sw"><span class="chip" style="background:#2a2a2a"></span><small>$neutral-400</small></span></td><td><span class="sw"><span class="chip" style="background:#e1dacc"></span><small>$neutral-2600</small></span></td><td class="note">divisória sutil</td></tr>
+        <tr><td class="tok"><code>$color-border-strong</code></td><td><span class="sw"><span class="chip" style="background:#424242"></span><small>$neutral-600</small></span></td><td><span class="sw"><span class="chip" style="background:#d2c8b4"></span><small>$neutral-2900</small></span></td><td class="note">contorno de card, divisória forte</td></tr>
+        <tr><td class="tok"><code>$color-border-control</code><span class="new">novo</span></td><td><span class="sw"><span class="chip" style="background:#707070"></span><small>$neutral-900</small></span></td><td><span class="sw"><span class="chip" style="background:#808080"></span><small>$neutral-1000</small></span></td><td class="note">input, select, botão secundário (≥ 3:1)</td></tr>
+        <tr class="tgroup"><td colspan="4">Ouro · sempre acento</td></tr>
+        <tr><td class="tok"><code>$color-accent</code><span class="new">novo</span></td><td><span class="sw"><span class="chip" style="background:#151515;color:#d4a843">Aa</span><small>$gold-100</small></span></td><td><span class="sw"><span class="chip" style="background:#faf8f4;color:#7a5a08">Aa</span><small>$gold-500</small></span></td><td class="note">texto, ícone e título dourados</td></tr>
+        <tr><td class="tok"><code>$color-accent-hover</code><span class="new">novo</span></td><td><span class="sw"><span class="chip" style="background:#151515;color:#c49a2c">Aa</span><small>$gold-200</small></span></td><td><span class="sw"><span class="chip" style="background:#faf8f4;color:#5c4204">Aa</span><small>$gold-600</small></span></td><td class="note">hover de link dourado</td></tr>
+        <tr><td class="tok"><code>$color-accent-line</code><span class="new">novo</span></td><td><span class="sw"><span class="chip" style="background:#151515;color:#d4a843">◆</span><small>$gold-100</small></span></td><td><span class="sw"><span class="chip" style="background:#faf8f4;color:#9c7410">◆</span><small>$gold-400</small></span></td><td class="note">filete, ◆, borda dourada (com <code>with-alpha</code>)</td></tr>
+        <tr><td class="tok"><code>$color-accent-fill</code><span class="new">novo</span></td><td><span class="sw"><span class="chip" style="background:#9c841c"></span><small>$primary-100</small></span></td><td><span class="sw"><span class="chip" style="background:#7a5a08"></span><small>$gold-500</small></span></td><td class="note">pip ativo, badge, orbe aberto</td></tr>
+        <tr><td class="tok"><code>$accent-fill-gradient</code><span class="new">novo</span></td><td><span class="sw"><span class="chip" style="background:linear-gradient(135deg,#c49a2c,#9c841c)"></span><small>$gold-200 → $primary-100</small></span></td><td><span class="sw"><span class="chip" style="background:linear-gradient(135deg,#7a5a08,#5c4204)"></span><small>$gold-500 → $gold-600</small></span></td><td class="note">botão primário (selo de cera no claro)</td></tr>
+        <tr><td class="tok"><code>$accent-gradient</code><span class="new">novo</span></td><td><span class="sw"><span class="chip" style="background:linear-gradient(135deg,#d4a843,#9c841c,#b8891a)"></span><small>$gold-100 · $primary-100 · $gold-300</small></span></td><td><span class="sw"><span class="chip" style="background:linear-gradient(135deg,#7a5a08,#5c4204)"></span><small>$gold-500 → $gold-600</small></span></td><td class="note">texto em degradê (<code>gold-gradient-text</code>)</td></tr>
+        <tr><td class="tok"><code>$accent-overlay</code></td><td><span class="sw"><span class="chip" style="background:rgba(156,132,28,.08)"></span><small>$primary-100 · 4%/8%</small></span></td><td><span class="sw"><span class="chip" style="background:rgba(156,116,16,.12)"></span><small>$gold-400 · 6%/12%</small></span></td><td class="note">hover/seleção sutil</td></tr>
+        <tr><td class="tok"><code>$color-focus</code><span class="new">novo</span></td><td><span class="sw"><span class="chip" style="background:#0a0a0a;outline:2px solid #9c841c;outline-offset:-5px"></span><small>$primary-100</small></span></td><td><span class="sw"><span class="chip" style="background:#faf8f4;outline:2px solid #7a5a08;outline-offset:-5px"></span><small>$gold-500</small></span></td><td class="note">anel de foco, borda de campo focado</td></tr>
+        <tr class="tgroup"><td colspan="4">Controles</td></tr>
+        <tr><td class="tok"><code>$color-input-bg</code><span class="new">novo</span></td><td><span class="sw"><span class="chip" style="background:#151515"></span><small>$neutral-200</small></span></td><td><span class="sw"><span class="chip" style="background:#faf8f4"></span><small>$neutral-2100</small></span></td><td class="note">fundo de campo (nunca preto no claro)</td></tr>
+        <tr><td class="tok"><code>$color-placeholder</code><span class="new">novo</span></td><td><span class="sw"><span class="chip" style="background:#151515;color:#979797">Aa</span><small>= muted</small></span></td><td><span class="sw"><span class="chip" style="background:#faf8f4;color:#505050">Aa</span><small>$neutral-700</small></span></td><td class="note">placeholder legível</td></tr>
+        <tr class="tgroup"><td colspan="4">Estados · texto (fundo e borda seguem <code>$*-bg</code>/<code>$*-border</code>)</td></tr>
+        <tr><td class="tok"><code>$color-success</code><span class="new">novo</span></td><td><span class="sw"><span class="chip" style="background:#151515;color:#4caf50">Aa</span><small>$success</small></span></td><td><span class="sw"><span class="chip" style="background:#faf8f4;color:#2e6530">Aa</span><small>mix $success/$neutral-100 55%</small></span></td><td class="note">texto de sucesso</td></tr>
+        <tr><td class="tok"><code>$color-warning</code><span class="new">novo</span></td><td><span class="sw"><span class="chip" style="background:#151515;color:#ff9800">Aa</span><small>$warning</small></span></td><td><span class="sw"><span class="chip" style="background:#faf8f4;color:#845105">Aa</span><small>mix 50%</small></span></td><td class="note">"Única", avisos</td></tr>
+        <tr><td class="tok"><code>$color-error</code><span class="new">novo</span></td><td><span class="sw"><span class="chip" style="background:#151515;color:#f44336">Aa</span><small>$error</small></span></td><td><span class="sw"><span class="chip" style="background:#faf8f4;color:#ae3229">Aa</span><small>mix 70%</small></span></td><td class="note">erro, excluir</td></tr>
+        <tr><td class="tok"><code>$color-info</code><span class="new">novo</span></td><td><span class="sw"><span class="chip" style="background:#151515;color:#2196f3">Aa</span><small>$info</small></span></td><td><span class="sw"><span class="chip" style="background:#faf8f4;color:#18619a">Aa</span><small>mix 62%</small></span></td><td class="note">resistência, informação</td></tr>
+        <tr class="tgroup"><td colspan="4">Sombras · brilho vira filete no papel</td></tr>
+        <tr><td class="tok"><code>elevation(1–4)</code></td><td><span class="sw"><span class="chip" style="background:#1e1e1e;box-shadow:0 8px 24px rgba(0,0,0,.5),0 0 20px rgba(212,168,67,.12)"></span><small>preto + halo dourado</small></span></td><td><span class="sw"><span class="chip" style="background:#f0ece4;box-shadow:0 8px 24px rgba(59,44,6,.16),0 0 0 1px rgba(156,116,16,.18)"></span><small>nanquim sépia + filete $gold-400</small></span></td><td class="note"><code>var(--shadow-n)</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══════════════ CONTRASTE ═══════════════ -->
+<section class="chapter" id="contraste">
+  <header>
+    <span class="kicker">WCAG AA</span>
+    <h2>Pares de contraste</h2>
+    <p>Texto ≥ 4.5:1; texto grande, bordas de controle e foco ≥ 3:1. Calculado sobre os hex do <code>_colors.scss</code>.</p>
+  </header>
+  <div class="pairs">
+    <article class="pair"><div class="demo"><div style="background:#0a0a0a;color:#f5f5f5"><span>Texto</span><small>n2000 / n100</small></div><div style="background:#faf8f4;color:#0a0a0a"><span>Texto</span><small>n100 / n2100</small></div></div><footer><span class="ratio">18.16 · 18.67</span><span class="pass">passa</span></footer></article>
+    <article class="pair"><div class="demo"><div style="background:#2e2e2e;color:#979797"><span>Secundário</span><small>muted / float</small></div><div style="background:#f0ece4;color:#505050"><span>Secundário</span><small>n700 / n2300</small></div></div><footer><span class="ratio">4.65 · 6.84</span><span class="was">hoje no escuro: 3.44</span><span class="pass">passa</span></footer></article>
+    <article class="pair"><div class="demo"><div style="background:#151515;color:#d4a843"><span>Ouro</span><small>gold-100 / n200</small></div><div style="background:#faf8f4;color:#7a5a08"><span>Ouro</span><small>gold-500 / n2100</small></div></div><footer><span class="ratio">8.24 · 6.01</span><span class="pass">passa</span></footer></article>
+    <article class="pair"><div class="demo"><div style="background:#faf8f4;color:#d4a843"><span>Ouro hoje</span><small>gold-100 / n2100</small></div><div style="background:#faf8f4;color:#b8891a"><span>Ouro hoje</span><small>gold-300 / n2100</small></div></div><footer><span class="ratio">2.09 · 2.99</span><span class="fail">reprova</span></footer></article>
+    <article class="pair"><div class="demo"><div style="background:linear-gradient(135deg,#c49a2c,#9c841c);color:#0a0a0a"><span class="cz" style="font-family:var(--f-display);font-weight:700">Salvar</span><small>n100 / ouro</small></div><div style="background:linear-gradient(135deg,#7a5a08,#5c4204);color:#faf8f4"><span style="font-family:var(--f-display);font-weight:700">Salvar</span><small>n2100 / bronze</small></div></div><footer><span class="ratio">≥ 5.40 · ≥ 6.01</span><span class="pass">passa</span></footer></article>
+    <article class="pair"><div class="demo"><div style="background:linear-gradient(135deg,#b8891a,#836e12);color:#f5f5f5"><span style="font-family:var(--f-display);font-weight:700">Salvar</span><small>hoje, escuro</small></div><div style="background:linear-gradient(135deg,#b8891a,#836e12);color:#f5f5f5"><span style="font-family:var(--f-display);font-weight:700">Salvar</span><small>hoje, claro</small></div></div><footer><span class="ratio">2.90 no ponto mais claro</span><span class="fail">reprova</span></footer></article>
+    <article class="pair"><div class="demo"><div style="background:#151515;color:#979797;box-shadow:inset 0 0 0 1px #707070"><span>Buscar…</span><small>borda n900</small></div><div style="background:#faf8f4;color:#505050;box-shadow:inset 0 0 0 1px #808080"><span>Buscar…</span><small>borda n1000</small></div></div><footer><span class="ratio">borda 3.69 · 3.72</span><span class="was">hoje: ≈1.3</span><span class="pass">passa</span></footer></article>
+    <article class="pair"><div class="demo"><div style="background:#faf8f4;color:#ae3229"><span>Excluir</span><small>error / n2100</small></div><div style="background:#faf8f4;color:#2e6530"><span>Salvo</span><small>success / n2100</small></div></div><footer><span class="ratio">6.02 · 6.55</span><span class="was">hoje: 3.47 · 2.62</span><span class="pass">passa</span></footer></article>
+    <article class="pair"><div class="demo"><div style="background:#151515;color:#808080"><span>Legenda</span><small>subtle / n200</small></div><div style="background:#ebe6dc;color:#606060"><span>Legenda</span><small>n800 / n2400</small></div></div><footer><span class="ratio">4.62 · 5.06</span><span class="was">hoje no escuro: 2.90</span><span class="pass">passa</span></footer></article>
+    <article class="pair"><div class="demo"><div style="background:#f0ece4;color:#9c7410"><span>◆ ───</span><small>filete gold-400</small></div><div style="background:#faf8f4;outline:2px solid #7a5a08;outline-offset:-6px;color:#0a0a0a"><span>Foco</span><small>gold-500</small></div></div><footer><span class="ratio">3.62 · 6.01 (não-texto)</span><span class="pass">passa</span></footer></article>
+  </div>
+</section>
+
+<!-- ═══════════════ TELAS ═══════════════ -->
+<section class="chapter" id="telas">
+  <header>
+    <span class="kicker">Antes → depois, no pergaminho</span>
+    <h2>As telas dos prints e as telas novas</h2>
+    <p>"Antes" reproduz o CSS de hoje com o SO em tema claro. Os marcadores vermelhos numeram o defeito descrito embaixo.</p>
+  </header>
+
+  <!-- /classes -->
+  <div class="screen">
+    <h3>/classes <small>ClassGrid + ClassCarousel + ClassCard · defeito 1 do usuário</small></h3>
+    <div class="ba">
+      <div class="frame"><div class="cap"><span>Antes</span><em>3 defeitos</em></div>
+        <div class="vp t-light m">
+          <div class="codex">
+            <div class="head"><h4 class="gtitle" style="background-image:linear-gradient(135deg,#d4a843,#9c841c,#b8891a)">CLASSES</h4><p style="color:#808080">O que cada classe adquire a cada nível, e as magias que ela conjura.</p></div>
+            <div class="tools">
+              <div class="field" style="background:#151515;border-color:#2a2a2a;color:#f5f5f5"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span class="ph" style="color:#363636">Buscar classe pelo nome...</span></div>
+              <div class="acts">
+                <span class="btn" style="background:linear-gradient(135deg,#b8891a,#836e12);color:#f5f5f5">Importar</span>
+                <span class="btn" style="background:linear-gradient(135deg,#b8891a,#836e12);color:#f5f5f5">Vincular</span>
+                <span class="btn" style="background:linear-gradient(135deg,#b8891a,#836e12);color:#f5f5f5">Nova classe</span>
+              </div>
+            </div>
+            <div class="stage">
+              <div class="pick side" style="--art-rest:brightness(.45) saturate(.65);--art-rest-op:1"><div class="pa"><div class="art b"></div><span class="tag">Marcial</span></div><div class="pb"><div class="name">Guerreiro</div><div class="clasp">◆</div><dl><dt>Dado de vida</dt><dd>d10</dd><dt>Atributo</dt><dd>FOR ou DES</dd></dl></div></div>
+              <div class="pick focus"><div class="pa"><div class="art"></div><span class="tag">Arcana</span></div><div class="pb"><div class="name" style="background-image:linear-gradient(135deg,#7a5a08,#5c4204)">Necromante</div><div class="clasp">◆</div><dl><dt>Dado de vida</dt><dd>d6</dd><dt>Atributo</dt><dd>INT</dd><dt>Resistência</dt><dd>INT, SAB</dd></dl></div></div>
+            </div>
+          </div>
+          <span class="bug-pin" style="top:92px;left:30%">1</span><span class="bug-pin" style="top:92px;right:12px">2</span><span class="bug-pin" style="top:24px;left:calc(50% + 70px)">3</span><span class="bug-pin" style="top:175px;left:24%">4</span>
+        </div>
+      </div>
+      <div class="frame after"><div class="cap"><span>Depois</span><em>tokens de tema</em></div>
+        <div class="vp t-light m">
+          <div class="codex">
+            <div class="head"><h4 class="gtitle">CLASSES</h4><p>O que cada classe adquire a cada nível, e as magias que ela conjura.</p></div>
+            <div class="tools">
+              <div class="field"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span class="ph">Buscar classe pelo nome...</span></div>
+              <div class="acts">
+                <span class="btn btn-secondary">Importar</span>
+                <span class="btn btn-secondary">Vincular</span>
+                <span class="btn btn-primary">Nova classe</span>
+              </div>
+            </div>
+            <div class="stage">
+              <div class="pick side"><div class="pa"><div class="art b"></div><span class="tag on-art" style="color:#d4a843">Marcial</span></div><div class="pb"><div class="name">Guerreiro</div><div class="clasp">◆</div><dl><dt>Dado de vida</dt><dd>d10</dd><dt>Atributo</dt><dd>FOR ou DES</dd></dl></div></div>
+              <div class="pick focus"><div class="pa"><div class="art"></div><span class="tag on-art" style="color:#d4a843">Arcana</span></div><div class="pb"><div class="name">Necromante</div><div class="clasp">◆</div><span class="uniq">Única</span><dl><dt>Dado de vida</dt><dd>d6</dd><dt>Atributo</dt><dd>INT</dd><dt>Resistência</dt><dd>INT, SAB</dd></dl></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <ol class="fixes">
+      <li><b>Busca preta</b> (<code>.codexSearch</code> com <code>$surface</code> estático) → <code>field-input</code>: fundo <code>$color-input-bg</code>, borda de controle, placeholder 7.60:1.</li>
+      <li><b>Ações em ouro chapado com texto claro</b> (2.90:1) → Importar e Vincular viram <code>btn-secondary</code>; só Nova classe é primário, em bronze.</li>
+      <li><b>Título em ouro claro</b> (2.09:1 no papel) → <code>gold-gradient-text</code> resolve para <code>$gold-500 → $gold-600</code>.</li>
+      <li><b>Card fora de foco escurecido</b> (<code>brightness(.45)</code>) vira mancha no papel → no claro recua em sépia; etiqueta sobre a arte fica em escopo escuro.</li>
+    </ol>
+  </div>
+
+  <!-- cidadãos -->
+  <div class="screen">
+    <h3>/citizens e o drawer do cidadão <small>CitizenGrid + CitizenCard + CitizenData · defeitos 2 e 3</small></h3>
+    <div class="ba">
+      <div class="frame"><div class="cap"><span>Antes · lista</span><em>3 defeitos</em></div>
+        <div class="vp t-light m">
+          <div class="cg">
+            <div class="h"><h4 class="cz" style="color:#d4a843;font-weight:700;letter-spacing:.06em">Cidadãos</h4><p style="color:#f0ece4">Moradores de Terralém, por reino e ofício</p></div>
+            <div class="row"><div class="field" style="background:#f5f5f5;border-color:#dcd4c4;color:#151515"><span class="ph" style="color:#f0ece4">Buscar cidadão...</span></div><span class="btn" style="background:linear-gradient(135deg,#b8891a,#836e12);color:#f5f5f5">Novo</span></div>
+            <div class="cc-grid">
+              <div class="cc" style="background:linear-gradient(180deg,#1e1e1e,#151515)"><div class="ci"><div class="art d"></div></div><div class="cinfo"><span class="sub" style="color:#808080">Humana · Ferreira · Nv. 7</span><span class="nm" style="color:#9c841c">Brunhilde Vasskar</span><div class="acts"><span class="btn" style="background:linear-gradient(135deg,#b8891a,#836e12);color:#fff">Editar</span><span class="dots" style="color:#151515">⋮</span></div></div></div>
+              <div class="cc" style="background:linear-gradient(180deg,#1e1e1e,#151515)"><div class="ci"><div class="art c"></div></div><div class="cinfo"><span class="sub" style="color:#808080">Elfo · Arquivista · Nv. 4</span><span class="nm" style="color:#9c841c">Ithiel Sorvanne</span><div class="acts"><span class="btn" style="background:linear-gradient(135deg,#b8891a,#836e12);color:#fff">Editar</span><span class="dots" style="color:#151515">⋮</span></div></div></div>
+            </div>
+          </div>
+          <span class="bug-pin" style="top:40px;left:180px">1</span><span class="bug-pin" style="top:82px;left:40%">2</span><span class="bug-pin" style="bottom:30px;left:30%">3</span>
+        </div>
+      </div>
+      <div class="frame after"><div class="cap"><span>Depois · lista</span><em>tokens de tema</em></div>
+        <div class="vp t-light m">
+          <div class="cg">
+            <div class="h"><h4 class="gtitle">Cidadãos</h4><p>Moradores de Terralém, por reino e ofício</p></div>
+            <div class="row"><div class="field"><span class="ph">Buscar cidadão...</span></div><span class="btn btn-primary">Novo</span></div>
+            <div class="caption count">42 cidadãos</div>
+            <div class="cc-grid">
+              <div class="cc"><div class="ci"><div class="art d"></div></div><div class="cinfo"><span class="sub">Humana · Ferreira · Nv. 7</span><span class="nm">Brunhilde Vasskar</span><div class="acts"><span class="btn btn-primary">Editar</span><span class="dots">⋮</span></div></div></div>
+              <div class="cc"><div class="ci"><div class="art c"></div></div><div class="cinfo"><span class="sub">Elfo · Arquivista · Nv. 4</span><span class="nm">Ithiel Sorvanne</span><div class="acts"><span class="btn btn-primary">Editar</span><span class="dots">⋮</span></div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="ba">
+      <div class="frame"><div class="cap"><span>Antes · drawer</span><em>bloco ilegível</em></div>
+        <div class="vp t-light m">
+          <div class="dr">
+            <div class="behind"></div>
+            <div class="panel" style="background:#faf8f4">
+              <div class="bar" style="background:linear-gradient(135deg,#b8891a,#836e12);color:#fff">✕</div>
+              <div class="body">
+                <div class="ttl gtitle" style="background-image:linear-gradient(135deg,#d4a843,#9c841c,#b8891a)">Brunhilde Vasskar</div>
+                <div class="card info orn" style="background:linear-gradient(180deg,#1e1e1e,#151515);border-color:#2a2a2a">
+                  <div class="ir"><span style="color:#7a5a08">Raça</span><span style="color:#0a0a0a">Humana</span></div>
+                  <div class="ir"><span style="color:#7a5a08">Classe</span><span style="color:#0a0a0a">Guerreira</span></div>
+                  <div class="ir"><span style="color:#7a5a08">Nível</span><span style="color:#0a0a0a">7</span></div>
+                  <div class="ir"><span style="color:#7a5a08">Reino</span><span style="color:#0a0a0a">Vasskar</span></div>
+                  <div class="ir"><span style="color:#7a5a08">Alinhamento</span><span style="color:#0a0a0a">Leal e Neutra</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <span class="bug-pin" style="top:120px;right:30%">1</span>
+        </div>
+      </div>
+      <div class="frame after"><div class="cap"><span>Depois · drawer</span><em>premium-card de tema</em></div>
+        <div class="vp t-light m">
+          <div class="dr">
+            <div class="behind"></div>
+            <div class="panel">
+              <div class="bar">✕</div>
+              <div class="body">
+                <div class="ttl gtitle">Brunhilde Vasskar</div>
+                <div class="card info orn">
+                  <div class="ir"><span>Raça</span><span>Humana</span></div>
+                  <div class="ir"><span>Classe</span><span>Guerreira</span></div>
+                  <div class="ir"><span>Nível</span><span>7</span></div>
+                  <div class="ir"><span>Idade</span><span>34 anos</span></div>
+                  <div class="ir"><span>Altura</span><span>1,82 m</span></div>
+                  <div class="ir"><span>Adoração</span><span>Tyrgun, o Malho</span></div>
+                  <div class="ir"><span>Família</span><span>Vasskar</span></div>
+                  <div class="ir"><span>Reino</span><span>Vasskar</span></div>
+                  <div class="ir"><span>Clã</span><span>Bigorna Rubra</span></div>
+                  <div class="ir"><span>Alinhamento</span><span>Leal e Neutra</span></div>
+                </div>
+                <div class="sec"><h5>Informações de Combate</h5><p>Classe de Armadura 17 · Pontos de Vida 64 · Deslocamento 9 m · Bônus de Proficiência +3</p></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <ol class="fixes">
+      <li><b>Subtítulo invisível</b> (<code>.cgSubtitle</code> <code>$neutral-2300</code> sobre <code>$neutral-2100</code>, ≈1.1:1) → <code>$color-text-muted</code>.</li>
+      <li><b>Placeholder invisível</b> (claro <code>$neutral-2300</code>) → <code>$color-placeholder</code>; campo por <code>field-input</code>.</li>
+      <li><b>Rodapé preto do card:</b> o claro troca só <code>background-color</code>, e o <code>linear-gradient</code> escuro continua por cima. Com tokens de tema o degradê já é de pergaminho.</li>
+      <li><b>Bloco Raça/Classe/Nível preto com valor preto:</b> <code>premium-card</code> usa <code>$surface-raised → $surface</code> estáticos. A Infra reescreve o mixin e o bloco passa a pergaminho sem tocar no componente.</li>
+    </ol>
+  </div>
+
+  <!-- menu principal -->
+  <div class="screen">
+    <h3>Menu principal <small>MainMenu · defeito 4</small></h3>
+    <div class="ba">
+      <div class="frame"><div class="cap"><span>Antes</span><em>fundo escuro no claro</em></div>
+        <div class="vp t-light m">
+          <div class="menu" style="background:#0a0a0a">
+            <div class="tc" style="border-color:#b8891a"><h4 class="cz" style="color:#0a0a0a;font-weight:700">ISEKAI FANTASY</h4><span class="sub" style="color:#d4a843">EDITOR</span></div>
+            <nav>
+              <a href="#telas" style="background:#faf8f4;border-color:#e1dacc;color:#0a0a0a;box-shadow:none">Bestiário</a>
+              <a href="#telas" style="background:#faf8f4;border-color:#e1dacc;color:#0a0a0a;box-shadow:none">Cidadãos</a>
+              <a href="#telas" style="background:#faf8f4;border-color:#e1dacc;color:#0a0a0a;box-shadow:none">Classes</a>
+              <a href="#telas" style="background:#faf8f4;border-color:#e1dacc;color:#0a0a0a;box-shadow:none">Grimório</a>
+              <a href="#telas" style="background:#faf8f4;border-color:#e1dacc;color:#0a0a0a;box-shadow:none">Talentos</a>
+            </nav>
+          </div>
+          <span class="bug-pin" style="top:30px;left:20%">1</span><span class="bug-pin" style="top:130px;left:18%">2</span>
+        </div>
+      </div>
+      <div class="frame after"><div class="cap"><span>Depois</span><em>tokens de tema</em></div>
+        <div class="vp t-light m">
+          <div class="menu">
+            <div class="tc"><h4 class="gtitle">ISEKAI FANTASY</h4><span class="sub">EDITOR</span></div>
+            <nav>
+              <a href="#telas">Bestiário</a>
+              <a href="#telas" class="hover">Cidadãos</a>
+              <a href="#telas">Classes</a>
+              <a href="#telas">Grimório</a>
+              <a href="#telas">Talentos</a>
+            </nav>
+          </div>
+        </div>
+      </div>
+    </div>
+    <ol class="fixes">
+      <li><b>Fundo fixo em <code>$neutral-100</code></b> sem claro, e o título passa a <code>$neutral-100</code> no claro: preto sobre preto → <code>$color-bg</code> + título em <code>gold-gradient-text</code>.</li>
+      <li><b>Links brancos chapados</b> → placas <code>$surface</code> com borda forte e <code>elevation(1)</code>; hover com filete e texto em <code>$color-accent</code> (segundo item mostra o hover).</li>
+    </ol>
+  </div>
+
+  <!-- detalhe da classe -->
+  <div class="screen">
+    <h3>Detalhe da classe <small>ClassData + ClassWheel + ClassSection · hoje via <code>--cls-*</code></small></h3>
+    <div class="ba">
+      <div class="frame"><div class="cap"><span>Antes</span><em>diagrama apagado</em></div>
+        <div class="vp t-light m" style="--line:#d4a843;--line2:#b8891a;--fill:#b8891a;--on-accent:#0a0a0a">
+          <div class="cls">
+            <div>
+              <div class="kind"><i>✦</i>Arcana · Conjurador completo</div>
+              <h4 class="gtitle">Necromante</h4>
+              <div class="clasp">◆</div>
+              <p class="lead">Estudiosa da fronteira entre vida e morte, comanda os restos de quem caiu e drena o vigor de quem ainda está de pé.</p>
+              <div class="vitals"><div><dt>Dado de vida</dt><dd>d6</dd></div><div><dt>Atributo</dt><dd class="s">INT</dd></div><div><dt>Resistência</dt><dd class="s">INT, SAB</dd></div></div>
+              <div class="row"><span class="btn" style="background:#9c841c;color:#0a0a0a;font-family:var(--f-display)">Editar classe</span></div>
+            </div>
+            <div class="astro">
+              <svg viewBox="0 0 200 200" fill="none" stroke="currentColor" aria-hidden="true"><circle cx="100" cy="100" r="88" opacity=".25" stroke-dasharray="2 6"/><circle cx="100" cy="100" r="70" opacity=".55"/><path d="M100 30v40M100 130v40M30 100h40M130 100h40M50 50l28 28M122 122l28 28M150 50l-28 28M78 122l-28 28" opacity=".35"/></svg>
+              <div class="core"><div class="art c"></div></div>
+              <span class="orb" style="left:50%;top:15%">3</span><span class="orb on" style="left:85%;top:50%">6</span><span class="orb" style="left:50%;top:85%">10</span><span class="orb" style="left:15%;top:50%">14</span>
+            </div>
+          </div>
+          <span class="bug-pin" style="top:30px;right:30%">1</span><span class="bug-pin" style="top:238px;left:196px">2</span>
+        </div>
+      </div>
+      <div class="frame after"><div class="cap"><span>Depois</span><em>tokens globais</em></div>
+        <div class="vp t-light m">
+          <div class="cls">
+            <div>
+              <div class="kind"><i>✦</i>Arcana · Conjurador completo</div>
+              <h4 class="gtitle">Necromante</h4>
+              <div class="clasp">◆</div>
+              <p class="lead">Estudiosa da fronteira entre vida e morte, comanda os restos de quem caiu e drena o vigor de quem ainda está de pé.</p>
+              <div class="vitals"><div><dt>Dado de vida</dt><dd>d6</dd></div><div><dt>Atributo</dt><dd class="s">INT</dd></div><div><dt>Resistência</dt><dd class="s">INT, SAB</dd></div></div>
+              <div class="row"><span class="btn btn-primary">Editar classe</span><span class="btn btn-ghost">Copiar BBCode</span></div>
+            </div>
+            <div class="astro">
+              <svg viewBox="0 0 200 200" fill="none" stroke="currentColor" aria-hidden="true"><circle cx="100" cy="100" r="88" opacity=".25" stroke-dasharray="2 6"/><circle cx="100" cy="100" r="70" opacity=".55"/><path d="M100 30v40M100 130v40M30 100h40M130 100h40M50 50l28 28M122 122l28 28M150 50l-28 28M78 122l-28 28" opacity=".35"/></svg>
+              <div class="core"><div class="art c"></div></div>
+              <span class="imgbtn on-art">Trocar imagem</span>
+              <span class="orb" style="left:50%;top:15%">3</span><span class="orb on" style="left:85%;top:50%">6</span><span class="orb" style="left:50%;top:85%">10</span><span class="orb" style="left:15%;top:50%">14</span>
+            </div>
+            <div class="prog">
+              <table>
+                <thead><tr><th>Nível</th><th>Proficiência</th><th>Características</th><th>Espaços</th></tr></thead>
+                <tbody>
+                  <tr><td><span class="seal">1</span></td><td class="mono">+2</td><td><span class="grant">Conjuração</span>, <span class="grant">Toque Gélido</span></td><td><span class="pips"><i></i><i></i></span></td></tr>
+                  <tr><td><span class="seal">2</span></td><td class="mono">+2</td><td><span class="grant">Servo Ossudo</span></td><td><span class="pips"><i></i><i></i><i></i></span></td></tr>
+                  <tr><td><span class="seal">3</span></td><td class="mono">+2</td><td>Escolha de arquétipo: <span class="grant">Ceifador</span> ou <span class="grant">Embalsamador</span></td><td><span class="pips"><i></i><i></i><i></i><i></i></span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <ol class="fixes">
+      <li><b>Astrolábio em <code>$gold-100</code></b>: anéis e orbes a 2.09:1 somem no papel → <code>$color-accent-line</code> (<code>$gold-400</code>); orbe aberto em <code>$color-accent-fill</code> + texto sobre acento.</li>
+      <li><b>Botão primário <code>$primary-100</code> chapado</b> (mostarda no papel) → <code>btn-primary</code> bronze. Botão "Trocar imagem" fica sobre a arte em escopo escuro.</li>
+      <li><b><code>--cls-*</code> e <code>_classTheme.scss</code></b> somem: o modal das seções, que vai para o <code>body</code>, já lê o <code>:root</code>.</li>
+    </ol>
+  </div>
+
+  <!-- grimório -->
+  <div class="screen">
+    <h3>Grimório <small>SpellGrid + SpellRow + SpellDetail · a tela mais completa hoje</small></h3>
+    <div class="ba">
+      <div class="frame"><div class="cap"><span>Antes</span><em>cinza estático</em></div>
+        <div class="vp t-light m">
+          <div class="gr">
+            <div class="list">
+              <h4 class="gtitle" style="background-image:linear-gradient(135deg,#d4a843,#9c841c,#b8891a)">GRIMÓRIO</h4>
+              <p style="color:#808080">Todas as magias de Terralém, por círculo</p>
+              <div class="field" style="background:#f5f2ec;border-color:#e6e0d4"><span class="ph" style="color:#808080">Buscar magia...</span></div>
+              <div class="idx"><span style="color:#808080">T</span><span class="cur">1</span><span style="color:#808080">2</span><span style="color:#808080">3</span><span style="color:#808080">4</span></div>
+              <div class="grp"><b>1º Círculo</b><i></i><small style="color:#505050">12 MAGIAS</small></div>
+              <div class="srow" style="--school:#f44336"><span class="circ">1</span><span class="tx"><b>Mãos Flamejantes</b><small>Evocação</small></span><span class="gl">✶</span><span class="bar"></span></div>
+            </div>
+            <div class="det"><p style="color:#808080;font-size:12px;padding-top:40px;text-align:center">(detalhe já tem claro completo)</p></div>
+          </div>
+          <span class="bug-pin" style="top:58px;left:20px">1</span><span class="bug-pin" style="top:126px;left:20px">2</span>
+        </div>
+      </div>
+      <div class="frame after"><div class="cap"><span>Depois</span><em>lista + detalhe</em></div>
+        <div class="vp t-light m">
+          <div class="gr">
+            <div class="list">
+              <h4 class="gtitle">GRIMÓRIO</h4>
+              <p>Todas as magias de Terralém, por círculo</p>
+              <div class="field"><span class="ph">Buscar magia...</span></div>
+              <div class="idx"><span>T</span><span class="cur">1</span><span>2</span><span>3</span><span>4</span></div>
+              <div class="grp"><b>1º Círculo</b><i></i><small>12 MAGIAS</small></div>
+              <div class="srow cur" style="--school:#f44336"><span class="circ">1</span><span class="tx"><b>Mãos Flamejantes</b><small>Evocação</small></span><span class="gl">✶</span><span class="bar"></span></div>
+              <div class="srow" style="--school:#4caf50"><span class="circ">1</span><span class="tx"><b>Pele de Casca</b><small>Transmutação</small></span><span class="gl">✶</span><span class="bar"></span></div>
+              <div class="srow" style="--school:#606060"><span class="circ">1</span><span class="tx"><b>Detectar Magia</b><small>Adivinhação</small></span><span class="gl">✶</span><span class="bar"></span></div>
+            </div>
+            <div class="det" style="--school:#f44336">
+              <div class="hero"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><path d="M12 3c2 4 6 6 6 11a6 6 0 0 1-12 0c0-3 2-5 3-7 1 2 2 3 3 3 0-3-1-5 0-7Z"/></svg></div>
+              <div class="top"><div class="sealb"><span><b>1</b><small>Círculo</small></span></div><div><h5>Mãos Flamejantes</h5><div class="sch">Escola <b>Evocação</b></div></div></div>
+              <div class="quad"><div><small>Tempo</small><span>1 ação</span></div><div><small>Alcance</small><span>Pessoal (cone de 4,5 m)</span></div><div><small>Componentes</small><span>V, S</span></div><div><small>Duração</small><span>Instantânea</span></div></div>
+              <p class="desc">Uma lâmina de chamas sai das pontas dos seus dedos. Cada criatura no cone faz um teste de resistência de DES e sofre 3d6 de dano de fogo se falhar.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <ol class="fixes">
+      <li><b>Subtítulo, ícone de busca, índice e "vazio"</b> sem override: <code>$color-text-muted</code> estático é <code>$neutral-1000</code>, 3.72:1 no papel. Com o token de tema vira <code>$neutral-700</code>.</li>
+      <li><b>Linhas e detalhe</b> já estavam certos à mão (27 overrides em <code>spellDetail</code>); viram migração mecânica. A barra de escola continua primitiva; Adivinhação mantém o override para <code>$neutral-800</code>.</li>
+    </ol>
+  </div>
+
+  <!-- embed -->
+  <div class="screen">
+    <h3>Entrada do embed <small>EmbedEntry · /embed/class-or-spell · decisão: gravura sobre pergaminho</small></h3>
+    <div class="ba">
+      <div class="frame"><div class="cap"><span>Antes · SO claro</span><em>escuro forçado</em></div>
+        <div class="vp t-dark m">
+          <div class="entry">
+            <span class="hd">ESCOLHA O QUE CONSULTAR</span>
+            <div class="ep"><div class="art"></div><div class="shade"></div><svg class="glyph" width="70" height="70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width=".8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><path d="M12 3v18M3 12h18"/></svg><div class="tx"><span class="mk">◆ CÓDICE</span><h5>Classes</h5><p>O que cada classe ganha a cada nível.</p><span class="cta">Abrir classes</span></div></div>
+            <div class="ep"><div class="art c"></div><div class="shade"></div><svg class="glyph" width="70" height="70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width=".8" aria-hidden="true"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3Z"/><path d="M5 17a3 3 0 0 1 3-3h11"/></svg><div class="tx"><span class="mk">◆ GRIMÓRIO</span><h5>Magias</h5><p>Todas as magias, por círculo.</p><span class="cta">Abrir magias</span></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="frame after"><div class="cap"><span>Depois · SO claro</span><em>segunda passa o mouse</em></div>
+        <div class="vp t-light m">
+          <div class="entry">
+            <span class="hd">ESCOLHA O QUE CONSULTAR</span>
+            <div class="ep"><div class="art"></div><div class="shade"></div><svg class="glyph" width="70" height="70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width=".8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><path d="M12 3v18M3 12h18"/></svg><div class="tx"><span class="mk">◆ CÓDICE</span><h5>Classes</h5><p>O que cada classe ganha a cada nível.</p><span class="cta">Abrir classes</span></div></div>
+            <div class="ep lit"><div class="art c"></div><div class="shade"></div><svg class="glyph" width="70" height="70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width=".8" aria-hidden="true"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3Z"/><path d="M5 17a3 3 0 0 1 3-3h11"/></svg><div class="tx"><span class="mk">◆ GRIMÓRIO</span><h5>Magias</h5><p>Todas as magias, por círculo.</p><span class="cta">Abrir magias</span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <ul class="fixes">
+      <li><b>Em repouso</b> a arte vira gravura: cinza + sépia, multiplicada sobre o papel a 55%. No escuro ela recua para a sombra; no claro, para o pergaminho.</li>
+      <li><b>Aceso</b> (hover/foco) a arte aparece inteira; a sombra de baixo é de pergaminho (<code>with-alpha($color-bg, .94)</code>), então o título continua em tinta escura e legível.</li>
+      <li><b>Layout do embed</b> perde o <code>colorScheme: 'dark'</code> forçado e passa a <code>'dark light'</code>; o <code>?tema=escuro</code> segura o escuro se o fórum pedir.</li>
+    </ul>
+  </div>
+
+  <!-- PromptModal -->
+  <div class="screen">
+    <h3>Modal e formulário base <small>Modal + PromptModal · nenhum dos dois tem claro hoje</small></h3>
+    <div class="ba">
+      <div class="frame"><div class="cap"><span>Antes · SO claro</span><em>modal escuro sobre papel</em></div>
+        <div class="vp t-light m">
+          <div class="pm">
+            <div class="page"><i style="width:40%"></i><i></i><i style="width:70%"></i><i style="width:55%"></i></div>
+            <div class="ov" style="background:rgba(0,0,0,.7)"></div>
+            <div class="modal" style="background:linear-gradient(180deg,#262626,#151515);border-color:#2a2a2a">
+              <div class="mh" style="border-color:#2a2a2a"><h5 style="color:#b8891a">Editar característica</h5><span style="color:#606060">✕</span></div>
+              <div class="mb">
+                <label><span class="caption" style="color:#808080">Nome</span><span class="field" style="background:#1e1e1e;border-color:#2a2a2a"><span class="val" style="color:#f5f5f5">Toque Gélido</span></span></label>
+                <label><span class="caption" style="color:#808080">Descrição</span><span class="field area" style="background:#1e1e1e;border-color:#2a2a2a"><span class="val" style="color:#f5f5f5">Ataque corpo a corpo com magia. Em um acerto, 1d8 de dano necrótico e o alvo não recupera PV até o seu próximo turno.</span></span></label>
+              </div>
+              <div class="mf" style="border-color:#2a2a2a"><span class="btn" style="border-color:rgba(244,67,54,.35);color:#f44336">Excluir</span><div><span class="btn" style="border-color:#2a2a2a;color:#808080">Cancelar</span><span class="btn" style="background:#9c841c;color:#0a0a0a">Salvar</span></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="frame after"><div class="cap"><span>Depois · SO claro</span><em>tokens de tema</em></div>
+        <div class="vp t-light m">
+          <div class="pm">
+            <div class="page"><i style="width:40%"></i><i></i><i style="width:70%"></i><i style="width:55%"></i></div>
+            <div class="ov"></div>
+            <div class="modal">
+              <div class="mh"><h5>Editar característica</h5><span>✕</span></div>
+              <div class="mb">
+                <label><span class="caption">Nome</span><span class="field"><span class="val">Toque Gélido</span></span></label>
+                <label><span class="caption">Descrição</span><span class="field area"><span class="val">Ataque corpo a corpo com magia. Em um acerto, 1d8 de dano necrótico e o alvo não recupera PV até o seu próximo turno.</span></span></label>
+              </div>
+              <div class="mf"><span class="btn btn-danger">Excluir</span><div><span class="btn btn-secondary">Cancelar</span><span class="btn btn-primary">Salvar</span></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <ul class="fixes">
+      <li><b>Backdrop</b> deixa de ser preto a 70% e vira nanquim sépia a 35% com desfoque; o modal é <code>$surface-float</code> e se separa pela <code>elevation(4)</code>.</li>
+      <li><b>Título</b> <code>$gold-300</code> (2.99:1) → <code>$color-accent</code>. <b>Campos</b> por <code>field-input</code>. <b>Botões</b> por <code>btn-primary</code>/<code>btn-secondary</code>/<code>btn-danger</code>; Excluir em <code>#ae3229</code> (6.02:1).</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═══════════════ ARTE ═══════════════ -->
+<section class="chapter" id="arte">
+  <header>
+    <span class="kicker">Imagens no claro</span>
+    <h2>A arte fica escura; o papel muda em volta</h2>
+  </header>
+  <div class="artgrid">
+    <figure class="artcell t-dark m" style="margin:0"><div class="thumb"><div class="art"></div><span class="pill on-art" style="color:#d4a843">Arcana</span><b>Necromante</b></div><figcaption><b>Escuro · repouso</b> brightness(.45)</figcaption></figure>
+    <figure class="artcell t-light m" style="margin:0"><div class="thumb"><div class="art"></div><span class="pill on-art" style="color:#d4a843">Arcana</span><b>Necromante</b></div><figcaption><b>Claro · repouso</b> sépia, recua para o papel</figcaption></figure>
+    <figure class="artcell lit t-dark m" style="margin:0"><div class="thumb"><div class="art"></div><span class="pill on-art" style="color:#d4a843">Arcana</span><b>Necromante</b></div><figcaption><b>Escuro · foco</b> arte inteira</figcaption></figure>
+    <figure class="artcell lit t-light m" style="margin:0"><div class="thumb"><div class="art"></div><span class="pill on-art" style="color:#d4a843">Arcana</span><b>Necromante</b></div><figcaption><b>Claro · foco</b> arte inteira, fade de pergaminho</figcaption></figure>
+  </div>
+  <ul class="rules">
+    <li><span><b>Fade para a superfície usa o token.</b> <code>linear-gradient(transparent, $surface)</code> dissolve em pergaminho sem override.</span></li>
+    <li><span><b>Texto sobre o fade</b> usa token normal: no claro é tinta escura sobre papel.</span></li>
+    <li><span><b>Texto ou botão sobre a imagem</b> usa <code>theme-scope(dark)</code>: etiqueta escura nos dois temas.</span></li>
+    <li><span><b>Placeholder</b> sem imagem: <code>$surface-raised → $surface</code> e glifo em filete dourado.</span></li>
+    <li><span><b>Scrim</b> nunca passa de 94% e nunca é branco.</span></li>
+  </ul>
+</section>
+
+<!-- ═══════════════ GRUPOS ═══════════════ -->
+<section class="chapter" id="grupos">
+  <header>
+    <span class="kicker">Auditoria · 61 folhas + 7 parciais da ficha</span>
+    <h2>Estado de hoje e divisão do trabalho</h2>
+    <p>Tabela por arquivo, com seletor, propriedade e correção, no spec. Aqui fica o resumo por grupo. O Grupo 0 vai sozinho e primeiro; os outros podem andar em paralelo.</p>
+  </header>
+  <div class="tally">
+    <div><b>21</b><span>ok · só migração mecânica</span></div>
+    <div><b>12</b><span>incompleto</span></div>
+    <div><b>13</b><span>divergente · claro errado</span></div>
+    <div><b>15</b><span>sem claro (+7 parciais)</span></div>
+  </div>
+  <div class="groups">
+    <table>
+      <thead><tr><th>Grupo</th><th>Arquivos</th><th>Destaques</th></tr></thead>
+      <tbody>
+        <tr><td>0 · Infra</td><td class="files">_colors, _mixins, _globals, layouts (app e embed), ThemeSwitch + hook + 3 ícones, bloco no NavDrawer, 9 <code>rgba()</code> em tokens</td><td>Tokens viram variáveis; mixins <code>light</code>/<code>dark</code>/<code>theme-root</code>/<code>theme-scope</code>; <code>premium-card</code>, <code>elevation</code>, <code>gold-*</code> e <code>focus-ring</code> de tema; <code>btn-*</code> e <code>field-input</code>; contenção provisória em 5 telas.</td></tr>
+        <tr><td>1 · Shell</td><td class="files">mainMenu, navDrawer, navDrawerToggle, drawer, tabBar, contextMenu, sectionRail</td><td>Defeito 4 (menu). Fades pretos dentro do drawer claro. Barra do drawer com <code>white</code>.</td></tr>
+        <tr><td>2 · Bestiário</td><td class="files">creatureGrid, creatureCard, creatureData, creatureEditForm, abilitiesBlock, abilityCard, attributesGrid, chips, defensesBlock, defensesFields, dropsBlock, statSection, statTable, infoRow, entityTitle, entityDescription, entityImage</td><td>Mesmo degradê escuro do card do cidadão. <code>abilityCard</code> tem borda lateral proibida.</td></tr>
+        <tr><td>3 · Cidadãos</td><td class="files">citizenGrid, citizenCard, citizenData, citizenEditForm</td><td>Defeitos 2 e 3. Depende dos blocos do Grupo 2 e do <code>_editFormBase</code> do Grupo 10.</td></tr>
+        <tr><td>4 · Ficha</td><td class="files">playerData, playerFields, copyFichaTag, playerSheet + 7 parciais</td><td>Era escura de propósito. Quase tudo já é token semântico; ~20 textos em <code>$gold-100</code>.</td></tr>
+        <tr><td>5 · Classes</td><td class="files">classGrid, classCarousel, classCard, classRoles, classData, classSection, classDescription, classWheel, _classTheme, classFieldEditors, imageField, slotsField</td><td>Defeito 1. Apaga <code>--pick-*</code>, <code>--cls-*</code>, <code>--roles-*</code> e <code>_classTheme.scss</code>.</td></tr>
+        <tr><td>6 · Grimório</td><td class="files">spellGrid, spellRow, spellDetail</td><td>Mais completo hoje; vira o modelo. Mantém <code>--school</code>.</td></tr>
+        <tr><td>7 · Talentos</td><td class="files">talentGrid</td><td>Busca e linhas pretas no claro.</td></tr>
+        <tr><td>8 · Árvore</td><td class="files">evolutionTreeModal, evolutionTreeView, levelProgressionModal, monsterSearch</td><td>Modal inteiro em primitivos escuros; também em <code>/embed/arvore</code>.</td></tr>
+        <tr><td>9 · Embeds</td><td class="files">embedEntry, embedBackLink, embedNotFound</td><td>Gravura sobre pergaminho; fundo do <code>body</code> explícito no claro.</td></tr>
+        <tr><td>10 · Modais e forms</td><td class="files">modal, alertModal, confirmModal, promptModal, loginModal, _editFormBase</td><td>Login com bloco claro mirando seletor inexistente; todo formulário com campo preto.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+</div>
+
+<script>
+(function () {
+  var labels = { system: 'Seguindo o tema do sistema', light: 'Tema claro aplicado', dark: 'Tema escuro aplicado' };
+  var mq = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+  document.querySelectorAll('[data-switch-host]').forEach(function (host) {
+    var opts = Array.prototype.slice.call(host.querySelectorAll('.ts-opt'));
+    var hint = host.querySelector('[data-hint]');
+    var live = host.querySelector('[data-live]');
+    function apply(v, announce) {
+      opts.forEach(function (o) {
+        var on = o.dataset.v === v;
+        o.setAttribute('aria-checked', on ? 'true' : 'false');
+        o.tabIndex = on ? 0 : -1;
+      });
+      var dark = v === 'dark' || (v === 'system' && mq && mq.matches);
+      host.classList.toggle('t-dark', dark);
+      host.classList.toggle('t-light', !dark);
+      hint.textContent = v === 'system' ? 'Seguindo o sistema: ' + (dark ? 'escuro' : 'claro') : '';
+      if (announce) live.textContent = labels[v];
+    }
+    opts.forEach(function (o, i) {
+      o.addEventListener('click', function () { apply(o.dataset.v, true); });
+      o.addEventListener('keydown', function (e) {
+        var n = null;
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') n = (i + 1) % opts.length;
+        if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') n = (i - 1 + opts.length) % opts.length;
+        if (e.key === 'Home') n = 0;
+        if (e.key === 'End') n = opts.length - 1;
+        if (n === null) return;
+        e.preventDefault();
+        opts[n].focus();
+        apply(opts[n].dataset.v, true);
+      });
+    });
+    var start = opts.filter(function (o) { return o.getAttribute('aria-checked') === 'true'; })[0];
+    apply(start ? start.dataset.v : 'system', false);
+  });
+})();
+</script>
+
+</body></html>

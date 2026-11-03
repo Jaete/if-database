@@ -1,0 +1,45 @@
+@use '../../styles/globals' as *;
+
+.iconGrid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: $spacing-2;
+  width: 100%;
+
+  @include mobile {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+.iconOption {
+  @include flex-center;
+  width: 100%;
+  aspect-ratio: 1;
+  border: 1px solid $color-border;
+  border-radius: $radius-sm;
+  background: $surface;
+  color: $color-text-muted;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    color 0.15s ease;
+  @include focus-ring;
+
+  svg {
+    width: $spacing-5;
+    height: $spacing-5;
+  }
+
+  &:hover {
+    border-color: $color-border-control;
+    color: $color-text;
+  }
+
+  &--selected,
+  &--selected:hover {
+    border-color: $color-accent;
+    background: $accent-overlay-hover;
+    color: $color-accent;
+  }
+}

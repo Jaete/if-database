@@ -1,14 +1,17 @@
 import type ICharacterClass from '@/db/classes/class.d';
 import type {
+  CatalogKind,
   IArchetype,
   IClassCatalog,
   IClassCatalogItem,
   IClassFeature,
   IClassLevel,
+  IRelationEntity,
   ITalent,
 } from '@/db/classes/class.d';
 import { formatSlotCell } from '@/db/l10n/classes';
 import SlotsField from './SlotsField';
+import IconPicker from './IconPicker';
 
 /** Campos do modal do cabeçalho da classe. */
 export function overviewFields(k: ICharacterClass) {
@@ -278,8 +281,20 @@ export function featureFields(
   ];
 }
 
-/** Campos do modal de uma lista própria da classe. */
-export function catalogFields(catalog?: IClassCatalog) {
+const KIND_LABELS: Record<CatalogKind, string> = {
+  magias: 'Lista de Magias',
+  habilidades: 'Lista de Habilidades',
+  relacao: 'Tabela de Relação',
+};
+
+/**
+ * Campos do modal de uma lista própria da classe.
+ *
+ * `kind` é o tipo escolhido no primeiro passo; ao editar, vem da própria
+ * lista e aparece só para leitura — trocar o tipo reinterpretaria os itens.
+ */
+export function catalogFields(catalog?: IClassCatalog, kind?: CatalogKind) {
+  const resolved = catalog?.kind ?? kind;
   return [
     {
       name: 'name',
@@ -288,6 +303,19 @@ export function catalogFields(catalog?: IClassCatalog) {
       initialValue: catalog?.name ?? '',
       placeholder: 'ex.: Artes Divinas',
     },
+    ...(resolved
+      ? [
+          {
+            name: 'kind',
+            label: 'Tipo',
+            required: false,
+            initialValue: resolved,
+            render: (value: string) => (
+              <span>{KIND_LABELS[value as CatalogKind] ?? value}</span>
+            ),
+          },
+        ]
+      : []),
     {
       name: 'description',
       label: 'Descrição — "-" faz um item de lista, "--" faz um sub-item',
@@ -296,19 +324,49 @@ export function catalogFields(catalog?: IClassCatalog) {
       initialValue: catalog?.description ?? '',
       placeholder: 'Quando se escolhe um item, e o que a lista custa.',
     },
+    {
+      name: 'icon',
+      label: 'Ícone',
+      required: false,
+      initialValue:
+        catalog?.icon ??
+        (catalog ? '' : resolved === 'magias' ? 'spellbook' : 'scroll'),
+      render: (value: string, onChange: (next: string) => void) => (
+        <IconPicker value={value} onChange={onChange} />
+      ),
+    },
   ];
 }
 
-/** Campos do modal de um item de lista. */
-export function catalogItemFields(item?: IClassCatalogItem) {
+/**
+ * Campos do modal de um item de lista. Magias pedem só nome e slug; o texto
+ * mora no grimório. Habilidades (e listas sem tipo) pedem nome e descrição.
+ */
+export function catalogItemFields(
+  item?: IClassCatalogItem,
+  kind?: CatalogKind
+) {
+  const name = {
+    name: 'name',
+    label: 'Nome',
+    required: true,
+    initialValue: item?.name ?? '',
+    placeholder: kind === 'magias' ? 'ex.: Allegro' : 'ex.: Bastião da Luz',
+  };
+  if (kind === 'magias') {
+    return [
+      name,
+      {
+        name: 'spell',
+        label: 'Magia do grimório (slug) — o nome vira link para ela',
+        required: true,
+        initialValue: item?.spell ?? '',
+        placeholder: 'ex.: allegro',
+      },
+    ];
+  }
   return [
-    {
-      name: 'name',
-      label: 'Nome',
-      required: true,
-      initialValue: item?.name ?? '',
-      placeholder: 'ex.: Bastião da Luz',
-    },
+    name,
     {
       name: 'description',
       label: 'Descrição — "-" faz um item de lista, "--" faz um sub-item',
@@ -316,13 +374,6 @@ export function catalogItemFields(item?: IClassCatalogItem) {
       required: false,
       initialValue: item?.description ?? '',
       placeholder: 'O que o item faz.',
-    },
-    {
-      name: 'spell',
-      label: 'Magia do grimório (slug) — o nome vira link para ela',
-      required: false,
-      initialValue: item?.spell ?? '',
-      placeholder: 'ex.: allegro',
     },
   ];
 }
@@ -351,6 +402,125 @@ export function talentFields(talent?: ITalent) {
       required: false,
       initialValue: talent?.description ?? '',
       placeholder: 'O que o talento faz.',
+    },
+  ];
+}
+
+/**
+ * Campos do modal de criação/edição de uma tabela de relação.
+ *
+ * Quando `catalog` é passado, preenche os campos com os dados atuais;
+ * senão, é criação e todos os valores começam vazios.
+ */
+export function relationCatalogFields(catalog?: IClassCatalog) {
+  return [
+    {
+      name: 'name',
+      label: 'Nome da tabela',
+      required: true,
+      initialValue: catalog?.name ?? '',
+      placeholder: 'ex.: Ordens & Domínios',
+    },
+    {
+      name: 'description',
+      label: 'Descrição',
+      type: 'multiline' as const,
+      required: false,
+      initialValue: catalog?.description ?? '',
+      placeholder: 'Explique brevemente o propósito desta tabela.',
+    },
+    {
+      name: 'groupALabel',
+      label: 'Grupo A — label',
+      required: true,
+      initialValue: catalog?.groupA?.label ?? '',
+      placeholder: 'ex.: Ordens Deíficas',
+    },
+    {
+      name: 'groupASingular',
+      label: 'Grupo A — singular',
+      required: true,
+      initialValue: catalog?.groupA?.unitSingular ?? '',
+      placeholder: 'ex.: ordem',
+    },
+    {
+      name: 'groupAPlural',
+      label: 'Grupo A — plural',
+      required: true,
+      initialValue: catalog?.groupA?.unitPlural ?? '',
+      placeholder: 'ex.: ordens',
+    },
+    {
+      name: 'groupBLabel',
+      label: 'Grupo B — label',
+      required: true,
+      initialValue: catalog?.groupB?.label ?? '',
+      placeholder: 'ex.: Domínios',
+    },
+    {
+      name: 'groupBSingular',
+      label: 'Grupo B — singular',
+      required: true,
+      initialValue: catalog?.groupB?.unitSingular ?? '',
+      placeholder: 'ex.: domínio',
+    },
+    {
+      name: 'groupBPlural',
+      label: 'Grupo B — plural',
+      required: true,
+      initialValue: catalog?.groupB?.unitPlural ?? '',
+      placeholder: 'ex.: domínios',
+    },
+    {
+      name: 'kind',
+      label: 'Tipo',
+      required: false,
+      initialValue: 'relacao',
+      render: () => <span>{KIND_LABELS.relacao}</span>,
+    },
+    {
+      name: 'icon',
+      label: 'Ícone',
+      required: false,
+      initialValue: catalog?.icon ?? 'halo-sword',
+      render: (value: string, onChange: (next: string) => void) => (
+        <IconPicker value={value} onChange={onChange} />
+      ),
+    },
+  ];
+}
+
+/**
+ * Campos do editor de uma entidade de relação (Grupo A ou B).
+ *
+ * O editor completo (fatos, habilidades, lista, relações) é dinâmico e
+ * vive no RelationCodex; estes campos cobrem só os dados básicos que o
+ * PromptModal consegue mostrar. Os sub-arrays (facts, abilities, list,
+ * relatedSlugs) são editados inline no componente RelationCodex.
+ */
+export function relationEntityFields(entity?: IRelationEntity) {
+  return [
+    {
+      name: 'name',
+      label: 'Nome',
+      required: true,
+      initialValue: entity?.name ?? '',
+      placeholder: 'ex.: Protetor',
+    },
+    {
+      name: 'subtitle',
+      label: 'Subtítulo',
+      required: false,
+      initialValue: entity?.subtitle ?? '',
+      placeholder: 'ex.: Devotos de Alexander',
+    },
+    {
+      name: 'description',
+      label: 'Descrição — "-" faz um item de lista, "--" faz um sub-item',
+      type: 'multiline' as const,
+      required: false,
+      initialValue: entity?.description ?? '',
+      placeholder: 'O que esta entidade é.',
     },
   ];
 }
