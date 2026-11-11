@@ -1,5 +1,7 @@
 export { default as ArrowLeftIcon } from './ArrowLeftIcon';
+export { default as ChevronDownIcon } from './ChevronDownIcon';
 export { default as ChevronRightIcon } from './ChevronRightIcon';
+export { default as ChevronUpIcon } from './ChevronUpIcon';
 export { default as CoinIcon } from './CoinIcon';
 export { default as CloseIcon } from './CloseIcon';
 export { default as CopyIcon } from './CopyIcon';
@@ -21,6 +23,7 @@ export { default as ScrollIcon } from './ScrollIcon';
 export { default as ShieldIcon } from './ShieldIcon';
 export { default as StarIcon } from './StarIcon';
 export { default as SunIcon } from './SunIcon';
+export { default as SyncIcon } from './SyncIcon';
 export { default as SpellbookIcon } from './SpellbookIcon';
 export { default as TableIcon } from './TableIcon';
 export { default as SwordIcon } from './SwordIcon';

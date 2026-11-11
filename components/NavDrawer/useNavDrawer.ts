@@ -11,6 +11,7 @@ export const NAV_ITEMS = [
   { href: '/citizens', label: 'Cidadãos' },
   { href: '/players', label: 'Jogadores' },
   { href: '/classes', label: 'Classes' },
+  { href: '/races', label: 'Raças' },
   { href: '/spells', label: 'Grimório' },
   { href: '/talents', label: 'Talentos' },
 ] as const;

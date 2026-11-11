@@ -1,0 +1,26 @@
+const SubracePanelHandles = [
+  'racePanel',
+  'racePanelHead',
+  'racePanelArt',
+  'racePanelTools',
+  'racePanelLend',
+  'racePanelBody',
+  'racePanelAmb',
+  'racePanelSec',
+  'racePanelSecHead',
+  'racePanelSecTools',
+  'racePanelOnly',
+  'racePanelPill',
+  'racePanelCmp',
+  'racePanelRow',
+  'racePanelLayer',
+  'racePanelKicker',
+  'racePanelNote',
+  'racePanelLegend',
+  'racePanelStrip',
+  'racePanelLore',
+  'racePanelFoot',
+  'racePanelEmpty',
+] as const;
+
+export default SubracePanelHandles;

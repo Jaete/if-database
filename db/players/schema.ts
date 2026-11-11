@@ -155,6 +155,11 @@ const PlayerSchema = new Schema<IPlayer>(
     // é a tabela da classe, não este schema.
     archetype: { type: Schema.Types.Mixed },
 
+    // A raça no códice e a escolha dentro dela (`ICitizenRaceChoice`). Mixed
+    // pelo mesmo motivo do arquétipo: a forma da escolha vem da raça.
+    raceId: { type: Schema.Types.ObjectId, ref: 'Race', index: true },
+    raceChoice: { type: Schema.Types.Mixed },
+
     // ── Equipamento (slots + mochila + moedas) ──
     // Os slots são Mixed porque existem nas duas formas no banco: a string crua
     // que este schema declarava antes, e o objeto { name, description } que a

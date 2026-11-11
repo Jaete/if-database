@@ -31,6 +31,11 @@ const MainMenu = () => {
           </Link>
         </div>
         <div className={handles.menuItem}>
+          <Link href="/races" className={handles.menuLink} prefetch={false}>
+            Raças
+          </Link>
+        </div>
+        <div className={handles.menuItem}>
           <Link href="/spells" className={handles.menuLink} prefetch={false}>
             Grimório
           </Link>

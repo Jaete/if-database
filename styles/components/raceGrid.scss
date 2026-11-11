@@ -1,0 +1,549 @@
+@use '../../styles/globals' as *;
+
+// A listagem de raças: topo com a capa em foco, busca, filtro e os cards.
+
+.raceAtlas {
+  padding-bottom: $spacing-16;
+  background-color: $color-bg;
+  color: $color-text;
+  min-height: 100dvh;
+}
+
+.raceAtlasTop {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.raceAtlasBand {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background-color: $surface;
+}
+
+.raceAtlasBandArt {
+  position: absolute;
+  inset: 0;
+  animation: fadeIn 0.8s ease both;
+}
+
+// O véu escurece a arte para o título, nos dois temas, e termina no fundo da
+// página — por isso fica fora do escopo escuro do cabeçalho.
+.raceAtlasVeil {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      180deg,
+      transparent calc(100% - 8rem),
+      with-alpha($color-bg, 0.7) calc(100% - 3rem),
+      $color-bg 100%
+    ),
+    linear-gradient(
+      90deg,
+      with-alpha($neutral-100, 0.9) 0,
+      with-alpha($neutral-100, 0.76) 32%,
+      with-alpha($neutral-100, 0.34) 58%,
+      with-alpha($neutral-100, 0.12) 100%
+    ),
+    linear-gradient(180deg, with-alpha($neutral-100, 0.5) 0, transparent 30%);
+
+  @include mobile {
+    background:
+      linear-gradient(180deg, transparent calc(100% - 4.5rem), $color-bg 100%),
+      linear-gradient(
+        180deg,
+        with-alpha($neutral-100, 0.3) 0,
+        with-alpha($neutral-100, 0.08) 16%,
+        with-alpha($neutral-100, 0.72) 36%,
+        with-alpha($neutral-100, 0.9) 60%,
+        with-alpha($neutral-100, 0.92) 100%
+      );
+  }
+}
+
+.raceAtlasCaption {
+  position: absolute;
+  z-index: 2;
+  right: max(16px, env(safe-area-inset-right, 0px));
+  bottom: $spacing-20;
+  padding: $spacing-1 $spacing-3;
+  border-radius: $radius-full;
+  background: with-alpha($neutral-200, 0.6);
+  @include theme-scope(dark);
+  @include caption($color-text-muted, $font-weight-semibold);
+
+  @include mobile {
+    bottom: $spacing-4;
+  }
+}
+
+.raceAtlasHead {
+  @include theme-scope(dark);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: $spacing-6;
+  align-items: end;
+  max-width: 72rem;
+  margin-inline: auto;
+  padding-block: $spacing-20 * 2 $spacing-20 + $spacing-6;
+  padding-inline: max(16px, env(safe-area-inset-left, 0px))
+    max(16px, env(safe-area-inset-right, 0px));
+
+  @include mobile {
+    grid-template-columns: 1fr;
+    padding-top: $spacing-20 * 2.5;
+    padding-bottom: $spacing-18;
+  }
+}
+
+.raceAtlasKicker {
+  display: block;
+  margin-bottom: $spacing-2;
+  @include caption($color-accent, $font-weight-semibold, 1.2, 0.2em);
+}
+
+.raceAtlasTitle {
+  margin: 0;
+  filter: drop-shadow(0 2px 14px with-alpha($neutral-100, 0.6));
+  @include cinzel-3xl($color-accent, $font-weight-bold, 1, 0.05em);
+  @include gold-gradient-text;
+  font-size: clamp(2.75rem, 5.6vw, 5rem);
+}
+
+.raceAtlasLead {
+  max-width: 52ch;
+  margin: $spacing-3 0 0;
+  text-shadow: 0 1px 12px with-alpha($neutral-100, 0.6);
+  @include main-sm($color-text, $font-weight-regular, 1.6);
+}
+
+.raceAtlasTools {
+  display: grid;
+  gap: $spacing-2;
+  justify-items: end;
+
+  @include mobile {
+    justify-items: stretch;
+  }
+}
+
+.raceAtlasActs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: $spacing-2;
+
+  @include mobile {
+    justify-content: flex-start;
+  }
+}
+
+.raceAtlasSearch {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+  min-width: 16rem;
+  padding: 0 $spacing-3;
+  border: 1px solid $color-border-control;
+  border-radius: $radius-md;
+  background: with-alpha($neutral-200, 0.86);
+  backdrop-filter: blur(8px);
+
+  @include mobile {
+    min-width: 0;
+  }
+
+  &:focus-within {
+    border-color: $color-focus;
+  }
+
+  svg {
+    flex: none;
+    color: $color-text-muted;
+  }
+
+  input {
+    appearance: none;
+    width: 100%;
+    padding: $spacing-2 0;
+    border: 0;
+    outline: none;
+    background: transparent;
+    @include main-sm($color-text, $font-weight-regular, 1);
+
+    &::placeholder {
+      color: $color-placeholder;
+    }
+  }
+}
+
+.raceAtlasSeg {
+  display: inline-grid;
+  grid-auto-flow: column;
+  gap: $spacing-1 * 0.5;
+  padding: $spacing-1 * 0.5;
+  border: 1px solid $color-border-control;
+  border-radius: $radius-md;
+  background: with-alpha($neutral-200, 0.86);
+  backdrop-filter: blur(8px);
+
+  @include mobile {
+    grid-auto-columns: 1fr;
+  }
+}
+
+.raceAtlasSegBtn {
+  padding: $spacing-2 $spacing-3;
+  border: 1px solid transparent;
+  border-radius: $radius-sm;
+  background: transparent;
+  white-space: nowrap;
+  cursor: pointer;
+  @include main-xs($color-text-muted, $font-weight-medium, 1);
+  @include focus-ring;
+
+  &:hover {
+    color: $color-text;
+  }
+
+  &[aria-checked='true'] {
+    border-color: with-alpha($color-accent-line, 0.6);
+    background: $surface-raised;
+    color: $color-accent;
+    @include elevation(1);
+  }
+}
+
+.raceAtlasBody {
+  max-width: 72rem;
+  margin-inline: auto;
+  padding-inline: max(16px, env(safe-area-inset-left, 0px))
+    max(16px, env(safe-area-inset-right, 0px));
+}
+
+.raceAtlasCount {
+  margin: $spacing-5 0 $spacing-4;
+  @include caption($color-text-muted, $font-weight-semibold);
+}
+
+.raceAtlasPlates {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: $spacing-5;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  @include mobile {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: $spacing-3;
+  }
+}
+
+.raceAtlasEmpty {
+  padding: $spacing-12 $spacing-4;
+  border: 1px dashed $color-border-strong;
+  border-radius: $radius-lg;
+  text-align: center;
+  @include main-md($color-text-muted, $font-weight-regular);
+}
+
+// ── Card ────────────────────────────────────────────────────
+
+// Texto e chips sobre arte: escuros nos dois temas.
+.racePlate:not(.racePlate--noart) {
+  @include theme-scope(dark);
+}
+
+.racePlate {
+  --px: 0;
+  --py: 0;
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  align-content: end;
+  max-width: 100%;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border: 1px solid with-alpha($color-accent-line, 0.22);
+  border-radius: $radius-lg;
+  background-color: $surface;
+  @include elevation(2);
+  transition:
+    box-shadow 0.3s ease,
+    border-color 0.3s ease,
+    transform 0.3s ease;
+
+  @include mobile {
+    aspect-ratio: 3 / 4.6;
+  }
+
+  // Texto e chips sobre arte: escuros nos dois temas.
+
+  &--noart {
+    border-color: $color-border-strong;
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: linear-gradient(
+      180deg,
+      with-alpha($neutral-100, 0.4) 0,
+      transparent 22%,
+      transparent 42%,
+      with-alpha($neutral-100, 0.72) 66%,
+      with-alpha($neutral-100, 0.95) 100%
+    );
+  }
+
+  &--noart::before {
+    background: linear-gradient(
+      180deg,
+      transparent 40%,
+      with-alpha($surface, 0.92) 72%,
+      $surface
+    );
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateX(-30%);
+    transition:
+      opacity 0.4s ease,
+      transform 0.8s ease;
+    background: linear-gradient(
+      115deg,
+      transparent 35%,
+      with-alpha($gold-100, 0.16) 48%,
+      with-alpha($neutral-2000, 0.08) 52%,
+      transparent 65%
+    );
+  }
+
+  // O link esticado cobre o card: o anel de foco também.
+  &:has(.racePlateLink:focus-visible) {
+    outline: 2px solid with-alpha($color-focus, 0.6);
+    outline-offset: 2px;
+  }
+
+  &:hover,
+  &:focus-within {
+    border-color: with-alpha($color-accent-line, 0.7);
+    transform: translateY(-3px);
+    @include elevation(4);
+
+    &::after {
+      opacity: 1;
+      transform: translateX(30%);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &:hover,
+    &:focus-within {
+      transform: none;
+    }
+
+    &::after {
+      display: none;
+    }
+  }
+}
+
+.racePlateArt {
+  position: absolute;
+  inset: -6%;
+  z-index: -2;
+  filter: saturate(0.92) brightness(0.92);
+  transform: translate(calc(var(--px) * -10px), calc(var(--py) * -10px))
+    scale(1);
+  transition:
+    transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1),
+    filter 0.4s ease;
+
+  .racePlate--noart & {
+    inset: 0;
+    filter: none;
+    transform: none;
+  }
+
+  .racePlate:hover &,
+  .racePlate:focus-within & {
+    transform: translate(calc(var(--px) * -10px), calc(var(--py) * -10px))
+      scale(1.07);
+    filter: saturate(1.1) brightness(1.05);
+  }
+
+  .racePlate--noart:hover &,
+  .racePlate--noart:focus-within & {
+    transform: none;
+    filter: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transform: none !important;
+  }
+}
+
+.racePlateFlags {
+  position: absolute;
+  top: $spacing-3;
+  left: $spacing-3;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-1;
+  max-width: calc(100% - 3.5rem);
+}
+
+.racePlatePill {
+  display: inline-flex;
+  align-items: center;
+  padding: $spacing-1 $spacing-2;
+  border: 1px solid $warning-border;
+  border-radius: $radius-full;
+  background: color-mix(in srgb, #{$surface} 78%, #{$warning-bg});
+  white-space: nowrap;
+  @include caption($color-warning, $font-weight-semibold, 1);
+}
+
+.racePlateEdit {
+  position: absolute;
+  top: $spacing-2;
+  right: $spacing-2;
+  z-index: 4;
+}
+
+.racePlateBody {
+  // Sem `position`: o link do nome estica o `::after` até o card (o ancestral
+  // posicionado), e não só até este bloco.
+  display: grid;
+  gap: $spacing-2;
+  padding: 0 $spacing-4 $spacing-4;
+
+  @include mobile {
+    padding: 0 $spacing-3 $spacing-3;
+  }
+}
+
+.racePlateName {
+  margin: 0;
+  @include cinzel-xl($color-text, $font-weight-bold, 1.15, 0.04em);
+
+  @include mobile {
+    @include cinzel-md($color-text, $font-weight-bold, 1.15, 0.04em);
+  }
+
+  .racePlate:hover & {
+    color: $color-accent;
+  }
+}
+
+// O link estica por cima do card: a área inteira é clicável.
+.racePlateLink {
+  color: inherit;
+  text-decoration: none;
+  outline: none;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+  }
+}
+
+.racePlateClasp {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+  @include caption($color-accent-line-2, $font-weight-regular, 1, 0.4em);
+
+  &::after {
+    content: '';
+    flex: 1;
+    max-width: 2.5rem;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      with-alpha($color-accent-line, 0.5),
+      transparent
+    );
+  }
+}
+
+.racePlateSubs {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  @include main-xs($color-text-muted, $font-weight-regular, 1.45);
+
+  b {
+    color: $color-text;
+    font-weight: $font-weight-semibold;
+  }
+}
+
+// ── Modal de importação ─────────────────────────────────────
+
+.raceImportDry {
+  display: grid;
+  gap: $spacing-3;
+  padding: $spacing-4;
+  border: 1px dashed $color-border-strong;
+  border-radius: $radius-lg;
+  background: $surface;
+}
+
+.raceImportNote {
+  @include caption($color-accent, $font-weight-semibold);
+}
+
+.raceImportDl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
+  gap: $spacing-3;
+  margin: 0;
+
+  dt {
+    @include caption($color-text-muted, $font-weight-semibold);
+  }
+
+  dd {
+    margin: 0;
+    @include main-sm($color-text, $font-weight-semibold);
+  }
+}
+
+.raceImportWarn {
+  display: grid;
+  gap: $spacing-1;
+  padding: $spacing-3 $spacing-4;
+  border: 1px solid $warning-border;
+  border-radius: $radius-lg;
+  background: $warning-bg;
+  @include main-sm($color-text, $font-weight-regular);
+
+  p {
+    margin: 0;
+  }
+
+  .raceImportNote {
+    color: $color-warning;
+  }
+}

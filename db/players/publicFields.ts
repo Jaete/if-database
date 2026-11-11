@@ -43,6 +43,8 @@ export const PLAYER_PUBLIC_FIELDS = [
   'playerSpellcasting',
   // A escolha de arquétipo é feita na ficha embutida, então entra gravável.
   'archetype',
+  'raceId',
+  'raceChoice',
   'equipment',
   'professions',
   'appearance',

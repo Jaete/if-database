@@ -1,0 +1,142 @@
+@use '../../styles/globals' as *;
+
+// Botões da família Raças: o botão de texto, o redondo de ícone e o "+".
+
+.raceBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-2;
+  min-height: $spacing-9;
+  padding: $spacing-2 $spacing-4;
+  border-radius: $radius-sm;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+  @include cinzel-sm($color-text, $font-weight-bold, 1.2, 0.03em);
+  @include focus-ring;
+
+  svg {
+    width: $spacing-4;
+    height: $spacing-4;
+  }
+
+  &--sm {
+    min-height: $spacing-8;
+    padding: $spacing-1 $spacing-3;
+    @include cinzel-xs($color-text, $font-weight-bold, 1.2, 0.03em);
+
+    svg {
+      width: $spacing-3;
+      height: $spacing-3;
+    }
+  }
+
+  &--primary {
+    @include btn-primary;
+    color: $color-text-on-accent;
+  }
+
+  &--secondary {
+    @include btn-secondary;
+  }
+
+  &--ghost {
+    @include btn-ghost;
+  }
+
+  &--danger {
+    @include btn-danger;
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+}
+
+.raceIconBtn {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: $spacing-9;
+  height: $spacing-9;
+  padding: 0;
+  border: 1px solid $color-border-strong;
+  border-radius: $radius-full;
+  background: with-alpha($surface, 0.8);
+  color: $color-text-muted;
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease;
+  @include focus-ring;
+
+  svg {
+    width: $spacing-4;
+    height: $spacing-4;
+  }
+
+  &:hover {
+    border-color: $color-accent-line;
+    color: $color-accent;
+  }
+
+  &--sm {
+    width: $spacing-7;
+    height: $spacing-7;
+
+    svg {
+      width: $spacing-3;
+      height: $spacing-3;
+    }
+  }
+
+  &--danger:hover {
+    border-color: $error-border;
+    color: $color-error;
+  }
+
+  &--off {
+    opacity: 0.35;
+    cursor: default;
+    pointer-events: none;
+  }
+
+  // Sobre arte, que fica escura nos dois temas.
+  &--art {
+    @include theme-scope(dark);
+    background: with-alpha($neutral-200, 0.78);
+    backdrop-filter: blur(6px);
+  }
+}
+
+.raceGhostAdd {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-1;
+  width: fit-content;
+  min-height: $spacing-8;
+  margin-top: $spacing-3;
+  padding: $spacing-1 $spacing-3;
+  border: 1px dashed $color-border-strong;
+  border-radius: $radius-full;
+  background: transparent;
+  cursor: pointer;
+  @include caption($color-text-muted, $font-weight-semibold);
+  @include focus-ring;
+
+  svg {
+    width: $spacing-3;
+    height: $spacing-3;
+  }
+
+  &:hover {
+    border-color: $color-accent-line;
+    color: $color-accent;
+  }
+}

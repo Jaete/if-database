@@ -1,0 +1,20 @@
+@use '../../styles/globals' as *;
+
+.raceChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-1;
+}
+
+.raceChip {
+  padding: $spacing-1 $spacing-1;
+  border: 1px solid with-alpha($color-accent-line, 0.4);
+  border-radius: $radius-sm;
+  background: with-alpha($surface, 0.7);
+  white-space: nowrap;
+  @include mono-xs($color-accent, $font-weight-bold, 1);
+
+  &--free {
+    @include main-xs($color-text, $font-weight-semibold, 1);
+  }
+}

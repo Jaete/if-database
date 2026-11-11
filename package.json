@@ -18,6 +18,7 @@
     "check-db": "npx tsx ./scripts/checkDb.ts",
     "link:classes": "npx tsx ./scripts/linkCharacterClasses.ts",
     "sync:spell-lists": "npx tsx ./scripts/syncClassSpellLists.ts",
+    "import:races": "npx tsx ./scripts/importRaces.ts",
     "prepare": "husky"
   },
   "dependencies": {

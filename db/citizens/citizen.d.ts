@@ -169,7 +169,7 @@ export interface ICitizenAbility {
    * na classe, e corrigi-la lá corrige em todas as fichas daquela classe — a
    * mesma razão de `spellRefs` não embutir a magia.
    */
-  source?: 'class' | 'archetype';
+  source?: 'class' | 'archetype' | 'race';
   /** Nível da classe em que a habilidade foi concedida. Só com `source`. */
   level?: number;
 }
@@ -202,6 +202,36 @@ export interface ICitizenArchetype {
   pickLevel?: number;
   /** Quantas habilidades de arquétipo o nível atual já concede. */
   featureSlots?: number;
+}
+
+/** Uma habilidade racial apontada pela origem, sem copiar o texto. */
+export interface ICitizenRaceTraitRef {
+  /** Slug da raça de onde a habilidade vem. */
+  race: string;
+  /** Slug da sub-raça, quando a habilidade é de uma sub-raça. */
+  subrace?: string;
+  name: string;
+}
+
+/**
+ * O que o jogador escolheu dentro da raça.
+ *
+ * Numa raça comum, só a sub-raça: as habilidades em comum da raça SOMAM às
+ * da sub-raça. Sem sub-raça, ficam as em comum mais as da raça base
+ * (`baseOnlyTraits`).
+ *
+ * Numa raça mista (com `choiceRules` — o Mestiço), a raça em si não concede
+ * habilidade nenhuma: o personagem é uma mistura de `parents`, ganha as
+ * habilidades em comum da dominante (Sangue Forte) e as que escolheu entre
+ * as das raças de origem (Herança Híbrida).
+ */
+export interface ICitizenRaceChoice {
+  subrace?: string;
+  /** Slugs das raças de origem. Ex.: ['elfos', 'humanos']. */
+  parents?: string[];
+  /** Slug da raça de origem dominante — uma de `parents`. */
+  dominantParent?: string;
+  hybridTraits?: ICitizenRaceTraitRef[];
 }
 
 // ============================================================
@@ -249,6 +279,15 @@ export default interface ICitizen extends ICreature {
 
   /** A escolha de arquétipo. Só faz sentido com `classId`. */
   archetype?: ICitizenArchetype;
+
+  /**
+   * Raça do personagem no códice (`db/races`). Como `classId`: o campo `race`
+   * continua sendo o nome desnormalizado, e as habilidades raciais saem da
+   * raça na leitura (services/raceTraits.service.ts), nunca gravadas.
+   */
+  raceId?: string;
+  /** A escolha dentro da raça. Só faz sentido com `raceId`. */
+  raceChoice?: ICitizenRaceChoice;
 
   // ── Equipamento (slots + mochila + moedas) ──
   equipment?: IEquipment;

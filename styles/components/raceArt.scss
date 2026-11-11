@@ -1,0 +1,72 @@
+@use '../../styles/globals' as *;
+
+// Arte da raça: a imagem real (ou a trama de losangos) preenchendo o pai.
+
+.raceArt {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background-color: $surface-raised;
+
+  &--borrowed {
+    filter: grayscale(0.55) sepia(0.35) hue-rotate(var(--race-hue, 0deg))
+      brightness(0.72) contrast(1.05);
+  }
+}
+
+.raceArtImg {
+  object-fit: cover;
+}
+
+.raceMono {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: $spacing-3;
+  background:
+    radial-gradient(
+      60% 50% at 50% 40%,
+      with-alpha($color-accent-line, 0.09),
+      transparent 70%
+    ),
+    repeating-linear-gradient(
+      45deg,
+      with-alpha($color-accent-line, 0.05) 0 1px,
+      transparent 1px 22px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      with-alpha($color-accent-line, 0.05) 0 1px,
+      transparent 1px 22px
+    ),
+    linear-gradient(180deg, $surface-raised, $surface);
+}
+
+.raceMonoDia {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 34%;
+  max-width: 7rem;
+  aspect-ratio: 1;
+  transform: rotate(45deg);
+  border: 1px solid with-alpha($color-accent-line, 0.45);
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 12%;
+    border: 1px solid with-alpha($color-accent-line, 0.2);
+  }
+}
+
+.raceMonoLetter {
+  transform: rotate(-45deg);
+  @include cinzel-2xl($color-accent, $font-weight-bold, 1);
+}
+
+.raceMonoNote {
+  @include main-xs($color-text-muted, $font-weight-regular);
+}
