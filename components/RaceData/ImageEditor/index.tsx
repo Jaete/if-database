@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { KeyboardEvent, MouseEvent } from 'react';
 import Image from 'next/image';
 import type { IRaceImage } from '@/db/races/race.d';
+import { isUploadedImageUrl } from '@/lib/imageUrl';
 import { applyModifiers, useCssHandles } from '@/hooks/useCssHandles';
 import { ChevronDownIcon, ChevronUpIcon, TrashIcon } from '../../Icons';
 import RaceArt from '../../RaceArt';
@@ -11,6 +12,7 @@ import RaceFieldHandles from '../../RaceField/handles';
 import RaceGhostAdd from '../../RaceGhostAdd';
 import RaceIconButton from '../../RaceIconButton';
 import ImageEditorHandles from './handles';
+import UploadAction from './UploadAction';
 
 interface IProps {
   items: IRaceImage[];
@@ -22,6 +24,10 @@ interface IProps {
 }
 
 const CENTER = '50% 50%';
+
+// `_key` é identidade de edição: some no salvar, que remonta só url e foco.
+type IRow = IRaceImage & { _key?: string };
+let keySeed = 0;
 
 const PRESETS = [
   ['0% 0%', 'Topo à esquerda'],
@@ -51,11 +57,35 @@ const ImageEditor = ({ items, onChange, max = 8, name }: IProps) => {
   const handles = useCssHandles(ImageEditorHandles);
   const fld = useCssHandles(RaceFieldHandles);
   const [selected, setSelected] = useState(0);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const sel = Math.min(selected, Math.max(items.length - 1, 0));
   const item = items[sel];
   const focus = item?.focus || CENTER;
   const [fx, fy] = parseFocus(focus);
   const multi = max > 1;
+
+  // O envio termina depois de render(s): lê sempre as linhas e o onChange atuais.
+  const latest = useRef({ items, onChange });
+  useEffect(() => {
+    latest.current = { items, onChange };
+  });
+
+  const rowKey = (index: number) => {
+    const row = items[index] as IRow;
+    if (row._key) return row._key;
+    const key = `img-${++keySeed}`;
+    onChange(items.map((it, i) => (i === index ? { ...it, _key: key } : it)));
+    return key;
+  };
+
+  const applyUpload = (key: string, url: string) => {
+    const { items: current, onChange: emit } = latest.current;
+    const at = (current as IRow[]).findIndex((it) => it._key === key);
+    // A linha foi removida durante o envio: descarta o resultado.
+    if (at < 0) return;
+    emit(current.map((it, i) => (i === at ? { ...it, url } : it)));
+    setSelected(at);
+  };
 
   const update = (index: number, patch: Partial<IRaceImage>) =>
     onChange(items.map((it, i) => (i === index ? { ...it, ...patch } : it)));
@@ -138,12 +168,24 @@ const ImageEditor = ({ items, onChange, max = 8, name }: IProps) => {
                 className={fld.raceInp}
                 value={it.url}
                 inputMode="url"
-                placeholder="https://… (link da imagem)"
+                placeholder="https://… (link) ou use o envio"
                 onFocus={() => setSelected(k)}
                 onChange={(e) => update(k, { url: e.target.value.trim() })}
               />
+              {isUploadedImageUrl(it.url) && (
+                <small className={fld.raceFldHint}>
+                  Enviada ao app: ao substituir ou remover, o arquivo é apagado
+                  ao salvar.
+                </small>
+              )}
             </label>
             <span className={handles.raceImgActs}>
+              <UploadAction
+                onError={setUploadError}
+                getRowKey={() => rowKey(k)}
+                onUploaded={applyUpload}
+                replacing={!!it.url}
+              />
               {multi && (
                 <>
                   <RaceIconButton
@@ -176,6 +218,11 @@ const ImageEditor = ({ items, onChange, max = 8, name }: IProps) => {
           </div>
         ))}
       </div>
+      {uploadError && (
+        <p className={fld.raceFldHint} role="alert">
+          {uploadError}
+        </p>
+      )}
       {items.length < max && (
         <RaceGhostAdd
           label={items.length ? 'Imagem' : 'Adicionar imagem'}

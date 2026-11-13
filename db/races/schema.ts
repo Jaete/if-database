@@ -1,4 +1,5 @@
 import { Schema } from 'mongoose';
+import { isImageUrl } from '../../lib/imageUrl';
 import type IRace from './race.d';
 import type {
   IRaceChoiceRule,
@@ -17,9 +18,15 @@ const HTTP_URL = {
   message: 'Use um link http(s).',
 };
 
+/** Igual, mais a imagem enviada ao app (`/api/images/<id>`, relativa). */
+const IMAGE_URL = {
+  validator: (value?: string) => !value || isImageUrl(value),
+  message: 'Use um link http(s) ou uma imagem enviada.',
+};
+
 const ImageSchema = new Schema<IRaceImage>(
   {
-    url: { type: String, required: true, validate: HTTP_URL },
+    url: { type: String, required: true, validate: IMAGE_URL },
     focus: String,
   },
   { _id: false }

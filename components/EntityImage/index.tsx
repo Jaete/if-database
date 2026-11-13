@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useCssHandles } from '@/hooks/useCssHandles';
 import { CopyIcon } from '@/components/Icons';
+import { absoluteImageUrl } from '@/lib/imageUrl';
 import EntityImageHandles from './handles';
 import '@/styles/components/entityImage.scss';
 
@@ -17,10 +18,13 @@ const EntityImage = ({ src, alt, iconSrc }: IProps) => {
   const [copied, setCopied] = useState<'image' | 'icon' | null>(null);
 
   const handleCopyLink = (target: 'image' | 'icon', link: string) => {
-    navigator.clipboard.writeText(link).then(() => {
-      setCopied(target);
-      setTimeout(() => setCopied(null), 1500);
-    });
+    // Copiado para colar fora do app (fórum): imagem enviada vira URL absoluta.
+    navigator.clipboard
+      .writeText(absoluteImageUrl(link, window.location.origin))
+      .then(() => {
+        setCopied(target);
+        setTimeout(() => setCopied(null), 1500);
+      });
   };
 
   return (

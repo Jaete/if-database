@@ -7,6 +7,7 @@ import RaceModel from '../db/races/races';
 import type IRace from '../db/races/race.d';
 import type { IRaceData } from '../db/races/race.d';
 import { createEntityService } from './createEntityService';
+import { deleteUnreferencedImages, uploadedImageIds } from './image.service';
 import {
   ForumSheetError,
   fetchTopicHtml,
@@ -33,6 +34,52 @@ export async function getRaceOptions() {
     abilityScoreIncrease: race.abilityScoreIncrease,
     subraces: (race.subraces ?? []).map((s) => ({ name: s.name })),
   }));
+}
+
+type RaceArt = Pick<IRace, 'images' | 'subraces'>;
+
+/** Os ids enviados usados pela arte da raça e das sub-raças. */
+const raceImageIds = (race?: RaceArt | null) =>
+  uploadedImageIds([
+    ...(race?.images ?? []).map((image) => image.url),
+    ...(race?.subraces ?? []).map((subrace) => subrace.image?.url),
+  ]);
+
+const ART_FIELDS = 'images subraces.image';
+
+/** Apaga o que `before` usava e `after` não usa mais. */
+async function dropReplacedImages(
+  before: RaceArt | null,
+  after?: RaceArt | null
+) {
+  const kept = raceImageIds(after);
+  await deleteUnreferencedImages(
+    [...raceImageIds(before)].filter((id) => !kept.has(id))
+  );
+}
+
+/**
+ * Salvar uma raça apaga as imagens enviadas que ela deixou de usar. A troca
+ * grava um id novo (a URL é `immutable` no cache) e o arquivo velho sai aqui,
+ * depois do save, porque cancelar a edição não pode deixar o campo apontando
+ * para um arquivo apagado.
+ */
+export async function updateRace(slug: string, data: Partial<IRace>) {
+  const before = await RaceModel.findOne({ slug })
+    .select(ART_FIELDS)
+    .lean<RaceArt>();
+  const result = await service.update(slug, data);
+  if (result.success) await dropReplacedImages(before, result.data);
+  return result;
+}
+
+export async function removeRace(slug: string) {
+  const before = await RaceModel.findOne({ slug })
+    .select(ART_FIELDS)
+    .lean<RaceArt>();
+  const result = await service.remove(slug);
+  if (result.success) await dropReplacedImages(before);
+  return result;
 }
 
 export async function getRaceBySlug(slug: string) {
@@ -118,15 +165,18 @@ export async function importRaceTopic(
   const existing = await RaceModel.findOne({ slug: data.slug })
     .select('_id createdAt summary images subraces.slug subraces.image')
     .lean<Pick<IRace, 'createdAt' | 'summary' | 'images' | 'subraces'>>();
+  const merged = keepCuratedFields(data, existing);
   await RaceModel.findOneAndReplace(
     { slug: data.slug },
     {
-      ...keepCuratedFields(data, existing),
+      ...merged,
       importedAt: new Date(),
       ...(existing ? { createdAt: existing.createdAt } : {}),
     },
     { upsert: true, runValidators: true }
   );
+  // Uma sub-raça que saiu do tópico leva a imagem enviada junto.
+  if (existing) await dropReplacedImages(existing, merged);
 
   return { ...summary, created: !existing };
 }

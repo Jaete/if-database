@@ -28,6 +28,7 @@ export { default as SpellbookIcon } from './SpellbookIcon';
 export { default as TableIcon } from './TableIcon';
 export { default as SwordIcon } from './SwordIcon';
 export { default as TrashIcon } from './TrashIcon';
+export { default as UploadIcon } from './UploadIcon';
 export { default as TreeIcon } from './TreeIcon';
 export { default as UserIcon } from './UserIcon';
 
