@@ -18,11 +18,15 @@
     opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
     visibility 0.3s ease;
 
-  @include mobile {
-    // A folha ocupa a tela toda: sem a reserva da barra inferior.
-    &:has(.modalShell--sheet) {
+  // A folha ocupa a tela toda: sem a reserva da barra inferior.
+  &:has(.modalShell--sheet) {
+    @include mobile {
       padding-bottom: 0;
     }
+  }
+
+  &:has(.rcShell) {
+    padding-bottom: 0;
   }
 
   &--visible {
