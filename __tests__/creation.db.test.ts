@@ -1166,6 +1166,269 @@ async function main() {
     await refuses(() => svc.approveSheet(made.id, actor), 403);
   });
 
+  // ── Mestiço dominante e concessões raciais ──
+  const mesticos = await race('mesticos');
+  const elfos = await race('elfos');
+  assert.ok(mesticos && elfos);
+  const { default: TalentM } = await import('../db/talents/talents');
+  const { requiredLevel } = await import('../lib/talentPrerequisite');
+  const freeTalents = (
+    await TalentM.find()
+      .select('slug prerequisites')
+      .limit(80)
+      .lean<{ slug: string; prerequisites?: string }[]>()
+  ).filter((t) => requiredLevel(t.prerequisites, undefined) <= 1);
+  assert.ok(freeTalents.length >= 2, 'precisa de talentos gerais de nível 1');
+  const gated = (
+    await TalentM.find()
+      .select('slug prerequisites')
+      .lean<{ slug: string; prerequisites?: string }[]>()
+  ).find((t) => requiredLevel(t.prerequisites, undefined) > 1);
+
+  const mixed = (dominant: string) => ({
+    raceId: String(mesticos._id),
+    raceChoice: { parents: ['elfos', 'humanos'], dominantParent: dominant },
+  });
+
+  await test('mestiço, Elfos dominant: DEX+2 only, no free picks', async () => {
+    const id = await blank();
+    await svc.saveDraft(
+      id,
+      { fields: mixed('elfos'), creation: { method: 'standardArray' } },
+      ownerActor
+    );
+    await refuses(() =>
+      svc.saveDraft(id, { creation: { racialPicks: ['str'] } }, ownerActor)
+    );
+    await svc.saveDraft(
+      id,
+      {
+        creation: {
+          base: { str: 15, dex: 14, con: 13, int: 12, wis: 10, cha: 8 },
+        },
+      },
+      ownerActor
+    );
+    const s = await raw(id);
+    assert.equal(s.playerStats.dex.raceBonus, 2);
+    assert.equal(s.playerStats.dex.total, 16);
+    assert.equal(s.playerStats.wis.raceBonus, 0, 'sem o +1 da sub-raça');
+  });
+  await test('mestiço, Humanos dominant: two free +1 on different attributes; changing the dominant clears them', async () => {
+    const id = await blank();
+    await svc.saveDraft(
+      id,
+      { fields: mixed('humanos'), creation: { method: 'standardArray' } },
+      ownerActor
+    );
+    await refuses(() =>
+      svc.saveDraft(
+        id,
+        { creation: { racialPicks: ['str', 'str'] } },
+        ownerActor
+      )
+    );
+    await svc.saveDraft(
+      id,
+      {
+        creation: {
+          base: { str: 15, dex: 14, con: 13, int: 12, wis: 10, cha: 8 },
+          racialPicks: ['str', 'cha'],
+        },
+      },
+      ownerActor
+    );
+    let s = await raw(id);
+    assert.equal(s.playerStats.str.total, 16);
+    assert.equal(s.playerStats.cha.total, 9);
+    const issues = (await svc.getCreation(id, ownerActor)).issues;
+    assert.ok(!issues.some((i) => i.step === 'atributos'));
+    // Sem concessão própria: nada de talento/versátil vindo dos pais.
+    assert.ok(!issues.some((i) => /racial|versátil/i.test(i.message)));
+    await svc.saveDraft(id, { fields: mixed('elfos') }, ownerActor);
+    s = await raw(id);
+    assert.deepEqual(s.creation.racialPicks, []);
+    assert.equal(s.playerStats.dex.raceBonus, 2);
+  });
+
+  const humano = async () => {
+    const id = await blank();
+    await svc.saveDraft(
+      id,
+      {
+        fields: {
+          name: 'Zz Humana',
+          raceId: String(humanos._id),
+          classId: String(mage._id),
+        },
+        creation: { method: 'standardArray' },
+      },
+      ownerActor
+    );
+    await svc.saveDraft(
+      id,
+      {
+        creation: {
+          base: { str: 8, dex: 12, con: 14, int: 10, wis: 15, cha: 13 },
+          racialPicks: ['dex', 'wis'],
+        },
+      },
+      ownerActor
+    );
+    const info = (await svc.getCreation(id, ownerActor)).context.klass!;
+    await svc.saveDraft(
+      id,
+      { skills: info.skills.list.slice(0, 2) },
+      ownerActor
+    );
+    const spells = await Spell.find({ classIds: mage._id })
+      .select('circle')
+      .lean<{ _id: unknown; circle: number }[]>();
+    await svc.saveDraft(
+      id,
+      {
+        fields: {
+          playerSpellcasting: {
+            spellRefs: [
+              ...spells
+                .filter((s) => s.circle === 0)
+                .slice(0, info.cantripsKnown),
+              ...spells
+                .filter((s) => s.circle === 1)
+                .slice(0, info.preparedLimit),
+            ].map((s) => ({ spellId: String(s._id) })),
+          },
+        },
+      },
+      ownerActor
+    );
+    return { id, info };
+  };
+
+  await test('humano comum: 1 versátil + 1 talento + 1 perícia extra, required to submit', async () => {
+    const { id, info } = await humano();
+    const view = await svc.getCreation(id, ownerActor);
+    const req = view.issues
+      .filter((i) => i.kind === 'required')
+      .map((i) => i.message);
+    assert.ok(
+      req.some((m) => /perícia\(s\) racial/.test(m)),
+      req.join('|')
+    );
+    assert.ok(req.some((m) => /versátil/.test(m)));
+    assert.ok(req.some((m) => /talento racial/.test(m)));
+    await refuses(() => svc.submitSheet(id, ownerActor), 422);
+    // Validações do servidor.
+    const dupe = info.skills.list[0];
+    await refuses(() =>
+      svc.saveDraft(id, { grants: { skills: [dupe] } }, ownerActor)
+    );
+    await refuses(() =>
+      svc.saveDraft(id, { grants: { skills: ['Ofício'] } }, ownerActor)
+    );
+    await refuses(() =>
+      svc.saveDraft(
+        id,
+        { grants: { skills: ['Furtividade', 'Natureza'] } },
+        ownerActor
+      )
+    );
+    await refuses(() =>
+      svc.saveDraft(id, { grants: { talents: ['nao-existe'] } }, ownerActor)
+    );
+    if (gated)
+      await refuses(() =>
+        svc.saveDraft(id, { grants: { talents: [gated.slug] } }, ownerActor)
+      );
+    await refuses(() =>
+      svc.saveDraft(
+        id,
+        { grants: { talents: [freeTalents[0].slug, freeTalents[1].slug] } },
+        ownerActor
+      )
+    );
+    await refuses(() =>
+      svc.saveDraft(
+        id,
+        { grants: { versatile: [{ kind: 'weapon' as never, value: 'x' }] } },
+        ownerActor
+      )
+    );
+    await svc.saveDraft(
+      id,
+      {
+        grants: {
+          skills: ['Furtividade'],
+          talents: [freeTalents[0].slug],
+          versatile: [{ kind: 'tool', value: 'Kit de herbalismo' }],
+        },
+      },
+      ownerActor
+    );
+    // Uma perícia da classe não pode repetir a racial.
+    await refuses(() =>
+      svc.saveDraft(
+        id,
+        { skills: ['Furtividade', info.skills.list[0]] },
+        ownerActor
+      )
+    );
+    const s = await raw(id);
+    const skills = s.proficiencies.skills as {
+      name: string;
+      source?: string;
+    }[];
+    assert.ok(
+      skills.some((x) => x.name === 'Furtividade' && x.source === 'race')
+    );
+    assert.equal(skills.length, 3);
+    assert.deepEqual(s.proficiencies.tools, ['Kit de herbalismo']);
+    assert.equal(s.talents.length, 1);
+    assert.equal(s.talents[0].source, 'race');
+    assert.equal(s.talents[0].level, 1);
+    const after = await svc.getCreation(id, ownerActor);
+    assert.ok(!after.issues.some((i) => i.kind === 'required'));
+    assert.equal((await svc.submitSheet(id, ownerActor)).status, 'submitted');
+    assert.equal((await svc.approveSheet(id, admin)).status, 'approved');
+  });
+  await test('versatile language and instrument feed languages/tools; Nórdicos lose the skill grant', async () => {
+    const { id } = await humano();
+    await svc.saveDraft(
+      id,
+      {
+        grants: {
+          skills: ['Furtividade'],
+          talents: [freeTalents[0].slug],
+          versatile: [{ kind: 'language', value: 'Élfico' }],
+        },
+      },
+      ownerActor
+    );
+    let s = await raw(id);
+    assert.ok((s.languages as string[]).includes('Élfico'));
+    // Trocar a sub-raça tira a concessão de perícia (e o que passa do total).
+    await svc.saveDraft(
+      id,
+      {
+        fields: {
+          raceId: String(humanos._id),
+          raceChoice: { subrace: 'nordicos' },
+        },
+      },
+      ownerActor
+    );
+    s = await raw(id);
+    assert.deepEqual(s.creation.grants.skills, []);
+    assert.equal(
+      s.proficiencies.skills.filter(
+        (x: { source?: string }) => x.source === 'race'
+      ).length,
+      0
+    );
+    const view = await svc.getCreation(id, ownerActor);
+    assert.ok(!view.issues.some((i) => /perícia\(s\) racial/.test(i.message)));
+  });
+
   await cleanup();
   const left = await Player.countDocuments({ description: MARK });
   assert.equal(left, 0, 'sobraram fichas de teste');

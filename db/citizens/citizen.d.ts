@@ -306,6 +306,11 @@ export interface ICitizenTalent {
   key: string;
   /** Nível do personagem em que foi tomado. */
   level: number;
+  /**
+   * De onde vem, quando não é a tabela da classe: `race` = concedido pela raça
+   * na criação. Não ocupa vaga de marco nem conta como "acima do limite".
+   */
+  source?: 'race';
   /** Cópia do nome, para a ficha ler sem catálogo se o talento sumir dele. */
   name: string;
 

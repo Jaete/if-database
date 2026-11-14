@@ -85,9 +85,7 @@ const CreationView = () => {
   const k = d.klass;
   const casting = !!k?.caster;
 
-  const skills = (
-    (player.proficiencies?.skills ?? []) as { proficient?: boolean }[]
-  ).filter((s) => s.proficient).length;
+  const skills = d.classSkills.length;
   const spells = (player.playerSpellcasting?.spellLevels ?? []).flatMap((l) =>
     (l.spells ?? []).map(() => l.level)
   );

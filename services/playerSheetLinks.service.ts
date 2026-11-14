@@ -132,6 +132,7 @@ interface IStoredTalent {
   key: string;
   level: number;
   name: string;
+  source?: 'race';
 }
 
 const readStoredTalents = (raw: unknown): IStoredTalent[] =>
@@ -147,6 +148,7 @@ const readStoredTalents = (raw: unknown): IStoredTalent[] =>
           ? Math.min(MAX_TALENT_LEVEL, Math.max(1, Math.round(level)))
           : 1,
         name: shortString(item.name) ?? key,
+        ...(item.source === 'race' ? { source: 'race' as const } : {}),
       },
     ];
   });
@@ -240,6 +242,7 @@ export async function resolveTalents(
     return {
       key: entry.key,
       level: entry.level,
+      ...(entry.source ? { source: entry.source } : {}),
       name: option.name,
       scope: option.scope,
       category: option.category,
@@ -337,6 +340,12 @@ async function sanitizeTalents(
       key: entry.key,
       level: entry.level,
       name: option?.name ?? entry.name,
+      // Só o que já estava gravado como racial continua racial: o cliente não
+      // se declara racial.
+      ...(entry.source === 'race' &&
+      stored.some((t) => t.key === entry.key && t.source === 'race')
+        ? { source: 'race' as const }
+        : {}),
     };
   });
 }

@@ -5,6 +5,7 @@
 
 import { modifierOf, spellSaveDC, type AttributeKey } from './stats';
 import {
+  type IGrantTotals,
   checkRacialPicks,
   effectiveSubrace,
   raceBonus,
@@ -176,9 +177,10 @@ export function attributeTotals(
   base: Base,
   race: IRaceRulesInput | undefined,
   subrace: string | undefined,
-  picks: readonly string[]
+  picks: readonly string[],
+  dominant?: IRaceRulesInput
 ): Record<AttributeKey, IAttrLine> {
-  const bonus = resolveBonus(raceBonus(race, subrace), picks);
+  const bonus = resolveBonus(raceBonus(race, subrace, dominant), picks);
   const out = {} as Record<AttributeKey, IAttrLine>;
   for (const key of ATTRIBUTES) {
     const b = base[key] ?? 0;
@@ -356,6 +358,11 @@ export interface ICreationInput {
   };
   /** O Mestiço pede origens, sangue forte e herança. */
   mixedNeeds?: { parents: number; hybrid: number };
+  /** A raça dominante do Mestiço (Sangue Forte): dela vem o bônus de atributo. */
+  dominantRace?: IRaceRulesInput;
+  /** O que a raça concede na criação, e o que a dona escolheu. */
+  grantTotals?: IGrantTotals;
+  grants?: ICreationGrantPicks;
   klass?: {
     skills: ISkillChoice;
     /** Concessões do nível 1 que são escolha (uma opção por concessão). */
@@ -369,6 +376,7 @@ export interface ICreationInput {
   rollSums?: readonly number[];
   racialPicks: string[];
   featureChoices: string[];
+  /** As perícias da CLASSE escolhidas (as raciais ficam em `grants`). */
   skills: string[];
   /** Truques e magias preparadas escolhidos. */
   cantrips: number;
@@ -412,7 +420,10 @@ export function creationIssues(input: ICreationInput): IIssue[] {
       if (issue) need('raca', issue);
     }
     const sub = effectiveSubrace(race, input.raceChoice?.subrace);
-    const picks = checkRacialPicks(raceBonus(race, sub), input.racialPicks);
+    const picks = checkRacialPicks(
+      raceBonus(race, sub, input.dominantRace),
+      input.racialPicks
+    );
     if (!picks.ok || !picks.complete) {
       need(
         'atributos',
@@ -455,6 +466,30 @@ export function creationIssues(input: ICreationInput): IIssue[] {
           `Faltam magias preparadas (${input.prepared} de ${k.preparedLimit}).`
         );
       }
+    }
+  }
+
+  // ── O que a raça concede na criação ──
+  if (input.grantTotals) {
+    const t = input.grantTotals;
+    const g = input.grants ?? emptyGrantPicks();
+    if (g.skills.length < t.skills) {
+      need(
+        'pericias',
+        `Falta escolher ${t.skills - g.skills.length} perícia(s) racial(is).`
+      );
+    }
+    if (g.versatile.filter((v) => v.value.trim()).length < t.versatile) {
+      need(
+        'pericias',
+        'Falta a escolha versátil da raça (perícia, ferramenta, instrumento ou idioma).'
+      );
+    }
+    if (g.languages.filter((l) => l.trim()).length < t.languages) {
+      need('pericias', 'Falta escolher o idioma extra concedido pela raça.');
+    }
+    if (g.talents.length < t.talents) {
+      need('nivel1', 'Falta escolher o talento racial.');
     }
   }
 
@@ -508,4 +543,105 @@ export function parseSavingThrows(text?: string | null): AttributeKey[] {
     if (hit && !out.includes(hit[0])) out.push(hit[0]);
   }
   return out;
+}
+
+// ── Escolhas das concessões raciais ──────────────────────
+
+export const SKILL_NAMES: readonly string[] = Object.keys(SKILL_ATTR);
+
+export const VERSATILE_KINDS = [
+  'skill',
+  'tool',
+  'instrument',
+  'language',
+] as const;
+export type VersatileKind = (typeof VERSATILE_KINDS)[number];
+
+export interface IVersatilePick {
+  kind: VersatileKind;
+  value: string;
+}
+
+/** O que a dona escolheu nas concessões da raça. */
+export interface ICreationGrantPicks {
+  /** Perícias extras, de qualquer das 18. */
+  skills: string[];
+  /** Chaves de talentos GERAIS. */
+  talents: string[];
+  languages: string[];
+  versatile: IVersatilePick[];
+}
+
+export const emptyGrantPicks = (): ICreationGrantPicks => ({
+  skills: [],
+  talents: [],
+  languages: [],
+  versatile: [],
+});
+
+const MAX_FREE_TEXT = 60;
+
+/**
+ * Confere as escolhas contra o que a raça concede: contagem, perícias das 18 e
+ * sem repetir (nem com as da classe), textos curtos. Rascunho parcial vale
+ * (`complete` diz se cobre tudo). Talentos, que dependem do catálogo, o
+ * servidor confere à parte.
+ */
+export function checkGrantPicks(
+  totals: IGrantTotals,
+  picks: ICreationGrantPicks,
+  classSkills: readonly string[],
+  lockedLanguages: readonly string[] = []
+): { ok: boolean; complete: boolean; message?: string } {
+  const bad = (message: string) => ({ ok: false, complete: false, message });
+  if (picks.skills.length > totals.skills)
+    return bad('Perícias raciais demais.');
+  if (picks.talents.length > totals.talents)
+    return bad('Talentos raciais demais.');
+  if (picks.languages.length > totals.languages)
+    return bad('Idiomas raciais demais.');
+  if (picks.versatile.length > totals.versatile)
+    return bad('Escolhas versáteis demais.');
+
+  const taken = new Set(classSkills.map(fold));
+  const claim = (name: string) => {
+    if (!SKILL_NAMES.includes(name)) return `"${name}" não é uma das perícias.`;
+    if (taken.has(fold(name))) return `"${name}" já foi escolhida.`;
+    taken.add(fold(name));
+    return null;
+  };
+  for (const name of picks.skills) {
+    const err = claim(name);
+    if (err) return bad(err);
+  }
+  for (const v of picks.versatile) {
+    if (!VERSATILE_KINDS.includes(v.kind))
+      return bad('Tipo de escolha inválido.');
+    if (v.value.length > MAX_FREE_TEXT) return bad('Texto longo demais.');
+    if (v.kind === 'skill' && v.value) {
+      const err = claim(v.value);
+      if (err) return bad(err);
+    }
+  }
+  const langs = new Set(lockedLanguages.map(fold));
+  const allLangs = [
+    ...picks.languages,
+    ...picks.versatile.filter((v) => v.kind === 'language').map((v) => v.value),
+  ].filter(Boolean);
+  for (const l of allLangs) {
+    if (l.length > 40) return bad('Nome de idioma longo demais.');
+    if (langs.has(fold(l))) return bad(`"${l}" já é um idioma da ficha.`);
+    langs.add(fold(l));
+  }
+  if (new Set(picks.talents).size !== picks.talents.length) {
+    return bad('Talento repetido.');
+  }
+  return {
+    ok: true,
+    complete:
+      picks.skills.length === totals.skills &&
+      picks.talents.length === totals.talents &&
+      picks.languages.filter(Boolean).length === totals.languages &&
+      picks.versatile.filter((v) => v.value.trim()).length === totals.versatile,
+  };
 }

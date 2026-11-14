@@ -1,6 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import type { ITalentOption } from '@/services/talentCatalog';
+import { requiredLevel } from '@/lib/talentPrerequisite';
+import { loadTalentOptions } from '../../catalogs';
 import { useCssHandles } from '@/hooks/useCssHandles';
 import { sheetSounds } from '@/lib/sheetSounds';
 import { formatModifier, modifierOf } from '@/lib/stats';
@@ -21,6 +24,19 @@ const Level1Step = () => {
   const { creation, data, d } = useStep();
   const k = d.klass;
   const [hover, setHover] = useState<string | null>(null);
+  const [talents, setTalents] = useState<ITalentOption[] | null>(null);
+  const classId = d.klass?.id;
+  const talentTotal = d.grantTotals.talents;
+  useEffect(() => {
+    if (!classId || talentTotal === 0) return;
+    let alive = true;
+    loadTalentOptions(classId)
+      .then((list) => alive && setTalents(list))
+      .catch(() => alive && setTalents([]));
+    return () => {
+      alive = false;
+    };
+  }, [classId, talentTotal]);
 
   if (!k) {
     return (
@@ -111,12 +127,72 @@ const Level1Step = () => {
             </div>
           </div>
         ))}
+        {talentTotal > 0 && (
+          <div className={lu.luPane}>
+            <div className={lu.luPaneHead}>
+              <h3>Talento racial</h3>
+              <p>
+                {d.grantEntries
+                  .filter((e) => e.kind === 'talents')
+                  .map((e) => `+${e.n} · ${e.label ?? 'raça'}`)
+                  .join(' · ')}
+                . Um talento GERAL permitido no nível 1. Não ocupa vaga de
+                marco.
+              </p>
+            </div>
+            <div
+              className={lu.luChoices}
+              role="group"
+              aria-label="Talento racial"
+            >
+              {(talents ?? [])
+                .filter(
+                  (t) =>
+                    t.scope === 'general' &&
+                    requiredLevel(t.prerequisites, k.name) <= 1
+                )
+                .map((t) => {
+                  const picked = d.grants.talents.includes(t.key);
+                  return (
+                    <LevelUpChoice
+                      key={t.key}
+                      name={t.name}
+                      description={t.description}
+                      selected={picked}
+                      onHover={() => setHover(`talent:${t.key}`)}
+                      onSelect={() => {
+                        if (!creation.canEdit) return;
+                        const cur = d.grants.talents;
+                        const next = picked
+                          ? cur.filter((x) => x !== t.key)
+                          : cur.length >= talentTotal
+                            ? [...cur.slice(1), t.key]
+                            : [...cur, t.key];
+                        creation.patch({ grants: { talents: next } });
+                        sheetSounds.play(picked ? 'unpick' : 'pick');
+                      }}
+                    />
+                  );
+                })}
+              {talents === null && <div className={lu.luNote}>Carregando…</div>}
+            </div>
+          </div>
+        )}
       </div>
       {focus && (
         <LevelUpDetail
           kind="Característica · nível 1"
-          title={focus}
-          body={k.featureText[focus]}
+          title={
+            focus.startsWith('talent:')
+              ? (talents?.find((t) => `talent:${t.key}` === focus)?.name ??
+                'Talento racial')
+              : focus
+          }
+          body={
+            focus.startsWith('talent:')
+              ? talents?.find((t) => `talent:${t.key}` === focus)?.description
+              : k.featureText[focus]
+          }
         />
       )}
     </div>

@@ -405,6 +405,11 @@ const Row = ({
             {`Tomado nos níveis ${joinLevels(picks.map((p) => p.level))}`}
           </span>
         )}
+        {talent.source === 'race' && (
+          <span className={handles.sheetTalentPrereq}>
+            <b>Origem:</b> talento racial (concedido na criação)
+          </span>
+        )}
         {talent.prerequisites && (
           <span className={handles.sheetTalentPrereq}>
             <b>Pré-requisito:</b> {talent.prerequisites}

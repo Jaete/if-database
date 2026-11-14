@@ -23,6 +23,12 @@ export const EDITOR_TRAIT_FIELDS = [
     placeholder: 'ex.: CON+2, FOR+1 · LIVRE+1 = à escolha · NENHUM',
   },
   {
+    name: 'creationGrants',
+    label: 'Concede na criação (perícias, talentos, idiomas, versátil)',
+    placeholder:
+      'ex.: pericias:1=Variedade Genética, talentos:1=Talentosos, idiomas:1, versatil:1=Versatilidade Adaptativa',
+  },
+  {
     name: 'languagesOverride',
     label: 'Correção dos idiomas (criação de ficha)',
     placeholder: 'ex.: Comum, Anão',

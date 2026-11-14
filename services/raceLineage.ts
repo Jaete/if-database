@@ -8,6 +8,7 @@ import type {
   ICitizenRaceTraitOption,
   ICitizenRaceTraitRef,
 } from '../db/citizens/citizen.d';
+import { describeBonus, parseBonusOverride } from '../lib/raceRules';
 import {
   hybridPoolOfParents,
   isMixedRace,
@@ -73,6 +74,17 @@ export function raceAbility(trait: IResolvedRaceTrait): ICitizenAbility {
   };
 }
 
+/** O texto de incremento de um perfil: a correção da staff, se houver. */
+const bonusText = (profile: {
+  abilityScoreIncrease?: string;
+  abilityBonusOverride?: string;
+}) => {
+  const override = parseBonusOverride(profile.abilityBonusOverride);
+  return override
+    ? describeBonus(override).join(' ')
+    : profile.abilityScoreIncrease;
+};
+
 export function buildLineage(
   race: IRaceCatalogEntry,
   choice: ICitizenRaceChoice,
@@ -84,6 +96,9 @@ export function buildLineage(
     ? undefined
     : race.subraces.find((s) => s.slug === choice.subrace);
   const issues = raceChoiceIssues(race, choice, bySlug);
+  const dominantRace = mixed
+    ? bySlug.get(choice.dominantParent ?? '')
+    : undefined;
   const hybrid = race.choiceRules?.find((r) => r.kind === 'hybridHeritage');
 
   // Sub-raça que preenche um campo vence o da raça; vazio herda.
@@ -120,10 +135,12 @@ export function buildLineage(
     mixed,
     ...(subrace ? { subrace: { slug: subrace.slug, name: subrace.name } } : {}),
     hasSubraces: race.subraces.length > 0,
-    abilityScoreIncrease: [
-      race.abilityScoreIncrease,
-      subrace?.abilityScoreIncrease,
-    ].filter((text): text is string => !!text?.trim()),
+    // O Mestiço mostra o bônus BASE da raça dominante (Sangue Forte). A
+    // correção da staff vale no lugar do texto (mesma regra da criação).
+    abilityScoreIncrease: (mixed
+      ? [dominantRace ? bonusText(dominantRace) : undefined]
+      : [bonusText(race), subrace ? bonusText(subrace) : undefined]
+    ).filter((text): text is string => !!text?.trim()),
     speed: pick('speed'),
     size: pick('size'),
     languages: pick('languages'),

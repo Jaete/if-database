@@ -7,6 +7,8 @@ import assert from 'node:assert/strict';
 import {
   attributeTotals,
   castingNumbers,
+  checkGrantPicks,
+  SKILL_NAMES,
   checkBase,
   creationIssues,
   level1Hp,
@@ -23,6 +25,9 @@ import {
   addBonus,
   checkRacialPicks,
   parseAbilityIncrease,
+  parseCreationGrants,
+  racialGrants,
+  sumGrants,
   parseBonusOverride,
   parseLanguages,
   raceBonus,
@@ -369,6 +374,219 @@ test('saving throws parse', () => {
   assert.deepEqual(parseSavingThrows('for, carisma'), ['str', 'cha']);
   assert.deepEqual(parseSavingThrows('Destreza, Con'), ['dex', 'con']);
   assert.deepEqual(parseSavingThrows('Int, Dex'), ['int', 'dex']);
+});
+
+// ── Mestiço: o bônus vem da raça DOMINANTE (só a base, sem a sub-raça) ──
+test('mestiço: dominant Elfos -> DEX+2 only (not the subrace +1)', () => {
+  const spec = raceBonus(race('mesticos'), undefined, race('elfos'));
+  assert.deepEqual(spec.fixed, { dex: 2 });
+  assert.deepEqual(spec.free, []);
+});
+test('mestiço: dominant Humanos -> two free +1; dominant Yokais -> two free +1, no subrace +1', () => {
+  assert.deepEqual(raceBonus(race('mesticos'), undefined, race('humanos')), {
+    fixed: {},
+    free: [1, 1],
+  });
+  assert.deepEqual(raceBonus(race('mesticos'), undefined, race('yokais')), {
+    fixed: {},
+    free: [1, 1],
+  });
+});
+test('mestiço: no dominant, no bonus; a non-mixed race ignores the dominant', () => {
+  assert.deepEqual(raceBonus(race('mesticos')), { fixed: {}, free: [] });
+  assert.deepEqual(raceBonus(race('orcs'), undefined, race('elfos')).fixed, {
+    str: 2,
+    con: 1,
+  });
+});
+test('mestiço: the override of the dominant race counts', () => {
+  const orcs = { ...race('orcs'), abilityBonusOverride: 'FOR+1, CAR+1' };
+  assert.deepEqual(raceBonus(race('mesticos'), undefined, orcs).fixed, {
+    str: 1,
+    cha: 1,
+  });
+  const totals = attributeTotals(
+    { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 },
+    race('mesticos'),
+    undefined,
+    [],
+    race('elfos')
+  );
+  assert.equal(totals.dex.race, 2);
+  assert.equal(totals.dex.total, 12);
+});
+test('mestiço: picks for the dominant Humanos must differ', () => {
+  const spec = raceBonus(race('mesticos'), undefined, race('humanos'));
+  assert.equal(checkRacialPicks(spec, ['str', 'str']).ok, false);
+  assert.equal(checkRacialPicks(spec, ['str', 'dex']).complete, true);
+  const issues = creationIssues({
+    name: 'A',
+    race: race('mesticos'),
+    raceChoice: {
+      parents: ['elfos', 'humanos'],
+      dominantParent: 'humanos',
+      hybridTraits: [1, 2],
+    },
+    dominantRace: race('humanos'),
+    method: 'standardArray',
+    base: { str: 15, dex: 14, con: 13, int: 12, wis: 10, cha: 8 },
+    racialPicks: [],
+    featureChoices: [],
+    skills: [],
+    cantrips: 0,
+    prepared: 0,
+    soft: {},
+  });
+  assert.ok(
+    issues.some((i) => i.step === 'atributos' && i.kind === 'required')
+  );
+});
+
+// ── "Concede na criação" ──
+test('creation grants: parsing and totals', () => {
+  const entries = parseCreationGrants(
+    'versatil:1=Versatilidade Adaptativa, talentos:1=Talentosos, pericias:2, idiomas:1, lixo, :3, pericias:0'
+  );
+  assert.deepEqual(entries, [
+    { kind: 'versatile', n: 1, label: 'Versatilidade Adaptativa' },
+    { kind: 'talents', n: 1, label: 'Talentosos' },
+    { kind: 'skills', n: 2 },
+    { kind: 'languages', n: 1 },
+  ]);
+  assert.deepEqual(sumGrants(entries), {
+    skills: 2,
+    talents: 1,
+    languages: 1,
+    versatile: 1,
+  });
+  assert.deepEqual(parseCreationGrants(''), []);
+});
+test('creation grants: race + subrace add; the mestiço only has its own block', () => {
+  const humanos = {
+    ...race('humanos'),
+    creationGrants: 'versatil:1, talentos:1',
+    subraces: race('humanos').subraces.map((s) =>
+      s.slug === 'humanos-comuns'
+        ? { ...s, creationGrants: 'pericias:1=Variedade Genética' }
+        : s
+    ),
+  };
+  assert.deepEqual(sumGrants(racialGrants(humanos, 'humanos-comuns')), {
+    skills: 1,
+    talents: 1,
+    languages: 0,
+    versatile: 1,
+  });
+  assert.deepEqual(sumGrants(racialGrants(humanos, 'nordicos')), {
+    skills: 0,
+    talents: 1,
+    languages: 0,
+    versatile: 1,
+  });
+  assert.deepEqual(racialGrants(race('mesticos'), undefined), []);
+});
+test('creation grants: picks are counted, deduplicated and bounded', () => {
+  const totals = { skills: 1, talents: 1, languages: 0, versatile: 1 };
+  const ok = {
+    skills: ['Furtividade'],
+    talents: ['alerta'],
+    languages: [],
+    versatile: [{ kind: 'tool' as const, value: 'Kit de ladrão' }],
+  };
+  assert.equal(checkGrantPicks(totals, ok, ['Atletismo']).complete, true);
+  assert.equal(
+    checkGrantPicks(totals, { ...ok, skills: ['Atletismo'] }, ['Atletismo']).ok,
+    false,
+    'duplicates a class pick'
+  );
+  assert.equal(
+    checkGrantPicks(totals, { ...ok, skills: ['Ofício'] }, []).ok,
+    false,
+    'not one of the 18'
+  );
+  assert.equal(
+    checkGrantPicks(totals, { ...ok, skills: ['Furtividade', 'Atletismo'] }, [])
+      .ok,
+    false,
+    'too many'
+  );
+  assert.equal(
+    checkGrantPicks(
+      totals,
+      { ...ok, versatile: [{ kind: 'skill', value: 'Furtividade' }] },
+      []
+    ).ok,
+    false,
+    'versatile skill repeats the racial one'
+  );
+  assert.equal(
+    checkGrantPicks(
+      totals,
+      { ...ok, versatile: [{ kind: 'x' as never, value: 'a' }] },
+      []
+    ).ok,
+    false
+  );
+  assert.equal(
+    checkGrantPicks(
+      totals,
+      { ...ok, versatile: [{ kind: 'tool', value: 'x'.repeat(61) }] },
+      []
+    ).ok,
+    false
+  );
+  assert.equal(
+    checkGrantPicks(totals, { ...ok, talents: [] }, []).complete,
+    false
+  );
+  assert.equal(SKILL_NAMES.length, 18);
+  assert.equal(
+    checkGrantPicks(
+      { ...totals, languages: 1 },
+      { ...ok, languages: ['Comum'] },
+      [],
+      ['Comum']
+    ).ok,
+    false,
+    'already a sheet language'
+  );
+});
+test('creation grants: required to submit', () => {
+  const base = {
+    name: 'A',
+    race: race('centauros'),
+    klass: {
+      skills: parseSkillChoice('Escolha duas entre Acrobacia, Atletismo'),
+      featureChoiceCount: 0,
+      cantripsKnown: 0,
+      preparedLimit: 0,
+      caster: false,
+    },
+    method: 'standardArray' as const,
+    base: { str: 15, dex: 14, con: 13, int: 12, wis: 10, cha: 8 },
+    racialPicks: [],
+    featureChoices: [],
+    skills: ['Acrobacia', 'Atletismo'],
+    cantrips: 0,
+    prepared: 0,
+    soft: {},
+  };
+  const need = creationIssues({
+    ...base,
+    grantTotals: { skills: 1, talents: 1, languages: 1, versatile: 1 },
+  });
+  assert.equal(need.filter((i) => i.kind === 'required').length, 4);
+  const done = creationIssues({
+    ...base,
+    grantTotals: { skills: 1, talents: 1, languages: 1, versatile: 1 },
+    grants: {
+      skills: ['Furtividade'],
+      talents: ['alerta'],
+      languages: ['Élfico'],
+      versatile: [{ kind: 'instrument', value: 'Alaúde' }],
+    },
+  });
+  assert.equal(done.filter((i) => i.kind === 'required').length, 0);
 });
 
 console.log(`\n${passed} ok`);

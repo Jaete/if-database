@@ -363,7 +363,9 @@ export const talentProgress = (
       state: slot.level <= level ? ('open' as const) : ('future' as const),
     }));
 
-  const byLevel = [...talents].sort((a, b) => a.level - b.level);
+  // O talento racial (concedido na criação) não ocupa vaga de marco.
+  const own = talents.filter((t) => t.source !== 'race');
+  const byLevel = [...own].sort((a, b) => a.level - b.level);
   for (const talent of byLevel) {
     const wanted: ITalentNode['kind'][] =
       talent.scope === 'class' ? ['class', 'general'] : ['general'];
@@ -388,7 +390,7 @@ export const talentProgress = (
   }
 
   const upTo = nodes.filter((n) => n.level <= level && n.state !== 'attribute');
-  const taken = talents.length;
+  const taken = own.length;
   return {
     nodes,
     reached: upTo.length,

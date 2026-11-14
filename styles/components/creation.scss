@@ -711,10 +711,17 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: $spacing-3;
-  padding: $spacing-2 $spacing-4;
+  gap: $spacing-2 $spacing-3;
+  // O canto direito é do botão de ampliar (⤢) que o fórum desenha sobre o
+  // iframe: a faixa reserva o espaço dele e deixa os botões quebrarem de linha.
+  padding: $spacing-2 $spacing-16 $spacing-2 $spacing-4;
+  min-height: $spacing-12;
   border-bottom: 1px solid $color-accent-line;
   background: $accent-overlay;
+
+  @include mobile {
+    padding-block: $spacing-2;
+  }
 
   &[data-tone='returned'] {
     border-bottom-color: $warning-border;
@@ -723,6 +730,7 @@
 }
 
 .crBarText {
+  flex: 1 1 14rem;
   display: grid;
   gap: $spacing-1;
   min-width: 0;
@@ -746,6 +754,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: $spacing-2;
+  min-width: 0;
 }
 
 .crFrame {

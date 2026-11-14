@@ -99,7 +99,11 @@ const PlayerSheet = ({
   // Editar livre = papel de staff E não ser a dona (o dono vence o papel): na
   // própria ficha a pessoa vê a experiência de jogadora. O servidor confere de
   // novo a cada escrita.
-  const canEdit = permission === 'granted' && levelUp.access.isStaff;
+  // Em criação (blank, draft, submitted, returned) o editar livre não existe:
+  // o assistente e a revisão fazem esse papel. É coisa de ficha aprovada.
+  const inCreation = !!player.status && player.status !== 'approved';
+  const canEdit =
+    permission === 'granted' && levelUp.access.isStaff && !inCreation;
   const creation = useCreationState({
     player,
     identified,

@@ -60,6 +60,9 @@ const profileFields = {
   // Correção da staff para a leitura do texto acima: `CON+2, FOR+1, LIVRE+1`.
   // Vazio = vale o texto (ver lib/raceRules.ts).
   abilityBonusOverride: String,
+  // "Concede na criação": `pericias:1=Variedade Genética, talentos:1, idiomas:1,
+  // versatil:1` (ver lib/raceRules.ts).
+  creationGrants: String,
   age: String,
   alignment: String,
   size: String,

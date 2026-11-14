@@ -20,6 +20,9 @@ import {
   ATTRIBUTES,
   SKILL_ATTR,
   attributeTotals,
+  checkGrantPicks,
+  emptyGrantPicks,
+  type ICreationGrantPicks,
   castingNumbers,
   checkBase,
   creationIssues,
@@ -41,9 +44,16 @@ import {
   effectiveSubrace,
   raceBonus,
   raceLanguages,
+  racialGrants,
+  sumGrants,
+  type IRaceRulesInput,
 } from '../lib/raceRules';
 import { ATTRIBUTE_LABELS } from '../lib/levelUp';
 import { featureKey } from '../db/l10n/classes';
+import TalentModel from '../db/talents/talents';
+import type ITalentDoc from '../db/talents/talent.d';
+import { GENERAL_TALENT_FIELDS, generalTalentOption } from './talentCatalog';
+import { requiredLevel } from '../lib/talentPrerequisite';
 import { getRaceCatalog } from './race.service';
 import { getPlayerById } from './player.service';
 import { getClassCasting } from './classSpells.service';
@@ -308,19 +318,51 @@ const rollSumsOf = async (sheetId: Types.ObjectId) => {
   return roll?.sums;
 };
 
+/** A raça dominante do Mestiço (Sangue Forte), entre as origens carregadas. */
+const dominantOf = (
+  race: IRaceCatalogEntry | null,
+  choice: Doc | undefined,
+  parents: IRaceCatalogEntry[]
+): IRaceRulesInput | undefined => {
+  if (!race || (race.choiceRules?.length ?? 0) === 0) return undefined;
+  const slug =
+    typeof choice?.dominantParent === 'string' ? choice.dominantParent : '';
+  return parents.find((p) => p.slug === slug);
+};
+
+/** As concessões da raça (e da sub-raça que vale) e o que já foi escolhido. */
+function grantsOf(ctx: ICreationContext, sheet: ISheet) {
+  const choice = sheet.raceChoice;
+  const sub = ctx.race
+    ? effectiveSubrace(
+        ctx.race,
+        typeof choice?.subrace === 'string' ? choice.subrace : undefined
+      )
+    : undefined;
+  const entries = racialGrants(ctx.race ?? undefined, sub);
+  const picks: ICreationGrantPicks = {
+    ...emptyGrantPicks(),
+    ...(sheet.creation?.grants ?? {}),
+  };
+  return { entries, totals: sumGrants(entries), picks, sub };
+}
+
+const classSkillsOf = (sheet: ISheet) => sheet.creation?.classSkills ?? [];
+
 /** O que falta, no servidor, com as MESMAS regras que a tela usa. */
 export async function evaluateSheet(sheet: ISheet, ctx?: ICreationContext) {
   const context = ctx ?? (await loadContext(sheet));
   const creation = sheet.creation ?? {};
   const counts = await spellCounts(sheet.playerSpellcasting?.spellRefs ?? []);
-  const skillEntries = Array.isArray(sheet.proficiencies?.skills)
-    ? (sheet.proficiencies.skills as { proficient?: boolean }[])
-    : [];
+  const g = grantsOf(context, sheet);
   const rule = context.race?.choiceRules ?? [];
   const input: ICreationInput = {
     name: sheet.name,
     race: context.race ?? undefined,
     raceChoice: sheet.raceChoice,
+    dominantRace: dominantOf(context.race, sheet.raceChoice, context.parents),
+    grantTotals: g.totals,
+    grants: g.picks,
     mixedNeeds: {
       parents: 2,
       hybrid: rule.find((r) => r.kind === 'hybridHeritage')?.count ?? 2,
@@ -340,9 +382,7 @@ export async function evaluateSheet(sheet: ISheet, ctx?: ICreationContext) {
       creation.method === 'roll' ? await rollSumsOf(sheet._id) : undefined,
     racialPicks: creation.racialPicks ?? [],
     featureChoices: creation.featureChoices ?? [],
-    skills: skillEntries
-      .filter((s) => s.proficient)
-      .map((s) => String((s as { name?: string }).name)),
+    skills: classSkillsOf(sheet),
     cantrips: counts.cantrips,
     prepared: counts.prepared,
     soft: {
@@ -404,7 +444,8 @@ async function recompute(id: string) {
     creation.base ?? {},
     ctx.race ?? undefined,
     sub,
-    creation.racialPicks ?? []
+    creation.racialPicks ?? [],
+    dominantOf(ctx.race, sheet.raceChoice, ctx.parents)
   );
   const complete = ATTRIBUTES.every((k) => creation.base?.[k] !== undefined);
   const pb = ctx.klass?.proficiencyBonus ?? 2;
@@ -440,15 +481,27 @@ async function recompute(id: string) {
       attribute: ATTRIBUTE_LABELS[k][1],
       value: totals[k].mod + pb,
     }));
-    const skills = Array.isArray(sheet.proficiencies?.skills)
-      ? (sheet.proficiencies.skills as { name: string }[])
-      : [];
-    set['proficiencies.skills'] = skills.map((s) => {
+    // As perícias da ficha: as da classe mais as concedidas pela raça (a
+    // perícia versátil entra aqui também), sem repetir.
+    const racialPicks = grantsOf(ctx, sheet).picks;
+    const racial = [
+      ...racialPicks.skills,
+      ...racialPicks.versatile
+        .filter((v) => v.kind === 'skill' && v.value)
+        .map((v) => v.value),
+    ];
+    const seen = new Set<string>();
+    const all = [
+      ...classSkillsOf(sheet).map((name) => ({ name, race: false })),
+      ...racial.map((name) => ({ name, race: true })),
+    ].filter((s) => (seen.has(s.name) ? false : (seen.add(s.name), true)));
+    set['proficiencies.skills'] = all.map((s) => {
       const attr = SKILL_ATTR[s.name];
       return {
         name: s.name,
         proficient: true,
         value: (attr ? totals[attr].mod : 0) + pb,
+        ...(s.race ? { source: 'race' } : {}),
       };
     });
     set.featureChoices = (creation.featureChoices ?? [])
@@ -484,12 +537,39 @@ async function recompute(id: string) {
   }
 
   const locked = ctx.race ? raceLanguages(ctx.race, sub, ctx.parents) : [];
-  set.languages = [
+  const grants = grantsOf(ctx, sheet).picks;
+  const langs: string[] = [];
+  for (const l of [
     ...locked,
-    ...(creation.extraLanguage && !locked.includes(creation.extraLanguage)
-      ? [creation.extraLanguage]
-      : []),
-  ];
+    creation.extraLanguage ?? '',
+    ...grants.languages,
+    ...grants.versatile
+      .filter((v) => v.kind === 'language')
+      .map((v) => v.value),
+  ]) {
+    if (l && !langs.some((x) => asciiFold(x) === asciiFold(l))) langs.push(l);
+  }
+  set.languages = langs;
+  set['proficiencies.tools'] = grants.versatile
+    .filter((v) => (v.kind === 'tool' || v.kind === 'instrument') && v.value)
+    .map((v) => v.value);
+
+  // O talento racial é um talento de nível 1 marcado `source: 'race'`: não
+  // ocupa vaga de marco nem conta como acima do limite. No nível 1 não há
+  // outros talentos, então a lista inteira vem das concessões.
+  if (grants.talents.length > 0) {
+    const docs = await TalentModel.find({ slug: { $in: grants.talents } })
+      .select(GENERAL_TALENT_FIELDS)
+      .lean<ITalentDoc[]>();
+    set.talents = grants.talents.flatMap((key) => {
+      const doc = docs.find((d) => d.slug === key);
+      return doc
+        ? [{ key, level: 1, name: doc.name, source: 'race' as const }]
+        : [];
+    });
+  } else {
+    set.talents = [];
+  }
 
   await PlayerModel.updateOne(
     { _id: id },
@@ -693,6 +773,8 @@ export interface IDraftBody {
   fields?: Doc;
   creation?: Partial<ICreationState>;
   skills?: string[];
+  /** As escolhas das concessões da raça. */
+  grants?: Partial<ICreationGrantPicks>;
 }
 
 export async function saveDraft(id: string, body: IDraftBody, actor: IActor) {
@@ -829,11 +911,14 @@ export async function saveDraft(id: string, body: IDraftBody, actor: IActor) {
   if (raceChanged) {
     creation.racialPicks = [];
     update['creation.racialPicks'] = [];
+    creation.grants = {};
+    update['creation.grants'] = {};
   }
   if (classChanged) {
     creation.featureChoices = [];
     update['creation.featureChoices'] = [];
-    update['proficiencies.skills'] = [];
+    creation.classSkills = [];
+    update['creation.classSkills'] = [];
   }
 
   if ('method' in incoming) {
@@ -881,29 +966,69 @@ export async function saveDraft(id: string, body: IDraftBody, actor: IActor) {
     update['creation.base'] = base;
   }
 
-  if ('racialPicks' in incoming || raceChanged) {
+  // A raça (e o que vale dela) como ficará depois desta escrita.
+  const choiceNext = (update.raceChoice ?? sheet.raceChoice) as Doc | undefined;
+  const raceInfo = async () => {
+    const race = OBJECT_ID.test(nextRace)
+      ? (await getRaceCatalog({ _id: nextRace }))[0]
+      : undefined;
+    const sub = race
+      ? effectiveSubrace(
+          race,
+          typeof choiceNext?.subrace === 'string'
+            ? choiceNext.subrace
+            : undefined
+        )
+      : undefined;
+    const parentSlugs = Array.isArray(choiceNext?.parents)
+      ? (choiceNext.parents as string[])
+      : [];
+    const parents =
+      race && parentSlugs.length > 0
+        ? await getRaceCatalog({ slug: { $in: parentSlugs } })
+        : [];
+    const dominant = dominantOf(race ?? null, choiceNext, parents);
+    return { race, sub, parents, dominant };
+  };
+
+  const choiceTouched = 'raceChoice' in link || raceChanged;
+  if ('racialPicks' in incoming || choiceTouched) {
     if ('racialPicks' in incoming) {
       creation.racialPicks = Array.isArray(incoming.racialPicks)
         ? incoming.racialPicks.map(String)
         : [];
       update['creation.racialPicks'] = creation.racialPicks;
     }
-    const race = OBJECT_ID.test(nextRace)
-      ? (await getRaceCatalog({ _id: nextRace }))[0]
-      : undefined;
-    const choice = (update.raceChoice ?? sheet.raceChoice) as Doc | undefined;
-    const spec = raceBonus(
-      race,
-      race
-        ? effectiveSubrace(
-            race,
-            typeof choice?.subrace === 'string' ? choice.subrace : undefined
-          )
-        : undefined
-    );
+    const { race, sub, dominant } = await raceInfo();
+    const spec = raceBonus(race, sub, dominant);
+    const dominantChanged =
+      String(choiceNext?.dominantParent ?? '') !==
+      String(sheet.raceChoice?.dominantParent ?? '');
     const check = checkRacialPicks(spec, creation.racialPicks ?? []);
-    if (!check.ok) {
+    if (!check.ok && 'racialPicks' in incoming) {
       throw new CreationError(check.message ?? 'Bônus de atributo inválido.');
+    }
+    // Trocar a raça dominante do Mestiço refaz o bônus: as escolhas livres
+    // anteriores não valem mais.
+    if (
+      !('racialPicks' in incoming) &&
+      (!check.ok || (dominantChanged && (creation.racialPicks ?? []).length))
+    ) {
+      creation.racialPicks = [];
+      update['creation.racialPicks'] = [];
+    }
+    // As concessões também seguem a raça: o que passa do novo total sai.
+    const totals = sumGrants(racialGrants(race, sub));
+    const cur = { ...emptyGrantPicks(), ...(creation.grants ?? {}) };
+    const trimmed = {
+      skills: cur.skills.slice(0, totals.skills),
+      talents: cur.talents.slice(0, totals.talents),
+      languages: cur.languages.slice(0, totals.languages),
+      versatile: cur.versatile.slice(0, totals.versatile),
+    };
+    if (JSON.stringify(trimmed) !== JSON.stringify(cur)) {
+      creation.grants = trimmed;
+      update['creation.grants'] = trimmed;
     }
   }
 
@@ -957,10 +1082,81 @@ export async function saveDraft(id: string, body: IDraftBody, actor: IActor) {
     if (info.skills.n !== null && canonical.length > info.skills.n) {
       throw new CreationError(`Esta classe escolhe ${info.skills.n} perícias.`);
     }
-    update['proficiencies.skills'] = canonical.map((name) => ({
-      name,
-      proficient: true,
-    }));
+    const racialTaken = [
+      ...(creation.grants?.skills ?? []),
+      ...(creation.grants?.versatile ?? [])
+        .filter((v) => v.kind === 'skill')
+        .map((v) => v.value),
+    ];
+    const dup = canonical.find((c) => racialTaken.includes(c));
+    if (dup) {
+      throw new CreationError(`"${dup}" já foi escolhida como perícia racial.`);
+    }
+    creation.classSkills = canonical;
+    update['creation.classSkills'] = canonical;
+  }
+
+  // ── Concessões da raça ("Concede na criação") ──
+  if (isRecord(body?.grants)) {
+    const { race, sub, parents } = await raceInfo();
+    const totals = sumGrants(racialGrants(race, sub));
+    const g = body.grants as Doc;
+    const strings = (v: unknown, max: number) =>
+      (Array.isArray(v) ? v : [])
+        .map((x) =>
+          String(x ?? '')
+            .trim()
+            .slice(0, max)
+        )
+        .filter(Boolean);
+    const next = { ...emptyGrantPicks(), ...(creation.grants ?? {}) };
+    if ('skills' in g) next.skills = [...new Set(strings(g.skills, 40))];
+    if ('talents' in g) next.talents = [...new Set(strings(g.talents, 80))];
+    if ('languages' in g) next.languages = strings(g.languages, 40);
+    if ('versatile' in g) {
+      next.versatile = (Array.isArray(g.versatile) ? g.versatile : [])
+        .filter(isRecord)
+        .map((v) => ({
+          kind: String(v.kind) as 'skill',
+          value: String(v.value ?? '')
+            .trim()
+            .slice(0, 60),
+        }));
+    }
+    const locked = race ? raceLanguages(race, sub, parents) : [];
+    if (creation.extraLanguage) locked.push(creation.extraLanguage);
+    const check = checkGrantPicks(
+      totals,
+      next,
+      creation.classSkills ?? [],
+      locked
+    );
+    if (!check.ok) {
+      throw new CreationError(check.message ?? 'Escolha racial inválida.');
+    }
+    // Talento racial: geral, que existe e é permitido no nível 1.
+    if (next.talents.length > 0) {
+      const docs = await TalentModel.find({ slug: { $in: next.talents } })
+        .select(GENERAL_TALENT_FIELDS)
+        .lean<ITalentDoc[]>();
+      for (const key of next.talents) {
+        const doc = docs.find((d) => d.slug === key);
+        if (!doc) throw new CreationError(`Talento desconhecido: "${key}".`);
+        const option = generalTalentOption(doc);
+        if (requiredLevel(option.prerequisites, undefined) > 1) {
+          throw new CreationError(
+            `"${option.name}" pede nível acima do 1 e não pode ser o talento racial.`
+          );
+        }
+      }
+    }
+    for (const key of Object.keys(g)) {
+      if (key in next) {
+        const value = (next as unknown as Doc)[key];
+        creation.grants = { ...(creation.grants ?? {}), [key]: value };
+        update[`creation.grants.${key}`] = value;
+      }
+    }
   }
 
   // O nome define o slug (que não é a chave da tag do fórum, o `_id` é).

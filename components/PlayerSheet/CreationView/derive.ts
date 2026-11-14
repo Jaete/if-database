@@ -1,5 +1,7 @@
 import type { IPublicPlayer } from '@/db/players/publicFields';
 import {
+  emptyGrantPicks,
+  type ICreationGrantPicks,
   ATTRIBUTES,
   attributeTotals,
   castingNumbers,
@@ -12,10 +14,15 @@ import {
 import {
   checkRacialPicks,
   effectiveSubrace,
+  isMixed,
   raceBonus,
   raceLanguages,
+  racialGrants,
   subraceRule,
+  sumGrants,
   type IBonusSpec,
+  type IGrantEntry,
+  type IGrantTotals,
   type SubraceRule,
 } from '@/lib/raceRules';
 import type { AttributeKey } from '@/lib/stats';
@@ -38,6 +45,12 @@ export interface IDerived {
   hp: number | null;
   casting: { saveDC: number; attackBonus: number } | null;
   rollSums: number[] | null;
+  /** O que a raça concede na criação, o total e o que já foi escolhido. */
+  grantEntries: IGrantEntry[];
+  grantTotals: IGrantTotals;
+  grants: ICreationGrantPicks;
+  /** As perícias da classe escolhidas. */
+  classSkills: string[];
 }
 
 /** Tudo o que a tela mostra ao vivo, com as MESMAS regras do servidor. */
@@ -46,11 +59,24 @@ export function derive(data: CreationPayload, player: IPublicPlayer): IDerived {
   const creation = data.creation;
   const base: Base = creation.base ?? {};
   const choice = player.raceChoice as
-    { subrace?: string; parents?: string[] } | undefined;
+    | { subrace?: string; parents?: string[]; dominantParent?: string }
+    | undefined;
+  // Mestiço: o bônus de atributo vem da raça dominante (Sangue Forte).
+  const dominant =
+    race && isMixed(race)
+      ? parents.find((p) => p.slug === choice?.dominantParent)
+      : undefined;
   const subrace = race ? effectiveSubrace(race, choice?.subrace) : undefined;
-  const spec = raceBonus(race ?? undefined, subrace);
+  const spec = raceBonus(race ?? undefined, subrace, dominant);
   const picks = creation.racialPicks ?? [];
-  const totals = attributeTotals(base, race ?? undefined, subrace, picks);
+  const totals = attributeTotals(
+    base,
+    race ?? undefined,
+    subrace,
+    picks,
+    dominant
+  );
+  const grantEntries = racialGrants(race ?? undefined, subrace);
   const placed = ATTRIBUTES.every((k) => base[k] !== undefined);
   const roll = data.rolls.find((r) => r.kind === 'attributes');
   const rollSums = roll ? roll.sums : null;
@@ -76,6 +102,10 @@ export function derive(data: CreationPayload, player: IPublicPlayer): IDerived {
         ? castingNumbers(totals[ability].total, klass.proficiencyBonus)
         : null,
     rollSums,
+    grantEntries,
+    grantTotals: sumGrants(grantEntries),
+    grants: { ...emptyGrantPicks(), ...(creation.grants ?? {}) },
+    classSkills: creation.classSkills ?? [],
   };
 }
 

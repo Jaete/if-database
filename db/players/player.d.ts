@@ -1,5 +1,10 @@
 import ICitizen from '../citizens/citizen';
-import type { AttributeMethod, Base, PlayerStatus } from '../../lib/creation';
+import type {
+  AttributeMethod,
+  Base,
+  ICreationGrantPicks,
+  PlayerStatus,
+} from '../../lib/creation';
 import type {
   IFeatureChoiceRecord,
   ILevelLock,
@@ -19,6 +24,10 @@ export interface ICreationState {
   featureChoices?: string[];
   /** O gil rolado (a rolagem em si fica em `creationrolls`). */
   startingGil?: number;
+  /** As perícias da CLASSE escolhidas; as raciais ficam em `grants`. */
+  classSkills?: string[];
+  /** O que a dona escolheu nas concessões da raça ("Concede na criação"). */
+  grants?: Partial<ICreationGrantPicks>;
   /** Idioma extra escolhido (recomendado, não obrigatório). */
   extraLanguage?: string;
   submittedAt?: string;

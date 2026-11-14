@@ -69,15 +69,11 @@ function applyBody(data: CreationPayload, body: IDraftBody): CreationPayload {
     }
   }
   Object.assign(creation, body.creation ?? {});
-  if (body.skills) {
-    const pb = Number(player.proficiencyBonus) || 2;
-    player.proficiencies = {
-      ...((player.proficiencies as object) ?? {}),
-      skills: body.skills.map((name) => ({
-        name,
-        proficient: true,
-        value: pb,
-      })),
+  if (body.skills) creation.classSkills = body.skills;
+  if (body.grants) {
+    creation.grants = {
+      ...((creation.grants as object) ?? {}),
+      ...body.grants,
     };
   }
   return {
@@ -91,6 +87,7 @@ const mergeBodies = (a: IDraftBody, b: IDraftBody): IDraftBody => ({
   fields: { ...a.fields, ...b.fields },
   creation: { ...a.creation, ...b.creation },
   ...((b.skills ?? a.skills) ? { skills: b.skills ?? a.skills } : {}),
+  ...(a.grants || b.grants ? { grants: { ...a.grants, ...b.grants } } : {}),
 });
 
 // ── Cópia local do que ainda não chegou ao servidor ──────────

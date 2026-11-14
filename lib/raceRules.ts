@@ -153,6 +153,8 @@ export function addBonus(a: IBonusSpec, b: IBonusSpec): IBonusSpec {
 }
 
 interface IProfile {
+  /** "Concede na criação": ver `parseCreationGrants`. */
+  creationGrants?: string;
   abilityScoreIncrease?: string;
   abilityBonusOverride?: string;
   languages?: string;
@@ -176,19 +178,135 @@ export const isMixed = (race: Pick<IRaceRulesInput, 'choiceRules'>) =>
   (race.choiceRules?.length ?? 0) > 0;
 
 /**
- * O bônus final de atributo da raça escolhida. A raça mista (Mestiço) não tem
- * bônus de atributo. Raça e sub-raça SOMAM (Elfos +2 DES, Elfos comuns +1 SAB;
- * Yokais: dois +1 à escolha mais o fixo da sub-raça).
+ * O bônus final de atributo da raça escolhida. Raça e sub-raça SOMAM (Elfos +2
+ * DES, Elfos comuns +1 SAB; Yokais: dois +1 à escolha mais o fixo da
+ * sub-raça).
+ *
+ * O Mestiço não tem bônus próprio: pelo Sangue Forte ele recebe o bônus BASE da
+ * raça dominante (as "habilidades em comum"), nunca o da sub-raça dela. Sem
+ * dominante escolhida, nada. A correção da staff na raça dominante vale.
  */
 export function raceBonus(
   race: IRaceRulesInput | undefined,
-  subraceSlug?: string
+  subraceSlug?: string,
+  dominant?: IRaceRulesInput
 ): IBonusSpec {
-  if (!race || isMixed(race)) return emptySpec();
+  if (!race) return emptySpec();
+  if (isMixed(race)) return dominant ? bonusOf(dominant) : emptySpec();
   const sub = subraceSlug
     ? race.subraces.find((s) => s.slug === subraceSlug)
     : undefined;
   return addBonus(bonusOf(race), sub ? bonusOf(sub) : emptySpec());
+}
+
+const NAME_OF: Record<AttributeKey, string> = {
+  str: 'Força',
+  dex: 'Destreza',
+  con: 'Constituição',
+  int: 'Inteligência',
+  wis: 'Sabedoria',
+  cha: 'Carisma',
+};
+
+/** O bônus em frases que o leitor de texto e as etiquetas da ficha entendem. */
+export function describeBonus(spec: IBonusSpec): string[] {
+  const out: string[] = [];
+  for (const key of KEYS) {
+    if (spec.fixed[key]) {
+      out.push(`Seu valor de ${NAME_OF[key]} aumenta em +${spec.fixed[key]}.`);
+    }
+  }
+  if (spec.free.length > 0) {
+    const n = spec.free.length;
+    const word = ['', 'Um', 'Dois', 'Três', 'Quatro'][n] ?? String(n);
+    out.push(
+      `${word} de seus valores de habilidade aumentam em ${spec.free[0]}.`
+    );
+  }
+  return out;
+}
+
+// ── "Concede na criação" ─────────────────────────────────
+
+export type GrantKind = 'skills' | 'talents' | 'languages' | 'versatile';
+
+export interface IGrantEntry {
+  kind: GrantKind;
+  n: number;
+  /** A habilidade racial de onde vem ("Variedade Genética"). */
+  label?: string;
+}
+
+export interface IGrantTotals {
+  skills: number;
+  talents: number;
+  languages: number;
+  versatile: number;
+}
+
+const GRANT_WORDS: Record<string, GrantKind> = {
+  pericias: 'skills',
+  pericia: 'skills',
+  talentos: 'talents',
+  talento: 'talents',
+  idiomas: 'languages',
+  idioma: 'languages',
+  versatil: 'versatile',
+  versateis: 'versatile',
+};
+
+/**
+ * "pericias:1=Variedade Genética, talentos:1=Talentosos, idiomas:1,
+ * versatil:1=Versatilidade Adaptativa" (campo editável na raça e na sub-raça).
+ * Entradas que não se entendem são ignoradas. O que cada uma é:
+ *   - pericias: perícias extras, de QUALQUER das 18;
+ *   - talentos: talentos GERAIS extras, no nível 1;
+ *   - idiomas: idiomas extras;
+ *   - versatil: N escolhas entre perícia, kit de ferramenta, instrumento
+ *     musical OU idioma.
+ */
+export function parseCreationGrants(text?: string | null): IGrantEntry[] {
+  const out: IGrantEntry[] = [];
+  for (const part of (text ?? '').split(',')) {
+    const m = /^\s*([A-Za-zÀ-ú]+)\s*:\s*(\d{1,2})\s*(?:=\s*(.+?))?\s*$/.exec(
+      part
+    );
+    if (!m) continue;
+    const kind = GRANT_WORDS[fold(m[1])];
+    const n = Number(m[2]);
+    if (kind && n > 0) out.push({ kind, n, ...(m[3] ? { label: m[3] } : {}) });
+  }
+  return out;
+}
+
+export const sumGrants = (entries: IGrantEntry[]): IGrantTotals => {
+  const totals: IGrantTotals = {
+    skills: 0,
+    talents: 0,
+    languages: 0,
+    versatile: 0,
+  };
+  for (const e of entries) totals[e.kind] += e.n;
+  return totals;
+};
+
+/**
+ * O que a raça (e a sub-raça que vale) concede na criação. O Mestiço só tem o
+ * próprio bloco, e não herda dos pais.
+ */
+export function racialGrants(
+  race: IRaceRulesInput | undefined,
+  subraceSlug?: string
+): IGrantEntry[] {
+  if (!race) return [];
+  const sub =
+    !isMixed(race) && subraceSlug
+      ? race.subraces.find((s) => s.slug === subraceSlug)
+      : undefined;
+  return [
+    ...parseCreationGrants(race.creationGrants),
+    ...parseCreationGrants(sub?.creationGrants),
+  ];
 }
 
 /**

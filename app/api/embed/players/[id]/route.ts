@@ -133,6 +133,18 @@ export async function PUT(
       );
     }
 
+    // Em criação a edição livre não existe (o assistente e a revisão a
+    // substituem); ela é para ficha aprovada ou antiga.
+    if (current.status && current.status !== 'approved') {
+      return NextResponse.json(
+        {
+          error:
+            'A ficha ainda está em criação: use o assistente ou a revisão.',
+        },
+        { status: 409 }
+      );
+    }
+
     // Edição concorrente: dois admins com a mesma ficha aberta. O cliente manda
     // o `updatedAt` que carregou; se o documento já mudou desde então, recusa em
     // vez de sobrescrever em silêncio.

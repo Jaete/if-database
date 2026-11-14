@@ -53,6 +53,8 @@ export interface IRaceProfile {
   abilityScoreIncrease?: string;
   /** Correção da staff: `CON+2, FOR+1, LIVRE+1`. Vale no lugar do texto. */
   abilityBonusOverride?: string;
+  /** O que a raça concede na criação: `pericias:1=Nome, talentos:1, idiomas:1, versatil:1`. */
+  creationGrants?: string;
   age?: string;
   /** "Tendência". */
   alignment?: string;
@@ -150,6 +152,7 @@ export type IRaceCatalogEntry = Pick<
   | 'images'
   | 'abilityScoreIncrease'
   | 'abilityBonusOverride'
+  | 'creationGrants'
   | 'languagesOverride'
   | 'speed'
   | 'size'

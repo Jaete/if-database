@@ -338,7 +338,7 @@ interface ISnapshot {
     | undefined
   >;
   combat: Doc;
-  talents: { key: string; level: number; name: string }[];
+  talents: { key: string; level: number; name: string; source?: 'race' }[];
   milestones: { level: number; use: string }[];
   archetype: { slug?: string; features?: string[] } | null;
   spellRefs: { spellId: string; prepared?: boolean }[];
@@ -363,6 +363,8 @@ function snapshotOf(p: IPlayerDoc): ISnapshot {
       key: String(t.key),
       level: Number(t.level),
       name: String(t.name),
+      // O talento racial segue racial quando o selo regrava a lista.
+      ...(t.source === 'race' ? { source: 'race' as const } : {}),
     })),
     milestones: asArray<ISnapshot['milestones'][number]>(p.talentMilestones),
     archetype: isRecord(p.archetype)

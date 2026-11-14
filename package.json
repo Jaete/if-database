@@ -25,6 +25,7 @@
     "test:creation:db": "npx tsx __tests__/creation.db.test.ts",
     "test:creation:e2e": "node __tests__/e2e/creation.smoke.mjs",
     "migrate:creation-data": "npx tsx scripts/applyCreationClassData.ts",
+    "migrate:race-grants": "npx tsx scripts/applyRaceCreationGrants.ts",
     "test:levelup:db": "npx tsx __tests__/levelUp.db.test.ts"
   },
   "dependencies": {
