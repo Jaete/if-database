@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { applyModifiers, useCssHandles } from '@/hooks/useCssHandles';
 import { LevelUpIcon, PortraitPlaceholderIcon } from '../../Icons';
-import { isHttpUrl } from '../sheetData';
+import { isImageUrl } from '@/lib/imageUrl';
 import PortraitHandles from './handles';
 
 interface IProps {
@@ -19,7 +19,9 @@ interface IProps {
 const Portrait = ({ image, name, variant = 'hud', badge, ready }: IProps) => {
   const handles = useCssHandles(PortraitHandles);
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
-  const showImage = isHttpUrl(image) && failedSrc !== image;
+  // Link http(s) ou imagem enviada ao app (`/api/images/<id>`, relativa: a
+  // ficha roda na origem do app, inclusive dentro do iframe do fórum).
+  const showImage = !!image && isImageUrl(image) && failedSrc !== image;
 
   return (
     <div
