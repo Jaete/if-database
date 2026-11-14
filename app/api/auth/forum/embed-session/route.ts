@@ -23,14 +23,39 @@ import {
 // Nunca cacheado: a resposta depende do cookie de quem chamou.
 export const dynamic = 'force-dynamic';
 
-// GET — quem sou eu agora? É o que faz o caminho comum não tocar no fórum.
-export async function GET() {
+// Apaga o cookie com as MESMAS opções com que foi criado (path, partitioned,
+// sameSite none, secure): é o que faz o navegador removê-lo de fato.
+function clearedCookie(response: NextResponse) {
+  response.cookies.set(EMBED_COOKIE, '', {
+    ...embedCookieOptions(),
+    maxAge: 0,
+  });
+  return response;
+}
+
+// GET — a sessão guardada ainda é DE QUEM está logado no fórum agora?
+//
+// O cookie sozinho não prova isso: ele sobrevive a o usuário trocar de conta no
+// fórum, e a ficha daria os poderes da conta ANTIGA à nova. Por isso o cliente
+// diz quem o fórum afirma estar logado (`expect`, vindo do `host:hello`) e a
+// sessão só vale se for a mesma conta. Sem `expect`, ou com outra conta,
+// responde 204: a sessão não é reaproveitada, e no caso de outra conta o cookie
+// é apagado.
+export async function GET(request: NextRequest) {
   const session = await getEmbedSession();
   if (!session) return new NextResponse(null, { status: 204 });
+
+  const expect = Number(request.nextUrl.searchParams.get('expect'));
+  if (!Number.isInteger(expect) || expect !== session.forumUserId) {
+    return Number.isInteger(expect) && expect !== 0
+      ? clearedCookie(new NextResponse(null, { status: 204 }))
+      : new NextResponse(null, { status: 204 });
+  }
 
   const response = NextResponse.json({
     username: session.username,
     role: session.role,
+    forumUserId: session.forumUserId,
   });
 
   // Renovação deslizante, como /api/auth/verify já faz: quem usa o fórum com
@@ -45,6 +70,11 @@ export async function GET() {
   );
 
   return response;
+}
+
+// DELETE — o fórum diz que ninguém está logado: a sessão do embed é encerrada.
+export async function DELETE() {
+  return clearedCookie(new NextResponse(null, { status: 204 }));
 }
 
 // POST — troca o ticket de verify (cujo nonce já foi escrito no perfil pelo

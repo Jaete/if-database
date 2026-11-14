@@ -121,23 +121,16 @@ export const useSheetEditing = (
 
       if (data.type === 'host:hello') {
         hostOrigin.current = event.origin;
-        // Sem usuário logado no fórum não há identidade a provar.
-        if (!data.user) {
-          setPermission('none');
-          return;
-        }
         if (asked.current) return;
         asked.current = true;
-        requestId.current = crypto.randomUUID();
-        window.parent.postMessage(
-          {
-            source: MSG_SOURCE,
-            type: 'embed:verify-request',
-            requestId: requestId.current,
-          },
-          event.origin
-        );
-        setStatus('Verificando identidade...');
+        const forumUserId = Number(data.user?.forumUserId);
+        // Sem usuário logado no fórum não há identidade a provar, e uma sessão
+        // de antes (de outra conta) não pode continuar valendo.
+        if (!data.user || !Number.isInteger(forumUserId)) {
+          void endSession();
+          return;
+        }
+        void reuseOrVerify(forumUserId, event.origin);
         return;
       }
 
@@ -176,26 +169,60 @@ export const useSheetEditing = (
       }
     };
 
-    // Caminho comum: o cookie de sessão do embed ainda vale, e nada é escrito
-    // no perfil do fórum. Só quando ele falta é que o handshake começa.
-    const start = async () => {
+    const endSession = async () => {
       try {
-        const res = await fetch('/api/auth/forum/embed-session');
+        await fetch('/api/auth/forum/embed-session', { method: 'DELETE' });
+      } catch {
+        // Sem rede: a permissão fica 'none' do mesmo jeito.
+      }
+      if (!alive) return;
+      setPermission('none');
+    };
+
+    const askVerify = (origin: string) => {
+      requestId.current = crypto.randomUUID();
+      window.parent.postMessage(
+        {
+          source: MSG_SOURCE,
+          type: 'embed:verify-request',
+          requestId: requestId.current,
+        },
+        origin
+      );
+      setStatus('Verificando identidade...');
+    };
+
+    // Caminho comum: o cookie do embed vale SE for da conta que o fórum diz
+    // estar logada agora. Qualquer outra coisa (cookie de outra conta, ou
+    // nenhum) cai no handshake por nonce, e o servidor apaga o cookie velho.
+    const reuseOrVerify = async (forumUserId: number, origin: string) => {
+      try {
+        const res = await fetch(
+          `/api/auth/forum/embed-session?expect=${forumUserId}`
+        );
         if (!alive) return;
         if (res.ok) {
           const data = await res.json();
-          setPermission(data.role === 'admin' ? 'granted' : 'none');
-          return;
+          if (Number(data.forumUserId) === forumUserId) {
+            setPermission(data.role === 'admin' ? 'granted' : 'none');
+            return;
+          }
         }
       } catch {
         // Sem sessão utilizável; cai no handshake abaixo.
       }
       if (!alive) return;
+      askVerify(origin);
+    };
+
+    // Sempre bate e espera o `host:hello`: a identidade vem do fórum, nunca do
+    // cookie sozinho.
+    const start = () => {
       window.addEventListener('message', onMessage);
       knock();
     };
 
-    void start();
+    start();
 
     return () => {
       alive = false;
