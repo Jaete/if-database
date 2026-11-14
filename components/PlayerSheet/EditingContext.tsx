@@ -28,6 +28,10 @@ interface IEditingContext {
   read: <T = unknown>(path: string) => T | undefined;
   setField: (path: string, value: unknown) => void;
   isFieldDirty: (path: string) => boolean;
+  /** Algo em `path` ou dentro dele está no rascunho. */
+  isDirtyUnder: (path: string) => boolean;
+  /** Devolve `path` (e o que há dentro) ao valor gravado. */
+  revertField: (path: string) => void;
 }
 
 // O padrão é o modo somente-leitura, então um painel renderizado fora do
@@ -40,6 +44,8 @@ const EditingContext = createContext<IEditingContext>({
   read: () => undefined,
   setField: () => {},
   isFieldDirty: () => false,
+  isDirtyUnder: () => false,
+  revertField: () => {},
 });
 
 export const useEditing = () => useContext(EditingContext);

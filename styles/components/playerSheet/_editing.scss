@@ -350,18 +350,40 @@
   }
 }
 
-// O arquétipo é a única escolha da ficha que é lista fechada: os arquétipos
-// são os que a classe publica, e digitar um nome produziria uma subclasse que
-// não existe. Por isso select, e não o EditableText das outras linhas.
-.sheetArchetypeSelect {
-  width: 100%;
-  margin-bottom: $spacing-1;
-  padding: $spacing-2 $spacing-3;
+// O arquétipo é lista fechada (os que a classe publica): a escolha é na camada
+// do códice, e aqui ficam o botão que a abre e o aviso do que está pendente.
+.sheetArchetypeChange {
+  padding: $spacing-1 $spacing-3;
+  border: 1px solid $color-border-control;
   border-radius: $radius-sm;
+  background: $surface-raised;
   cursor: pointer;
+  @include main-xs($color-text, $font-weight-medium);
+  @include focus-ring;
 
-  @include field-input;
-  @include main-sm($color-text, $font-weight-medium);
+  &:hover {
+    border-color: $color-accent-line;
+  }
+}
+
+.sheetArchetypePending {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-3;
+  padding: $spacing-1 $spacing-3;
+  border: 1px dashed $color-accent-line;
+  border-radius: $radius-md;
+  @include main-xs($color-accent, $font-weight-semibold);
+
+  button {
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+    text-decoration: underline;
+    @include main-xs($color-text-muted, $font-weight-medium);
+    @include focus-ring;
+  }
 }
 
 .sheetMasterAdd {
@@ -532,4 +554,52 @@ button.sheetSpellBadge {
 // A legenda de atributos acusa quando a coluna Raça não bate com a raça.
 .sheetLegendWarn {
   color: $color-warning;
+}
+
+// ── Campo de classe/raça que abre a camada de escolha ──
+.sheetChooser {
+  display: inline-flex;
+}
+
+.sheetChooserBtn {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-1 $spacing-2;
+  padding: $spacing-1 $spacing-2;
+  border: 1px solid transparent;
+  border-bottom-color: $color-border-strong;
+  border-radius: $radius-sm;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  @include focus-ring;
+
+  svg {
+    width: 0.875rem;
+    height: 0.875rem;
+    color: $color-text-subtle;
+  }
+
+  &:hover {
+    border-color: $color-accent-line;
+    background: $accent-overlay;
+  }
+
+  &--pending {
+    border: 1px dashed $color-accent-line;
+    background: $accent-overlay;
+  }
+}
+
+.sheetChooserOld {
+  color: $color-text-subtle;
+}
+
+.sheetChooserTag {
+  padding: 0 $spacing-2;
+  border: 1px solid $color-accent-line;
+  border-radius: $radius-full;
+  @include main-xs($color-accent, $font-weight-semibold, 1.5);
 }

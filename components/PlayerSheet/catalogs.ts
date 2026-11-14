@@ -12,15 +12,31 @@ import type { ITalentOption } from '@/services/talentCatalog';
 
 let races: Promise<IRaceCatalogEntry[]> | null = null;
 
-export const loadRaceCatalog = (): Promise<IRaceCatalogEntry[]> => {
+/**
+ * Sem opções, o catálogo é compartilhado e guardado. A camada de escolha pede
+ * `fresh` (e o `forPlayer` da ficha): quem tem cada raça única muda quando
+ * outra ficha salva, então essa resposta nunca fica guardada.
+ */
+export const loadRaceCatalog = (options?: {
+  fresh?: boolean;
+  forPlayer?: string;
+}): Promise<IRaceCatalogEntry[]> => {
+  const fetchCatalog = () =>
+    fetch(
+      `/api/races/catalog${
+        options?.forPlayer
+          ? `?for=${encodeURIComponent(options.forPlayer)}`
+          : ''
+      }`
+    ).then((res) => (res.ok ? res.json() : Promise.reject(new Error())));
+
+  if (options?.fresh) return fetchCatalog();
   if (!races) {
-    races = fetch('/api/races/catalog')
-      .then((res) => (res.ok ? res.json() : Promise.reject(new Error())))
-      .catch((error) => {
-        // Uma falha não pode ficar guardada: a próxima abertura tenta de novo.
-        races = null;
-        throw error;
-      });
+    races = fetchCatalog().catch((error) => {
+      // Uma falha não pode ficar guardada: a próxima abertura tenta de novo.
+      races = null;
+      throw error;
+    });
   }
   return races;
 };
@@ -42,3 +58,18 @@ export const loadTalentOptions = (
   }
   return promise;
 };
+
+/** O que a ficha sabe de uma magia escolhida na camada, antes de salvar. */
+export interface IPickedSpell {
+  name: string;
+  circle: number;
+  school?: string;
+  classes?: string;
+}
+
+/**
+ * As magias escolhidas nesta sessão, por id. A leitura da ficha só resolve o
+ * nome e o círculo depois de salvar; até lá a lista de magias lê daqui. É um
+ * cache de módulo pelo mesmo motivo dos catálogos acima.
+ */
+export const pickedSpells = new Map<string, IPickedSpell>();

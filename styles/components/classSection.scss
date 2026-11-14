@@ -755,3 +755,20 @@
 .clsGroupHead {
   margin: $spacing-6 0 $spacing-3;
 }
+
+// ── Seletor da ficha (escolha de arquétipo) ──────────────────────────────────
+
+.clsArchPick {
+  margin-left: auto;
+  padding: $spacing-2 $spacing-4;
+  border-radius: $radius-md;
+  cursor: pointer;
+  @include btn-primary;
+  @include main-sm($color-text-on-accent, $font-weight-semibold);
+  @include focus-ring;
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: default;
+  }
+}

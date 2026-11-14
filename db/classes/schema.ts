@@ -169,6 +169,7 @@ const TalentSchema = new Schema<ITalent>(
     group: String,
     unlock: String,
     affectsSpellcasting: Boolean,
+    stackable: Boolean,
   },
   { _id: false }
 );
@@ -291,6 +292,7 @@ const CharacterClassSchema = new Schema<ICharacterClass>(
     features: [FeatureSchema],
     archetypes: [ArchetypeSchema],
     talents: [TalentSchema],
+    talentLevels: [{ type: Number }],
     catalogs: [CatalogSchema],
 
     isSpellcaster: Boolean,

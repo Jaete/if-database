@@ -497,10 +497,19 @@ export function useClassData(initial: ICharacterClass) {
       const talents = [...(characterClass.talents ?? [])];
       const current = talents[index];
       const next: ITalent = {
+        // O que o formulário não edita (lista de origem, destrave, `*` da
+        // conjuração) segue como estava.
+        ...current,
         name: values.name,
         requirement: values.requirement || undefined,
         description: values.description || undefined,
         tables: current?.tables,
+        stackable:
+          values.stackable === 'sim'
+            ? true
+            : values.stackable === 'nao'
+              ? false
+              : undefined,
       };
       if (index < 0) talents.push(next);
       else talents[index] = next;

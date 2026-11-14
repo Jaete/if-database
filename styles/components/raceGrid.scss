@@ -399,6 +399,8 @@
 }
 
 .racePlateFlags {
+  // Sobre a arte, que fica escura nos dois temas.
+  @include theme-scope(dark);
   position: absolute;
   top: $spacing-3;
   left: $spacing-3;
@@ -457,6 +459,17 @@
   color: inherit;
   text-decoration: none;
   outline: none;
+
+  // No modo escolha o nome é um botão: mesma aparência do link.
+  &:is(button) {
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    letter-spacing: inherit;
+    text-align: inherit;
+    cursor: pointer;
+  }
 
   &::after {
     content: '';

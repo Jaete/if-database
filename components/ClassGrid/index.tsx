@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { classFromPrompt, classPromptFields } from '@/db/l10n/classes';
+import type { IClassChoice } from '@/lib/catalogChoice';
 import { applyModifiers, useCssHandles } from '@/hooks/useCssHandles';
 import { useOptionalAuth } from '@/app/context/AuthContext';
 import { DownloadIcon, LinkIcon, PlusIcon } from '../Icons';
@@ -26,6 +27,8 @@ interface IProps {
   compact?: boolean;
   /** Esconde toda a edição, mesmo para quem pode editar. */
   readOnly?: boolean;
+  /** Seletor da ficha: "Escolher" nos cards e no detalhe; nada de admin. */
+  choice?: IClassChoice;
 }
 
 /**
@@ -40,11 +43,12 @@ const ClassGrid = ({
   basePath = '/classes',
   compact = false,
   readOnly = false,
+  choice,
 }: IProps) => {
   const handles = useCssHandles(ClassGridHandles);
   // O embed não tem AuthProvider: sem contexto, ninguém edita.
   const auth = useOptionalAuth();
-  const canEdit = !readOnly && (auth?.canEdit ?? false);
+  const canEdit = !readOnly && !choice && (auth?.canEdit ?? false);
   const {
     visible,
     isCompact,
@@ -186,6 +190,7 @@ const ClassGrid = ({
           canEdit={canEdit}
           onEdit={openEditor}
           onOpen={openClass}
+          choice={choice}
         />
       )}
 
@@ -204,6 +209,7 @@ const ClassGrid = ({
             basePath={basePath}
             compact={compact}
             readOnly={readOnly}
+            choice={choice}
             onBack={() => {
               closeClass();
               // O que foi editado lá dentro (nome, papéis, PV) aparece no card.

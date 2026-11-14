@@ -24,6 +24,8 @@ const ClassCardHandles = [
   'pickGroupTitle',
   'pickRows',
   'pickMore',
+  'pickChoiceTags',
+  'pickChoose',
 ] as const;
 
 export default ClassCardHandles;

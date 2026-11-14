@@ -1,0 +1,190 @@
+@use '../../styles/globals' as *;
+
+.raceMix {
+  @include flex-col-start;
+  gap: $spacing-3;
+  margin-top: $spacing-3;
+}
+
+.raceMixNote {
+  @include main-sm($color-text-muted, $font-weight-regular, 1.5);
+}
+
+.raceMixTiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: $spacing-2;
+  width: 100%;
+}
+
+.raceMixTile {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr);
+  grid-template-areas: 'art body' 'acts acts';
+  gap: $spacing-2 $spacing-3;
+  padding: $spacing-3;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  background: $surface-raised;
+
+  &--on {
+    border-color: $color-accent-line;
+    background: $accent-overlay;
+  }
+}
+
+.raceMixTileArt {
+  grid-area: art;
+  position: relative;
+  overflow: hidden;
+  width: 3rem;
+  height: 3rem;
+  border-radius: $radius-sm;
+}
+
+.raceMixTileBody {
+  grid-area: body;
+  @include flex-col-start;
+  min-width: 0;
+}
+
+.raceMixTileName {
+  @include cinzel-md($color-text, $font-weight-semibold);
+}
+
+.raceMixTileMeta {
+  @include main-xs($color-text-muted, $font-weight-regular);
+}
+
+.raceMixTileActs {
+  grid-area: acts;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-3;
+}
+
+.raceMixMark {
+  padding: $spacing-1 $spacing-3;
+  border-radius: $radius-md;
+  cursor: pointer;
+  @include btn-secondary;
+  @include main-xs($color-text, $font-weight-semibold);
+  @include focus-ring;
+
+  &[aria-checked='true'] {
+    @include btn-primary;
+    @include main-xs($color-text-on-accent, $font-weight-semibold);
+  }
+}
+
+.raceMixSee {
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  text-decoration: underline;
+  @include main-xs($color-accent, $font-weight-semibold);
+  @include focus-ring;
+}
+
+.raceMixOptions {
+  display: grid;
+  gap: $spacing-2;
+  width: 100%;
+}
+
+.raceMixOption {
+  @include flex-col-start;
+  gap: $spacing-1;
+  padding: $spacing-3;
+  border: 1px solid $color-border-control;
+  border-radius: $radius-md;
+  background: $surface-raised;
+  text-align: left;
+  cursor: pointer;
+  @include focus-ring;
+
+  &[aria-checked='true'] {
+    border-color: $color-accent-line;
+    background: $accent-overlay;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+}
+
+.raceMixOptionName {
+  @include main-md($color-text, $font-weight-semibold);
+}
+
+.raceMixOptionText {
+  @include main-sm($color-text-muted, $font-weight-regular, 1.5);
+}
+
+.raceMixOptionWhy {
+  @include main-xs($color-warning, $font-weight-semibold);
+}
+
+.raceMixOptionTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-1;
+}
+
+.raceMixTag {
+  padding: $spacing-1 $spacing-2;
+  border: 1px solid $color-border;
+  border-radius: $radius-sm;
+  @include main-xs($color-text-muted, $font-weight-regular);
+}
+
+.raceMixGroup {
+  @include flex-col-start;
+  gap: $spacing-2;
+  width: 100%;
+}
+
+.raceMixPoolHead {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+  @include cinzel-md($color-text, $font-weight-semibold);
+}
+
+.raceMixPoolSub {
+  @include caption($color-text-subtle, $font-weight-semibold);
+}
+
+.raceMixCounter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-3;
+}
+
+.raceMixCounterBig {
+  @include cinzel-xl($color-accent, $font-weight-bold);
+
+  small {
+    @include main-xs($color-text-muted, $font-weight-regular);
+  }
+}
+
+.raceMixCounterPips {
+  display: inline-flex;
+  gap: $spacing-1;
+}
+
+.raceMixCounterPip {
+  width: $spacing-3;
+  height: $spacing-3;
+  border: 1px solid $color-accent-line;
+  transform: rotate(45deg);
+
+  &--on {
+    background: $color-accent-fill;
+  }
+}

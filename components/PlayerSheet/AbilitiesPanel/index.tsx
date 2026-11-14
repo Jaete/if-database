@@ -8,7 +8,7 @@ import DetailCard from '../DetailCard';
 import { useSideReader } from '../useSideReader';
 import PromptModal from '@/components/PromptModal';
 import { useEditing } from '../EditingContext';
-import { useRacePicker } from '../RacePickerContext';
+import { useCatalogRequest } from '../CatalogLayerContext';
 import { useRaceChoice } from '../useRaceChoice';
 import AbilitiesPanelHandles from './handles';
 
@@ -74,7 +74,7 @@ const AbilitiesPanel = () => {
   const reader = useSideReader<IEntry>();
   const [editing, setEditing] = useState<Editing>(null);
   const { editable, objects, setField, value } = useEditing();
-  const picker = useRacePicker();
+  const catalog = useCatalogRequest();
   const { lineage, abilities: raceAbilities, freeText } = useRaceChoice();
   const className = String(value('class') ?? '').trim();
   const keyOf = (entry: IEntry) => `${entry.path}:${entry.at}`;
@@ -284,7 +284,7 @@ const AbilitiesPanel = () => {
       {editable && (
         <div className={handles.sheetMasterNote}>
           <span>Estas vêm da raça e não se editam aqui.</span>
-          <button type="button" onClick={() => picker.open()}>
+          <button type="button" onClick={() => catalog.open({ kind: 'race' })}>
             Trocar raça
           </button>
         </div>
@@ -299,7 +299,7 @@ const AbilitiesPanel = () => {
             ? `A raça está em texto livre (${freeText}). Vincule-a ao códice para as habilidades raciais entrarem aqui.`
             : 'Vincule a raça ao códice para as habilidades raciais entrarem aqui.'}
         </span>
-        <button type="button" onClick={() => picker.open()}>
+        <button type="button" onClick={() => catalog.open({ kind: 'race' })}>
           Vincular raça
         </button>
       </div>

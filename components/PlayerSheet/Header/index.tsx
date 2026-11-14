@@ -6,7 +6,8 @@ import { DASH, formatMeters, formatNumber } from '../sheetData';
 import HeaderHandles from './handles';
 import { useEditing } from '../EditingContext';
 import EditableText from '../EditableText';
-import { useRacePicker } from '../RacePickerContext';
+import { useCatalogRequest } from '../CatalogLayerContext';
+import ChooserField from '../ChooserField';
 import { useRaceChoice } from '../useRaceChoice';
 
 interface IProps {
@@ -15,9 +16,9 @@ interface IProps {
 
 const Header = ({ player }: IProps) => {
   const handles = useCssHandles(HeaderHandles);
-  const { editable, value } = useEditing();
+  const { editable, value, isDirtyUnder } = useEditing();
   const { lineage } = useRaceChoice();
-  const picker = useRacePicker();
+  const catalog = useCatalogRequest();
   const { combat, experience, chi, senses } = player;
 
   const eyebrow = [
@@ -92,24 +93,37 @@ const Header = ({ player }: IProps) => {
           </EditableText>
         </h1>
         <div className={handles.sheetLine}>
-          <EditableText path="class" label="Classe">
-            {player.class}
-          </EditableText>{' '}
+          {editable ? (
+            <ChooserField
+              label="Classe"
+              value={String(value('class') ?? '')}
+              previous={player.class}
+              pending={isDirtyUnder('classId') || isDirtyUnder('class')}
+              onOpen={() => catalog.open({ kind: 'class' })}
+            />
+          ) : (
+            <EditableText path="class" label="Classe">
+              {player.class}
+            </EditableText>
+          )}{' '}
           <span className={handles.sheetLineMuted}>·</span>{' '}
           {lineage ? (
             // Ligada ao códice, a raça deixa de ser texto: em leitura é o link
             // para a página dela, em edição abre o seletor.
             editable ? (
-              <button
-                type="button"
-                className={handles.sheetLineButton}
-                onClick={() => picker.open(lineage.issueStep)}
-              >
-                {lineage.label}
-                {lineage.issues.length > 0 && (
-                  <span className={handles.sheetLineWarn}> · incompleta</span>
-                )}
-              </button>
+              <ChooserField
+                label="Raça"
+                value={lineage.label}
+                previous={player.lineage?.label ?? player.race}
+                pending={isDirtyUnder('raceId') || isDirtyUnder('raceChoice')}
+                warn={lineage.issues.length > 0 ? 'incompleta' : undefined}
+                onOpen={() =>
+                  catalog.open({
+                    kind: 'race',
+                    focus: lineage.mixed ? 'mixed' : 'current',
+                  })
+                }
+              />
             ) : (
               <a
                 className={handles.sheetLineLink}
@@ -120,6 +134,14 @@ const Header = ({ player }: IProps) => {
                 {lineage.label}
               </a>
             )
+          ) : editable ? (
+            <ChooserField
+              label="Raça"
+              value={String(value('race') ?? '')}
+              previous={player.race}
+              pending={isDirtyUnder('raceId') || isDirtyUnder('raceChoice')}
+              onOpen={() => catalog.open({ kind: 'race' })}
+            />
           ) : (
             <EditableText path="race" label="Raça">
               {player.race}

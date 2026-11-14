@@ -1,0 +1,46 @@
+@use '../../styles/globals' as *;
+
+.choiceTag {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-1;
+  padding: $spacing-1 $spacing-2;
+  border: 1px solid $color-border-strong;
+  border-radius: $radius-full;
+  background: $surface-raised;
+  @include main-xs($color-text-muted, $font-weight-semibold, 1.2, 0.04em);
+  white-space: nowrap;
+
+  &--current {
+    border-color: $color-accent-line;
+    color: $color-accent;
+  }
+
+  &--chosen {
+    border-color: $color-accent-line;
+    background: $color-accent-fill;
+    color: $color-text-on-accent;
+  }
+
+  &--blocked {
+    border-color: $color-border;
+    color: $color-text-subtle;
+  }
+
+  &--unique {
+    border-color: $warning-border;
+    background: $warning-bg;
+    color: $color-warning;
+  }
+
+  &--warn {
+    border-color: $warning-border;
+    background: $warning-bg;
+    color: $color-warning;
+  }
+}
+
+.choiceTagIcon {
+  width: 0.75rem;
+  height: 0.75rem;
+}

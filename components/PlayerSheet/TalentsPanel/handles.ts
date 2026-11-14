@@ -34,6 +34,11 @@ const TalentsPanelHandles = [
   'sheetTalentMore',
   'sheetTalentPicks',
   'sheetTalentPick',
+  'sheetTalentOpenList',
+  'sheetTalentOpenItem',
+  'sheetTalentOpenLabel',
+  'sheetTalentNodeBtn',
+  'sheetTalentPending',
 ] as const;
 
 export default TalentsPanelHandles;

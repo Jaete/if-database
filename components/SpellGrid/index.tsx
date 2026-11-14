@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import type ISpell from '@/db/spells/spell.d';
+import type { ISpellChoice } from '@/lib/catalogChoice';
 import {
   circleLabel,
   circleTitle,
@@ -11,7 +12,14 @@ import {
 } from '@/db/l10n/spells';
 import { applyModifiers, useCssHandles } from '@/hooks/useCssHandles';
 import { useOptionalAuth } from '@/app/context/AuthContext';
-import { DownloadIcon, PlusIcon, SearchIcon } from '../Icons';
+import {
+  CheckIcon,
+  DownloadIcon,
+  LockIcon,
+  PlusIcon,
+  SearchIcon,
+} from '../Icons';
+import ChoiceTag from '../ChoiceTag';
 import EmbedBackLink from '../EmbedBackLink';
 import ImageField from '../ImageField';
 import PromptModal from '../PromptModal';
@@ -37,22 +45,124 @@ interface IProps {
   readOnly?: boolean;
   /** Slug da magia a abrir de cara (o `?magia=` da URL). */
   initialSlug?: string;
+  /**
+   * Seletor da ficha: a lista vira a da classe (com o grimório inteiro à
+   * parte, desativado), cada linha ganha o botão de preparar e os círculos
+   * mostram n/limite.
+   */
+  choice?: ISpellChoice;
 }
 
 const countLabel = (count: number) =>
   `${count} ${count === 1 ? 'magia' : 'magias'}`;
+
+type SpellState =
+  | { kind: 'known' }
+  | { kind: 'open' }
+  | { kind: 'full' }
+  | { kind: 'locked'; opensAt?: number }
+  | { kind: 'outside' };
+
+/** Em que pé a magia está para a ficha: preparada, livre, cheio, trancada. */
+function spellState(choice: ISpellChoice, spell: ISpell): SpellState {
+  if (!(spell.classIds ?? []).map(String).includes(choice.classId)) {
+    return { kind: 'outside' };
+  }
+  const id = String(spell._id);
+  if (choice.known.includes(id)) return { kind: 'known' };
+  if (spell.circle > choice.maxCircle) {
+    return { kind: 'locked', opensAt: choice.opensAt[spell.circle] };
+  }
+  const used = choice.known.length ? countKnownIn(choice, spell.circle) : 0;
+  return used >= (choice.limits[spell.circle] ?? 0)
+    ? { kind: 'full' }
+    : { kind: 'open' };
+}
+
+// Quantas das magias preparadas estão neste círculo: o catálogo é a única
+// fonte do círculo de cada id, então o cálculo usa o que a camada já mediu.
+function countKnownIn(choice: ISpellChoice, circle: number) {
+  return choice.counts[circle] ?? 0;
+}
+
+function circleCounter(choice: ISpellChoice, circle: number) {
+  if (circle > choice.maxCircle) {
+    const at = choice.opensAt[circle];
+    return at ? `a partir do nível ${at}` : 'ainda não conjura';
+  }
+  return `${choice.counts[circle] ?? 0}/${choice.limits[circle] ?? 0}`;
+}
+
+const SpellToggle = ({
+  state,
+  spell,
+  choice,
+  labelled = false,
+}: {
+  state: SpellState;
+  spell: ISpell;
+  choice: ISpellChoice;
+  labelled?: boolean;
+}) => {
+  const handles = useCssHandles(SpellGridHandles);
+  if (state.kind === 'outside') return null;
+  if (state.kind === 'locked') {
+    return (
+      <span className={handles.spellbookChoiceTag}>
+        <ChoiceTag kind="blocked">
+          {state.opensAt ? `Nível ${state.opensAt}` : 'Trancada'}
+        </ChoiceTag>
+      </span>
+    );
+  }
+  const known = state.kind === 'known';
+  const full = state.kind === 'full';
+  const swapOnly = full;
+  const text = known
+    ? 'Preparada'
+    : swapOnly
+      ? 'Círculo cheio: troque'
+      : 'Preparar';
+  return (
+    <button
+      type="button"
+      className={`${handles.spellbookChoiceToggle}${
+        known ? ` ${applyModifiers(handles.spellbookChoiceToggle, 'on')}` : ''
+      }`}
+      aria-pressed={known}
+      disabled={swapOnly}
+      title={
+        swapOnly
+          ? 'Todos os espaços deste círculo estão ocupados. Desmarque uma magia dele para trocar.'
+          : undefined
+      }
+      onClick={() =>
+        choice.onToggle({
+          _id: String(spell._id),
+          name: spell.name,
+          circle: spell.circle,
+        })
+      }
+    >
+      {known && <CheckIcon />}
+      {swapOnly && <LockIcon />}
+      {labelled || known || swapOnly ? text : 'Preparar'}
+    </button>
+  );
+};
 
 const SpellGrid = ({
   initialSpells,
   compact = false,
   readOnly = false,
   initialSlug,
+  choice,
 }: IProps) => {
   const handles = useCssHandles(SpellGridHandles);
   // O embed não tem AuthProvider: sem contexto, ninguém edita. A guarda de
   // verdade é a da rota; esta é a afordância.
   const auth = useOptionalAuth();
-  const canEdit = !readOnly && (auth?.canEdit ?? false);
+  const canEdit = !readOnly && !choice && (auth?.canEdit ?? false);
   const {
     spells,
     visible,
@@ -75,6 +185,8 @@ const SpellGrid = ({
   // `null` = fechado, `undefined` = magia nova.
   const [editing, setEditing] = useState<ISpell | undefined | null>(null);
   const [importing, setImporting] = useState(false);
+  // Fora da lista da classe, só para consulta (nada a preparar).
+  const [wholeBook, setWholeBook] = useState(false);
   const groupsRef = useRef<HTMLDivElement>(null);
 
   // ↑/↓ andam entre as linhas, sem sair do grupo de teclado da lista.
@@ -89,6 +201,19 @@ const SpellGrid = ({
     const next = index + (event.key === 'ArrowDown' ? 1 : -1);
     rows[Math.max(0, Math.min(rows.length - 1, next))].focus();
   };
+
+  const shownGroups = choice
+    ? groups
+        .map((group) => ({
+          ...group,
+          spells: group.spells.filter(
+            (spell) =>
+              wholeBook ||
+              (spell.classIds ?? []).map(String).includes(choice.classId)
+          ),
+        }))
+        .filter((group) => group.spells.length > 0)
+    : groups;
 
   const search = (
     <span className={handles.spellbookSearchWrap}>
@@ -174,6 +299,17 @@ const SpellGrid = ({
           </p>
         )}
 
+        {choice && (
+          <label className={handles.spellbookChoiceWhole}>
+            <input
+              type="checkbox"
+              checked={wholeBook}
+              onChange={(e) => setWholeBook(e.target.checked)}
+            />
+            Grimório inteiro (as de fora da classe só para consulta)
+          </label>
+        )}
+
         <div className={handles.spellbookBody}>
           <nav
             className={handles.spellbookIndex}
@@ -200,14 +336,14 @@ const SpellGrid = ({
             className={handles.spellbookGroups}
             onKeyDown={onListKeyDown}
           >
-            {groups.length === 0 && (
+            {shownGroups.length === 0 && (
               <p className={handles.spellbookEmpty}>
                 {spells.length === 0 && canEdit
                   ? 'Nenhuma magia encontrada. Importe um tópico do fórum para começar.'
                   : 'Nenhuma magia encontrada.'}
               </p>
             )}
-            {groups.map((group) => (
+            {shownGroups.map((group) => (
               <section
                 key={group.circle}
                 id={`spellbook-group-${group.circle}`}
@@ -223,19 +359,36 @@ const SpellGrid = ({
                   </h2>
                   <span className={handles.spellbookGroupRule} />
                   <span className={handles.spellbookGroupCount}>
-                    {countLabel(group.spells.length)}
+                    {choice
+                      ? circleCounter(choice, group.circle)
+                      : countLabel(group.spells.length)}
                   </span>
                 </div>
                 <ul className={handles.spellbookList}>
-                  {group.spells.map((spell) => (
-                    <li key={spell.slug}>
+                  {group.spells.map((spell) => {
+                    const row = (
                       <SpellRow
                         spell={spell}
                         isCurrent={spell.slug === currentSlug}
                         onOpen={openSpell}
                       />
-                    </li>
-                  ))}
+                    );
+                    if (!choice) return <li key={spell.slug}>{row}</li>;
+                    const state = spellState(choice, spell);
+                    return (
+                      <li
+                        key={spell.slug}
+                        className={handles.spellbookChoiceItem}
+                      >
+                        {row}
+                        <SpellToggle
+                          state={state}
+                          spell={spell}
+                          choice={choice}
+                        />
+                      </li>
+                    );
+                  })}
                 </ul>
               </section>
             ))}
@@ -253,6 +406,16 @@ const SpellGrid = ({
           compact={compact}
           onClose={closeSpell}
           onEdit={setEditing}
+          action={
+            choice && (
+              <SpellToggle
+                state={spellState(choice, viewing)}
+                spell={viewing}
+                choice={choice}
+                labelled
+              />
+            )
+          }
         />
       )}
 

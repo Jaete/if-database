@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import type { ICitizenTalent, ITalentSlots } from '@/db/citizens/citizen.d';
-import type { ITalentOption } from '@/services/talentCatalog';
-import { loadTalentOptions } from './catalogs';
+import type {
+  ICitizenTalent,
+  ITalentMilestone,
+  ITalentSlots,
+} from '@/db/citizens/citizen.d';
 import { useEditing } from './EditingContext';
 import { talentProgress } from './sheetData';
 
@@ -16,46 +17,23 @@ export interface ITalentGroup {
 }
 
 const PATH = 'talents';
+const MILESTONES_PATH = 'talentMilestones';
 
 /**
  * Os talentos de uma ficha e os marcos da classe.
  *
- * Os marcos e a descrição dos talentos já vêm resolvidos na leitura; o
- * catálogo para escolher (os 300 e tantos gerais mais os da classe) só é
- * baixado em edição, e é o mesmo padrão de `useArchetype`. Cada escolha grava
- * a entrada inteira no rascunho — o servidor guarda só `key`, `level` e
- * `name`, mas a tela precisa do resto antes do save.
+ * Os marcos e a descrição dos talentos já vêm resolvidos na leitura. Escolher
+ * um talento é na camada de escolha (`CatalogLayer`), que grava no rascunho; aqui
+ * ficam só a leitura, a troca de nível, a remoção e o registro do que cada
+ * marco geral virou (atributos ou talento).
  */
 export const useTalents = () => {
-  const { editable, value, read, objects, setField } = useEditing();
-  const classId = String(value('classId') ?? '');
+  const { value, read, objects, setField } = useEditing();
   const level = Number(value('level')) || 0;
   const talents = objects<ICitizenTalent>(PATH).filter((t) => t?.key);
   const slots = read<ITalentSlots>('talentSlots');
-
-  const [loaded, setLoaded] = useState<{
-    classId: string;
-    options: ITalentOption[];
-  } | null>(null);
-  const [failed, setFailed] = useState(false);
-
-  useEffect(() => {
-    if (!editable || loaded?.classId === classId) return;
-    let active = true;
-    loadTalentOptions(classId)
-      .then((options) => {
-        if (active) setLoaded({ classId, options });
-      })
-      .catch(() => {
-        if (active) setFailed(true);
-      });
-    return () => {
-      active = false;
-    };
-  }, [editable, classId, loaded]);
-
-  const options = loaded?.classId === classId ? loaded.options : null;
-  const progress = talentProgress(slots, talents, level);
+  const milestones = objects<ITalentMilestone>(MILESTONES_PATH);
+  const progress = talentProgress(slots, talents, level, milestones);
 
   const groups: ITalentGroup[] = [];
   talents.forEach((talent, at) => {
@@ -71,24 +49,6 @@ export const useTalents = () => {
   for (const group of groups) group.picks.sort((a, b) => a.level - b.level);
   groups.sort((a, b) => a.picks[0].level - b.picks[0].level);
 
-  const countOf = (key: string) => talents.filter((t) => t.key === key).length;
-
-  const add = (option: ITalentOption, at: number) =>
-    setField(PATH, [
-      ...talents,
-      {
-        key: option.key,
-        level: at,
-        name: option.name,
-        scope: option.scope,
-        category: option.category,
-        prerequisites: option.prerequisites,
-        description: option.description,
-        group: option.group,
-        stackable: option.stackable,
-      } satisfies ICitizenTalent,
-    ]);
-
   const remove = (at: number) =>
     setField(
       PATH,
@@ -101,19 +61,29 @@ export const useTalents = () => {
       talents.map((t, i) => (i === at ? { ...t, level: next } : t))
     );
 
+  /** Registra o que o marco geral do nível virou; `undefined` apaga o registro. */
+  const setMilestone = (
+    milestoneLevel: number,
+    use: ITalentMilestone['use'] | undefined
+  ) =>
+    setField(
+      MILESTONES_PATH,
+      [
+        ...milestones.filter((m) => m.level !== milestoneLevel),
+        ...(use ? [{ level: milestoneLevel, use }] : []),
+      ].sort((a, b) => a.level - b.level)
+    );
+
   return {
-    classId,
     level,
     className: slots?.className ?? '',
     slots,
     talents,
     groups,
     progress,
-    options,
-    failed,
-    countOf,
-    add,
+    milestones,
     remove,
     setLevel,
+    setMilestone,
   };
 };

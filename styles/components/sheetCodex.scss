@@ -1,0 +1,216 @@
+@use '../../styles/globals' as *;
+
+// A camada de escolha da ficha: ocupa a moldura inteira (`.playerSheet` é
+// `position: relative; overflow: hidden`) e monta os catálogos de verdade.
+.sheetCodex {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  background: $color-bg;
+  outline: none;
+  @include fade-in(0.2s);
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+.sheetCodexBar {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-2 $spacing-4;
+  padding: $spacing-3 $spacing-5;
+  border-bottom: 1px solid $color-border;
+  background: $surface;
+
+  @include mobile {
+    padding: $spacing-2 $spacing-3;
+    gap: $spacing-1 $spacing-3;
+  }
+}
+
+.sheetCodexBack {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-2;
+  padding: $spacing-2 $spacing-3;
+  border-radius: $radius-md;
+  cursor: pointer;
+  @include btn-secondary;
+  @include main-sm($color-text, $font-weight-semibold);
+  @include focus-ring;
+
+  svg {
+    width: 1rem;
+    height: 1rem;
+  }
+}
+
+.sheetCodexFor {
+  flex: 1 1 14rem;
+  min-width: 0;
+  @include main-sm($color-text-muted, $font-weight-regular);
+
+  b {
+    color: $color-text;
+    font-weight: $font-weight-semibold;
+  }
+}
+
+.sheetCodexCrumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-1;
+  @include main-xs($color-text-muted, $font-weight-regular);
+}
+
+.sheetCodexCrumbItem {
+  &:not(:first-child)::before {
+    content: '›';
+    margin-right: $spacing-1;
+    color: $color-text-subtle;
+  }
+
+  &--current {
+    color: $color-accent;
+    font-weight: $font-weight-semibold;
+  }
+}
+
+// Contenção: `position: fixed` dos catálogos (classe aberta, detalhe da magia,
+// modais) passa a ser relativo a este bloco.
+.sheetCodexBody {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  contain: layout paint;
+
+  // As telas de página dos catálogos nasceram para a janela inteira.
+  > .grimoire,
+  > .spellbook,
+  > .raceAtlas,
+  > .codex {
+    min-height: 0;
+  }
+}
+
+.sheetCodexLoading {
+  padding: $spacing-10 $spacing-5;
+  @include main-md($color-text-muted, $font-weight-regular, 1.5, 0, center);
+}
+
+// ── Bandeja ──────────────────────────────────────────────────────────────────
+
+.sheetCodexTray {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: $spacing-3 $spacing-5;
+  max-height: 40%;
+  overflow-y: auto;
+  padding: $spacing-3 $spacing-5;
+  border-top: 1px solid $color-accent-line;
+  background: $surface-elevated;
+  @include elevation(3);
+
+  @include mobile {
+    padding: $spacing-3 $spacing-4;
+  }
+}
+
+.sheetCodexTrayMain {
+  flex: 1 1 18rem;
+  min-width: 0;
+  @include flex-col-start;
+  gap: $spacing-2;
+}
+
+.sheetCodexTrayChange {
+  @include main-sm($color-text-muted, $font-weight-regular, 1.4);
+
+  b {
+    color: $color-text;
+    font-weight: $font-weight-semibold;
+  }
+}
+
+.sheetCodexGains {
+  @include flex-col-start;
+  gap: $spacing-1;
+
+  ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $spacing-1 $spacing-3;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  small {
+    @include main-xs($color-text-subtle, $font-weight-regular);
+  }
+}
+
+.sheetCodexGainsTitle {
+  @include caption($color-text-subtle, $font-weight-semibold);
+}
+
+.sheetCodexGain {
+  @include main-sm($color-success, $font-weight-medium);
+}
+
+.sheetCodexRemove {
+  @include main-sm($color-error, $font-weight-medium);
+}
+
+.sheetCodexTrayWarn {
+  list-style: none;
+  margin: 0;
+  padding: $spacing-2 $spacing-3;
+  border: 1px solid $warning-border;
+  border-radius: $radius-md;
+  background: $warning-bg;
+  @include main-xs($color-warning, $font-weight-medium, 1.4);
+}
+
+.sheetCodexTrayActs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-2;
+}
+
+.sheetCodexTrayBtn {
+  padding: $spacing-2 $spacing-4;
+  border-radius: $radius-md;
+  cursor: pointer;
+  @include main-sm($color-text, $font-weight-semibold);
+  @include focus-ring;
+
+  &--primary {
+    @include btn-primary;
+    @include main-sm($color-text-on-accent, $font-weight-semibold);
+  }
+
+  &--ghost {
+    @include btn-ghost;
+  }
+
+  &--danger {
+    @include btn-danger;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}

@@ -5,7 +5,8 @@ import { useCssHandles, applyModifiers } from '@/hooks/useCssHandles';
 import { usePlayerSheet } from './usePlayerSheet';
 import { useSheetEditing } from './useSheetEditing';
 import { EditingProvider } from './EditingContext';
-import { RacePickerProvider } from './RacePickerContext';
+import { CatalogLayerProvider } from './CatalogLayerContext';
+import CatalogLayerHost from './CatalogLayerHost';
 import SaveBar from './SaveBar';
 import Header from './Header';
 import NarrationStyle from './NarrationStyle';
@@ -25,6 +26,7 @@ import PlayerSheetHandles from './handles';
 import { formatModifier } from '@/lib/stats';
 import {
   countEquipped,
+  summarizeChanges,
   EQUIPMENT_SLOTS,
   readArchetype,
   readProfessions,
@@ -39,6 +41,9 @@ interface IProps {
   /** Origem do fórum autorizada a falar com este iframe. Vazia = sem edição. */
   forumOrigin: string;
 }
+
+const initialSpellRefs = (player: IPublicPlayer) =>
+  player.playerSpellcasting?.spellRefs ?? [];
 
 const PlayerSheet = ({ player: initialPlayer, forumOrigin }: IProps) => {
   const handles = useCssHandles(PlayerSheetHandles);
@@ -58,6 +63,9 @@ const PlayerSheet = ({ player: initialPlayer, forumOrigin }: IProps) => {
     read,
     setField,
     isFieldDirty,
+    isDirtyUnder,
+    revertField,
+    dirtyPaths,
     save,
     cancel,
   } = useSheetEditing(initialPlayer, forumOrigin);
@@ -93,6 +101,14 @@ const PlayerSheet = ({ player: initialPlayer, forumOrigin }: IProps) => {
     .filter((l) => l.level > 0)
     .flatMap((l) => l.spells ?? [])
     .filter((spell) => spell.prepared).length;
+
+  const savedSpellIds = (
+    initialSpellRefs(player) as { spellId?: unknown }[]
+  ).map((r) => String(r.spellId));
+  const draftSpellIds = objects<{ spellId?: unknown }>(
+    'playerSpellcasting.spellRefs'
+  ).map((r) => String(r.spellId));
+  const summary = summarizeChanges(dirtyPaths, savedSpellIds, draftSpellIds);
 
   const renderScreen = (id: ScreenId) => {
     switch (id) {
@@ -137,7 +153,8 @@ const PlayerSheet = ({ player: initialPlayer, forumOrigin }: IProps) => {
         const progress = talentProgress(
           player.talentSlots,
           player.talents ?? [],
-          player.level ?? 0
+          player.level ?? 0,
+          player.talentMilestones ?? []
         );
         return {
           title: 'Talentos',
@@ -187,8 +204,10 @@ const PlayerSheet = ({ player: initialPlayer, forumOrigin }: IProps) => {
       read={read}
       setField={setField}
       isFieldDirty={isFieldDirty}
+      isDirtyUnder={isDirtyUnder}
+      revertField={revertField}
     >
-      <RacePickerProvider>
+      <CatalogLayerProvider>
         <div className={handles.playerSheetStage}>
           <article
             ref={sheetRef}
@@ -256,8 +275,10 @@ const PlayerSheet = ({ player: initialPlayer, forumOrigin }: IProps) => {
               </div>
             </div>
             <Hints message={status || message} />
+            <CatalogLayerHost />
             <SaveBar
               visible={isDirty}
+              summary={summary}
               count={dirtyCount}
               isSaving={isSaving}
               error={saveError}
@@ -266,7 +287,7 @@ const PlayerSheet = ({ player: initialPlayer, forumOrigin }: IProps) => {
             />
           </article>
         </div>
-      </RacePickerProvider>
+      </CatalogLayerProvider>
     </EditingProvider>
   );
 };

@@ -1,0 +1,75 @@
+@use '../../styles/globals' as *;
+
+.raceStrip {
+  @include flex-col-start;
+  gap: $spacing-3;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: $spacing-4 $spacing-5;
+  border: 1px solid $color-accent-line;
+  border-radius: $radius-lg;
+  background: $surface-raised;
+  position: relative;
+  z-index: 2;
+
+  @include mobile {
+    padding: $spacing-3 $spacing-4;
+  }
+}
+
+.raceStripHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-2 $spacing-3;
+}
+
+.raceStripTitle {
+  @include cinzel-lg($color-text, $font-weight-bold, 1.2, 0.04em);
+}
+
+.raceStripNote {
+  @include main-sm($color-text-muted, $font-weight-regular, 1.5);
+}
+
+.raceStripSubs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-2;
+}
+
+.raceStripSub {
+  padding: $spacing-2 $spacing-3;
+  border: 1px solid $color-border-control;
+  border-radius: $radius-full;
+  background: $surface;
+  cursor: pointer;
+  @include main-sm($color-text, $font-weight-medium);
+  @include focus-ring;
+
+  &[aria-checked='true'] {
+    border-color: $color-accent-line;
+    background: $color-accent-fill;
+    color: $color-text-on-accent;
+  }
+}
+
+.raceStripActs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-2;
+}
+
+.raceStripBtn {
+  padding: $spacing-2 $spacing-5;
+  border-radius: $radius-md;
+  cursor: pointer;
+  @include btn-primary;
+  @include main-sm($color-text-on-accent, $font-weight-semibold);
+  @include focus-ring;
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: default;
+  }
+}

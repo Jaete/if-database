@@ -49,3 +49,5 @@ export { default as SearchIcon } from './SearchIcon';
 export { default as ThemeSystemIcon } from './ThemeSystemIcon';
 export { default as ThemeLightIcon } from './ThemeLightIcon';
 export { default as ThemeDarkIcon } from './ThemeDarkIcon';
+export { default as CheckIcon } from './CheckIcon';
+export { default as LockIcon } from './LockIcon';

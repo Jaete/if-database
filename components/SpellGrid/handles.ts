@@ -28,6 +28,10 @@ const SpellGridHandles = [
   'spellbookGroupCount',
   'spellbookList',
   'spellbookEmpty',
+  'spellbookChoiceItem',
+  'spellbookChoiceWhole',
+  'spellbookChoiceTag',
+  'spellbookChoiceToggle',
 ] as const;
 
 export default SpellGridHandles;

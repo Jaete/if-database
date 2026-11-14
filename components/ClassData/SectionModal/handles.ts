@@ -55,6 +55,7 @@ const SectionModalHandles = [
   'clsTalent',
   'clsReq',
   'clsGroupHead',
+  'clsArchPick',
 ] as const;
 
 export default SectionModalHandles;

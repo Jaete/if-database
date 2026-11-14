@@ -106,13 +106,6 @@ export const useArchetype = () => {
 
   const remaining = Math.max(0, featureSlots - chosen.length);
 
-  /** Trocar de arquétipo zera as habilidades: elas eram do arquétipo antigo. */
-  const choose = (slug: string) => {
-    if (slug === storedSlug) return;
-    setField(`${PATH}.slug`, slug || undefined);
-    setField(`${PATH}.features`, []);
-  };
-
   const add = (name: string) => {
     if (taken.has(featureKey(name)) || remaining <= 0) return;
     setField(`${PATH}.features`, [...chosen, name]);
@@ -138,7 +131,6 @@ export const useArchetype = () => {
     features: current?.features ?? [],
     rows,
     taken,
-    choose,
     add,
     remove,
   };

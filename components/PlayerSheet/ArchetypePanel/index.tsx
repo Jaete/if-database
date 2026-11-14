@@ -8,6 +8,7 @@ import DetailCard from '../DetailCard';
 import { useSideReader } from '../useSideReader';
 import ArchetypePicker from './ArchetypePicker';
 import { useArchetype } from './useArchetype';
+import { useCatalogRequest } from '../CatalogLayerContext';
 import { useEditing } from '../EditingContext';
 import ArchetypePanelHandles from './handles';
 
@@ -25,7 +26,8 @@ import ArchetypePanelHandles from './handles';
  */
 const ArchetypePanel = () => {
   const handles = useCssHandles(ArchetypePanelHandles);
-  const { editable } = useEditing();
+  const { editable, isDirtyUnder, revertField } = useEditing();
+  const catalog = useCatalogRequest();
   const [picking, setPicking] = useState(false);
   const reader = useSideReader<{ name: string; description?: string }>();
   const archetype = useArchetype();
@@ -44,37 +46,27 @@ const ArchetypePanel = () => {
           >
             <span className={handles.sheetCaption}>Arquétipo</span>
 
-            {editable ? (
-              <select
-                className={handles.sheetArchetypeSelect}
-                value={archetype.slug}
-                onChange={(event) => archetype.choose(event.target.value)}
-                aria-label="Arquétipo"
-              >
-                <option value="">Escolher arquétipo...</option>
-                {(archetype.options ?? []).map((option) => (
-                  <option key={option.slug} value={option.slug}>
-                    {option.name}
-                  </option>
-                ))}
-                {/* O arquétipo já gravado precisa de uma opção enquanto o catálogo
-                não chega, ou o select apareceria em branco e a primeira
-                interação apagaria a escolha. */}
-                {archetype.slug &&
-                  !(archetype.options ?? []).some(
-                    (option) => option.slug === archetype.slug
-                  ) && (
-                    <option value={archetype.slug}>
-                      {archetype.name || archetype.slug}
-                    </option>
-                  )}
-              </select>
-            ) : (
-              <div className={handles.sheetMasterRow}>
-                <span className={handles.sheetMasterName}>
-                  {archetype.name || 'Nenhum arquétipo escolhido'}
-                </span>
-              </div>
+            <div className={handles.sheetMasterRow}>
+              <span className={handles.sheetMasterName}>
+                {archetype.name || 'Nenhum arquétipo escolhido'}
+              </span>
+              {editable && (
+                <button
+                  type="button"
+                  className={handles.sheetArchetypeChange}
+                  onClick={() => catalog.open({ kind: 'archetype' })}
+                >
+                  {archetype.slug ? 'Trocar arquétipo' : 'Escolher arquétipo'}
+                </button>
+              )}
+            </div>
+            {editable && isDirtyUnder('archetype') && (
+              <span className={handles.sheetArchetypePending}>
+                <span>não salvo</span>
+                <button type="button" onClick={() => revertField('archetype')}>
+                  Desfazer
+                </button>
+              </span>
             )}
 
             {archetype.description && (

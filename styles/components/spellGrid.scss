@@ -325,3 +325,53 @@
   padding: $spacing-10 0;
   @include main-sm($color-text-muted, $font-weight-regular, 1.5, 0, center);
 }
+
+// ── Seletor da ficha (modo escolha) ──────────────────────────────────────────
+
+.spellbookChoiceItem {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: $spacing-2;
+}
+
+.spellbookChoiceWhole {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-2;
+  margin: $spacing-2 0;
+  cursor: pointer;
+  @include main-sm($color-text-muted, $font-weight-regular);
+}
+
+.spellbookChoiceTag {
+  @include flex-center;
+}
+
+.spellbookChoiceToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-1;
+  padding: $spacing-2 $spacing-3;
+  border-radius: $radius-md;
+  cursor: pointer;
+  white-space: nowrap;
+  @include btn-secondary;
+  @include main-sm($color-text, $font-weight-semibold);
+  @include focus-ring;
+
+  svg {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+
+  &--on {
+    @include btn-primary;
+    @include main-sm($color-text-on-accent, $font-weight-semibold);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+}

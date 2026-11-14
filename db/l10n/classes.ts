@@ -146,6 +146,7 @@ export interface IClassFormSource {
   hpAtFirstLevel?: string;
   hpPerLevel?: string;
   isUnique?: boolean;
+  talentLevels?: number[];
 }
 
 /** Campos do modal: nome, escalares, variantes e descrição. */
@@ -194,6 +195,13 @@ export const classPromptFields = (klass?: IClassFormSource) => [
     ],
   },
   {
+    name: 'talentLevels',
+    label: 'Níveis dos talentos só da classe (vazio = ler da característica)',
+    required: false,
+    initialValue: (klass?.talentLevels ?? []).join(', '),
+    placeholder: 'ex.: 2, 4, 6, 8',
+  },
+  {
     name: 'aliases',
     label: 'Variantes do nome (separadas por vírgula)',
     required: false,
@@ -237,6 +245,12 @@ export const classFromPrompt = (
   // "não" deixaria a classe única para sempre depois do primeiro "sim".
   next.isUnique = values.isUnique === 'sim';
   next.aliases = splitSpellClasses(values.aliases);
+  // Sempre escrito: lista vazia devolve a classe à detecção automática.
+  next.talentLevels = (values.talentLevels ?? '')
+    .split(/[^0-9]+/)
+    .map(Number)
+    .filter((n) => Number.isInteger(n) && n >= 1 && n <= 30)
+    .sort((a, b) => a - b);
   return next as Partial<ICharacterClass>;
 };
 

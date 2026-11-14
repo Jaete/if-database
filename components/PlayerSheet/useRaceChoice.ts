@@ -22,8 +22,7 @@ import { useEditing } from './EditingContext';
  * servidor faz roda aqui, sobre o catálogo (baixado só em edição).
  */
 export const useRaceChoice = () => {
-  const { editable, value, read, objects, setField, isFieldDirty } =
-    useEditing();
+  const { editable, value, read, objects, isFieldDirty } = useEditing();
   const [catalog, setCatalog] = useState<IRaceCatalogEntry[] | null>(null);
   const [failed, setFailed] = useState(false);
 
@@ -79,9 +78,5 @@ export const useRaceChoice = () => {
     catalog,
     bySlug,
     failed,
-    apply: (target: IRaceCatalogEntry, next: ICitizenRaceChoice) => {
-      setField('raceId', target.id);
-      setField('raceChoice', next);
-    },
   };
 };

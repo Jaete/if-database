@@ -3,14 +3,17 @@ import type {
   ICitizenRaceChoice,
   ICitizenTalent,
   IPlayerLineage,
+  ITalentMilestone,
   ITalentSlots,
 } from '../db/citizens/citizen.d';
 import type ICharacterClass from '../db/classes/class.d';
 import type ITalentDoc from '../db/talents/talent.d';
+import { Types } from 'mongoose';
 import CharacterClassModel from '../db/classes/classes';
 import TalentModel from '../db/talents/talents';
 import type { IRaceCatalogEntry } from '../db/races/race.d';
-import { getRaceCatalog } from './race.service';
+import { getRaceCatalog, uniqueRaceConflict } from './race.service';
+import { uniqueClassConflict } from './class.service';
 import { buildLineage, raceAbility, sanitizeRaceChoice } from './raceLineage';
 import { raceLabelOf, resolveRaceTraits } from './raceTraits.service';
 import {
@@ -20,6 +23,9 @@ import {
   type ITalentOption,
 } from './talentCatalog';
 import { talentSlotsOf } from './talentSlots';
+import { requiredLevel } from '../lib/talentPrerequisite';
+import { getClassCasting } from './classSpells.service';
+import SpellModel from '../db/spells/spells';
 
 /**
  * Raça e talentos da ficha: a leitura que resolve o que a ficha guarda e a
@@ -37,6 +43,14 @@ import { talentSlotsOf } from './talentSlots';
 
 /** Falha de validação do que o cliente mandou gravar; vira 400 na rota. */
 export class PlayerSheetError extends Error {}
+
+/** Classe ou raça única tomada por outra ficha; as rotas respondem 409. */
+export class UniqueConflictError extends PlayerSheetError {
+  constructor(message: string) {
+    super(message);
+    this.name = 'UniqueConflictError';
+  }
+}
 
 const OBJECT_ID = /^[0-9a-f]{24}$/i;
 const MAX_TALENTS = 100;
@@ -139,15 +153,43 @@ const readStoredTalents = (raw: unknown): IStoredTalent[] =>
 
 export type ClassForTalents = Pick<
   ICharacterClass,
-  'slug' | 'name' | 'talents' | 'levels'
+  'slug' | 'name' | 'talents' | 'levels' | 'features' | 'talentLevels'
 >;
 
-async function loadClassForTalents(classId: unknown) {
+/**
+ * A classe como talentos e vagas a precisam: só as características cujo nome
+ * começa com "Talento(s)" (a regra de vagas e de repetição mora no texto
+ * delas), em vez das dezenas de características completas.
+ */
+export async function loadClassForTalents(classId: unknown) {
   const id = String(classId ?? '');
   if (!OBJECT_ID.test(id)) return null;
-  return CharacterClassModel.findById(id)
-    .select('slug name talents levels')
-    .lean<ClassForTalents>();
+  const [klass] = await CharacterClassModel.aggregate<ClassForTalents>([
+    { $match: { _id: new Types.ObjectId(id) } },
+    {
+      $project: {
+        slug: 1,
+        name: 1,
+        talents: 1,
+        levels: 1,
+        talentLevels: 1,
+        features: {
+          $filter: {
+            input: { $ifNull: ['$features', []] },
+            as: 'f',
+            cond: {
+              $regexMatch: {
+                input: { $ifNull: ['$$f.name', ''] },
+                regex: '^\\s*talentos?\\b',
+                options: 'i',
+              },
+            },
+          },
+        },
+      },
+    },
+  ]);
+  return klass ?? null;
 }
 
 /** Os talentos da ficha com escopo, descrição e marcos resolvidos do códice. */
@@ -167,7 +209,7 @@ export async function resolveTalents(
 
   const talentSlots: ITalentSlots | undefined = klass
     ? {
-        ...talentSlotsOf(klass.levels, (klass.talents ?? []).length > 0),
+        ...talentSlotsOf(klass),
         className: klass.name,
       }
     : undefined;
@@ -219,7 +261,8 @@ export function stripDerivedTalents(talents: unknown): IStoredTalent[] {
 async function sanitizeTalents(
   raw: unknown,
   classId: unknown,
-  storedRaw: unknown
+  storedRaw: unknown,
+  characterLevel?: number
 ): Promise<IStoredTalent[]> {
   if (!Array.isArray(raw)) {
     throw new PlayerSheetError('Os talentos precisam ser uma lista.');
@@ -266,6 +309,21 @@ async function sanitizeTalents(
 
     const count = (counts.get(entry.key) ?? 0) + 1;
     counts.set(entry.key, count);
+
+    // Pré-requisito de NÍVEL é regra dura: um talento que pede nível acima do
+    // personagem não entra (os já gravados ficam, como acima). Já o número de
+    // vagas de talento é só informativo e não bloqueia: um bônus de classe ou
+    // decisão do mestre pode dar mais talentos do que a tabela diz.
+    if (
+      option &&
+      characterLevel &&
+      count > storedCount(entry.key) &&
+      requiredLevel(option.prerequisites, klass?.name) > characterLevel
+    ) {
+      throw new PlayerSheetError(
+        `"${option.name}" pede nível ${requiredLevel(option.prerequisites, klass?.name)}, acima do nível do personagem.`
+      );
+    }
     const allowed = option?.stackable
       ? Infinity
       : Math.max(1, storedCount(entry.key));
@@ -283,15 +341,73 @@ async function sanitizeTalents(
   });
 }
 
+// ── Marcos de talento ────────────────────────────────────
+
+/**
+ * Em cada marco geral ("+2 em um atributo ou +1 em dois ou um Talento") a
+ * ficha grava o que o jogador fez com ele. Só a escolha: a lista de marcos vem
+ * da tabela da classe. Um item por nível; o resto é descartado em silêncio,
+ * porque o cliente só manda o que a tela oferece.
+ */
+export function sanitizeMilestones(raw: unknown): ITalentMilestone[] {
+  if (!Array.isArray(raw)) return [];
+  const byLevel = new Map<number, ITalentMilestone>();
+  for (const item of raw) {
+    if (!isRecord(item)) continue;
+    const level = Math.round(Number(item.level));
+    if (!Number.isFinite(level) || level < 1 || level > MAX_TALENT_LEVEL) {
+      continue;
+    }
+    if (item.use !== 'attribute' && item.use !== 'talent') continue;
+    byLevel.set(level, { level, use: item.use });
+  }
+  return [...byLevel.values()].sort((a, b) => a.level - b.level);
+}
+
+// ── Classe ───────────────────────────────────────────────
+
+/**
+ * A ficha embutida agora escolhe a classe (a camada de escolha do códice), então
+ * `classId` precisa das mesmas conferências do editor do app: a classe existe,
+ * não é única de outra pessoa, e o texto `class` acompanha o nome dela.
+ */
+async function prepareClassWrite(
+  stored: IStoredSheetLinks | null,
+  update: Record<string, unknown>
+): Promise<void> {
+  const next = update.classId;
+  if (next === null || next === undefined || next === '') {
+    update.classId = null;
+    return;
+  }
+  const id = String(next);
+  if (!OBJECT_ID.test(id)) throw new PlayerSheetError('Classe inválida.');
+
+  const klass = await CharacterClassModel.findById(id)
+    .select('name')
+    .lean<{ name?: string }>();
+  if (!klass) throw new PlayerSheetError('Classe não encontrada no códice.');
+
+  const conflict = await uniqueClassConflict(id, stored?.slug);
+  if (conflict) throw new PlayerSheetError(conflict);
+
+  update.classId = id;
+  update.class = klass.name;
+}
+
 // ── Escrita ──────────────────────────────────────────────
 
 /** O que a escrita precisa saber do documento antes da alteração. */
 export interface IStoredSheetLinks {
+  _id?: unknown;
+  slug?: string;
   race?: string;
   raceId?: unknown;
   raceChoice?: unknown;
   classId?: unknown;
+  level?: unknown;
   talents?: unknown;
+  playerSpellcasting?: { spellRefs?: unknown };
 }
 
 /**
@@ -321,6 +437,14 @@ export async function prepareSheetLinksWrite(
       const book = await loadRaceBook();
       const race = book.byId.get(id);
       if (!race) throw new PlayerSheetError('Raça não encontrada no códice.');
+
+      // Raça única: quem já a tem a mantém; para qualquer outra ficha a vaga
+      // está tomada. É aqui que a regra é aplicada, não no seletor.
+      const conflict = await uniqueRaceConflict(id, {
+        id: stored?._id ? String(stored._id) : undefined,
+        slug: stored?.slug,
+      });
+      if (conflict) throw new PlayerSheetError(conflict);
 
       const sameRace = String(stored?.raceId ?? '') === id;
       const rawChoice =
@@ -354,12 +478,168 @@ export async function prepareSheetLinksWrite(
     }
   }
 
+  if ('classId' in update) await prepareClassWrite(stored, update);
+
+  if ('talentMilestones' in update) {
+    update.talentMilestones = sanitizeMilestones(update.talentMilestones);
+  }
+
   if ('talents' in update) {
     const classId = 'classId' in update ? update.classId : stored?.classId;
+    const level = Number('level' in update ? update.level : stored?.level);
     update.talents = await sanitizeTalents(
       update.talents,
       classId,
-      stored?.talents
+      stored?.talents,
+      Number.isFinite(level) && level > 0 ? level : undefined
     );
+  }
+}
+
+// ── Limite de magias e unicidade ─────────────────────────
+
+const refIds = (raw: unknown): string[] =>
+  (Array.isArray(raw) ? raw : []).flatMap((ref) =>
+    isRecord(ref) && OBJECT_ID.test(String(ref.spellId))
+      ? [String(ref.spellId)]
+      : []
+  );
+
+/**
+ * As magias preparadas não passam dos espaços do círculo na tabela da classe
+ * (truques: `cantripsKnown`). Só recusa o círculo que CRESCEU além do limite:
+ * uma ficha antiga já acima dele continua podendo salvar outras coisas.
+ */
+export async function assertSpellLimits(args: {
+  classId: unknown;
+  level: unknown;
+  nextRefs: unknown;
+  storedRefs: unknown;
+}): Promise<void> {
+  const next = refIds(args.nextRefs);
+  if (next.length === 0) return;
+  const casting = await getClassCasting(
+    args.classId ? String(args.classId) : undefined,
+    Number(args.level)
+  );
+  if (!casting) return;
+
+  const stored = refIds(args.storedRefs);
+  const docs = await SpellModel.find({ _id: { $in: [...next, ...stored] } })
+    .select('circle')
+    .lean<{ _id: unknown; circle: number }[]>();
+  const circleOf = new Map(docs.map((d) => [String(d._id), d.circle]));
+  const tally = (ids: string[]) => {
+    const out = new Map<number, number>();
+    for (const id of ids) {
+      const c = circleOf.get(id);
+      if (c !== undefined) out.set(c, (out.get(c) ?? 0) + 1);
+    }
+    return out;
+  };
+  const after = tally(next);
+  const before = tally(stored);
+  for (const [circle, count] of after) {
+    const limit =
+      circle === 0
+        ? casting.cantripsKnown
+        : circle <= casting.maxCircle
+          ? (casting.slots[circle - 1] ?? 0)
+          : 0;
+    if (count > limit && count > (before.get(circle) ?? 0)) {
+      throw new PlayerSheetError(
+        circle === 0
+          ? `Truques demais: a classe conhece ${limit}.`
+          : `Magias demais no ${circle}º círculo: a classe tem ${limit} espaço(s).`
+      );
+    }
+  }
+}
+
+interface IPrevLinks {
+  classId?: unknown;
+  class?: string;
+  raceId?: unknown;
+  race?: string;
+  raceChoice?: unknown;
+}
+
+/**
+ * Classe e raça únicas, conferidas DEPOIS da escrita: a conferência de antes
+ * (`uniqueClassConflict`/`uniqueRaceConflict`) não é atômica, e duas fichas
+ * gravando ao mesmo tempo passariam as duas. Se, com a escrita feita, mais de
+ * uma ficha tem a mesma classe/raça única, a mudança é desfeita (ou, numa
+ * criação, a ficha é apagada) e o chamador responde 409.
+ */
+export async function guardUniqueAfterWrite(
+  id: string,
+  prev: IPrevLinks | null,
+  next: { classId?: unknown; raceId?: unknown }
+): Promise<void> {
+  const [{ default: PlayerModel }, { default: CitizenModel }] =
+    await Promise.all([
+      import('../db/players/players'),
+      import('../db/citizens/citizens'),
+    ]);
+
+  const revert = async (set: Record<string, unknown>) => {
+    if (prev) await PlayerModel.updateOne({ _id: id }, { $set: set });
+    else await PlayerModel.deleteOne({ _id: id });
+  };
+
+  const classId = next.classId ? String(next.classId) : '';
+  if (classId && classId !== String(prev?.classId ?? '')) {
+    const klass = await CharacterClassModel.findById(classId)
+      .select('name isUnique')
+      .lean<{ name?: string; isUnique?: boolean }>();
+    if (klass?.isUnique) {
+      const holders =
+        (await PlayerModel.countDocuments({ classId })) +
+        (await CitizenModel.countDocuments({ classId }));
+      if (holders > 1) {
+        await revert({ classId: prev?.classId ?? null, class: prev?.class });
+        throw new UniqueConflictError(
+          `${klass.name ?? 'Esta classe'} é uma classe única e foi tomada por outra ficha ao mesmo tempo. A troca foi desfeita.`
+        );
+      }
+    }
+  }
+
+  const raceId = next.raceId ? String(next.raceId) : '';
+  if (raceId && raceId !== String(prev?.raceId ?? '')) {
+    const { default: RaceModel } = await import('../db/races/races');
+    const race = await RaceModel.findById(raceId)
+      .select('name unique')
+      .lean<{ name?: string; unique?: boolean }>();
+    if (race?.unique && (await PlayerModel.countDocuments({ raceId })) > 1) {
+      await revert({
+        raceId: prev?.raceId ?? null,
+        raceChoice: prev?.raceChoice ?? null,
+        race: prev?.race,
+      });
+      throw new UniqueConflictError(
+        `${race.name ?? 'Esta raça'} é uma raça única e foi tomada por outra ficha ao mesmo tempo. A troca foi desfeita.`
+      );
+    }
+  }
+}
+
+/**
+ * Passa o corpo de uma criação pela mesma limpeza da edição (raça, classe,
+ * talentos, marcos). Sem `classId` a ficha nasce com o texto `class` que veio;
+ * limpar `classId` numa edição também deixa o texto como está, de propósito:
+ * o texto é o que a ficha mostra.
+ */
+export async function prepareSheetLinksCreate(
+  data: Record<string, unknown>
+): Promise<void> {
+  if (
+    'raceId' in data ||
+    'raceChoice' in data ||
+    'talents' in data ||
+    'talentMilestones' in data ||
+    'classId' in data
+  ) {
+    await prepareSheetLinksWrite(null, data);
   }
 }

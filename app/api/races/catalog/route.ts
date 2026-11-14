@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { getRaceCatalog } from '@/services/race.service';
 
@@ -8,10 +8,18 @@ import { getRaceCatalog } from '@/services/race.service';
  * catálogo de arquétipos: quem só lê a ficha recebe a linhagem já resolvida.
  * Leitura aberta, como o resto do códice.
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     await connectDB();
-    return NextResponse.json(await getRaceCatalog());
+    return NextResponse.json(
+      await getRaceCatalog(
+        {},
+        {
+          withHolders: true,
+          forPlayer: request.nextUrl.searchParams.get('for') ?? undefined,
+        }
+      )
+    );
   } catch (error) {
     console.error('Race catalog error:', error);
     return NextResponse.json({ error: 'Erro interno' }, { status: 500 });

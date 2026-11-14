@@ -2,6 +2,7 @@
 
 import type { CSSProperties } from 'react';
 import type { IClassOption } from '../ClassGrid/useClassGrid';
+import type { IClassChoice } from '@/lib/catalogChoice';
 import { applyModifiers, useCssHandles } from '@/hooks/useCssHandles';
 import ClassCard from '../ClassCard';
 import { ChevronRightIcon } from '../Icons';
@@ -16,6 +17,8 @@ interface IProps {
   onEdit: (klass: IClassOption) => void;
   /** Clique no card em foco: abre a classe por cima do seletor. */
   onOpen: (klass: IClassOption) => void;
+  /** Seletor da ficha: cada card ganha "Escolher" e os selos de estado. */
+  choice?: IClassChoice;
 }
 
 const pad = (value: number) => String(value).padStart(2, '0');
@@ -42,6 +45,7 @@ const ClassCarousel = ({
   canEdit,
   onEdit,
   onOpen,
+  choice,
 }: IProps) => {
   const handles = useCssHandles(ClassCarouselHandles);
   const count = classes.length;
@@ -134,6 +138,7 @@ const ClassCarousel = ({
               onEdit={onEdit}
               onCenter={() => goTo(position)}
               onOpen={onOpen}
+              choice={choice}
             />
           ))}
         </div>

@@ -964,3 +964,24 @@
   background: $color-accent-fill;
   border-color: $color-accent-fill;
 }
+
+// Alteração pendente na lista de magias: o selo e o "Desfazer" do bloco.
+.sheetSpellPending {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-3;
+  padding: $spacing-1 $spacing-3;
+  border: 1px dashed $color-accent-line;
+  border-radius: $radius-md;
+  @include main-xs($color-accent, $font-weight-semibold);
+
+  button {
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+    text-decoration: underline;
+    @include main-xs($color-text-muted, $font-weight-medium);
+    @include focus-ring;
+  }
+}

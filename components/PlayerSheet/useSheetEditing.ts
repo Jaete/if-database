@@ -298,6 +298,26 @@ export const useSheetEditing = (
 
   const isFieldDirty = useCallback((path: string) => path in draft, [draft]);
 
+  /** Algum campo em `path` ou dentro dele mudou (`archetype` vê `archetype.slug`). */
+  const isDirtyUnder = useCallback(
+    (path: string) =>
+      Object.keys(draft).some(
+        (key) => key === path || key.startsWith(`${path}.`)
+      ),
+    [draft]
+  );
+
+  /** Devolve um campo (e o que há dentro dele) ao valor gravado. */
+  const revertField = useCallback((path: string) => {
+    setDraft((prev) => {
+      const next = { ...prev };
+      for (const key of Object.keys(next)) {
+        if (key === path || key.startsWith(`${path}.`)) delete next[key];
+      }
+      return next;
+    });
+  }, []);
+
   const save = useCallback(async () => {
     if (!isDirty || isSaving) return;
     setIsSaving(true);
@@ -360,6 +380,9 @@ export const useSheetEditing = (
     setIsEditing,
     isDirty,
     dirtyCount: Object.keys(draft).length,
+    dirtyPaths: Object.keys(draft),
+    isDirtyUnder,
+    revertField,
     isSaving,
     status,
     error,

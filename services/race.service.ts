@@ -36,6 +36,71 @@ export async function getRaceOptions() {
   }));
 }
 
+/**
+ * Com quem está cada raça única, pelo vínculo `raceId` das fichas.
+ *
+ * Derivado, como `getUniqueClassHolders`: apagar o personagem ou trocar de
+ * raça libera a vaga sozinho. Só jogadores têm `raceId`.
+ */
+export async function getUniqueRaceHolders(): Promise<
+  Map<string, { id: string; name: string; slug: string }>
+> {
+  const unique = await RaceModel.find({ unique: true })
+    .select('_id')
+    .lean<{ _id: unknown }[]>();
+  const holders = new Map<string, { id: string; name: string; slug: string }>();
+  if (unique.length === 0) return holders;
+
+  const { default: PlayerModel } = await import('../db/players/players');
+  const found = await PlayerModel.find({
+    raceId: { $in: unique.map((r) => String(r._id)) },
+  })
+    .select('_id name slug raceId')
+    .lean<{ _id: unknown; name?: string; slug?: string; raceId?: unknown }[]>();
+  for (const doc of found) {
+    const key = String(doc.raceId);
+    if (!holders.has(key)) {
+      holders.set(key, {
+        id: String(doc._id),
+        name: String(doc.name ?? ''),
+        slug: String(doc.slug ?? ''),
+      });
+    }
+  }
+  return holders;
+}
+
+/**
+ * A ficha pode ficar com esta raça? Devolve o motivo quando não pode.
+ *
+ * Espelha `uniqueClassConflict`: o seletor da ficha já mostra a raça como
+ * indisponível, mas é aqui que a regra vale. `holder` identifica a ficha que
+ * está sendo gravada (por slug ou por id) — quem já tem a raça única a mantém.
+ */
+export async function uniqueRaceConflict(
+  raceId: unknown,
+  holder?: { slug?: string; id?: string }
+): Promise<string | null> {
+  if (!raceId || typeof raceId !== 'string') return null;
+  if (!/^[0-9a-f]{24}$/i.test(raceId)) return null;
+
+  const race = await RaceModel.findById(raceId)
+    .select('name unique')
+    .lean<{ name?: string; unique?: boolean }>();
+  if (!race?.unique) return null;
+
+  const holders = await getUniqueRaceHolders();
+  const current = holders.get(raceId);
+  if (
+    !current ||
+    (holder?.slug && current.slug === holder.slug) ||
+    (holder?.id && current.id === holder.id)
+  ) {
+    return null;
+  }
+  return `${race.name ?? 'Esta raça'} é uma raça única e já pertence a ${current.name || 'outro personagem'}.`;
+}
+
 const CATALOG_FIELDS = [
   'name',
   'slug',
@@ -60,18 +125,36 @@ const CATALOG_FIELDS = [
 ].join(' ');
 
 export async function getRaceCatalog(
-  filter: Record<string, unknown> = {}
+  filter: Record<string, unknown> = {},
+  // Quem tem cada raça única custa duas consultas a mais; só o seletor da
+  // ficha precisa, não a leitura de uma ficha.
+  options: { withHolders?: boolean; forPlayer?: string } = {}
 ): Promise<IRaceCatalogEntry[]> {
   const races = await RaceModel.find(filter)
     .select(CATALOG_FIELDS)
     .sort({ name: 1 })
     .lean<(IRaceCatalogEntry & { _id: unknown })[]>();
+  const holders = options.withHolders
+    ? await getUniqueRaceHolders()
+    : new Map<string, { id: string; name: string; slug: string }>();
   return races.map(({ _id, ...race }) => ({
     ...race,
     id: String(_id),
     images: race.images ?? [],
     traits: race.traits ?? [],
     subraces: race.subraces ?? [],
+    // Só nome e slug saem daqui (a rota é pública); quem tem a raça a mantém,
+    // então para a própria ficha (`forPlayer`) ela não aparece como tomada.
+    ...(race.unique &&
+    holders.has(String(_id)) &&
+    holders.get(String(_id))?.id !== options.forPlayer
+      ? {
+          takenBy: {
+            name: holders.get(String(_id))!.name,
+            slug: holders.get(String(_id))!.slug,
+          },
+        }
+      : {}),
   }));
 }
 

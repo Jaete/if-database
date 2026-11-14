@@ -3,15 +3,19 @@ import type IPlayer from '@/db/players/player';
 import { createEntityService } from '@/services/createEntityService';
 import { createSlugHandlers } from '@/app/api/_entity/handlers';
 import { uniqueClassConflict } from '@/services/class.service';
+import { uniqueRaceConflict } from '@/services/race.service';
 import { updatePlayer } from '@/services/player.service';
 import { PlayerSheetError } from '@/services/playerSheetLinks.service';
 
-// Classe única: a lista do seletor já esconde o que está tomado, mas a regra
-// só é regra aqui.
+// Classe ou raça única: a lista do seletor já esconde o que está tomado, mas a
+// regra só é regra aqui. (`updatePlayer` repete a conferência da raça ao gravar,
+// que é o que também cobre a edição embutida.)
 const validate = async (
   body: Record<string, unknown>,
   { slug }: { slug?: string }
-) => uniqueClassConflict(body.classId, slug);
+) =>
+  (await uniqueClassConflict(body.classId, slug)) ??
+  (await uniqueRaceConflict(body.raceId, { slug }));
 
 const handlers = createSlugHandlers({
   service: createEntityService<IPlayer>(PlayerModel),

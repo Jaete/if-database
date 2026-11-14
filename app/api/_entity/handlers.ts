@@ -44,7 +44,15 @@ interface IOptions<T> {
    * mensagem para responder 400, ou null para seguir como falha interna.
    */
   clientError?: (error: unknown) => string | null;
+  /** Criação própria no lugar de `service.create` (a ficha do jogador). */
+  create?: (
+    body: Record<string, unknown>
+  ) => ReturnType<IEntityService<T>['create']>;
 }
+
+// Classe ou raça única tomada por outra ficha ao mesmo tempo: 409, não 400.
+const isUniqueConflict = (error: unknown): error is Error =>
+  error instanceof Error && error.name === 'UniqueConflictError';
 
 type SlugContext = { params: Promise<{ slug: string }> };
 
@@ -67,6 +75,8 @@ export function createCollectionHandlers<T>({
   service,
   createErrorLabel,
   validate,
+  create,
+  clientError,
 }: IOptions<T>) {
   return {
     async GET() {
@@ -91,10 +101,19 @@ export function createCollectionHandlers<T>({
           return NextResponse.json({ error: refused }, { status: 409 });
         }
 
-        const result = await service.create(body);
+        const result = await (create
+          ? create(body)
+          : service.create(body as T));
         if (!result.success) throw new Error(createErrorLabel);
         return NextResponse.json(result.data);
       } catch (error) {
+        if (isUniqueConflict(error)) {
+          return NextResponse.json({ error: error.message }, { status: 409 });
+        }
+        const refused = clientError?.(error);
+        if (refused) {
+          return NextResponse.json({ error: refused }, { status: 400 });
+        }
         return serverError(error);
       }
     },
@@ -145,6 +164,9 @@ export function createSlugHandlers<T>({
         if (!result.success) return notFound();
         return NextResponse.json(result.data);
       } catch (error) {
+        if (isUniqueConflict(error)) {
+          return NextResponse.json({ error: error.message }, { status: 409 });
+        }
         const refused = clientError?.(error);
         if (refused) {
           return NextResponse.json({ error: refused }, { status: 400 });

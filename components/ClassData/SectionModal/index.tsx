@@ -1,6 +1,7 @@
 'use client';
 
 import type ICharacterClass from '@/db/classes/class.d';
+import type { IArchetypeChoice } from '@/lib/catalogChoice';
 import { useCssHandles } from '@/hooks/useCssHandles';
 import { useWheelScrollX } from '@/hooks/useWheelScrollX';
 import Modal from '../../Modal';
@@ -27,6 +28,8 @@ interface IProps {
   /** Abre Características rolada até a característica. */
   onGoto: (id: string, featureIndex?: number) => void;
   focus: { index: number; nonce: number } | null;
+  /** Escolha de arquétipo da ficha: "Escolher" em cada arquétipo. */
+  archetypeChoice?: IArchetypeChoice;
 }
 
 /**
@@ -43,6 +46,7 @@ const SectionModal = ({
   onSwitch,
   onGoto,
   focus,
+  archetypeChoice,
 }: IProps) => {
   const handles = useCssHandles(SectionModalHandles);
   const switchRef = useWheelScrollX<HTMLElement>();
@@ -70,7 +74,13 @@ const SectionModal = ({
   } else if (openId === 'arquetipos') {
     // Como as características, os arquétipos trazem a régua lateral e montam
     // as próprias colunas.
-    body = <Archetypes characterClass={k} actions={actions} />;
+    body = (
+      <Archetypes
+        characterClass={k}
+        actions={actions}
+        choice={archetypeChoice}
+      />
+    );
   } else if (openId) {
     let section = null;
     if (openId === 'progressao') {

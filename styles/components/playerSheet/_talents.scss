@@ -273,310 +273,79 @@
   }
 }
 
-// ── Seletor de talentos (Modal) ─────────────────────────────
-.sheetTalentPicker {
-  display: flex;
-  flex-direction: column;
-  min-height: 100%;
-}
-
-.sheetTalentPickerBody {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: $spacing-3;
-  padding: $spacing-4 $spacing-5;
-}
-
-.sheetTalentPickerNote {
-  margin: 0;
-  @include main-xs($color-text-muted, $font-weight-regular);
-
-  b {
-    color: $color-text;
-    font-weight: $font-weight-semibold;
-  }
-}
-
-.sheetTalentPickerTools {
-  display: grid;
-  gap: $spacing-2;
-}
-
-.sheetTalentPickerSearch {
-  width: 100%;
-  padding: $spacing-2 $spacing-3;
-  border-radius: $radius-sm;
-  @include field-input;
-  @include main-sm($color-text, $font-weight-regular);
-}
-
-.sheetTalentPickerRow {
+// ── Marcos: ações e estado "atributos" ──
+.sheetTalentOpenList {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
   gap: $spacing-2;
-}
-
-.sheetTalentPickerScopes {
-  display: inline-grid;
-  grid-auto-flow: column;
-  gap: $spacing-1 * 0.5;
-  max-width: 100%;
-  padding: $spacing-1 * 0.5;
-  border: 1px solid $color-border-control;
-  border-radius: $radius-md;
-  background: $surface;
-}
-
-.sheetTalentPickerScope {
-  padding: $spacing-1 $spacing-3;
-  border: 1px solid transparent;
-  border-radius: $radius-sm;
-  background: transparent;
-  cursor: pointer;
-  white-space: nowrap;
-  @include main-xs($color-text-muted, $font-weight-medium, 1.2);
-  @include focus-ring();
-
-  &:hover {
-    color: $color-text;
-  }
-
-  &[aria-checked='true'] {
-    border-color: with-alpha($color-accent-line, 0.6);
-    background: $surface-raised;
-    color: $color-accent;
-    @include elevation(1);
-  }
-
-  small {
-    margin-left: $spacing-1;
-    @include mono-xs(inherit, $font-weight-regular, 1);
-    opacity: 0.85;
-  }
-}
-
-.sheetTalentPickerCategories {
-  display: flex;
-  gap: $spacing-2;
-  padding-bottom: $spacing-1;
-  overflow-x: auto;
-  scrollbar-width: thin;
-}
-
-.sheetTalentPickerCategory {
-  flex: none;
-  padding: $spacing-1 $spacing-3;
-  border: 1px solid $color-border-strong;
-  border-radius: $radius-full;
-  background: transparent;
-  cursor: pointer;
-  white-space: nowrap;
-  @include main-xs($color-text-muted, $font-weight-regular);
-  @include focus-ring();
-
-  &:hover {
-    color: $color-text;
-    border-color: with-alpha($color-accent-line, 0.5);
-  }
-
-  &[aria-pressed='true'] {
-    border-color: $color-accent-line;
-    background: $accent-overlay-hover;
-    color: $color-accent;
-  }
-
-  small {
-    margin-left: $spacing-1;
-    @include mono-xs(inherit, $font-weight-regular, 1);
-    opacity: 0.85;
-  }
-}
-
-.sheetTalentPickerList {
-  display: grid;
-  gap: $spacing-1 * 0.5;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.sheetTalentPickerOption {
-  display: grid;
-  gap: $spacing-1 * 0.75;
-  width: 100%;
-  padding: $spacing-2 $spacing-3;
-  border: 1px solid transparent;
-  border-radius: $radius-sm;
-  background: transparent;
-  color: $color-text;
-  cursor: pointer;
-  text-align: left;
-  content-visibility: auto;
-  contain-intrinsic-size: auto 4.5rem;
-  @include focus-ring();
+.sheetTalentOpenItem {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-2;
+  padding: $spacing-1 $spacing-2;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  background: $surface-raised;
+}
 
-  &:hover:not(:disabled) {
-    background: $accent-overlay;
+.sheetTalentOpenLabel {
+  @include main-xs($color-text-muted, $font-weight-semibold);
+}
+
+.sheetTalentNodeBtn {
+  padding: $spacing-1 $spacing-2;
+  border: 1px solid $color-border-control;
+  border-radius: $radius-md;
+  background: $surface-raised;
+  cursor: pointer;
+  @include main-xs($color-text, $font-weight-medium, 1.2);
+  @include focus-ring;
+
+  &:hover {
+    border-color: $color-accent-line;
   }
 
   &[aria-pressed='true'] {
-    border-color: with-alpha($color-accent-line, 0.55);
-    background: $accent-overlay-hover;
-  }
-
-  &:disabled {
-    cursor: default;
-
-    > * {
-      opacity: 0.5;
-    }
-
-    .sheetTalentPickerHead {
-      opacity: 1;
-
-      .sheetTalentPickerName {
-        opacity: 0.5;
-      }
-    }
-  }
-}
-
-.sheetTalentPickerHead {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: $spacing-2;
-}
-
-.sheetTalentPickerName {
-  min-width: 0;
-  @include main-sm($color-text, $font-weight-medium);
-}
-
-.sheetTalentPickerTaken {
-  flex: none;
-  text-transform: uppercase;
-  @include caption($color-accent, $font-weight-semibold);
-}
-
-.sheetTalentPickerTags {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: $spacing-1 $spacing-2;
-  @include main-xs($color-text-muted, $font-weight-regular);
-}
-
-.sheetTalentPickerPill {
-  padding: $spacing-1 $spacing-2;
-  border: 1px solid $color-border-strong;
-  border-radius: $radius-full;
-  text-transform: uppercase;
-  @include caption($color-text-muted, $font-weight-semibold, 1, 0.12em);
-
-  &--class {
-    border-color: with-alpha($color-accent-line, 0.55);
+    border-color: $color-accent-line;
     color: $color-accent;
   }
 }
 
-.sheetTalentPickerFlag {
-  text-transform: uppercase;
-  @include caption($color-warning, $font-weight-semibold, 1.2, 0.06em);
-}
+.sheetTalentNode--attribute {
+  .sheetTalentPip {
+    border-style: dashed;
+    border-color: $color-text-subtle;
+  }
 
-.sheetTalentPickerPrereq {
-  @include main-xs($color-text-muted, $font-weight-regular);
-
-  b {
-    color: $color-text;
-    font-weight: $font-weight-semibold;
+  .sheetTalentState {
+    color: $color-text-subtle;
+    font-style: italic;
   }
 }
 
-.sheetTalentPickerDesc {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  overflow: hidden;
-  white-space: pre-line;
-  @include main-xs($color-text-subtle, $font-weight-regular);
-}
-
-.sheetTalentPickerEmpty {
-  padding: $spacing-4;
-  @include main-xs($color-text-muted, $font-weight-regular);
-}
-
-.sheetTalentPickerFoot {
-  position: sticky;
-  bottom: 0;
-  z-index: 2;
-  display: flex;
-  flex-wrap: wrap;
+// Alteração pendente neste bloco: o selo e o "Desfazer" do bloco.
+.sheetTalentPending {
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
   gap: $spacing-3;
-  padding: $spacing-3 $spacing-5;
-  border-top: 1px solid $color-border;
-  background: $surface-elevated;
-}
+  padding: $spacing-1 $spacing-3;
+  border: 1px dashed $color-accent-line;
+  border-radius: $radius-md;
+  @include main-xs($color-accent, $font-weight-semibold);
 
-.sheetTalentPickerChosen {
-  display: grid;
-  gap: $spacing-2;
-  width: 100%;
-}
-
-.sheetTalentPickerRow2 {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: $spacing-2 $spacing-3;
-}
-
-.sheetTalentPickerChosenName {
-  display: block;
-  @include cinzel-md($color-text, $font-weight-semibold, 1.3);
-}
-
-.sheetTalentPickerLevel {
-  display: flex;
-  align-items: center;
-  gap: $spacing-2;
-  @include main-xs($color-text-muted, $font-weight-regular);
-
-  select {
-    padding: $spacing-1 $spacing-2;
-    border-radius: $radius-sm;
-    @include field-input;
-    @include mono-xs($color-text, $font-weight-bold, 1.3);
-  }
-}
-
-.sheetTalentPickerActions {
-  display: flex;
-  gap: $spacing-2;
-  margin-left: auto;
-}
-
-.sheetTalentPickerButton {
-  padding: $spacing-2 $spacing-3;
-  border-radius: $radius-sm;
-  cursor: pointer;
-  white-space: nowrap;
-  @include main-xs($color-text, $font-weight-semibold, 1.3);
-
-  &--primary {
-    @include btn-primary;
-  }
-
-  &--ghost {
-    @include btn-ghost;
+  button {
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+    text-decoration: underline;
+    @include main-xs($color-text-muted, $font-weight-medium);
+    @include focus-ring;
   }
 }

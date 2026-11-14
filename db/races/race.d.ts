@@ -152,7 +152,11 @@ export type IRaceCatalogEntry = Pick<
   | 'baseOnlyTraits'
   | 'choiceRules'
   | 'subraces'
-> & { id: string };
+> & {
+  id: string;
+  /** Quem está com a raça única. Derivado do vínculo das fichas. */
+  takenBy?: { name: string; slug: string };
+};
 
 /**
  * O documento gravado. Os avisos do parser não são gravados: eles servem

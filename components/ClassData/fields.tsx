@@ -403,6 +403,25 @@ export function talentFields(talent?: ITalent) {
       initialValue: talent?.description ?? '',
       placeholder: 'O que o talento faz.',
     },
+    {
+      name: 'stackable',
+      label: 'Pode ser escolhido mais de uma vez?',
+      required: false,
+      initialValue:
+        talent?.stackable === true
+          ? 'sim'
+          : talent?.stackable === false
+            ? 'nao'
+            : 'auto',
+      options: [
+        {
+          value: 'auto',
+          label: 'Automático (texto do talento e regra da classe)',
+        },
+        { value: 'sim', label: 'Sim, pode repetir' },
+        { value: 'nao', label: 'Não, nunca repete' },
+      ],
+    },
   ];
 }
 

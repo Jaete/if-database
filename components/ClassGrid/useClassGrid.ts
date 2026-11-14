@@ -12,6 +12,7 @@ export interface IClassOption {
   hitDie?: string;
   isSpellcaster?: boolean;
   isUnique?: boolean;
+  talentLevels?: number[];
   /** O que o card do seletor mostra. Todos vêm da projeção magra. */
   shortDescription?: string;
   roles?: ClassRole[];

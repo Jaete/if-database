@@ -3,8 +3,10 @@
 import { useRef } from 'react';
 import type ICharacterClass from '@/db/classes/class.d';
 import type { IClassFeature } from '@/db/classes/class.d';
+import type { IArchetypeChoice } from '@/lib/catalogChoice';
 import { useCssHandles } from '@/hooks/useCssHandles';
 import { PlusIcon } from '../../../Icons';
+import ChoiceTag from '../../../ChoiceTag';
 import Description from '../../Description';
 import ClassDataHandles from '../../handles';
 import { flashTarget } from '../flashTarget';
@@ -15,6 +17,7 @@ import type { ISectionActions } from '../types';
 interface IProps {
   characterClass: ICharacterClass;
   actions: ISectionActions;
+  choice?: IArchetypeChoice;
 }
 
 interface ILevelGroup {
@@ -41,7 +44,7 @@ function groupByLevel(features: IClassFeature[] | undefined): ILevelGroup[] {
  * Os arquétipos, cada um com as características que concede, e a régua ao
  * lado: um grupo por arquétipo, com as habilidades dele na ordem de nível.
  */
-const Archetypes = ({ characterClass: k, actions }: IProps) => {
+const Archetypes = ({ characterClass: k, actions, choice }: IProps) => {
   const handles = useCssHandles(SectionModalHandles);
   const shared = useCssHandles(ClassDataHandles);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -105,6 +108,32 @@ const Archetypes = ({ characterClass: k, actions }: IProps) => {
             <span className={handles.clsArchTag}>Arquétipo</span>
             <div className={handles.clsFeatHead}>
               <h3 className={handles.clsArchName}>{archetype.name}</h3>
+              {choice && (
+                <>
+                  {choice.currentSlug === archetype.slug && (
+                    <ChoiceTag kind="current">Atual</ChoiceTag>
+                  )}
+                  {choice.draftSlug === archetype.slug &&
+                    choice.currentSlug !== archetype.slug && (
+                      <ChoiceTag kind="chosen">Escolhido</ChoiceTag>
+                    )}
+                  <button
+                    type="button"
+                    className={handles.clsArchPick}
+                    disabled={
+                      choice.draftSlug === archetype.slug ||
+                      (!choice.draftSlug &&
+                        choice.currentSlug === archetype.slug)
+                    }
+                    onClick={() => choice.onPick(archetype.slug)}
+                  >
+                    {choice.draftSlug === archetype.slug ||
+                    (!choice.draftSlug && choice.currentSlug === archetype.slug)
+                      ? 'Arquétipo escolhido'
+                      : 'Escolher este arquétipo'}
+                  </button>
+                </>
+              )}
               {canEdit && (
                 <ItemTools
                   name={archetype.name}

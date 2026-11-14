@@ -234,3 +234,14 @@ $menu-item-height-compact: 3.75rem;
     text-align: left;
   }
 }
+
+// Alteração não salva na tela: um ponto ao lado do nome, no menu.
+.sheetMenuDot {
+  display: inline-block;
+  width: $spacing-2;
+  height: $spacing-2;
+  margin-left: $spacing-2;
+  border-radius: $radius-full;
+  background: $color-accent-fill;
+  vertical-align: middle;
+}

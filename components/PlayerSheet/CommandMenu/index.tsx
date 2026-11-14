@@ -4,6 +4,7 @@ import type { KeyboardEvent, MouseEvent, Ref } from 'react';
 import type { IPublicPlayer } from '@/db/players/publicFields';
 import { CoinIcon } from '../../Icons';
 import { useCssHandles } from '@/hooks/useCssHandles';
+import { useEditing } from '../EditingContext';
 import { DASH, formatNumber, tabId } from '../sheetData';
 import type { IMenuItem } from '../sheetData';
 import CommandMenuHandles from './handles';
@@ -23,6 +24,15 @@ interface IProps {
   onKeyDown: (e: KeyboardEvent<HTMLDivElement>) => void;
 }
 
+/** Os campos do rascunho que cada tela da ficha mostra. */
+const SCREEN_PATHS: Partial<Record<string, string[]>> = {
+  status: ['raceId', 'raceChoice', 'classId', 'class', 'stats', 'playerStats'],
+  habilidades: ['abilities', 'raceId', 'raceChoice'],
+  arquetipo: ['archetype'],
+  talentos: ['talents', 'talentMilestones'],
+  magias: ['playerSpellcasting'],
+};
+
 const CommandMenu = ({
   player,
   uid,
@@ -38,6 +48,7 @@ const CommandMenu = ({
   onKeyDown,
 }: IProps) => {
   const handles = useCssHandles(CommandMenuHandles);
+  const { isDirtyUnder } = useEditing();
   const gil = player.equipment?.gil;
   const deity = player.deity?.split(',')[0]?.trim();
 
@@ -68,7 +79,19 @@ const CommandMenu = ({
             aria-disabled={item.disabled || undefined}
             tabIndex={i === cursorAt ? 0 : -1}
           >
-            <span className={handles.sheetMenuLabel}>{item.label}</span>
+            <span className={handles.sheetMenuLabel}>
+              {item.label}
+              {(SCREEN_PATHS[item.id] ?? []).some((path) =>
+                isDirtyUnder(path)
+              ) && (
+                <i
+                  className={handles.sheetMenuDot}
+                  role="img"
+                  aria-label="alteração não salva"
+                  title="Alteração não salva"
+                />
+              )}
+            </span>
             <span className={handles.sheetMenuMeta}>{item.meta}</span>
             <span className={handles.sheetMenuDesc}>{item.desc}</span>
           </button>

@@ -1,0 +1,48 @@
+@use '../../styles/globals' as *;
+
+.classPickStrip {
+  @include flex-col-start;
+  gap: $spacing-2;
+  max-width: 72rem;
+  margin: $spacing-3 auto;
+  padding: $spacing-4 $spacing-5;
+  border: 1px solid $color-accent-line;
+  border-radius: $radius-lg;
+  background: $surface-raised;
+  position: relative;
+  z-index: 2;
+
+  @include mobile {
+    margin-inline: $spacing-4;
+    padding: $spacing-3 $spacing-4;
+  }
+}
+
+.classPickStripHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-2 $spacing-3;
+}
+
+.classPickStripTitle {
+  @include cinzel-lg($color-text, $font-weight-bold, 1.2, 0.04em);
+}
+
+.classPickStripNote {
+  @include main-sm($color-text-muted, $font-weight-regular, 1.5);
+}
+
+.classPickStripBtn {
+  padding: $spacing-2 $spacing-5;
+  border-radius: $radius-md;
+  cursor: pointer;
+  @include btn-primary;
+  @include main-sm($color-text-on-accent, $font-weight-semibold);
+  @include focus-ring;
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: default;
+  }
+}

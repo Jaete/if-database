@@ -6,6 +6,8 @@ import SaveBarHandles from './handles';
 interface IProps {
   visible: boolean;
   count: number;
+  /** "Raça, Magias +1 −1": o que mudou, em poucas palavras. */
+  summary?: string;
   isSaving: boolean;
   error?: string;
   onSave: () => void;
@@ -15,6 +17,7 @@ interface IProps {
 const SaveBar = ({
   visible,
   count,
+  summary,
   isSaving,
   error,
   onSave,
@@ -27,7 +30,15 @@ const SaveBar = ({
   return (
     <div className={handles.sheetSaveBar} role="region" aria-label="Alterações">
       <span className={handles.sheetSaveBarCount}>
-        {count === 1 ? '1 campo alterado' : `${count} campos alterados`}
+        {summary ? (
+          <>
+            <b>Não salvo:</b> {summary}
+          </>
+        ) : count === 1 ? (
+          '1 campo alterado'
+        ) : (
+          `${count} campos alterados`
+        )}
       </span>
       {error && <span className={handles.sheetSaveBarError}>{error}</span>}
       <div className={handles.sheetSaveBarActions}>

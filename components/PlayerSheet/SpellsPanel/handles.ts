@@ -27,6 +27,7 @@ const SpellsPanelHandles = [
   'sheetSpellText',
   'sheetEmpty',
   'sheetCaption',
+  'sheetSpellPending',
 ] as const;
 
 export default SpellsPanelHandles;

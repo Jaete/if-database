@@ -48,6 +48,7 @@ export const PLAYER_PUBLIC_FIELDS = [
   'raceId',
   'raceChoice',
   'talents',
+  'talentMilestones',
   'equipment',
   'professions',
   'appearance',
@@ -78,10 +79,6 @@ export const PLAYER_WRITABLE_FIELDS = PLAYER_PUBLIC_FIELDS.filter(
   (field) =>
     ![
       '_id',
-      // Quem liga a ficha a uma classe é o editor do app, que tem o catálogo.
-      // A edição embutida só lê o vínculo — e aceitá-lo aqui deixaria um
-      // `classId` qualquer passar sem nunca ter havido tela para escolhê-lo.
-      'classId',
       'ownerUsername',
       'forumTopicUrl',
       'importedAt',

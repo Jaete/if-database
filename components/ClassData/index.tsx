@@ -3,12 +3,14 @@
 import { useState } from 'react';
 import type ICharacterClass from '@/db/classes/class.d';
 import type { CatalogKind } from '@/db/classes/class.d';
+import type { IArchetypeChoice, IClassChoice } from '@/lib/catalogChoice';
 import { applyModifiers, useCssHandles } from '@/hooks/useCssHandles';
 import { useOptionalAuth } from '@/app/context/AuthContext';
 import ConfirmModal from '../ConfirmModal';
 import withClassEditors from '../ClassFieldEditors';
 import PromptModal from '../PromptModal';
 import TopBar from './TopBar';
+import ChoiceStrip from './ChoiceStrip';
 import Hero from './Hero';
 import Candidate from './Candidate';
 import Sheet from './Sheet';
@@ -52,6 +54,11 @@ interface IProps {
    * fichas (ver `getClassHolder`), nunca gravado na classe.
    */
   takenBy?: { name: string };
+  /**
+   * Seletor da ficha: sem edição, com a faixa de escolha no topo. Na escolha de
+   * arquétipo a seção de arquétipos já abre, com "Escolher" em cada um.
+   */
+  choice?: IClassChoice | IArchetypeChoice;
 }
 
 /** Índice que abre o modal para um nível novo, como `-1` nos outros editores. */
@@ -72,11 +79,12 @@ const ClassData = ({
   readOnly = false,
   onBack,
   takenBy,
+  choice,
 }: IProps) => {
   const handles = useCssHandles(ClassDataHandles);
   // O embed não tem AuthProvider: sem contexto, ninguém edita.
   const auth = useOptionalAuth();
-  const canEdit = !readOnly && (auth?.canEdit ?? false);
+  const canEdit = !readOnly && !choice && (auth?.canEdit ?? false);
   const {
     characterClass: k,
     error,
@@ -119,7 +127,9 @@ const ClassData = ({
   const [catalogItemAt, setCatalogItemAt] = useState<[number, number] | null>(
     null
   );
-  const [openNode, setOpenNode] = useState<string | null>(null);
+  const [openNode, setOpenNode] = useState<string | null>(
+    choice?.kind === 'archetype' ? 'arquetipos' : null
+  );
   // Característica para onde o modal rola ao abrir Características. O `nonce`
   // faz o mesmo pedido valer duas vezes seguidas.
   const [focus, setFocus] = useState<{ index: number; nonce: number } | null>(
@@ -193,6 +203,14 @@ const ClassData = ({
         onEdit={canEdit ? () => setEditingOverview(true) : undefined}
       />
 
+      {choice && (
+        <ChoiceStrip
+          characterClass={k}
+          choice={choice}
+          onOpenArchetypes={() => openSection('arquetipos')}
+        />
+      )}
+
       <Hero
         characterClass={k}
         takenBy={takenBy}
@@ -257,6 +275,7 @@ const ClassData = ({
           setOpenNode(null);
         }}
         onSwitch={openSection}
+        archetypeChoice={choice?.kind === 'archetype' ? choice : undefined}
         onGoto={(id, featureIndex) => {
           setOpenNode(id);
           setFocus(

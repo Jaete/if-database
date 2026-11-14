@@ -1,13 +1,13 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import type {
   IPlayerSpell,
   IPlayerSpellLevel,
   IPlayerSpellRef,
 } from '@/db/citizens/citizen';
 import { useEditing } from '../EditingContext';
-import type { ISpellOption } from './SpellPicker';
+import { pickedSpells } from '../catalogs';
 
 const SC = 'playerSpellcasting';
 export const LEVELS_PATH = `${SC}.spellLevels`;
@@ -34,10 +34,6 @@ export interface IPreparedSpell {
  */
 export const useSpellsPanel = () => {
   const { value, objects, setField } = useEditing();
-
-  // A ficha da magia escolhida nesta sessão, por id. O seletor já tem o nome e
-  // a escola; o resto chega na próxima leitura, resolvido do grimório.
-  const [picked, setPicked] = useState<Record<string, ISpellOption>>({});
 
   const refs = objects<IPlayerSpellRef>(REFS_PATH);
   const levels = objects<IPlayerSpellLevel>(LEVELS_PATH);
@@ -73,7 +69,7 @@ export const useSpellsPanel = () => {
           return { spellId: ref.spellId, ...known };
         }
         // Escolhida agora: o que se tem é o que o seletor mostrou.
-        const option = picked[ref.spellId];
+        const option = pickedSpells.get(ref.spellId);
         return {
           spellId: ref.spellId,
           circle: option?.circle ?? 0,
@@ -86,7 +82,7 @@ export const useSpellsPanel = () => {
           },
         };
       }),
-    [refs, resolved, picked]
+    [refs, resolved]
   );
 
   const inCircle = (circle: number) =>
@@ -96,10 +92,12 @@ export const useSpellsPanel = () => {
   const cantripCount = prepared.filter((p) => p.circle === 0).length;
   const spellCount = prepared.filter((p) => p.circle > 0).length;
 
+  // Cada círculo tem o próprio limite: os espaços dele na tabela da classe.
   const limitOf = (circle: number) =>
-    circle === 0 ? cantripsKnown : preparedLimit || 0;
-  const countOf = (circle: number) =>
-    circle === 0 ? cantripCount : spellCount;
+    circle === 0
+      ? cantripsKnown
+      : (levels.find((l) => l.level === circle)?.slotsTotal ?? 0);
+  const countOf = (circle: number) => inCircle(circle).length;
   const remainingOf = (circle: number) =>
     Math.max(0, limitOf(circle) - countOf(circle));
 
@@ -107,13 +105,6 @@ export const useSpellsPanel = () => {
     () => new Set(refs.map((ref) => ref.spellId)),
     [refs]
   );
-
-  const prepare = (option: ISpellOption) => {
-    const spellId = String(option._id);
-    if (takenIds.has(spellId)) return;
-    setPicked((prev) => ({ ...prev, [spellId]: option }));
-    setField(REFS_PATH, [...refs, { spellId, prepared: true }]);
-  };
 
   const unprepare = (spellId: string) =>
     setField(
@@ -134,7 +125,6 @@ export const useSpellsPanel = () => {
     limitOf,
     countOf,
     takenIds,
-    prepare,
     unprepare,
   };
 };

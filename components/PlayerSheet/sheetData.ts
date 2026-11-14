@@ -3,6 +3,7 @@ import type { IBonus, ISkill } from '@/db/creatures/creatures';
 import type {
   ICitizenTalent,
   IStatDetail,
+  ITalentMilestone,
   ITalentSlots,
 } from '@/db/citizens/citizen';
 import { attributeKeyOf, modifierOf } from '@/lib/stats';
@@ -307,34 +308,15 @@ export const shortCategory = (category?: string): string =>
     .replace(/^Talentos?\s+(?:de\s+|da\s+|do\s+)?/i, '')
     .replace(/^./, (c) => c.toUpperCase());
 
-/**
- * O nível de personagem que o pré-requisito pede, ou 0 se não pede nenhum.
- *
- * Só "Nível N" e "<Classe> N" contam: "Nível de Conjurador 2" é outra grandeza
- * e a ficha não a sabe. Serve ao aviso "pede nível N", que nunca bloqueia.
- */
-export const requiredLevel = (prereq?: string, className?: string): number => {
-  if (!prereq) return 0;
-  const text = normalize(prereq);
-  const own = className ? normalize(className) : '';
-  const match =
-    text.match(
-      /\bnivel(?!\s+de\s+(?:conjurador|classe))\s+(?:de\s+personagem\s+)?(\d+)/
-    ) ??
-    (own
-      ? text.match(
-          new RegExp(`\\b${own.replace(/[^a-z0-9 ]/g, '\\$&')}\\s+(\\d+)`)
-        )
-      : null);
-  return match ? Number(match[1]) : 0;
-};
+export { requiredLevel } from '@/lib/talentPrerequisite';
 
 /** Uma vaga de talento da tabela da classe, com o talento que a ocupa. */
 export interface ITalentNode {
   level: number;
   /** `class`: vaga que a classe concede só para talento dela. */
   kind: 'general' | 'class';
-  state: 'used' | 'open' | 'future';
+  /** `attribute`: o marco geral foi gasto em atributos, não é vaga livre. */
+  state: 'used' | 'open' | 'future' | 'attribute';
   talent?: ICitizenTalent;
 }
 
@@ -344,6 +326,8 @@ export interface ITalentProgress {
   reached: number;
   reachedGeneral: number;
   reachedClass: number;
+  /** Marcos gerais já gastos em atributos. */
+  attributeCount: number;
   taken: number;
   /** Mais talentos do que marcos: bônus de classe, decisão do mestre. */
   over: boolean;
@@ -360,7 +344,8 @@ export interface ITalentProgress {
 export const talentProgress = (
   slots: ITalentSlots | undefined,
   talents: ICitizenTalent[],
-  level: number
+  level: number,
+  milestones: ITalentMilestone[] = []
 ): ITalentProgress => {
   const nodes: ITalentNode[] = [
     ...(slots?.general ?? []).map((l) => ({
@@ -394,12 +379,23 @@ export const talentProgress = (
     }
   }
 
-  const upTo = nodes.filter((n) => n.level <= level);
+  // Um marco geral gasto em atributos deixa de ser vaga livre. Um talento já
+  // tomado no nível vence o registro: o que está na ficha é o que aconteceu.
+  for (const node of nodes) {
+    if (node.kind !== 'general' || node.talent) continue;
+    const spent = milestones.find((m) => m.level === node.level);
+    if (spent?.use === 'attribute') node.state = 'attribute';
+  }
+
+  const upTo = nodes.filter((n) => n.level <= level && n.state !== 'attribute');
   const taken = talents.length;
   return {
     nodes,
     reached: upTo.length,
     reachedGeneral: upTo.filter((n) => n.kind === 'general').length,
+    attributeCount: nodes.filter(
+      (n) => n.level <= level && n.state === 'attribute'
+    ).length,
     reachedClass: upTo.filter((n) => n.kind === 'class').length,
     taken,
     over: taken > upTo.length,
@@ -433,7 +429,8 @@ export const buildMenu = (
   const talents = talentProgress(
     player.talentSlots,
     player.talents ?? [],
-    player.level ?? 0
+    player.level ?? 0,
+    player.talentMilestones ?? []
   );
   const talentsOff = !editable && talents.reached === 0 && talents.taken === 0;
 
@@ -512,3 +509,61 @@ export const buildMenu = (
 };
 
 export const tabId = (uid: string, id: ScreenId) => `${uid}-tab-${id}`;
+
+// ── Resumo das alterações ───────────────────────────────────
+
+/** Nome de quem mudou, por prefixo do caminho do rascunho, na ordem da ficha. */
+const CHANGE_LABELS: readonly [prefix: string, label: string][] = [
+  ['classId', 'Classe'],
+  ['class', 'Classe'],
+  ['raceId', 'Raça'],
+  ['raceChoice', 'Raça'],
+  ['race', 'Raça'],
+  ['archetype', 'Arquétipo'],
+  ['talents', 'Talentos'],
+  ['talentMilestones', 'Talentos'],
+  ['playerSpellcasting.spellRefs', 'Magias'],
+  ['abilities', 'Habilidades'],
+  ['equipment', 'Equipamento'],
+  ['professions', 'Profissões'],
+  ['stats', 'Atributos'],
+  ['playerStats', 'Atributos'],
+  ['combat', 'Combate'],
+  ['proficiencies', 'Perícias'],
+  ['skills', 'Perícias'],
+  ['appearance', 'Crônica'],
+  ['backstory', 'Crônica'],
+];
+
+/**
+ * Resume o rascunho em poucas palavras ("Raça, Magias +1 −1"): é o que a barra
+ * de salvar mostra no lugar de uma contagem de campos.
+ */
+export const summarizeChanges = (
+  dirtyPaths: string[],
+  savedSpellIds: string[],
+  draftSpellIds: string[]
+): string => {
+  const labels: string[] = [];
+  let other = 0;
+  for (const path of dirtyPaths) {
+    const hit = CHANGE_LABELS.find(
+      ([prefix]) => path === prefix || path.startsWith(`${prefix}.`)
+    );
+    if (!hit) other += 1;
+    else if (!labels.includes(hit[1])) labels.push(hit[1]);
+  }
+  const added = draftSpellIds.filter(
+    (id) => !savedSpellIds.includes(id)
+  ).length;
+  const removed = savedSpellIds.filter(
+    (id) => !draftSpellIds.includes(id)
+  ).length;
+  const parts = labels.map((label) =>
+    label === 'Magias' && (added > 0 || removed > 0)
+      ? `Magias${added ? ` +${added}` : ''}${removed ? ` −${removed}` : ''}`
+      : label
+  );
+  if (other > 0) parts.push(other === 1 ? '1 campo' : `${other} campos`);
+  return parts.join(', ');
+};

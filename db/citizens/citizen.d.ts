@@ -320,6 +320,11 @@ export interface ICitizenTalent {
   orphan?: boolean;
 }
 
+export interface ITalentMilestone {
+  level: number;
+  use: 'attribute' | 'talent';
+}
+
 /**
  * Os marcos de talento da classe ligada, resolvidos na leitura.
  *
@@ -396,6 +401,11 @@ export default interface ICitizen extends ICreature {
   talents?: ICitizenTalent[];
   /** Derivado na leitura a partir da tabela da classe; nunca gravado. */
   talentSlots?: ITalentSlots;
+  /**
+   * O que foi feito com cada marco geral. Gravado: a ficha não tem como saber
+   * se um "+2 em um atributo ou um Talento" foi para atributos ou talento.
+   */
+  talentMilestones?: ITalentMilestone[];
 
   // ── Equipamento (slots + mochila + moedas) ──
   equipment?: IEquipment;

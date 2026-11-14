@@ -2,6 +2,7 @@ import type ICharacterClass from '../db/classes/class.d';
 import type ITalentDoc from '../db/talents/talent.d';
 import { classSlug } from '../db/l10n/classes';
 import { isStackableTalent } from '../lib/stackableTalent';
+import { classForbidsRepeatedTalent } from './talentSlots';
 
 /**
  * Um talento como o seletor da ficha o vê, venha ele de onde vier.
@@ -31,6 +32,8 @@ export interface ITalentOption {
    * nos de classe), é lido do texto.
    */
   stackable: boolean;
+  /** A característica de talentos da classe diz que não se repete talento. */
+  repeatForbiddenByClass?: boolean;
 }
 
 /** Mesma dobra de `classSlug`: nome sem acento, caixa nem pontuação. */
@@ -79,8 +82,17 @@ const classTalentKey = (slug: string, name: string) =>
  * ser corrigido, e é estável enquanto a ordem do documento for.
  */
 export function classTalentOptions(
-  klass: Pick<ICharacterClass, 'slug' | 'name' | 'talents'> | null | undefined
+  klass:
+    | Pick<ICharacterClass, 'slug' | 'name' | 'talents' | 'features'>
+    | null
+    | undefined
 ): ITalentOption[] {
+  // `stackable`: o campo do talento (correção do admin) vence; sem ele vale o
+  // texto do talento ("pode ser escolhido várias vezes"); sem os dois, não
+  // repete. A frase da característica de talentos da classe ("não pode
+  // selecionar o mesmo talento mais de uma vez") só é registrada em
+  // `repeatForbiddenByClass`, para a tela explicar o motivo.
+  const classForbids = classForbidsRepeatedTalent(klass?.features);
   const seen = new Map<string, number>();
   return (klass?.talents ?? []).map((talent) => {
     const base = classTalentKey(klass?.slug ?? 'classe', talent.name);
@@ -95,9 +107,15 @@ export function classTalentOptions(
       description: talent.description,
       group: talent.group,
       unlock: talent.unlock,
-      stackable: isStackableTalent(
-        [talent.description, talent.requirement].filter(Boolean).join('\n')
-      ),
+      stackable:
+        typeof talent.stackable === 'boolean'
+          ? talent.stackable
+          : isStackableTalent(
+              [talent.description, talent.requirement]
+                .filter(Boolean)
+                .join('\n')
+            ),
+      ...(classForbids ? { repeatForbiddenByClass: true } : {}),
     };
   });
 }

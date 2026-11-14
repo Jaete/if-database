@@ -23,7 +23,7 @@ const EmbedCloseBridge = ({ forumOrigin }: IProps) => {
       if (event.key !== 'Escape') return;
       // Já consumido por algo do embed (a classe aberta sobre o seletor).
       if (event.defaultPrevented) return;
-      if (document.querySelector('.modal--open')) return;
+      if (document.querySelector('.modal--open, [data-inner-open]')) return;
       // Edição pendente (a ficha marca `data-unsaved`): fechar perderia tudo.
       if (document.querySelector('[data-unsaved]')) return;
       window.parent.postMessage(
@@ -33,13 +33,15 @@ const EmbedCloseBridge = ({ forumOrigin }: IProps) => {
     };
     document.addEventListener('keydown', onKeyDown);
 
-    // Avisa o fórum quando um modal do próprio embed (Progressão, Talentos…)
-    // abre ou fecha: no celular ele ocupa o iframe inteiro e o X do modal do
+    // Avisa o fórum quando um modal do próprio embed (Progressão, Talentos…) ou
+    // a camada de escolha da ficha (`data-inner-open`) abre ou fecha: no celular ele ocupa o iframe inteiro e o X do modal do
     // fórum, sobre o mesmo canto, fica escondido enquanto isso. Só manda
     // mensagem quando o estado muda.
     let innerOpen = false;
     const syncInner = () => {
-      const open = Boolean(document.querySelector('.modal--open'));
+      const open = Boolean(
+        document.querySelector('.modal--open, [data-inner-open]')
+      );
       if (open === innerOpen) return;
       innerOpen = open;
       window.parent.postMessage(
@@ -52,7 +54,7 @@ const EmbedCloseBridge = ({ forumOrigin }: IProps) => {
       subtree: true,
       childList: true,
       attributes: true,
-      attributeFilter: ['class'],
+      attributeFilter: ['class', 'data-inner-open'],
     });
     syncInner();
 

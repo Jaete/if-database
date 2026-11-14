@@ -24,6 +24,9 @@ import {
   stripDerivedArchetype,
 } from './classArchetypes.service';
 import {
+  assertSpellLimits,
+  guardUniqueAfterWrite,
+  prepareSheetLinksCreate,
   prepareSheetLinksWrite,
   resolveRaceLink,
   resolveTalents,
@@ -33,10 +36,18 @@ import {
 const service = createEntityService<IPlayer>(PlayerModel);
 
 // O que a escrita de raça e talentos precisa do documento antes da alteração.
-const LINK_FIELDS = 'race raceId raceChoice classId talents';
+const LINK_FIELDS =
+  '_id slug class race raceId raceChoice classId level talents playerSpellcasting';
 
 export async function createPlayer(data: IPlayer) {
-  return service.create(data);
+  const body = data as unknown as Record<string, unknown>;
+  await prepareSheetLinksCreate(body);
+  const result = await service.create(data);
+  const created = result.data as unknown as { _id?: unknown } | undefined;
+  if (created?._id && (body.classId || body.raceId)) {
+    await guardUniqueAfterWrite(String(created._id), null, body);
+  }
+  return result;
 }
 
 export async function getAllPlayers() {
@@ -94,11 +105,17 @@ async function loadClass(classId: unknown) {
   const { default: CharacterClassModel } =
     await import('../db/classes/classes');
   return CharacterClassModel.findById(id)
-    .select('slug name talents levels features archetypes')
+    .select('slug name talents levels features archetypes talentLevels')
     .lean<
       Pick<
         ICharacterClass,
-        'slug' | 'name' | 'talents' | 'levels' | 'features' | 'archetypes'
+        | 'slug'
+        | 'name'
+        | 'talents'
+        | 'levels'
+        | 'features'
+        | 'archetypes'
+        | 'talentLevels'
       >
     >();
 }
@@ -226,12 +243,31 @@ export async function updatePlayer(slug: string, updateData: Partial<IPlayer>) {
     'raceId' in updateData ||
     'raceChoice' in updateData ||
     'talents' in updateData ||
+    'talentMilestones' in updateData ||
+    'classId' in updateData ||
+    'playerSpellcasting' in updateData ||
     typeof updateData.race === 'string'
   ) {
     const stored = await PlayerModel.findOne({ slug })
       .select(LINK_FIELDS)
       .lean<IStoredSheetLinks>();
     await prepareSheetLinksWrite(stored, updateData as Record<string, unknown>);
+    const casting = updateData.playerSpellcasting as
+      { spellRefs?: unknown } | undefined;
+    if (casting && 'spellRefs' in casting) {
+      await assertSpellLimits({
+        classId: 'classId' in updateData ? updateData.classId : stored?.classId,
+        level: 'level' in updateData ? updateData.level : stored?.level,
+        nextRefs: casting.spellRefs,
+        storedRefs: stored?.playerSpellcasting?.spellRefs,
+      });
+    }
+    const result = await service.update(slug, updateData);
+    const saved = result.data as unknown as { _id?: unknown } | undefined;
+    if (saved?._id && (updateData.classId || updateData.raceId)) {
+      await guardUniqueAfterWrite(String(saved._id), stored, updateData);
+    }
+    return result;
   }
   return service.update(slug, updateData);
 }
@@ -245,7 +281,9 @@ export async function updatePlayerById(
   updateData: Record<string, unknown>
 ) {
   if (!/^[0-9a-f]{24}$/i.test(id)) return null;
-  await unlinkClassIfRenamed(id, updateData);
+  // Escolher a classe grava `classId` e `class` juntos; o texto bate por
+  // construção e não há vínculo a desligar.
+  if (!('classId' in updateData)) await unlinkClassIfRenamed(id, updateData);
 
   // A leitura funde as características da classe na lista; o editor devolve a
   // lista inteira. Sem tirá-las aqui, o vínculo viraria cópia embutida.
@@ -259,27 +297,39 @@ export async function updatePlayerById(
     updateData.archetype = stripDerivedArchetype(updateData.archetype);
   }
 
+  let prevLinks: IStoredSheetLinks | null = null;
   if (
     'raceId' in updateData ||
     'raceChoice' in updateData ||
     'talents' in updateData ||
+    'talentMilestones' in updateData ||
+    'classId' in updateData ||
     typeof updateData.race === 'string'
   ) {
-    const stored = await PlayerModel.findById(id)
+    prevLinks = await PlayerModel.findById(id)
       .select(LINK_FIELDS)
       .lean<IStoredSheetLinks>();
-    await prepareSheetLinksWrite(stored, updateData);
+    await prepareSheetLinksWrite(prevLinks, updateData);
   }
 
   if ('playerSpellcasting' in updateData) {
     const stored = await PlayerModel.findById(id)
-      .select('classId playerSpellcasting')
+      .select('classId level playerSpellcasting')
       .lean<{
         classId?: unknown;
+        level?: unknown;
         playerSpellcasting?: Record<string, unknown>;
       }>();
 
     const clean = stripDerivedCasting(updateData.playerSpellcasting);
+    if (clean && 'spellRefs' in clean) {
+      await assertSpellLimits({
+        classId: 'classId' in updateData ? updateData.classId : stored?.classId,
+        level: 'level' in updateData ? updateData.level : stored?.level,
+        nextRefs: clean.spellRefs,
+        storedRefs: stored?.playerSpellcasting?.spellRefs,
+      });
+    }
     // `classId` pode ter acabado de ser desligado acima; o que vale é o estado
     // final, porque é ele que diz de quem são os círculos.
     const linked =
@@ -298,6 +348,9 @@ export async function updatePlayerById(
   )
     .select(PLAYER_PUBLIC_FIELDS.join(' '))
     .lean<IPublicPlayer>();
+  if (player && (updateData.classId || updateData.raceId)) {
+    await guardUniqueAfterWrite(id, prevLinks, updateData);
+  }
   return resolveLinks(player);
 }
 

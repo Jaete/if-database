@@ -189,6 +189,12 @@ export interface ITalent {
   unlock?: string;
   /** O `*` do fórum: o talento altera a conjuração de quem o pega. */
   affectsSpellcasting?: boolean;
+  /**
+   * Substitui a leitura da regra da classe: `true` deixa a ficha pegar o talento
+   * mais de uma vez, `false` proíbe. Sem ele, vale o texto do talento e depois
+   * a frase da característica de talentos da classe.
+   */
+  stackable?: boolean;
 }
 
 /** Ids estáveis dos papéis; os rótulos em pt-BR vivem em `CLASS_ROLES`. */
@@ -345,6 +351,12 @@ export interface ICharacterClass extends Document {
   features?: IClassFeature[];
   archetypes?: IArchetype[];
   talents?: ITalent[];
+  /**
+   * Os níveis em que a classe concede um talento SÓ dela. É a correção manual:
+   * quando existe, vence a leitura do texto da característica de talentos
+   * (ver `services/talentSlots.ts`). Vazio ou ausente = detectar.
+   */
+  talentLevels?: number[];
   /** Listas próprias da classe, como Artes Divinas. Não são talentos. */
   catalogs?: IClassCatalog[];
 

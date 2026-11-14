@@ -19,8 +19,9 @@ const ArchetypePanelHandles = [
   'sheetReaderText',
   'sheetEmpty',
   'sheetCaption',
-  'sheetArchetypeSelect',
   'sheetArchetypeNote',
+  'sheetArchetypeChange',
+  'sheetArchetypePending',
 ] as const;
 
 export default ArchetypePanelHandles;

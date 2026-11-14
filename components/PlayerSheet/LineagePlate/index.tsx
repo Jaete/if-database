@@ -5,7 +5,7 @@ import { applyModifiers, useCssHandles } from '@/hooks/useCssHandles';
 import RaceArt from '@/components/RaceArt';
 import RaceChips from '@/components/RaceChips';
 import { useEditing } from '../EditingContext';
-import { useRacePicker } from '../RacePickerContext';
+import { useCatalogRequest } from '../CatalogLayerContext';
 import { useRaceChoice } from '../useRaceChoice';
 import Block from '../Block';
 import LineagePlateHandles from './handles';
@@ -58,7 +58,7 @@ const shortLanguages = (text?: string) => {
 const LineagePlate = ({ onOpenAbilities }: IProps) => {
   const handles = useCssHandles(LineagePlateHandles);
   const { editable } = useEditing();
-  const picker = useRacePicker();
+  const catalog = useCatalogRequest();
   const { lineage, freeText } = useRaceChoice();
 
   const modifier = (name: string, variant?: string) =>
@@ -94,7 +94,7 @@ const LineagePlate = ({ onOpenAbilities }: IProps) => {
                 <button
                   type="button"
                   className={`${handles.sheetLineageButton}${modifier(handles.sheetLineageButton, 'primary')}`}
-                  onClick={() => picker.open()}
+                  onClick={() => catalog.open({ kind: 'race' })}
                 >
                   Vincular raça do códice
                 </button>
@@ -257,18 +257,30 @@ const LineagePlate = ({ onOpenAbilities }: IProps) => {
               <button
                 type="button"
                 className={`${handles.sheetLineageButton}${modifier(handles.sheetLineageButton, 'secondary')}`}
-                onClick={() => picker.open()}
+                onClick={() => catalog.open({ kind: 'race' })}
               >
                 Trocar raça
               </button>
-              {!lineage.mixed && lineage.hasSubraces && (
+              {lineage.mixed ? (
                 <button
                   type="button"
                   className={`${handles.sheetLineageButton}${modifier(handles.sheetLineageButton, 'ghost')}`}
-                  onClick={() => picker.open('subraca')}
+                  onClick={() => catalog.open({ kind: 'race', focus: 'mixed' })}
                 >
-                  {lineage.subrace ? 'Trocar sub-raça' : 'Escolher sub-raça'}
+                  Revisar mestiçagem
                 </button>
+              ) : (
+                lineage.hasSubraces && (
+                  <button
+                    type="button"
+                    className={`${handles.sheetLineageButton}${modifier(handles.sheetLineageButton, 'ghost')}`}
+                    onClick={() =>
+                      catalog.open({ kind: 'race', focus: 'current' })
+                    }
+                  >
+                    {lineage.subrace ? 'Trocar sub-raça' : 'Escolher sub-raça'}
+                  </button>
+                )
               )}
             </div>
           )}
@@ -281,7 +293,12 @@ const LineagePlate = ({ onOpenAbilities }: IProps) => {
               <button
                 type="button"
                 className={`${handles.sheetLineageButton}${modifier(handles.sheetLineageButton, 'secondary')}`}
-                onClick={() => picker.open(lineage.issueStep)}
+                onClick={() =>
+                  catalog.open({
+                    kind: 'race',
+                    focus: lineage.mixed ? 'mixed' : 'current',
+                  })
+                }
               >
                 Concluir escolha
               </button>

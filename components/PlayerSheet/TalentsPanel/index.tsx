@@ -6,11 +6,11 @@ import { ChevronDownIcon, CloseIcon } from '../../Icons';
 import Block from '../Block';
 import DetailCard from '../DetailCard';
 import { useSideReader } from '../useSideReader';
+import { useCatalogRequest } from '../CatalogLayerContext';
 import { useEditing } from '../EditingContext';
 import { useTalents } from '../useTalents';
 import type { ITalentGroup } from '../useTalents';
 import { requiredLevel, shortCategory } from '../sheetData';
-import TalentPicker from './TalentPicker';
 import TalentsPanelHandles from './handles';
 
 /** "4", "4 e 9", "4, 9 e 12". */
@@ -29,15 +29,20 @@ const joinLevels = (levels: number[]) =>
  */
 const TalentsPanel = () => {
   const handles = useCssHandles(TalentsPanelHandles);
-  const { editable, isFieldDirty } = useEditing();
+  const { editable, isDirtyUnder, revertField } = useEditing();
   const talents = useTalents();
+  const catalog = useCatalogRequest();
   const reader = useSideReader<ITalentGroup>();
-  const [picking, setPicking] = useState(false);
   // Narrow panels read the description inline; wide ones use the reader.
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set());
 
   const { progress, groups, slots, level, className } = talents;
   const { nodes, reached, taken, over } = progress;
+  const firstOpen = nodes.find((n) => n.state === 'open');
+  const actionable = nodes.filter(
+    (n) => !n.talent && (n.state === 'open' || n.state === 'attribute')
+  );
+  const pending = isDirtyUnder('talents') || isDirtyUnder('talentMilestones');
   const shown = groups.find((g) => g.key === reader.selectedKey) ?? groups[0];
 
   const toggle = (key: string) =>
@@ -73,11 +78,13 @@ const TalentsPanel = () => {
             {nodes.map((node, i) => {
               const label = node.talent
                 ? node.talent.name
-                : node.state === 'open'
-                  ? node.kind === 'class'
-                    ? 'livre · classe'
-                    : 'livre'
-                  : 'futuro';
+                : node.state === 'attribute'
+                  ? 'atributos'
+                  : node.state === 'open'
+                    ? node.kind === 'class'
+                      ? 'livre · classe'
+                      : 'livre'
+                    : 'futuro';
               return (
                 <div
                   key={`${node.level}:${node.kind}:${i}`}
@@ -102,11 +109,60 @@ const TalentsPanel = () => {
           </p>
         )}
 
+        {editable && actionable.length > 0 && (
+          <ul
+            className={handles.sheetTalentOpenList}
+            aria-label="Marcos sem talento"
+          >
+            {actionable.map((node) => (
+              <li
+                key={`${node.level}:${node.kind}`}
+                className={handles.sheetTalentOpenItem}
+              >
+                <span className={handles.sheetTalentOpenLabel}>
+                  {`Nv ${node.level} · ${node.kind === 'class' ? 'só da classe' : 'geral'}`}
+                  {node.state === 'attribute' && ' · foi para atributos'}
+                </span>
+                {node.state === 'open' && (
+                  <button
+                    type="button"
+                    className={handles.sheetTalentNodeBtn}
+                    onClick={() =>
+                      catalog.open({ kind: 'talents', at: node.level })
+                    }
+                  >
+                    Escolher talento
+                  </button>
+                )}
+                {node.kind === 'general' && (
+                  <button
+                    type="button"
+                    className={handles.sheetTalentNodeBtn}
+                    aria-pressed={node.state === 'attribute'}
+                    onClick={() =>
+                      talents.setMilestone(
+                        node.level,
+                        node.state === 'attribute' ? undefined : 'attribute'
+                      )
+                    }
+                  >
+                    {node.state === 'attribute'
+                      ? 'Foi para talento'
+                      : 'Usei em atributos'}
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+
         <div className={handles.sheetTalentSlotLine}>
           <span>
             <b>{reached}</b>{' '}
             {reached === 1 ? 'talento disponível' : 'talentos disponíveis'} até
             o nível {level}
+            {progress.attributeCount > 0 &&
+              ` · ${progress.attributeCount} marco${progress.attributeCount === 1 ? '' : 's'} em atributos`}
           </span>
           <span
             className={
@@ -122,7 +178,7 @@ const TalentsPanel = () => {
         </div>
         {/* Os marcos vêm da tabela da classe GRAVADA; com a classe trocada no
             rascunho eles só se atualizam depois de salvar. */}
-        {isFieldDirty('classId') && (
+        {isDirtyUnder('classId') && (
           <p className={handles.sheetTalentLegend}>
             A classe foi alterada: salve para atualizar os marcos.
           </p>
@@ -130,7 +186,7 @@ const TalentsPanel = () => {
         {slots && nodes.length > 0 && (
           <p className={handles.sheetTalentLegend}>
             {slots.general.length > 0 &&
-              `Nos níveis ${joinLevels(slots.general)}, a tabela de ${className} dá +2 em um atributo, +1 em dois ou um talento, geral ou da classe. Um marco sem talento pode ter ido para atributos. `}
+              `Nos níveis ${joinLevels(slots.general)}, ${className} escolhe entre +2 em um atributo, +1 em dois ou um talento, geral ou da classe. Marque o que foi para atributos. `}
             {slots.classOnly.length > 0 &&
               `${slots.classOnly.length === 1 ? 'No nível' : 'Nos níveis'} ${joinLevels(slots.classOnly)}, a classe concede um talento só dela.`}
           </p>
@@ -181,10 +237,29 @@ const TalentsPanel = () => {
               <button
                 type="button"
                 className={handles.sheetMasterAdd}
-                onClick={() => setPicking(true)}
+                onClick={() =>
+                  catalog.open({
+                    kind: 'talents',
+                    at: firstOpen?.level ?? Math.max(1, level),
+                  })
+                }
               >
-                {`+ Escolher talento (${taken} de ${reached})`}
+                {`+ Escolher talento · ${Math.max(0, progress.nodes.filter((n) => n.state === 'open').length)} livres`}
               </button>
+            )}
+            {editable && pending && (
+              <span className={handles.sheetTalentPending}>
+                <span>não salvo</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    revertField('talents');
+                    revertField('talentMilestones');
+                  }}
+                >
+                  Desfazer
+                </button>
+              </span>
             )}
           </div>
         </div>
@@ -217,18 +292,6 @@ const TalentsPanel = () => {
           />
         )}
       </div>
-
-      <TalentPicker
-        isOpen={picking}
-        onClose={() => setPicking(false)}
-        options={talents.options}
-        failed={talents.failed}
-        className={className}
-        level={level}
-        progress={progress}
-        countOf={talents.countOf}
-        onAdd={talents.add}
-      />
     </>
   );
 };

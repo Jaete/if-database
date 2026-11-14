@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useOptionalAuth } from '@/app/context/AuthContext';
 import { applyModifiers, useCssHandles } from '@/hooks/useCssHandles';
 import { plural } from '@/lib/plural';
+import type { IRaceChoice } from '@/lib/catalogChoice';
 import { PencilIcon } from '../Icons';
 import ConfirmModal from '../ConfirmModal';
 import RaceArt from '../RaceArt';
@@ -12,6 +13,7 @@ import RaceIconButton from '../RaceIconButton';
 import Abilities from './Abilities';
 import AdminStrip from './AdminStrip';
 import ChoiceRules from './ChoiceRules';
+import ChoiceStrip from './ChoiceStrip';
 import EditorHost from './EditorHost';
 import Hero from './Hero';
 import Lineage from './Lineage';
@@ -32,6 +34,11 @@ interface IProps {
   readOnly?: boolean;
   /** Rota da listagem: `/races` no site, `/embed/races` no iframe do fórum. */
   basePath?: string;
+  /**
+   * Seletor da ficha: sem edição nem navegação, com a faixa de escolha no topo
+   * e, no Mestiço, o seletor de cada regra de escolha.
+   */
+  choice?: IRaceChoice;
 }
 
 /**
@@ -43,10 +50,11 @@ const RaceData = ({
   initialSub,
   readOnly = false,
   basePath = '/races',
+  choice,
 }: IProps) => {
   const handles = useCssHandles(RaceDataHandles);
   const auth = useOptionalAuth();
-  const canEdit = !readOnly && (auth?.canEdit ?? false);
+  const canEdit = !readOnly && !choice && (auth?.canEdit ?? false);
   const data = useRaceData(initial, initialSub);
   const { race, sub } = data;
 
@@ -70,12 +78,21 @@ const RaceData = ({
 
   return (
     <div className={handles.raceDetail}>
-      <TopBar sections={sections} basePath={basePath} />
+      {!choice && <TopBar sections={sections} basePath={basePath} />}
       {canEdit && (
         <AdminStrip
           sourceUrl={race.sourceUrl}
           onReimport={actions.reimport}
           onDelete={actions.deleteRace}
+        />
+      )}
+
+      {choice && (
+        <ChoiceStrip
+          race={race}
+          choice={choice}
+          focusedSub={sub?.slug}
+          onFocusSub={data.selectSub}
         />
       )}
 
@@ -119,6 +136,8 @@ const RaceData = ({
                   <ChoiceRules
                     rules={race.choiceRules ?? []}
                     actions={actions}
+                    choice={choice}
+                    raceSlug={race.slug}
                   />
                 </>
               ) : (

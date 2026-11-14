@@ -9,9 +9,9 @@ import Modal from '@/components/Modal';
 import DetailCard from '../DetailCard';
 import { useSideReader } from '../useSideReader';
 import PromptModal from '@/components/PromptModal';
-import SpellPicker from './SpellPicker';
 import { useSpellsPanel } from './useSpellsPanel';
 import EditableText from '../EditableText';
+import { useCatalogRequest } from '../CatalogLayerContext';
 import { useEditing } from '../EditingContext';
 import { ATTRIBUTES, DASH, attrFromName } from '../sheetData';
 import {
@@ -94,12 +94,13 @@ type Picked = { level: number; at: number; spell: IPlayerSpell } | null;
 
 const SpellsPanel = () => {
   const handles = useCssHandles(SpellsPanelHandles);
-  const { editable, value, objects, setField } = useEditing();
+  const { editable, value, objects, setField, isDirtyUnder, revertField } =
+    useEditing();
   const [editingSpell, setEditingSpell] = useState<Picked>(null);
   const reader = useSideReader<IPlayerSpell>();
   // Círculo cujo seletor está aberto. `null` fechado — e não um booleano,
   // porque o catálogo é buscado por círculo.
-  const [picking, setPicking] = useState<number | null>(null);
+  const catalogLayer = useCatalogRequest();
   const casting = useSpellsPanel();
 
   // Mesmo caminho de leitura de readAttribute(), mas pelo contexto, para o CD
@@ -547,17 +548,23 @@ const SpellsPanel = () => {
                 {editable &&
                   (casting.linked ? (
                     // Ligada à classe, a magia se escolhe; não se digita. O botão
-                    // continua clicável sem espaço livre: o seletor é também onde
-                    // se vê o que a classe conhece.
+                    // continua clicável sem espaço livre: a camada é também onde
+                    // se vê o que a classe conhece (e onde se troca uma magia).
                     <button
                       type="button"
                       className={handles.sheetSpellAdd}
-                      onClick={() => setPicking(circle.level)}
+                      onClick={() =>
+                        catalogLayer.open({
+                          kind: 'spells',
+                          circle: circle.level,
+                        })
+                      }
                     >
-                      {circle.level === 0
-                        ? '+ Escolher truque'
-                        : '+ Preparar magia'}
-                      {` (${casting.countOf(circle.level)}/${casting.limitOf(circle.level)})`}
+                      {`Preparar · ${casting.remainingOf(circle.level)} ${
+                        casting.remainingOf(circle.level) === 1
+                          ? 'livre'
+                          : 'livres'
+                      }`}
                     </button>
                   ) : (
                     <button
@@ -578,6 +585,18 @@ const SpellsPanel = () => {
               </section>
             );
           })}
+
+          {editable && isDirtyUnder('playerSpellcasting.spellRefs') && (
+            <span className={handles.sheetSpellPending}>
+              <span>não salvo</span>
+              <button
+                type="button"
+                onClick={() => revertField('playerSpellcasting.spellRefs')}
+              >
+                Desfazer
+              </button>
+            </span>
+          )}
 
           {levels.length === 0 && (
             <p className={handles.sheetEmpty}>
@@ -601,26 +620,6 @@ const SpellsPanel = () => {
           />
         )}
       </div>
-
-      {casting.linked && (
-        <SpellPicker
-          isOpen={picking !== null}
-          onClose={() => setPicking(null)}
-          classId={casting.classId}
-          circle={picking ?? 0}
-          label={
-            picking !== null
-              ? (CIRCLE_LABELS[picking] ?? `${picking}º Círculo`)
-              : ''
-          }
-          taken={casting.takenIds}
-          remaining={picking !== null ? casting.remainingOf(picking) : 0}
-          onPick={(spell) => {
-            casting.prepare(spell);
-            setPicking(null);
-          }}
-        />
-      )}
 
       <Modal
         isOpen={reader.reading !== null}

@@ -7,9 +7,11 @@ import {
   talentPromptFields,
   talentSummary,
 } from '@/db/l10n/talents';
+import type { ITalentChoice } from '@/lib/catalogChoice';
 import { useCssHandles } from '@/hooks/useCssHandles';
-import { useAuth } from '@/app/context/AuthContext';
+import { useOptionalAuth } from '@/app/context/AuthContext';
 import PromptModal from '../PromptModal';
+import TalentChoiceList from './TalentChoiceList';
 import { useTalentGrid } from './useTalentGrid';
 import TalentGridHandles from './handles';
 import '@/styles/components/talentGrid.scss';
@@ -26,13 +28,22 @@ import '@/styles/components/talentGrid.scss';
  */
 interface IProps {
   initialTalents: ITalentDoc[];
+  /** Esconde toda a edição, mesmo para quem pode editar (o embed). */
+  readOnly?: boolean;
+  /**
+   * Seletor da ficha: a lista passa a ser a de `choice.options` (gerais mais os
+   * da classe), sem as ferramentas de admin.
+   */
+  choice?: ITalentChoice;
 }
 
-const TalentGrid = ({ initialTalents }: IProps) => {
+const TalentGrid = ({ initialTalents, readOnly = false, choice }: IProps) => {
   const handles = useCssHandles(TalentGridHandles);
   // Sem isto, quem só lê vê os botões de escrita e leva 403 ao clicar. A
-  // guarda de verdade é a da rota; esta é a afordância.
-  const { canEdit } = useAuth();
+  // guarda de verdade é a da rota; esta é a afordância. O embed não tem
+  // AuthProvider: sem contexto, ninguém edita.
+  const auth = useOptionalAuth();
+  const canEdit = !readOnly && !choice && (auth?.canEdit ?? false);
   const {
     talents,
     visible,
@@ -50,6 +61,8 @@ const TalentGrid = ({ initialTalents }: IProps) => {
   // `null` = fechado, `undefined` = talento novo.
   const [editing, setEditing] = useState<ITalentDoc | undefined | null>(null);
   const [importing, setImporting] = useState(false);
+
+  if (choice) return <TalentChoiceList choice={choice} />;
 
   return (
     <div className={handles.grimoire}>

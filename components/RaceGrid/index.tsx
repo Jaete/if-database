@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { plural } from '@/lib/plural';
+import type { IRaceChoice } from '@/lib/catalogChoice';
 import { useCssHandles } from '@/hooks/useCssHandles';
 import { useOptionalAuth } from '@/app/context/AuthContext';
 import { DownloadIcon, PlusIcon, SearchIcon } from '../Icons';
@@ -22,6 +23,8 @@ interface IProps {
   basePath?: string;
   /** Esconde importar, criar e editar, mesmo para quem pode editar. */
   readOnly?: boolean;
+  /** Seletor da ficha: os cards abrem a página na camada e mostram o estado. */
+  choice?: IRaceChoice;
 }
 
 const FILTERS: readonly { value: RaceFilter; label: string }[] = [
@@ -39,10 +42,11 @@ const RaceGrid = ({
   initialCover,
   basePath = '/races',
   readOnly = false,
+  choice,
 }: IProps) => {
   const handles = useCssHandles(RaceGridHandles);
   const auth = useOptionalAuth();
-  const canEdit = !readOnly && (auth?.canEdit ?? false);
+  const canEdit = !readOnly && !choice && (auth?.canEdit ?? false);
   const { query, setQuery, filter, setFilter, visible, cover, focusRace } =
     useRaceGrid(races, initialCover);
   const [importing, setImporting] = useState(false);
@@ -170,6 +174,18 @@ const RaceGrid = ({
                 canEdit={canEdit}
                 basePath={basePath}
                 onFocusRace={focusRace}
+                choice={
+                  choice && {
+                    onOpen: () => choice.onOpen(race.slug, 'pick'),
+                    current: choice.current?.slug === race.slug,
+                    chosen:
+                      !!choice.draft &&
+                      choice.draft.slug === race.slug &&
+                      choice.draft.slug !== choice.current?.slug,
+                    takenBy: choice.catalog.find((r) => r.slug === race.slug)
+                      ?.takenBy?.name,
+                  }
+                }
               />
             ))}
           </ul>

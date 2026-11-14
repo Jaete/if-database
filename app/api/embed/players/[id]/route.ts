@@ -153,7 +153,10 @@ export async function PUT(
       updated = await updatePlayerById(id, data);
     } catch (error) {
       if (error instanceof PlayerSheetError) {
-        return NextResponse.json({ error: error.message }, { status: 400 });
+        return NextResponse.json(
+          { error: error.message },
+          { status: error.name === 'UniqueConflictError' ? 409 : 400 }
+        );
       }
       throw error;
     }

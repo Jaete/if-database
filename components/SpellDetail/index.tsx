@@ -29,6 +29,8 @@ interface IProps {
   backLabel?: string;
   onClose: () => void;
   onEdit: (spell: ISpell) => void;
+  /** Ação extra na barra (preparar a magia, no seletor da ficha). */
+  action?: ReactNode;
 }
 
 // A ficha na ordem do sistema: quatro campos em quadro, o resto em lista.
@@ -91,6 +93,7 @@ const SpellDetail = ({
   backLabel = 'Grimório',
   onClose,
   onEdit,
+  action,
 }: IProps) => {
   const handles = useCssHandles(SpellDetailHandles);
   const backRef = useRef<HTMLButtonElement>(null);
@@ -145,6 +148,7 @@ const SpellDetail = ({
           <ArrowLeftIcon />
           {backLabel}
         </button>
+        {action}
         {canEdit && (
           <button
             type="button"

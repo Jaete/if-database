@@ -6,6 +6,7 @@ import { abilityChips } from '@/lib/raceAbilityChips';
 import { plural } from '@/lib/plural';
 import { applyModifiers, useCssHandles } from '@/hooks/useCssHandles';
 import { PencilIcon } from '../../Icons';
+import ChoiceTag from '../../ChoiceTag';
 import RaceArt from '../../RaceArt';
 import RaceChips from '../../RaceChips';
 import RaceIconButtonHandles from '../../RaceIconButton/handles';
@@ -17,10 +18,20 @@ interface IProps {
   canEdit: boolean;
   basePath: string;
   onFocusRace: (slug: string) => void;
+  /**
+   * Seletor da ficha: o nome abre a página dentro da camada, em vez de navegar,
+   * e o card mostra o que a ficha tem e o que está na bandeja.
+   */
+  choice?: {
+    onOpen: () => void;
+    current: boolean;
+    chosen: boolean;
+    takenBy?: string;
+  };
 }
 
 /** O card de uma raça na listagem: a capa, o nome, os chips e as sub-raças. */
-const RaceCard = ({ race, canEdit, basePath, onFocusRace }: IProps) => {
+const RaceCard = ({ race, canEdit, basePath, onFocusRace, choice }: IProps) => {
   const handles = useCssHandles(RaceCardHandles);
   const iconBtn = useCssHandles(RaceIconButtonHandles);
   const cover = race.images[0];
@@ -64,8 +75,15 @@ const RaceCard = ({ race, canEdit, basePath, onFocusRace }: IProps) => {
       </div>
 
       <div className={handles.racePlateFlags}>
-        {race.unique && (
+        {race.unique && !choice && (
           <span className={handles.racePlatePill}>Raça única</span>
+        )}
+        {choice?.current && <ChoiceTag kind="current">Atual</ChoiceTag>}
+        {choice?.chosen && <ChoiceTag kind="chosen">Escolhida</ChoiceTag>}
+        {choice && race.unique && (
+          <ChoiceTag kind={choice.takenBy ? 'blocked' : 'unique'}>
+            {choice.takenBy ? `Única · ${choice.takenBy}` : 'Raça única'}
+          </ChoiceTag>
         )}
       </div>
 
@@ -83,13 +101,23 @@ const RaceCard = ({ race, canEdit, basePath, onFocusRace }: IProps) => {
 
       <div className={handles.racePlateBody}>
         <h2 className={handles.racePlateName}>
-          <Link
-            href={`${basePath}/${race.slug}`}
-            prefetch={false}
-            className={handles.racePlateLink}
-          >
-            {race.name}
-          </Link>
+          {choice ? (
+            <button
+              type="button"
+              className={handles.racePlateLink}
+              onClick={choice.onOpen}
+            >
+              {race.name}
+            </button>
+          ) : (
+            <Link
+              href={`${basePath}/${race.slug}`}
+              prefetch={false}
+              className={handles.racePlateLink}
+            >
+              {race.name}
+            </Link>
+          )}
         </h2>
         <span className={handles.racePlateClasp} aria-hidden="true">
           ◆

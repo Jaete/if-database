@@ -1,7 +1,6 @@
 'use server';
 
-import CharacterClassModel from '../db/classes/classes';
-import type ICharacterClass from '../db/classes/class.d';
+import { loadClassForTalents } from './playerSheetLinks.service';
 import TalentModel from '../db/talents/talents';
 import type ITalentDoc from '../db/talents/talent.d';
 import { createEntityService } from './createEntityService';
@@ -69,9 +68,7 @@ export async function getTalentOptions(
   const options: ITalentOption[] = general.map(generalTalentOption);
 
   if (classId && /^[0-9a-f]{24}$/i.test(classId)) {
-    const klass = await CharacterClassModel.findById(classId)
-      .select('slug name talents')
-      .lean<Pick<ICharacterClass, 'slug' | 'name' | 'talents'>>();
+    const klass = await loadClassForTalents(classId);
     options.push(...classTalentOptions(klass));
   }
 

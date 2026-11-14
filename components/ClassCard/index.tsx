@@ -5,6 +5,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { applyModifiers, useCssHandles } from '@/hooks/useCssHandles';
 import type { IClassOption } from '../ClassGrid/useClassGrid';
+import type { IClassChoice } from '@/lib/catalogChoice';
+import ChoiceTag from '../ChoiceTag';
 import {
   AstrolabeIcon,
   ClassRoleIcon,
@@ -38,6 +40,8 @@ interface IProps {
   onCenter: () => void;
   /** Clique no card em foco: abre a classe sem sair do seletor. */
   onOpen: (klass: IClassOption) => void;
+  /** Seletor da ficha. */
+  choice?: IClassChoice;
 }
 
 type Row = [label: string, value: string | undefined];
@@ -62,6 +66,7 @@ const ClassCard = ({
   onEdit,
   onCenter,
   onOpen,
+  choice,
 }: IProps) => {
   const handles = useCssHandles(ClassCardHandles);
   const { bodyRef, open, overflowing, toggle } = useClassCard(focused);
@@ -75,6 +80,13 @@ const ClassCard = ({
     players === 1
       ? '1 jogador com esta classe'
       : `${players} jogadores com esta classe`;
+
+  const takenBy = choice?.takenUnique[klass._id];
+  const isCurrent = !!choice && choice.currentId === klass._id;
+  const isChosen =
+    !!choice &&
+    choice.draftId === klass._id &&
+    choice.draftId !== choice.currentId;
 
   const hitPoints: Row[] = [
     ['Dado de vida', klass.hitDie],
@@ -201,7 +213,7 @@ const ClassCard = ({
           <UserIcon />
           <span className={handles.pickPlayersCount}>{players}</span>
         </span>
-        {canEdit && (
+        {canEdit && !choice && (
           <button
             type="button"
             className={handles.pickEdit}
@@ -217,7 +229,18 @@ const ClassCard = ({
       <div className={handles.pickSpacer} />
 
       <div className={handles.pickHead}>
-        {klass.isUnique && (
+        {choice && (
+          <span className={handles.pickChoiceTags}>
+            {isCurrent && <ChoiceTag kind="current">Atual</ChoiceTag>}
+            {isChosen && <ChoiceTag kind="chosen">Escolhida</ChoiceTag>}
+            {klass.isUnique && (
+              <ChoiceTag kind={takenBy ? 'blocked' : 'unique'}>
+                {takenBy ? `Única · ${takenBy}` : 'Classe única'}
+              </ChoiceTag>
+            )}
+          </span>
+        )}
+        {klass.isUnique && !choice && (
           <span
             className={handles.pickUnique}
             title={
@@ -259,6 +282,24 @@ const ClassCard = ({
         {/* Presente em todo card que trunca, e só escondido fora de foco: se
             entrasse no DOM ao ganhar o foco, empurraria o card inteiro para
             cima no meio da animação. */}
+        {choice && (
+          <button
+            type="button"
+            className={handles.pickChoose}
+            tabIndex={focused ? undefined : -1}
+            aria-hidden={focused ? undefined : true}
+            disabled={!!takenBy || isCurrent}
+            onClick={() => choice.onPick(klass)}
+          >
+            {takenBy
+              ? 'Classe única já tomada'
+              : isCurrent
+                ? 'Classe atual'
+                : isChosen
+                  ? 'Escolhida · ver bandeja'
+                  : `Escolher ${klass.name}`}
+          </button>
+        )}
         {(overflowing || open) && (
           <button
             type="button"
