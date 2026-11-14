@@ -7,16 +7,7 @@ import {
   MAX_INPUT_BYTES,
   createImage,
 } from '@/services/image.service';
-
-const isSameOriginRequest = (request: Request) => {
-  const origin = request.headers.get('origin');
-  if (!origin) return false;
-  try {
-    return new URL(origin).origin === new URL(request.url).origin;
-  } catch {
-    return false;
-  }
-};
+import { isSameOrigin } from '@/lib/embedRequest';
 
 // sharp é nativo: só roda no Node, nunca no edge.
 export const runtime = 'nodejs';
@@ -57,7 +48,7 @@ async function readLimited(request: Request): Promise<Uint8Array | null> {
 // (cookie `SameSite=None`, ambiente): por isso ela exige também `Origin` da
 // própria aplicação, como todas as escritas do embed.
 export async function POST(request: Request) {
-  const embed = isSameOriginRequest(request) ? await getEmbedSession() : null;
+  const embed = isSameOrigin(request) ? await getEmbedSession() : null;
   const session = (await getAuthorizedSession()) ?? embed;
   if (!session) return fail('Entre para enviar imagens.', 401);
 
