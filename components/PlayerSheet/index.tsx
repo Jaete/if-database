@@ -5,6 +5,7 @@ import { useCssHandles, applyModifiers } from '@/hooks/useCssHandles';
 import { usePlayerSheet } from './usePlayerSheet';
 import { useSheetEditing } from './useSheetEditing';
 import { EditingProvider } from './EditingContext';
+import { RacePickerProvider } from './RacePickerContext';
 import SaveBar from './SaveBar';
 import Header from './Header';
 import NarrationStyle from './NarrationStyle';
@@ -15,6 +16,7 @@ import StatusPanel from './StatusPanel';
 import SkillsPanel from './SkillsPanel';
 import AbilitiesPanel from './AbilitiesPanel';
 import ArchetypePanel from './ArchetypePanel';
+import TalentsPanel from './TalentsPanel';
 import SpellsPanel from './SpellsPanel';
 import EquipmentPanel from './EquipmentPanel';
 import ProfessionsPanel from './ProfessionsPanel';
@@ -27,6 +29,7 @@ import {
   readArchetype,
   readProfessions,
   tabId,
+  talentProgress,
 } from './sheetData';
 import type { ScreenId } from './sheetData';
 import '@/styles/components/playerSheet.scss';
@@ -52,6 +55,7 @@ const PlayerSheet = ({ player: initialPlayer, forumOrigin }: IProps) => {
     value,
     list,
     objects,
+    read,
     setField,
     isFieldDirty,
     save,
@@ -74,6 +78,7 @@ const PlayerSheet = ({ player: initialPlayer, forumOrigin }: IProps) => {
     cursorRef,
     panelRef,
     registerItem,
+    openScreen,
     backToMenu,
     handleMenuClick,
     handleMenuHover,
@@ -100,7 +105,7 @@ const PlayerSheet = ({ player: initialPlayer, forumOrigin }: IProps) => {
           ]
             .filter(Boolean)
             .join(' · '),
-          body: <StatusPanel player={player} />,
+          body: <StatusPanel player={player} onOpenScreen={openScreen} />,
         };
       case 'pericias':
         return {
@@ -126,6 +131,22 @@ const PlayerSheet = ({ player: initialPlayer, forumOrigin }: IProps) => {
             ? `${archetype.chosen} de ${archetype.slots} habilidades escolhidas`
             : undefined,
           body: <ArchetypePanel />,
+        };
+      }
+      case 'talentos': {
+        const progress = talentProgress(
+          player.talentSlots,
+          player.talents ?? [],
+          player.level ?? 0
+        );
+        return {
+          title: 'Talentos',
+          sub: `${progress.taken} ${
+            progress.taken === 1 ? 'escolhido' : 'escolhidos'
+          } · ${progress.reached} ${
+            progress.reached === 1 ? 'marco alcançado' : 'marcos alcançados'
+          }`,
+          body: <TalentsPanel />,
         };
       }
       case 'magias':
@@ -163,86 +184,89 @@ const PlayerSheet = ({ player: initialPlayer, forumOrigin }: IProps) => {
       value={value}
       list={list}
       objects={objects}
+      read={read}
       setField={setField}
       isFieldDirty={isFieldDirty}
     >
-      <div className={handles.playerSheetStage}>
-        <article
-          ref={sheetRef}
-          className={handles.playerSheet}
-          data-view={view}
-          // Lido pelo EmbedCloseBridge: com alteração não salva, o Esc não
-          // fecha o modal do fórum e não joga a edição fora.
-          data-unsaved={isDirty || undefined}
-          aria-label={`Ficha de ${player.name}`}
-        >
-          {canEdit && (
-            <button
-              type="button"
-              className={`${handles.sheetEditToggle}${
-                isEditing
-                  ? ` ${applyModifiers(handles.sheetEditToggle, 'editing')}`
-                  : ''
-              }`}
-              onClick={() => (isEditing ? cancel() : setIsEditing(true))}
-              aria-pressed={isEditing}
-            >
-              {isEditing ? 'Concluir edição' : 'Editar ficha'}
-            </button>
-          )}
-          <Header player={player} />
-          <NarrationStyle player={player} />
-          <div className={handles.playerSheetBody}>
-            <CommandMenu
-              player={player}
-              uid={uid}
-              panelId={panelId}
-              items={menu}
-              active={active}
-              cursorAt={cursorAt}
-              menuRef={menuRef}
-              cursorRef={cursorRef}
-              registerItem={registerItem}
-              onClick={handleMenuClick}
-              onHover={handleMenuHover}
-              onKeyDown={handleMenuKeyDown}
-            />
-            <div
-              ref={panelRef}
-              className={handles.playerSheetPanel}
-              onKeyDown={handlePanelKeyDown}
-            >
-              {transition !== 'none' && (
-                <div
-                  key={`wipe-${screenSeq}`}
-                  className={handles.playerSheetWipe}
-                  aria-hidden="true"
-                />
-              )}
-              <Screen
-                key={screenSeq}
-                id={panelId}
-                labelledBy={tabId(uid, current.id)}
-                title={screen.title}
-                sub={screen.sub}
-                transition={transition}
-                onBack={backToMenu}
+      <RacePickerProvider>
+        <div className={handles.playerSheetStage}>
+          <article
+            ref={sheetRef}
+            className={handles.playerSheet}
+            data-view={view}
+            // Lido pelo EmbedCloseBridge: com alteração não salva, o Esc não
+            // fecha o modal do fórum e não joga a edição fora.
+            data-unsaved={isDirty || undefined}
+            aria-label={`Ficha de ${player.name}`}
+          >
+            {canEdit && (
+              <button
+                type="button"
+                className={`${handles.sheetEditToggle}${
+                  isEditing
+                    ? ` ${applyModifiers(handles.sheetEditToggle, 'editing')}`
+                    : ''
+                }`}
+                onClick={() => (isEditing ? cancel() : setIsEditing(true))}
+                aria-pressed={isEditing}
               >
-                {screen.body}
-              </Screen>
+                {isEditing ? 'Concluir edição' : 'Editar ficha'}
+              </button>
+            )}
+            <Header player={player} />
+            <NarrationStyle player={player} />
+            <div className={handles.playerSheetBody}>
+              <CommandMenu
+                player={player}
+                uid={uid}
+                panelId={panelId}
+                items={menu}
+                active={active}
+                cursorAt={cursorAt}
+                menuRef={menuRef}
+                cursorRef={cursorRef}
+                registerItem={registerItem}
+                onClick={handleMenuClick}
+                onHover={handleMenuHover}
+                onKeyDown={handleMenuKeyDown}
+              />
+              <div
+                ref={panelRef}
+                className={handles.playerSheetPanel}
+                onKeyDown={handlePanelKeyDown}
+              >
+                {transition !== 'none' && (
+                  <div
+                    key={`wipe-${screenSeq}`}
+                    className={handles.playerSheetWipe}
+                    aria-hidden="true"
+                  />
+                )}
+                <Screen
+                  key={screenSeq}
+                  id={panelId}
+                  labelledBy={tabId(uid, current.id)}
+                  title={screen.title}
+                  sub={screen.sub}
+                  transition={transition}
+                  onBack={backToMenu}
+                >
+                  {screen.body}
+                </Screen>
+              </div>
             </div>
-          </div>
-          <Hints message={status || message} />
-          <SaveBar
-            visible={isDirty}
-            count={dirtyCount}
-            isSaving={isSaving}
-            error={saveError}
-            onSave={save}
-            onDiscard={cancel}
-          />
-        </article>
-      </div>
+            <Hints message={status || message} />
+            <SaveBar
+              visible={isDirty}
+              count={dirtyCount}
+              isSaving={isSaving}
+              error={saveError}
+              onSave={save}
+              onDiscard={cancel}
+            />
+          </article>
+        </div>
+      </RacePickerProvider>
     </EditingProvider>
   );
 };

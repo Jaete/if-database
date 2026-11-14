@@ -134,6 +134,27 @@ export interface IRaceData extends IRaceProfile {
 }
 
 /**
+ * A raça como a ficha a usa: o que as habilidades, a placa de linhagem e o
+ * seletor precisam, sem os textos longos (história, comportamento, aparência)
+ * que só a página da raça mostra.
+ */
+export type IRaceCatalogEntry = Pick<
+  IRaceData,
+  | 'name'
+  | 'slug'
+  | 'unique'
+  | 'images'
+  | 'abilityScoreIncrease'
+  | 'speed'
+  | 'size'
+  | 'languages'
+  | 'traits'
+  | 'baseOnlyTraits'
+  | 'choiceRules'
+  | 'subraces'
+> & { id: string };
+
+/**
  * O documento gravado. Os avisos do parser não são gravados: eles servem
  * para auditar uma importação e voltam no resultado dela, não na raça.
  */

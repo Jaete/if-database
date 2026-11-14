@@ -43,8 +43,11 @@ export const PLAYER_PUBLIC_FIELDS = [
   'playerSpellcasting',
   // A escolha de arquétipo é feita na ficha embutida, então entra gravável.
   'archetype',
+  // Raça e talentos: a escolha entra gravável (como o arquétipo); o que ela
+  // resolve em habilidades, linhagem e marcos é derivado na leitura.
   'raceId',
   'raceChoice',
+  'talents',
   'equipment',
   'professions',
   'appearance',
@@ -58,10 +61,14 @@ export const PLAYER_PUBLIC_FIELDS = [
   'updatedAt',
 ] as const;
 
+// `lineage` e `talentSlots` não estão na lista de propósito: são derivados na
+// leitura (services/player.service.ts), então não são projetados do banco e
+// também não são graváveis.
 export type IPublicPlayer = Pick<
   IPlayer,
   (typeof PLAYER_PUBLIC_FIELDS)[number]
->;
+> &
+  Pick<IPlayer, 'lineage' | 'talentSlots'>;
 
 // Campos que a edição embutida pode gravar: a projeção pública menos as chaves
 // e a trilha de procedência. `_id` e `slug` identificam o documento, e o bloco

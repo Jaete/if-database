@@ -1,0 +1,582 @@
+@use '../../../styles/globals' as *;
+@use 'vars' as *;
+
+// ── Talentos ────────────────────────────────────────────────
+
+// Trilha de marcos: um losango por vaga, aceso até onde o personagem chegou.
+.sheetTalentTrack {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(var(--talent-nodes), minmax(0, 1fr));
+  padding-top: $spacing-1 * 0.5;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: calc(50% / var(--talent-nodes));
+    right: calc(50% / var(--talent-nodes));
+    top: 0.5625rem;
+    height: 1px;
+    background: $color-border-strong;
+  }
+}
+
+.sheetTalentReach {
+  position: absolute;
+  left: calc(50% / var(--talent-nodes));
+  top: 0.5625rem;
+  width: var(--talent-reach);
+  height: 1px;
+  background: linear-gradient(90deg, $color-accent-line-2, $color-accent-line);
+}
+
+.sheetTalentNode {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: $spacing-1;
+  min-width: 0;
+  padding-inline: $spacing-1 * 0.5;
+  text-align: center;
+}
+
+.sheetTalentPip {
+  width: 0.625rem;
+  height: 0.625rem;
+  margin-top: $spacing-1;
+  transform: rotate(45deg);
+  border: 1px solid $color-border-strong;
+  background: $surface;
+
+  .sheetTalentNode--used & {
+    background: $color-accent-fill;
+    border-color: $color-accent-fill;
+  }
+
+  .sheetTalentNode--open & {
+    border-color: $color-accent-line;
+    box-shadow: 0 0 0 #{$spacing-1 * 0.75} $accent-overlay-hover;
+  }
+}
+
+.sheetTalentLevel {
+  @include mono-xs($color-text, $font-weight-bold, 1);
+
+  .sheetTalentNode--future & {
+    color: $color-text-subtle;
+    font-weight: $font-weight-regular;
+  }
+}
+
+.sheetTalentState {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  @include main-xs($color-text-muted, $font-weight-regular, 1.3);
+
+  .sheetTalentNode--used & {
+    color: $color-text;
+  }
+
+  .sheetTalentNode--open & {
+    color: $color-accent;
+  }
+}
+
+.sheetTalentSlotLine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: $spacing-1 $spacing-3;
+  @include main-xs($color-text-muted, $font-weight-regular);
+
+  b {
+    @include mono-sm($color-accent, $font-weight-bold, 1.5);
+  }
+}
+
+.sheetTalentLegend {
+  margin: 0;
+  @include main-xs($color-text-muted, $font-weight-regular);
+}
+
+// ── Linha do talento ──
+.sheetTalentRow {
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr) auto;
+  gap: $spacing-1 $spacing-3;
+  align-items: start;
+  padding: $spacing-2 $spacing-2;
+  border-bottom: 1px solid $color-border;
+  border-radius: $radius-sm;
+
+  &:hover {
+    background: $accent-overlay;
+  }
+
+  &--current {
+    background: $accent-overlay-hover;
+    box-shadow: inset 0 0 0 1px with-alpha($color-accent-line, 0.45);
+  }
+
+  // Em edição o selo vira um select de nível, que precisa de mais largura.
+  &--editing {
+    grid-template-columns: 3.5rem minmax(0, 1fr) auto;
+  }
+}
+
+.sheetTalentSeal {
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  margin-top: $spacing-1 * 0.25;
+  border: 1px solid with-alpha($color-accent-line, 0.45);
+  border-radius: $radius-full;
+  @include mono-xs($color-accent, $font-weight-bold, 1);
+}
+
+.sheetTalentSealSelect {
+  width: 100%;
+  min-width: 2rem;
+  height: 1.75rem;
+  padding: 0 $spacing-1;
+  border-radius: $radius-sm;
+  cursor: pointer;
+  @include field-input;
+  @include mono-xs($color-text, $font-weight-bold, 1);
+}
+
+.sheetTalentMain {
+  display: grid;
+  gap: $spacing-1 * 0.75;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  @include focus-ring();
+}
+
+.sheetTalentName {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: $spacing-2;
+  @include main-sm($color-text, $font-weight-medium);
+}
+
+.sheetTalentCount {
+  padding: 0 $spacing-2;
+  border: 1px solid with-alpha($color-accent-line, 0.5);
+  border-radius: $radius-full;
+  @include mono-xs($color-accent, $font-weight-bold, 1.6);
+}
+
+.sheetTalentTags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-1 $spacing-2;
+  @include main-xs($color-text-muted, $font-weight-regular);
+}
+
+.sheetTalentScope {
+  padding: $spacing-1 $spacing-2;
+  border: 1px solid $color-border-strong;
+  border-radius: $radius-full;
+  text-transform: uppercase;
+  @include caption($color-text-muted, $font-weight-semibold, 1, 0.12em);
+
+  &--class {
+    border-color: with-alpha($color-accent-line, 0.55);
+    color: $color-accent;
+  }
+}
+
+.sheetTalentPrereq {
+  @include main-xs($color-text-muted, $font-weight-regular);
+
+  b {
+    color: $color-text;
+    font-weight: $font-weight-semibold;
+  }
+}
+
+.sheetTalentFlag {
+  text-transform: uppercase;
+  @include caption($color-warning, $font-weight-semibold, 1.2, 0.06em);
+
+  &--strong {
+    text-transform: none;
+    @include main-xs($color-warning, $font-weight-regular);
+  }
+}
+
+.sheetTalentActions {
+  display: flex;
+  align-items: center;
+  gap: $spacing-1 * 0.5;
+
+  // O chevron gira quando a linha abre.
+  [aria-expanded='true'] svg {
+    transform: rotate(180deg);
+  }
+
+  svg {
+    transition: transform 0.2s ease;
+  }
+}
+
+.sheetTalentMore {
+  grid-column: 2 / -1;
+  padding: $spacing-1 0 $spacing-2;
+
+  p {
+    margin: 0;
+    white-space: pre-line;
+    @include main-xs($color-text, $font-weight-regular, 1.6);
+  }
+}
+
+// Talento pego várias vezes: um nível por vez, cada um com o seu X.
+.sheetTalentPicks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-2;
+  grid-column: 2 / -1;
+}
+
+.sheetTalentPick {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-1 * 0.5;
+}
+
+// Com o leitor ao lado, a descrição abre nele e não na linha.
+@include panel-wide {
+  .sheetTalentMore {
+    display: none;
+  }
+
+  .sheetTalentActions [aria-expanded] {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheetTalentActions svg {
+    transition: none;
+  }
+}
+
+// ── Seletor de talentos (Modal) ─────────────────────────────
+.sheetTalentPicker {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.sheetTalentPickerBody {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: $spacing-3;
+  padding: $spacing-4 $spacing-5;
+}
+
+.sheetTalentPickerNote {
+  margin: 0;
+  @include main-xs($color-text-muted, $font-weight-regular);
+
+  b {
+    color: $color-text;
+    font-weight: $font-weight-semibold;
+  }
+}
+
+.sheetTalentPickerTools {
+  display: grid;
+  gap: $spacing-2;
+}
+
+.sheetTalentPickerSearch {
+  width: 100%;
+  padding: $spacing-2 $spacing-3;
+  border-radius: $radius-sm;
+  @include field-input;
+  @include main-sm($color-text, $font-weight-regular);
+}
+
+.sheetTalentPickerRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-2;
+}
+
+.sheetTalentPickerScopes {
+  display: inline-grid;
+  grid-auto-flow: column;
+  gap: $spacing-1 * 0.5;
+  max-width: 100%;
+  padding: $spacing-1 * 0.5;
+  border: 1px solid $color-border-control;
+  border-radius: $radius-md;
+  background: $surface;
+}
+
+.sheetTalentPickerScope {
+  padding: $spacing-1 $spacing-3;
+  border: 1px solid transparent;
+  border-radius: $radius-sm;
+  background: transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  @include main-xs($color-text-muted, $font-weight-medium, 1.2);
+  @include focus-ring();
+
+  &:hover {
+    color: $color-text;
+  }
+
+  &[aria-checked='true'] {
+    border-color: with-alpha($color-accent-line, 0.6);
+    background: $surface-raised;
+    color: $color-accent;
+    @include elevation(1);
+  }
+
+  small {
+    margin-left: $spacing-1;
+    @include mono-xs(inherit, $font-weight-regular, 1);
+    opacity: 0.85;
+  }
+}
+
+.sheetTalentPickerCategories {
+  display: flex;
+  gap: $spacing-2;
+  padding-bottom: $spacing-1;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.sheetTalentPickerCategory {
+  flex: none;
+  padding: $spacing-1 $spacing-3;
+  border: 1px solid $color-border-strong;
+  border-radius: $radius-full;
+  background: transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  @include main-xs($color-text-muted, $font-weight-regular);
+  @include focus-ring();
+
+  &:hover {
+    color: $color-text;
+    border-color: with-alpha($color-accent-line, 0.5);
+  }
+
+  &[aria-pressed='true'] {
+    border-color: $color-accent-line;
+    background: $accent-overlay-hover;
+    color: $color-accent;
+  }
+
+  small {
+    margin-left: $spacing-1;
+    @include mono-xs(inherit, $font-weight-regular, 1);
+    opacity: 0.85;
+  }
+}
+
+.sheetTalentPickerList {
+  display: grid;
+  gap: $spacing-1 * 0.5;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sheetTalentPickerOption {
+  display: grid;
+  gap: $spacing-1 * 0.75;
+  width: 100%;
+  padding: $spacing-2 $spacing-3;
+  border: 1px solid transparent;
+  border-radius: $radius-sm;
+  background: transparent;
+  color: $color-text;
+  cursor: pointer;
+  text-align: left;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 4.5rem;
+  @include focus-ring();
+
+  &:hover:not(:disabled) {
+    background: $accent-overlay;
+  }
+
+  &[aria-pressed='true'] {
+    border-color: with-alpha($color-accent-line, 0.55);
+    background: $accent-overlay-hover;
+  }
+
+  &:disabled {
+    cursor: default;
+
+    > * {
+      opacity: 0.5;
+    }
+
+    .sheetTalentPickerHead {
+      opacity: 1;
+
+      .sheetTalentPickerName {
+        opacity: 0.5;
+      }
+    }
+  }
+}
+
+.sheetTalentPickerHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: $spacing-2;
+}
+
+.sheetTalentPickerName {
+  min-width: 0;
+  @include main-sm($color-text, $font-weight-medium);
+}
+
+.sheetTalentPickerTaken {
+  flex: none;
+  text-transform: uppercase;
+  @include caption($color-accent, $font-weight-semibold);
+}
+
+.sheetTalentPickerTags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-1 $spacing-2;
+  @include main-xs($color-text-muted, $font-weight-regular);
+}
+
+.sheetTalentPickerPill {
+  padding: $spacing-1 $spacing-2;
+  border: 1px solid $color-border-strong;
+  border-radius: $radius-full;
+  text-transform: uppercase;
+  @include caption($color-text-muted, $font-weight-semibold, 1, 0.12em);
+
+  &--class {
+    border-color: with-alpha($color-accent-line, 0.55);
+    color: $color-accent;
+  }
+}
+
+.sheetTalentPickerFlag {
+  text-transform: uppercase;
+  @include caption($color-warning, $font-weight-semibold, 1.2, 0.06em);
+}
+
+.sheetTalentPickerPrereq {
+  @include main-xs($color-text-muted, $font-weight-regular);
+
+  b {
+    color: $color-text;
+    font-weight: $font-weight-semibold;
+  }
+}
+
+.sheetTalentPickerDesc {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  white-space: pre-line;
+  @include main-xs($color-text-subtle, $font-weight-regular);
+}
+
+.sheetTalentPickerEmpty {
+  padding: $spacing-4;
+  @include main-xs($color-text-muted, $font-weight-regular);
+}
+
+.sheetTalentPickerFoot {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-3;
+  padding: $spacing-3 $spacing-5;
+  border-top: 1px solid $color-border;
+  background: $surface-elevated;
+}
+
+.sheetTalentPickerChosen {
+  display: grid;
+  gap: $spacing-2;
+  width: 100%;
+}
+
+.sheetTalentPickerRow2 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-2 $spacing-3;
+}
+
+.sheetTalentPickerChosenName {
+  display: block;
+  @include cinzel-md($color-text, $font-weight-semibold, 1.3);
+}
+
+.sheetTalentPickerLevel {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+  @include main-xs($color-text-muted, $font-weight-regular);
+
+  select {
+    padding: $spacing-1 $spacing-2;
+    border-radius: $radius-sm;
+    @include field-input;
+    @include mono-xs($color-text, $font-weight-bold, 1.3);
+  }
+}
+
+.sheetTalentPickerActions {
+  display: flex;
+  gap: $spacing-2;
+  margin-left: auto;
+}
+
+.sheetTalentPickerButton {
+  padding: $spacing-2 $spacing-3;
+  border-radius: $radius-sm;
+  cursor: pointer;
+  white-space: nowrap;
+  @include main-xs($color-text, $font-weight-semibold, 1.3);
+
+  &--primary {
+    @include btn-primary;
+  }
+
+  &--ghost {
+    @include btn-ghost;
+  }
+}

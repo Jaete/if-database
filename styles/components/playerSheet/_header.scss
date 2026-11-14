@@ -103,6 +103,36 @@ $portrait-size-compact: 4.5rem;
   color: $color-text-muted;
 }
 
+// A raça ligada ao códice: link em leitura, botão que abre o seletor em edição.
+.sheetLineLink {
+  color: $color-text;
+  text-decoration-color: with-alpha($color-accent-line, 0.5);
+  text-underline-offset: 2px;
+
+  &:hover {
+    color: $color-accent;
+  }
+}
+
+.sheetLineButton {
+  padding: 0;
+  border: 0;
+  border-bottom: 1px dashed $color-accent-line;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  @include focus-ring();
+
+  &:hover {
+    color: $color-accent;
+  }
+}
+
+.sheetLineWarn {
+  color: $color-warning;
+}
+
 // Only from the wide band up; below it the epithet lives in Crônica.
 .sheetEpithetHud {
   display: none;

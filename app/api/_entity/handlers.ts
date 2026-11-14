@@ -31,6 +31,19 @@ interface IOptions<T> {
     body: Record<string, unknown>,
     context: { slug?: string }
   ) => Promise<string | null>;
+  /**
+   * Escrita própria no lugar de `service.update`, para a entidade que limpa e
+   * confere o corpo antes de gravar (a ficha do jogador).
+   */
+  update?: (
+    slug: string,
+    body: Record<string, unknown>
+  ) => ReturnType<IEntityService<T>['update']>;
+  /**
+   * Reconhece o erro de validação do corpo que `update` lança: devolve a
+   * mensagem para responder 400, ou null para seguir como falha interna.
+   */
+  clientError?: (error: unknown) => string | null;
 }
 
 type SlugContext = { params: Promise<{ slug: string }> };
@@ -93,6 +106,8 @@ export function createSlugHandlers<T>({
   service,
   notFoundLabel,
   validate,
+  update,
+  clientError,
 }: IOptions<T>) {
   const notFound = () =>
     NextResponse.json({ error: notFoundLabel }, { status: 404 });
@@ -124,10 +139,16 @@ export function createSlugHandlers<T>({
           return NextResponse.json({ error: refused }, { status: 409 });
         }
 
-        const result = await service.update(slug, body);
+        const result = await (update
+          ? update(slug, body)
+          : service.update(slug, body));
         if (!result.success) return notFound();
         return NextResponse.json(result.data);
       } catch (error) {
+        const refused = clientError?.(error);
+        if (refused) {
+          return NextResponse.json({ error: refused }, { status: 400 });
+        }
         return serverError(error);
       }
     },

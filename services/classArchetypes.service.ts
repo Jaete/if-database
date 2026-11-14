@@ -167,7 +167,8 @@ export async function getArchetypeCatalog(
 export async function resolveArchetype(
   classId: string | undefined,
   level: number | undefined,
-  stored: ICitizenArchetype | undefined
+  stored: ICitizenArchetype | undefined,
+  preloaded?: Pick<ICharacterClass, 'levels' | 'archetypes'> | null
 ): Promise<{
   archetype?: ICitizenArchetype;
   abilities: ICitizenAbility[];
@@ -176,9 +177,12 @@ export async function resolveArchetype(
     return { abilities: [] };
   }
 
-  const klass = await CharacterClassModel.findById(classId)
-    .select('levels archetypes')
-    .lean<Pick<ICharacterClass, 'levels' | 'archetypes'>>();
+  const klass =
+    preloaded === undefined
+      ? await CharacterClassModel.findById(classId)
+          .select('levels archetypes')
+          .lean<Pick<ICharacterClass, 'levels' | 'archetypes'>>()
+      : preloaded;
   if (!klass) return { abilities: [] };
 
   const { pickLevel: openedAt } = scanLevels(klass.levels);

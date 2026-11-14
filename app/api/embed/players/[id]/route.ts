@@ -3,6 +3,7 @@ import { connectDB } from '@/lib/db';
 import { getEmbedSession } from '@/services/embedAuth.service';
 import { pickWritablePlayerFields } from '@/db/players/publicFields';
 import { updatePlayerById, getPlayerById } from '@/services/player.service';
+import { PlayerSheetError } from '@/services/playerSheetLinks.service';
 import { attributeKeyOf, modifierOf, spellSaveDC } from '@/lib/stats';
 
 /**
@@ -145,7 +146,17 @@ export async function PUT(
 
     normalizeSpellDC(data, current as unknown as Record<string, unknown>);
 
-    const updated = await updatePlayerById(id, data);
+    // Raça e talentos recusados com a mensagem de quem os conferiu (400), e não
+    // como falha interna: é o cliente que mandou uma escolha inválida.
+    let updated;
+    try {
+      updated = await updatePlayerById(id, data);
+    } catch (error) {
+      if (error instanceof PlayerSheetError) {
+        return NextResponse.json({ error: error.message }, { status: 400 });
+      }
+      throw error;
+    }
     if (!updated) {
       return NextResponse.json(
         { error: 'Ficha não encontrada' },

@@ -4,7 +4,6 @@ import CharacterClassModel from '../db/classes/classes';
 import type ICharacterClass from '../db/classes/class.d';
 import TalentModel from '../db/talents/talents';
 import type ITalentDoc from '../db/talents/talent.d';
-import { classSlug } from '../db/l10n/classes';
 import { createEntityService } from './createEntityService';
 import {
   ForumSheetError,
@@ -12,11 +11,15 @@ import {
   parseTopicUrl,
 } from './forumSheet.service';
 import { parseTalentTopic } from './talentTopic.service';
+import {
+  GENERAL_TALENT_FIELDS,
+  classTalentOptions,
+  generalTalentOption,
+  talentSlug,
+  type ITalentOption,
+} from './talentCatalog';
 
 const service = createEntityService<ITalentDoc>(TalentModel);
-
-/** Mesma dobra de `classSlug`: nome sem acento, caixa nem pontuação. */
-const talentSlug = classSlug;
 
 export async function getAllTalents() {
   return service.getAll();
@@ -44,43 +47,7 @@ export async function removeTalent(slug: string) {
 
 // ── Catálogo para a ficha ────────────────────────────────
 
-/**
- * Um talento como o seletor da ficha o vê, venha ele de onde vier.
- *
- * `scope` é o que a regra do jogo distingue: no nível em que ganha um talento,
- * o personagem pode pegar um GERAL ou um DA PRÓPRIA CLASSE — as duas listas se
- * somam. Quem é de classe traz também o grupo e a condição de destrave, porque
- * há conjuntos ("Talentos Avançados de Necromancia") que só abrem em certo
- * nível.
- */
-export interface ITalentOption {
-  /** Identidade estável: o slug do geral, ou `classe:slug` no de classe. */
-  key: string;
-  name: string;
-  scope: 'general' | 'class';
-  category?: string;
-  prerequisites?: string;
-  description?: string;
-  /** Só nos de classe: o conjunto a que pertence e a regra que o destrava. */
-  group?: string;
-  unlock?: string;
-}
-
-/** Junta os campos do talento geral num texto só, para a tela de leitura. */
-function describeGeneral(talent: ITalentDoc): string {
-  return [
-    talent.benefit && `Benefício: ${talent.benefit}`,
-    talent.slotIncrease && `Aumento de Slot: ${talent.slotIncrease}`,
-    talent.normal && `Normal: ${talent.normal}`,
-    talent.special && `Especial: ${talent.special}`,
-    talent.description,
-  ]
-    .filter(Boolean)
-    .join('\n\n');
-}
-
-const classTalentKey = (slug: string, name: string) =>
-  `${slug}:${talentSlug(name)}`;
+export type { ITalentOption } from './talentCatalog';
 
 /**
  * Tudo o que um personagem daquela classe pode escolher.
@@ -95,38 +62,17 @@ export async function getTalentOptions(
   classId?: string
 ): Promise<ITalentOption[]> {
   const general = await TalentModel.find({})
-    .select(
-      'name slug category prerequisites benefit normal special slotIncrease description'
-    )
+    .select(GENERAL_TALENT_FIELDS)
     .sort({ name: 1 })
     .lean<ITalentDoc[]>();
 
-  const options: ITalentOption[] = general.map((talent) => ({
-    key: talent.slug,
-    name: talent.name,
-    scope: 'general',
-    category: talent.category,
-    prerequisites: talent.prerequisites,
-    description: describeGeneral(talent),
-  }));
+  const options: ITalentOption[] = general.map(generalTalentOption);
 
   if (classId && /^[0-9a-f]{24}$/i.test(classId)) {
     const klass = await CharacterClassModel.findById(classId)
       .select('slug name talents')
       .lean<Pick<ICharacterClass, 'slug' | 'name' | 'talents'>>();
-
-    for (const talent of klass?.talents ?? []) {
-      options.push({
-        key: classTalentKey(klass?.slug ?? 'classe', talent.name),
-        name: talent.name,
-        scope: 'class',
-        category: klass?.name,
-        prerequisites: talent.requirement,
-        description: talent.description,
-        group: talent.group,
-        unlock: talent.unlock,
-      });
-    }
+    options.push(...classTalentOptions(klass));
   }
 
   return options;

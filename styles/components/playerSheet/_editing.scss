@@ -492,3 +492,44 @@ button.sheetSpellBadge {
     color: $color-text;
   }
 }
+
+// Aviso dentro de um grupo da lista mestra: o que não se edita ali, e para onde
+// ir editar (a raça).
+.sheetMasterNote {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-2;
+  margin-top: $spacing-1;
+  padding: $spacing-2 $spacing-3;
+  border: 1px dashed $color-border-strong;
+  border-radius: $radius-sm;
+  background: $accent-overlay;
+  @include main-xs($color-text-subtle, $font-weight-regular);
+
+  button {
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+    text-transform: uppercase;
+    @include caption($color-accent, $font-weight-semibold, 1.6);
+    @include focus-ring();
+  }
+}
+
+.sheetMasterGroupLink {
+  color: $color-accent;
+  text-decoration: none;
+  border-bottom: 1px solid with-alpha($color-accent-line, 0.35);
+
+  &:hover {
+    border-bottom-color: $color-accent-line;
+  }
+}
+
+// A legenda de atributos acusa quando a coluna Raça não bate com a raça.
+.sheetLegendWarn {
+  color: $color-warning;
+}

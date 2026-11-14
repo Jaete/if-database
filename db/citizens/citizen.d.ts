@@ -172,6 +172,17 @@ export interface ICitizenAbility {
   source?: 'class' | 'archetype' | 'race';
   /** Nível da classe em que a habilidade foi concedida. Só com `source`. */
   level?: number;
+
+  // ── Só nas de `source: 'race'`, resolvidas na leitura ──
+
+  /** De onde a raça a deu: "Elfos", "Elfos · Drows". */
+  origin?: string;
+  /** Pela regra do Mestiço que a trouxe, quando a raça é mista. */
+  via?: 'hybridHeritage' | 'dominantBlood';
+  /** Rótulo curto da etiqueta de origem: "raça", "raça base", nome da sub-raça. */
+  originTag?: string;
+  /** A opção escolhida numa habilidade com `options[]`. */
+  option?: string;
 }
 
 /**
@@ -232,6 +243,96 @@ export interface ICitizenRaceChoice {
   /** Slug da raça de origem dominante — uma de `parents`. */
   dominantParent?: string;
   hybridTraits?: ICitizenRaceTraitRef[];
+  /**
+   * A opção escolhida em cada habilidade racial que manda escolher uma ("Chamado
+   * da Constelação" do Elfo Estelar). Vale tanto para as habilidades da raça
+   * quanto para as escolhidas pela Herança Híbrida. `ref` é a mesma referência
+   * da habilidade; `option` é o nome de uma das `options[]` dela.
+   */
+  traitOptions?: ICitizenRaceTraitOption[];
+}
+
+export interface ICitizenRaceTraitOption {
+  ref: ICitizenRaceTraitRef;
+  option: string;
+}
+
+/**
+ * O que a placa de linhagem precisa da raça, resolvido na leitura — nunca
+ * gravado. Quem só lê a ficha não baixa o catálogo de raças.
+ */
+export interface IPlayerLineage {
+  slug: string;
+  name: string;
+  /** Texto curto para a linha do topo: "Elfos (Drows)", "Mestiço (A + B)". */
+  label: string;
+  unique: boolean;
+  mixed: boolean;
+  /** Sub-raça escolhida, quando há. */
+  subrace?: { slug: string; name: string };
+  /** A raça tem sub-raças a escolher (ou não) — para o botão "Escolher sub-raça". */
+  hasSubraces: boolean;
+  /** Frases de incremento de atributo, raça primeiro e sub-raça depois. */
+  abilityScoreIncrease: string[];
+  speed?: string;
+  size?: string;
+  languages?: string;
+  image?: { url: string; focus?: string };
+  /** Só nas mistas: as raças de origem, a dominante primeiro. */
+  parents: {
+    slug: string;
+    name: string;
+    dominant: boolean;
+    image?: { url: string; focus?: string };
+  }[];
+  /** Quantas habilidades a escolha concede hoje. */
+  traitCount: number;
+  /** O que falta na escolha, em pt-BR. Vazio = completa. */
+  issues: string[];
+  /** Passo do seletor onde cada pendência se resolve. */
+  issueStep?: 'raca' | 'subraca' | 'origens' | 'sangue' | 'heranca' | 'opcoes';
+  /** Herança Híbrida: quantas escolheu e quantas cabem. */
+  hybridPicked?: number;
+  hybridCount?: number;
+  hybridNames?: string[];
+}
+
+/**
+ * Um talento da ficha. A ficha guarda `key`, `level` e `name`; o resto é
+ * resolvido na leitura a partir do catálogo (talentos gerais ou os da classe).
+ */
+export interface ICitizenTalent {
+  /** `ITalentOption.key`: o slug do geral, ou `classe:slug` no de classe. */
+  key: string;
+  /** Nível do personagem em que foi tomado. */
+  level: number;
+  /** Cópia do nome, para a ficha ler sem catálogo se o talento sumir dele. */
+  name: string;
+
+  // ── Derivados na leitura, nunca gravados ──
+  scope?: 'general' | 'class';
+  category?: string;
+  prerequisites?: string;
+  description?: string;
+  group?: string;
+  stackable?: boolean;
+  /** O talento não está mais no catálogo: só nome e nível são conhecidos. */
+  orphan?: boolean;
+}
+
+/**
+ * Os marcos de talento da classe ligada, resolvidos na leitura.
+ *
+ * `general` são os níveis em que a tabela diz "+2 em um atributo ou … ou um
+ * Talento" (geral OU da própria classe); `classOnly`, os níveis em que a classe
+ * concede por si um talento só dela ("Talentos de Necromancia" no nível 2).
+ * Há um item por vaga, então dois talentos de classe no mesmo nível repetem o
+ * número.
+ */
+export interface ITalentSlots {
+  general: number[];
+  classOnly: number[];
+  className?: string;
 }
 
 // ============================================================
@@ -288,6 +389,13 @@ export default interface ICitizen extends ICreature {
   raceId?: string;
   /** A escolha dentro da raça. Só faz sentido com `raceId`. */
   raceChoice?: ICitizenRaceChoice;
+  /** Derivado na leitura a partir de `raceId`/`raceChoice`; nunca gravado. */
+  lineage?: IPlayerLineage;
+
+  /** Os talentos escolhidos. Só `key`/`level`/`name` são gravados. */
+  talents?: ICitizenTalent[];
+  /** Derivado na leitura a partir da tabela da classe; nunca gravado. */
+  talentSlots?: ITalentSlots;
 
   // ── Equipamento (slots + mochila + moedas) ──
   equipment?: IEquipment;

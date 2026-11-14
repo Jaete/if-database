@@ -9,6 +9,8 @@ const AbilitiesPanelHandles = [
   'sheetMasterRead',
   'sheetMasterEdit',
   'sheetMasterAdd',
+  'sheetMasterNote',
+  'sheetMasterGroupLink',
   'sheetReader',
   'sheetReaderKicker',
   'sheetReaderText',

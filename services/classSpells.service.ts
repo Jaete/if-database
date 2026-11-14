@@ -41,15 +41,19 @@ export interface IClassCasting {
  */
 export async function getClassCasting(
   classId: string | undefined,
-  level: number | undefined
+  level: number | undefined,
+  preloaded?: Pick<ICharacterClass, 'levels'> | null
 ): Promise<IClassCasting | null> {
   if (!classId || !/^[0-9a-f]{24}$/i.test(String(classId))) return null;
   const at = Number(level);
   if (!Number.isFinite(at) || at < 1) return null;
 
-  const klass = await CharacterClassModel.findById(classId)
-    .select('levels')
-    .lean<Pick<ICharacterClass, 'levels'>>();
+  const klass =
+    preloaded === undefined
+      ? await CharacterClassModel.findById(classId)
+          .select('levels')
+          .lean<Pick<ICharacterClass, 'levels'>>()
+      : preloaded;
   if (!klass) return null;
 
   const row = (klass.levels ?? [])

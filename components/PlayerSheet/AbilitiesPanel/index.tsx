@@ -8,6 +8,8 @@ import DetailCard from '../DetailCard';
 import { useSideReader } from '../useSideReader';
 import PromptModal from '@/components/PromptModal';
 import { useEditing } from '../EditingContext';
+import { useRacePicker } from '../RacePickerContext';
+import { useRaceChoice } from '../useRaceChoice';
 import AbilitiesPanelHandles from './handles';
 
 interface IAbility {
@@ -18,9 +20,13 @@ interface IAbility {
    * arquétipo escolhido. Vem resolvido da leitura da ficha, não do documento:
    * aqui é só o que torna a entrada não-editável.
    */
-  source?: 'class' | 'archetype';
+  source?: 'class' | 'archetype' | 'race';
   /** Nível da classe em que foi concedida. Só nas de `source`. */
   level?: number;
+  /** Só na racial: de onde veio, a regra do Mestiço e o rótulo da etiqueta. */
+  origin?: string;
+  via?: 'hybridHeritage' | 'dominantBlood';
+  originTag?: string;
 }
 
 interface IEntry extends IAbility {
@@ -57,6 +63,7 @@ const ADD_PATH: Record<string, string> = {
 };
 
 const GROUPS = [...new Set(SOURCES.map((s) => s.group))];
+const RACE_GROUP = 'Raça';
 
 type Editing = { path: string; at: number; entry: IAbility } | null;
 
@@ -67,6 +74,8 @@ const AbilitiesPanel = () => {
   const reader = useSideReader<IEntry>();
   const [editing, setEditing] = useState<Editing>(null);
   const { editable, objects, setField, value } = useEditing();
+  const picker = useRacePicker();
+  const { lineage, abilities: raceAbilities, freeText } = useRaceChoice();
   const className = String(value('class') ?? '').trim();
   const keyOf = (entry: IEntry) => `${entry.path}:${entry.at}`;
 
@@ -75,12 +84,26 @@ const AbilitiesPanel = () => {
   const listOf = (path: string) => objects<IAbility>(path);
 
   // O que vem do arquétipo sai das listas comuns: tem grupo próprio, onde é
-  // escolhido e removido. Deixá-lo aqui o mostraria duas vezes.
+  // escolhido e removido. Deixá-lo aqui o mostraria duas vezes. O mesmo vale
+  // para a raça, que tem o grupo dela no topo (ver `raceEntries`).
   const entries: IEntry[] = SOURCES.flatMap(({ path, group }) =>
     listOf(path)
       .map((a, at): IEntry => ({ ...a, name: a?.name ?? '', group, path, at }))
-      .filter((a) => a.name && a.source !== 'archetype')
+      .filter((a) => a.name && a.source !== 'archetype' && a.source !== 'race')
   );
+
+  // As habilidades raciais vêm da raça escolhida (o rascunho, em edição) e não
+  // se editam aqui: trocar a raça é que as troca.
+  const raceEntries: IEntry[] = raceAbilities
+    .filter((a) => a?.name)
+    .map((a, at): IEntry => ({
+      ...(a as IAbility),
+      name: a.name ?? '',
+      group: RACE_GROUP,
+      path: 'race',
+      at,
+    }));
+  const everyEntry = [...raceEntries, ...entries];
 
   // Em edição todos os grupos aparecem, mesmo vazios: sem a faixa do grupo não
   // haveria onde clicar para criar a primeira entrada dele.
@@ -90,7 +113,8 @@ const AbilitiesPanel = () => {
   })).filter((g) => editable || g.entries.length > 0);
 
   const shown =
-    entries.find((entry) => keyOf(entry) === reader.selectedKey) ?? entries[0];
+    everyEntry.find((entry) => keyOf(entry) === reader.selectedKey) ??
+    everyEntry[0];
 
   const write = (path: string, at: number, entry: IAbility | null) => {
     const list = listOf(path);
@@ -104,7 +128,7 @@ const AbilitiesPanel = () => {
     );
   };
 
-  if (entries.length === 0 && !editable) {
+  if (everyEntry.length === 0 && !editable) {
     return <p className={handles.sheetEmpty}>Nenhuma habilidade registrada.</p>;
   }
 
@@ -112,7 +136,13 @@ const AbilitiesPanel = () => {
   const kickerOf = (entry: IEntry) =>
     entry.source === 'class'
       ? `${className || 'Classe'}${entry.level ? ` · nível ${entry.level}` : ''}`
-      : entry.group;
+      : entry.source === 'race'
+        ? entry.via === 'dominantBlood'
+          ? `Sangue Forte · ${entry.origin}`
+          : entry.via === 'hybridHeritage'
+            ? `Herança Híbrida · ${entry.origin}`
+            : (entry.origin ?? 'Raça')
+        : entry.group;
 
   const modals = (
     <>
@@ -172,10 +202,115 @@ const AbilitiesPanel = () => {
     </>
   );
 
+  const renderRow = (entry: IEntry) => {
+    const key = keyOf(entry);
+    return (
+      <div
+        key={key}
+        className={handles.sheetMasterRow}
+        data-current={key === (shown && keyOf(shown)) || undefined}
+        onClick={() => reader.preview(key)}
+        onMouseEnter={() => reader.preview(key)}
+        onFocus={() => reader.preview(key)}
+      >
+        <span className={handles.sheetMasterName}>
+          <span>
+            {entry.name}
+            {/* A origem aparece na própria lista: sem isso, a
+                            única diferença visível entre o que a classe
+                            concede e o que foi digitado seria a ausência do
+                            lápis, e só em modo edição. */}
+            {(entry.source === 'class' || entry.source === 'race') && (
+              <span className={handles.sheetMasterOrigin}>
+                {entry.source === 'race'
+                  ? (entry.originTag ?? 'raça')
+                  : 'classe'}
+              </span>
+            )}
+          </span>
+          {entry.description && (
+            <span className={handles.sheetMasterSummary}>
+              {entry.description}
+            </span>
+          )}
+        </span>
+        {/* O botão de ler é quem carrega o `data-opt`: é a ação da
+                        linha, e é por ele que as setas do teclado andam pela
+                        lista. */}
+        <button
+          type="button"
+          className={handles.sheetMasterRead}
+          data-opt
+          onClick={() => reader.open(key, entry)}
+          aria-label={`Ler ${entry.name}`}
+        >
+          <EyeIcon />
+        </button>
+        {editable && entry.source !== 'class' && entry.source !== 'race' && (
+          <button
+            type="button"
+            className={handles.sheetMasterEdit}
+            onClick={() =>
+              setEditing({ path: entry.path, at: entry.at, entry })
+            }
+            aria-label={`Editar ${entry.name}`}
+          >
+            <PencilIcon />
+          </button>
+        )}
+      </div>
+    );
+  };
+
+  const raceGroup = lineage ? (
+    <div className={handles.sheetMasterGroup} role="group" aria-label="Raça">
+      <span className={handles.sheetCaption}>
+        {`Raça · ${lineage.label} `}
+        <a
+          className={handles.sheetMasterGroupLink}
+          href={`/embed/races/${lineage.slug}`}
+          target="_blank"
+          rel="noreferrer"
+        >
+          página ›
+        </a>
+      </span>
+      {raceEntries.map(renderRow)}
+      {raceEntries.length === 0 && (
+        <p className={handles.sheetEmpty}>
+          Nenhuma habilidade ainda: a escolha da raça está incompleta.
+        </p>
+      )}
+      {editable && (
+        <div className={handles.sheetMasterNote}>
+          <span>Estas vêm da raça e não se editam aqui.</span>
+          <button type="button" onClick={() => picker.open()}>
+            Trocar raça
+          </button>
+        </div>
+      )}
+    </div>
+  ) : editable ? (
+    <div className={handles.sheetMasterGroup} role="group" aria-label="Raça">
+      <span className={handles.sheetCaption}>Raça</span>
+      <div className={handles.sheetMasterNote}>
+        <span>
+          {freeText
+            ? `A raça está em texto livre (${freeText}). Vincule-a ao códice para as habilidades raciais entrarem aqui.`
+            : 'Vincule a raça ao códice para as habilidades raciais entrarem aqui.'}
+        </span>
+        <button type="button" onClick={() => picker.open()}>
+          Vincular raça
+        </button>
+      </div>
+    </div>
+  ) : null;
+
   return (
     <>
       <div className={handles.sheetMasterLayout}>
         <div className={handles.sheetMasterList} data-listnav>
+          {raceGroup}
           {groups.map(({ group, entries: list }) => (
             <div
               key={group}
@@ -184,63 +319,7 @@ const AbilitiesPanel = () => {
               aria-label={group}
             >
               <span className={handles.sheetCaption}>{group}</span>
-              {list.map((entry) => {
-                const key = keyOf(entry);
-                return (
-                  <div
-                    key={key}
-                    className={handles.sheetMasterRow}
-                    data-current={key === (shown && keyOf(shown)) || undefined}
-                    onClick={() => reader.preview(key)}
-                    onMouseEnter={() => reader.preview(key)}
-                    onFocus={() => reader.preview(key)}
-                  >
-                    <span className={handles.sheetMasterName}>
-                      <span>
-                        {entry.name}
-                        {/* A origem aparece na própria lista: sem isso, a
-                            única diferença visível entre o que a classe
-                            concede e o que foi digitado seria a ausência do
-                            lápis, e só em modo edição. */}
-                        {entry.source === 'class' && (
-                          <span className={handles.sheetMasterOrigin}>
-                            classe
-                          </span>
-                        )}
-                      </span>
-                      {entry.description && (
-                        <span className={handles.sheetMasterSummary}>
-                          {entry.description}
-                        </span>
-                      )}
-                    </span>
-                    {/* O botão de ler é quem carrega o `data-opt`: é a ação da
-                        linha, e é por ele que as setas do teclado andam pela
-                        lista. */}
-                    <button
-                      type="button"
-                      className={handles.sheetMasterRead}
-                      data-opt
-                      onClick={() => reader.open(key, entry)}
-                      aria-label={`Ler ${entry.name}`}
-                    >
-                      <EyeIcon />
-                    </button>
-                    {editable && entry.source !== 'class' && (
-                      <button
-                        type="button"
-                        className={handles.sheetMasterEdit}
-                        onClick={() =>
-                          setEditing({ path: entry.path, at: entry.at, entry })
-                        }
-                        aria-label={`Editar ${entry.name}`}
-                      >
-                        <PencilIcon />
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
+              {list.map(renderRow)}
               {editable && (
                 <button
                   type="button"

@@ -51,11 +51,16 @@
     display: grid;
     grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
     grid-template-areas:
+      'lineage lineage'
       'attrs attrs'
       'ident senses'
       'ident defenses';
     gap: $spacing-7 $spacing-8;
     align-items: start;
+  }
+
+  .sheetStatusLineage {
+    grid-area: lineage;
   }
 
   .sheetStatusIdent {
@@ -280,6 +285,7 @@
       minmax(0, 1fr)
       minmax(0, 1fr);
     grid-template-areas:
+      'lineage lineage lineage'
       'attrs attrs attrs'
       'ident senses defenses';
   }

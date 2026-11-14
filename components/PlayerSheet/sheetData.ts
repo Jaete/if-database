@@ -1,6 +1,10 @@
 import type { IPublicPlayer } from '@/db/players/publicFields';
 import type { IBonus, ISkill } from '@/db/creatures/creatures';
-import type { IStatDetail } from '@/db/citizens/citizen';
+import type {
+  ICitizenTalent,
+  IStatDetail,
+  ITalentSlots,
+} from '@/db/citizens/citizen';
 import { attributeKeyOf, modifierOf } from '@/lib/stats';
 import type { AttributeKey } from '@/lib/stats';
 
@@ -244,6 +248,7 @@ export type ScreenId =
   | 'pericias'
   | 'habilidades'
   | 'arquetipo'
+  | 'talentos'
   | 'magias'
   | 'equipamento'
   | 'profissoes'
@@ -255,6 +260,8 @@ export interface IMenuItem {
   desc: string;
   meta: string;
   disabled: boolean;
+  /** O que a linha de dicas diz ao tentar abrir uma tela desabilitada. */
+  disabledReason?: string;
 }
 
 export const countAbilities = (player: IPublicPlayer): number =>
@@ -292,6 +299,113 @@ export const readArchetype = (player: IPublicPlayer) => {
   };
 };
 
+// ── Talentos ────────────────────────────────────────────────
+
+/** "Talentos de Combate" → "Combate": a categoria do fórum sem o prefixo. */
+export const shortCategory = (category?: string): string =>
+  (category ?? '')
+    .replace(/^Talentos?\s+(?:de\s+|da\s+|do\s+)?/i, '')
+    .replace(/^./, (c) => c.toUpperCase());
+
+/**
+ * O nível de personagem que o pré-requisito pede, ou 0 se não pede nenhum.
+ *
+ * Só "Nível N" e "<Classe> N" contam: "Nível de Conjurador 2" é outra grandeza
+ * e a ficha não a sabe. Serve ao aviso "pede nível N", que nunca bloqueia.
+ */
+export const requiredLevel = (prereq?: string, className?: string): number => {
+  if (!prereq) return 0;
+  const text = normalize(prereq);
+  const own = className ? normalize(className) : '';
+  const match =
+    text.match(
+      /\bnivel(?!\s+de\s+(?:conjurador|classe))\s+(?:de\s+personagem\s+)?(\d+)/
+    ) ??
+    (own
+      ? text.match(
+          new RegExp(`\\b${own.replace(/[^a-z0-9 ]/g, '\\$&')}\\s+(\\d+)`)
+        )
+      : null);
+  return match ? Number(match[1]) : 0;
+};
+
+/** Uma vaga de talento da tabela da classe, com o talento que a ocupa. */
+export interface ITalentNode {
+  level: number;
+  /** `class`: vaga que a classe concede só para talento dela. */
+  kind: 'general' | 'class';
+  state: 'used' | 'open' | 'future';
+  talent?: ICitizenTalent;
+}
+
+export interface ITalentProgress {
+  nodes: ITalentNode[];
+  /** Vagas já alcançadas (as dos dois tipos). */
+  reached: number;
+  reachedGeneral: number;
+  reachedClass: number;
+  taken: number;
+  /** Mais talentos do que marcos: bônus de classe, decisão do mestre. */
+  over: boolean;
+}
+
+/**
+ * Os marcos da classe e o que ocupa cada um.
+ *
+ * A contagem só informa, e a ficha não sabe se um marco foi para atributos, por
+ * isso nada aqui bloqueia. Cada talento procura uma vaga do seu próprio nível:
+ * o de classe prefere a vaga só-de-classe e cai na geral; o geral só ocupa
+ * vaga geral. Um talento tomado fora de qualquer marco aparece só na lista.
+ */
+export const talentProgress = (
+  slots: ITalentSlots | undefined,
+  talents: ICitizenTalent[],
+  level: number
+): ITalentProgress => {
+  const nodes: ITalentNode[] = [
+    ...(slots?.general ?? []).map((l) => ({
+      level: l,
+      kind: 'general' as const,
+    })),
+    ...(slots?.classOnly ?? []).map((l) => ({
+      level: l,
+      kind: 'class' as const,
+    })),
+  ]
+    .sort((a, b) => a.level - b.level || (a.kind === 'general' ? -1 : 1))
+    .map((slot) => ({
+      ...slot,
+      state: slot.level <= level ? ('open' as const) : ('future' as const),
+    }));
+
+  const byLevel = [...talents].sort((a, b) => a.level - b.level);
+  for (const talent of byLevel) {
+    const wanted: ITalentNode['kind'][] =
+      talent.scope === 'class' ? ['class', 'general'] : ['general'];
+    for (const kind of wanted) {
+      const node = nodes.find(
+        (n) => !n.talent && n.kind === kind && n.level === talent.level
+      );
+      if (node) {
+        node.talent = talent;
+        node.state = 'used';
+        break;
+      }
+    }
+  }
+
+  const upTo = nodes.filter((n) => n.level <= level);
+  const taken = talents.length;
+  return {
+    nodes,
+    reached: upTo.length,
+    reachedGeneral: upTo.filter((n) => n.kind === 'general').length,
+    reachedClass: upTo.filter((n) => n.kind === 'class').length,
+    taken,
+    over: taken > upTo.length,
+  };
+};
+
 export const readProfessions = (player: IPublicPlayer) =>
   Array.isArray(player.professions)
     ? player.professions.filter((p) => p?.name)
@@ -316,6 +430,12 @@ export const buildMenu = (
   const abilities = countAbilities(player);
   const professions = readProfessions(player).length;
   const archetype = readArchetype(player);
+  const talents = talentProgress(
+    player.talentSlots,
+    player.talents ?? [],
+    player.level ?? 0
+  );
+  const talentsOff = !editable && talents.reached === 0 && talents.taken === 0;
 
   return [
     {
@@ -347,6 +467,16 @@ export const buildMenu = (
       desc: archetype.name || 'Escolha o arquétipo da classe',
       meta: `${archetype.chosen}/${archetype.slots}`,
       disabled: false,
+    },
+    {
+      id: 'talentos' as const,
+      label: 'Talentos',
+      desc: talents.taken
+        ? 'Gerais e da classe'
+        : 'Escolhidos nos marcos da classe',
+      meta: `${talents.taken}/${talents.reached}`,
+      disabled: talentsOff,
+      disabledReason: `${player.name.split(' ')[0]} ainda não alcançou um marco de talento.`,
     },
     {
       id: 'magias',

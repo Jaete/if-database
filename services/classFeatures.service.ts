@@ -62,15 +62,21 @@ function describeBy(features: IClassFeature[] | undefined) {
  */
 export async function getGrantedClassAbilities(
   classId: string | undefined,
-  level: number | undefined
+  level: number | undefined,
+  // A leitura da ficha carrega a classe uma vez e a passa a todos os
+  // resolvedores; `undefined` = buscar aqui.
+  preloaded?: Pick<ICharacterClass, 'levels' | 'features'> | null
 ): Promise<ICitizenAbility[]> {
   if (!classId || !/^[0-9a-f]{24}$/i.test(String(classId))) return [];
   const upTo = Number(level);
   if (!Number.isFinite(upTo) || upTo < 1) return [];
 
-  const klass = await CharacterClassModel.findById(classId)
-    .select('levels features')
-    .lean<Pick<ICharacterClass, 'levels' | 'features'>>();
+  const klass =
+    preloaded === undefined
+      ? await CharacterClassModel.findById(classId)
+          .select('levels features')
+          .lean<Pick<ICharacterClass, 'levels' | 'features'>>()
+      : preloaded;
   if (!klass) return [];
 
   const described = describeBy(klass.features);
@@ -136,6 +142,20 @@ export function mergeClassAbilities(
 ): ICitizenAbility[] {
   if (granted.length === 0) return abilities ?? [];
 
+  // A habilidade racial não casa por nome: duas da Herança Híbrida podem ter o
+  // mesmo nome com descrições diferentes, e uma entrada manual de mesmo nome
+  // não pode ser trocada em silêncio. Entra sempre como acréscimo.
+  const racial = granted.filter((a) => a.source === 'race');
+  if (racial.length > 0) {
+    return [
+      ...mergeClassAbilities(
+        abilities,
+        granted.filter((a) => a.source !== 'race')
+      ),
+      ...racial,
+    ];
+  }
+
   const byKey = new Map(granted.map((a) => [featureKey(a.name ?? ''), a]));
   const used = new Set<string>();
 
@@ -156,8 +176,8 @@ export function mergeClassAbilities(
 /**
  * Tira da gravação o que veio da classe.
  *
- * A ficha devolvida pela leitura já traz as características da classe e as
- * habilidades do arquétipo escolhido, e o editor manda a lista inteira de
+ * A ficha devolvida pela leitura já traz as características da classe, as
+ * habilidades do arquétipo escolhido e as da raça, e o editor manda a lista inteira de
  * volta. Sem esta limpeza, o vínculo viraria uma cópia embutida no primeiro
  * save — e a próxima correção no códice deixaria de aparecer nesta ficha.
  */
@@ -169,6 +189,8 @@ export function stripClassAbilities(
     (ability) =>
       !ability ||
       typeof ability !== 'object' ||
-      (ability.source !== 'class' && ability.source !== 'archetype')
+      (ability.source !== 'class' &&
+        ability.source !== 'archetype' &&
+        ability.source !== 'race')
   );
 }

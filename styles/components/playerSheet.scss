@@ -9,6 +9,9 @@
 @use 'playerSheet/panels';
 @use 'playerSheet/narration';
 @use 'playerSheet/editing';
+@use 'playerSheet/lineage';
+@use 'playerSheet/racePicker';
+@use 'playerSheet/talents';
 // Last on purpose: the wider bands override base rules from every file above.
 @use 'playerSheet/wide';
 @use 'playerSheet/panelBands';

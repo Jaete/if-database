@@ -6,6 +6,8 @@ import { DASH, formatMeters, formatNumber } from '../sheetData';
 import HeaderHandles from './handles';
 import { useEditing } from '../EditingContext';
 import EditableText from '../EditableText';
+import { useRacePicker } from '../RacePickerContext';
+import { useRaceChoice } from '../useRaceChoice';
 
 interface IProps {
   player: IPublicPlayer;
@@ -14,6 +16,8 @@ interface IProps {
 const Header = ({ player }: IProps) => {
   const handles = useCssHandles(HeaderHandles);
   const { editable, value } = useEditing();
+  const { lineage } = useRaceChoice();
+  const picker = useRacePicker();
   const { combat, experience, chi, senses } = player;
 
   const eyebrow = [
@@ -92,9 +96,35 @@ const Header = ({ player }: IProps) => {
             {player.class}
           </EditableText>{' '}
           <span className={handles.sheetLineMuted}>·</span>{' '}
-          <EditableText path="race" label="Raça">
-            {player.race}
-          </EditableText>
+          {lineage ? (
+            // Ligada ao códice, a raça deixa de ser texto: em leitura é o link
+            // para a página dela, em edição abre o seletor.
+            editable ? (
+              <button
+                type="button"
+                className={handles.sheetLineButton}
+                onClick={() => picker.open(lineage.issueStep)}
+              >
+                {lineage.label}
+                {lineage.issues.length > 0 && (
+                  <span className={handles.sheetLineWarn}> · incompleta</span>
+                )}
+              </button>
+            ) : (
+              <a
+                className={handles.sheetLineLink}
+                href={`/embed/races/${lineage.slug}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {lineage.label}
+              </a>
+            )
+          ) : (
+            <EditableText path="race" label="Raça">
+              {player.race}
+            </EditableText>
+          )}
         </div>
         {epithet && <span className={handles.sheetEpithetHud}>{epithet}</span>}
         {hasXp && (

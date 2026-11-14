@@ -5,7 +5,7 @@
 
 import RaceModel from '../db/races/races';
 import type IRace from '../db/races/race.d';
-import type { IRaceData } from '../db/races/race.d';
+import type { IRaceCatalogEntry, IRaceData } from '../db/races/race.d';
 import { createEntityService } from './createEntityService';
 import { deleteUnreferencedImages, uploadedImageIds } from './image.service';
 import {
@@ -33,6 +33,45 @@ export async function getRaceOptions() {
     images: race.images ?? [],
     abilityScoreIncrease: race.abilityScoreIncrease,
     subraces: (race.subraces ?? []).map((s) => ({ name: s.name })),
+  }));
+}
+
+const CATALOG_FIELDS = [
+  'name',
+  'slug',
+  'unique',
+  'images',
+  'abilityScoreIncrease',
+  'speed',
+  'size',
+  'languages',
+  'traits',
+  'baseOnlyTraits',
+  'choiceRules',
+  'subraces.name',
+  'subraces.slug',
+  'subraces.group',
+  'subraces.abilityScoreIncrease',
+  'subraces.speed',
+  'subraces.size',
+  'subraces.languages',
+  'subraces.traits',
+  'subraces.image',
+].join(' ');
+
+export async function getRaceCatalog(
+  filter: Record<string, unknown> = {}
+): Promise<IRaceCatalogEntry[]> {
+  const races = await RaceModel.find(filter)
+    .select(CATALOG_FIELDS)
+    .sort({ name: 1 })
+    .lean<(IRaceCatalogEntry & { _id: unknown })[]>();
+  return races.map(({ _id, ...race }) => ({
+    ...race,
+    id: String(_id),
+    images: race.images ?? [],
+    traits: race.traits ?? [],
+    subraces: race.subraces ?? [],
   }));
 }
 

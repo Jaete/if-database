@@ -21,6 +21,11 @@ interface IEditingContext {
   list: (path: string) => string[];
   /** Lista de objetos — perícias e testes de resistência. */
   objects: <T>(path: string) => T[];
+  /**
+   * O que há num caminho, seja o que for — para os blocos que são um objeto
+   * inteiro (a escolha de raça), que os leitores acima não devolvem.
+   */
+  read: <T = unknown>(path: string) => T | undefined;
   setField: (path: string, value: unknown) => void;
   isFieldDirty: (path: string) => boolean;
 }
@@ -32,6 +37,7 @@ const EditingContext = createContext<IEditingContext>({
   value: () => undefined,
   list: () => [],
   objects: () => [],
+  read: () => undefined,
   setField: () => {},
   isFieldDirty: () => false,
 });

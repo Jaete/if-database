@@ -160,6 +160,10 @@ const PlayerSchema = new Schema<IPlayer>(
     raceId: { type: Schema.Types.ObjectId, ref: 'Race', index: true },
     raceChoice: { type: Schema.Types.Mixed },
 
+    // Os talentos escolhidos: `[{ key, level, name }]`. Mixed como o arquétipo:
+    // o resto (escopo, descrição, pré-requisito) sai do catálogo na leitura.
+    talents: { type: Schema.Types.Mixed },
+
     // ── Equipamento (slots + mochila + moedas) ──
     // Os slots são Mixed porque existem nas duas formas no banco: a string crua
     // que este schema declarava antes, e o objeto { name, description } que a

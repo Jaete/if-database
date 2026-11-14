@@ -18,6 +18,9 @@ const TalentDocSchema = new Schema<ITalentDoc>(
     special: String,
     slotIncrease: String,
     description: String,
+    // Ausente = detectar pelo texto (lib/stackableTalent.ts); true/false é
+    // decisão de quem edita e sobrevive à reimportação.
+    stackable: Boolean,
 
     sourceUrl: String,
     importedAt: Date,

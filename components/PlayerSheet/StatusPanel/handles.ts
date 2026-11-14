@@ -1,5 +1,6 @@
 const StatusPanelHandles = [
   'sheetStatus',
+  'sheetStatusLineage',
   'sheetStatusIdent',
   'sheetStatusAttrs',
   'sheetStatusSenses',
@@ -15,6 +16,7 @@ const StatusPanelHandles = [
   'sheetAttrMod',
   'sheetAttrBreakdown',
   'sheetLegend',
+  'sheetLegendWarn',
   'sheetPairs',
 ] as const;
 

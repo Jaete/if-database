@@ -1,9 +1,15 @@
+'use client';
+
 import type { IPublicPlayer } from '@/db/players/publicFields';
 import { useCssHandles } from '@/hooks/useCssHandles';
+import { abilityChips } from '@/lib/raceAbilityChips';
 import { formatModifier, modifierOf } from '@/lib/stats';
+import { useRaceChoice } from '../useRaceChoice';
 import Block from '../Block';
+import LineagePlate from '../LineagePlate';
 import Field from '../Field';
 import TagList from '../TagList';
+import type { ScreenId } from '../sheetData';
 import {
   ATTRIBUTES,
   formatMeters,
@@ -18,17 +24,38 @@ import StatusPanelHandles from './handles';
 
 interface IProps {
   player: IPublicPlayer;
+  onOpenScreen: (id: ScreenId) => void;
 }
 
-const StatusPanel = ({ player }: IProps) => {
+const StatusPanel = ({ player, onOpenScreen }: IProps) => {
   const handles = useCssHandles(StatusPanelHandles);
   const { editable, value } = useEditing();
+  const { lineage } = useRaceChoice();
 
   // Em leitura, só as linhas preenchidas. Em edição, todas — senão um campo
-  // vazio nunca poderia ser preenchido a partir da ficha.
+  // vazio nunca poderia ser preenchido a partir da ficha. Com a raça ligada ao
+  // códice, a linha "Raça" sai: a placa acima é quem a mostra e a edita.
   const identity = IDENTITY_FIELDS.filter(
-    (field) => editable || !!value(field.path)
+    (field) =>
+      (editable || !!value(field.path)) && !(lineage && field.path === 'race')
   );
+
+  // O que a raça sugere para a coluna "Raça". Só informa: o texto do tópico
+  // pode ser "à escolha", então a ficha nunca preenche o número sozinha.
+  const suggested =
+    editable && lineage && !lineage.mixed
+      ? lineage.abilityScoreIncrease.flatMap((text) => abilityChips(text))
+      : [];
+  const suggestedFixed = suggested
+    .filter((chip) => chip.kind === 'fixed')
+    .map((chip) => chip.label);
+  const filled = ATTRIBUTES.flatMap(({ key, abbr }) => {
+    const bonus = Number(value(`playerStats.${key}.raceBonus`) ?? 0);
+    return bonus ? [`${abbr} ${formatModifier(bonus)}`] : [];
+  });
+  const mismatch =
+    suggestedFixed.length > 0 &&
+    [...suggestedFixed].sort().join('·') !== [...filled].sort().join('·');
 
   const attributes = ATTRIBUTES.map((a) => ({
     ...a,
@@ -53,6 +80,10 @@ const StatusPanel = ({ player }: IProps) => {
 
   return (
     <div className={handles.sheetStatus}>
+      <div className={handles.sheetStatusLineage}>
+        <LineagePlate onOpenAbilities={() => onOpenScreen('habilidades')} />
+      </div>
+
       {identity.length > 0 && (
         <div className={handles.sheetStatusIdent}>
           <Block title="Identidade">
@@ -145,6 +176,21 @@ const StatusPanel = ({ player }: IProps) => {
               {hasBreakdown ? 'Valor + Raça + Classe = Total. ' : ''}O número
               grande é o modificador.
             </p>
+            {editable && lineage && (
+              <p className={handles.sheetLegend}>
+                {lineage.mixed
+                  ? 'Mestiço: o incremento segue o que o mestre combinar para a mistura. Preencha a coluna Raça à mão.'
+                  : `${lineage.subrace ? `${lineage.name} · ${lineage.subrace.name}` : lineage.name} sugere ${
+                      suggested.map((chip) => chip.label).join(' · ') || '—'
+                    }.`}
+                {mismatch && (
+                  <span className={handles.sheetLegendWarn}>
+                    {' '}
+                    A coluna Raça soma {filled.join(' · ') || 'nada'}. Confira.
+                  </span>
+                )}
+              </p>
+            )}
           </Block>
         </div>
       )}

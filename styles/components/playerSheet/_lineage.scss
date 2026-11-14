@@ -1,0 +1,231 @@
+@use '../../../styles/globals' as *;
+@use 'vars' as *;
+
+// ── Placa de linhagem (Status) ──────────────────────────────
+//
+// A raça da ficha: arte à esquerda, nome, incrementos e fatos à direita. A
+// arte não carrega texto por cima, então nada aqui precisa de theme-scope.
+
+$art-rest: saturate(0.92) brightness(0.92);
+
+.sheetLineage {
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr);
+  gap: $spacing-4;
+  padding: $spacing-3;
+  border: 1px solid $color-border-strong;
+  border-radius: $radius-lg;
+  background: $surface-raised;
+
+  @include panel-narrow {
+    grid-template-columns: 4rem minmax(0, 1fr);
+    gap: $spacing-3;
+  }
+}
+
+.sheetLineageArt {
+  position: relative;
+  display: flex;
+  gap: $spacing-1 * 0.25;
+  align-self: start;
+  aspect-ratio: 3 / 4;
+  border-radius: $radius-md;
+  overflow: hidden;
+  background: with-alpha($color-accent-line, 0.6);
+  box-shadow: inset 0 0 0 1px $color-border-strong;
+
+  // A arte em repouso é a mesma dos cards de raça: acende ao passar o mouse.
+  img {
+    filter: $art-rest;
+    transition: filter 0.2s ease;
+  }
+
+  .sheetLineage:hover & img {
+    filter: none;
+  }
+
+  &--none {
+    display: grid;
+    place-items: center;
+    background: $color-bg;
+
+    &::before {
+      content: '';
+      width: 34%;
+      aspect-ratio: 1;
+      transform: rotate(45deg);
+      border: 1px dashed $color-border-strong;
+    }
+  }
+}
+
+// Mestiço: a arte se divide entre as origens, com a dominante mais larga.
+.sheetLineageArtPane {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+
+  &--dominant {
+    flex: 1.7;
+  }
+}
+
+.sheetLineageMain {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-2;
+  min-width: 0;
+}
+
+.sheetLineageTop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-2;
+}
+
+.sheetLineageCaption {
+  text-transform: uppercase;
+  @include caption($color-text-muted, $font-weight-semibold);
+}
+
+.sheetLineagePill {
+  padding: $spacing-1 $spacing-2;
+  border: 1px solid with-alpha($color-accent-line, 0.5);
+  border-radius: $radius-full;
+  white-space: nowrap;
+  text-transform: uppercase;
+  @include caption($color-accent, $font-weight-semibold, 1, 0.12em);
+
+  &--unique,
+  &--warn {
+    border-color: $warning-border;
+    color: $color-warning;
+  }
+
+  &--muted {
+    border-color: $color-border-strong;
+    color: $color-text-muted;
+  }
+}
+
+.sheetLineageName {
+  text-wrap: balance;
+  @include cinzel-lg($color-text, $font-weight-semibold, 1.25, 0.5px);
+}
+
+.sheetLineageSub {
+  @include main-sm($color-text-muted, $font-weight-regular, 1.4);
+  letter-spacing: 0;
+}
+
+.sheetLineageFacts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  gap: $spacing-2 $spacing-4;
+  margin: 0;
+}
+
+.sheetLineageFact {
+  display: grid;
+  gap: $spacing-1 * 0.25;
+  min-width: 0;
+}
+
+.sheetLineageFactTerm {
+  text-transform: uppercase;
+  @include caption($color-text-muted, $font-weight-semibold);
+}
+
+.sheetLineageFactValue {
+  margin: 0;
+  overflow-wrap: anywhere;
+  @include main-xs($color-text, $font-weight-regular);
+
+  a {
+    color: $color-text;
+    text-decoration-color: with-alpha($color-accent-line, 0.5);
+    text-underline-offset: $spacing-1 * 0.5;
+
+    &:hover {
+      color: $color-accent;
+    }
+  }
+}
+
+.sheetLineageLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-1 $spacing-4;
+}
+
+.sheetLineageLink {
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid with-alpha($color-accent-line, 0.35);
+  background: transparent;
+  cursor: pointer;
+  text-decoration: none;
+  text-transform: uppercase;
+  @include caption($color-accent, $font-weight-semibold, 1.6);
+  @include focus-ring();
+
+  &:hover {
+    border-bottom-color: $color-accent-line;
+  }
+}
+
+.sheetLineageActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-2;
+}
+
+.sheetLineageButton {
+  padding: $spacing-2 $spacing-3;
+  border-radius: $radius-sm;
+  cursor: pointer;
+  white-space: nowrap;
+  @include main-xs($color-text, $font-weight-semibold, 1.3);
+
+  &--primary {
+    @include btn-primary;
+    color: $color-text-on-accent;
+  }
+
+  &--secondary {
+    @include btn-secondary;
+  }
+
+  &--ghost {
+    @include btn-ghost;
+  }
+}
+
+.sheetLineageWarn {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-3;
+  padding: $spacing-2 $spacing-3;
+  border: 1px solid $warning-border;
+  border-radius: $radius-sm;
+  background: $warning-bg;
+  @include main-xs($color-text, $font-weight-regular);
+
+  b {
+    color: $color-warning;
+    font-weight: $font-weight-semibold;
+  }
+}
+
+.sheetLineageNote {
+  margin: 0;
+  @include main-xs($color-text-muted, $font-weight-regular);
+}
+
+// Status: a placa abre a tela, antes dos atributos.
+.sheetStatusLineage:empty {
+  display: none;
+}

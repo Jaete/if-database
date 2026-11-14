@@ -207,9 +207,27 @@ export const useSheetEditing = (
   // ── Rascunho ─────────────────────────────────────────────
 
   const raw = useCallback(
-    (path: string): unknown =>
-      path in draft ? draft[path] : readPath(player, path),
+    (path: string): unknown => {
+      if (path in draft) return draft[path];
+      // Um bloco gravado inteiro (`raceChoice`) também vale para quem lê um
+      // campo dentro dele; sem isto, `raceChoice.subrace` mostraria o valor de
+      // antes do rascunho.
+      const keys = path.split('.');
+      for (let i = keys.length - 1; i > 0; i -= 1) {
+        const parent = keys.slice(0, i).join('.');
+        if (parent in draft) {
+          return readPath(draft[parent], keys.slice(i).join('.'));
+        }
+      }
+      return readPath(player, path);
+    },
     [draft, player]
+  );
+
+  /** Leitor cru, para os blocos que são um objeto inteiro. */
+  const read = useCallback(
+    <T>(path: string): T | undefined => raw(path) as T | undefined,
+    [raw]
   );
 
   // Leitor escalar, para EditableText. Um array aqui seria erro de uso, então
@@ -348,6 +366,7 @@ export const useSheetEditing = (
     value,
     list,
     objects,
+    read,
     setField,
     isFieldDirty,
     save,

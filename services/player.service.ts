@@ -2,6 +2,7 @@
 
 import PlayerModel from '../db/players/players';
 import IPlayer from '../db/players/player';
+import type ICharacterClass from '../db/classes/class.d';
 import {
   PLAYER_PUBLIC_FIELDS,
   type IPublicPlayer,
@@ -22,8 +23,17 @@ import {
   resolveArchetype,
   stripDerivedArchetype,
 } from './classArchetypes.service';
+import {
+  prepareSheetLinksWrite,
+  resolveRaceLink,
+  resolveTalents,
+  type IStoredSheetLinks,
+} from './playerSheetLinks.service';
 
 const service = createEntityService<IPlayer>(PlayerModel);
+
+// O que a escrita de raça e talentos precisa do documento antes da alteração.
+const LINK_FIELDS = 'race raceId raceChoice classId talents';
 
 export async function createPlayer(data: IPlayer) {
   return service.create(data);
@@ -77,6 +87,22 @@ async function unlinkClassIfRenamed(
   }
 }
 
+/** Tudo o que os resolvedores de leitura pedem da classe, num documento só. */
+async function loadClass(classId: unknown) {
+  const id = String(classId ?? '');
+  if (!/^[0-9a-f]{24}$/i.test(id)) return null;
+  const { default: CharacterClassModel } =
+    await import('../db/classes/classes');
+  return CharacterClassModel.findById(id)
+    .select('slug name talents levels features archetypes')
+    .lean<
+      Pick<
+        ICharacterClass,
+        'slug' | 'name' | 'talents' | 'levels' | 'features' | 'archetypes'
+      >
+    >();
+}
+
 /**
  * Resolve os dois vínculos da ficha — as magias do grimório e as
  * características da classe — aqui, no serviço, e não em cada página: assim a
@@ -88,21 +114,36 @@ async function resolveLinks<T extends IPublicPlayer | null>(
 ): Promise<T> {
   if (!player) return player;
 
-  const granted = await getGrantedClassAbilities(player.classId, player.level);
+  // A classe é lida uma vez por leitura e passada a cada resolvedor: eram
+  // quatro buscas do mesmo documento a cada visita ao embed.
+  const klass = await loadClass(player.classId);
+
+  const granted = await getGrantedClassAbilities(
+    player.classId,
+    player.level,
+    klass
+  );
 
   // O arquétipo é a parte da classe que é escolha. O que a ficha guarda é a
   // escolha; o teto dela e as descrições vêm da classe, aqui.
   const archetype = await resolveArchetype(
     player.classId,
     player.level,
-    player.archetype
+    player.archetype,
+    klass
   );
   const fromClass = [...granted, ...archetype.abilities];
+
+  // A raça e os talentos seguem o mesmo contrato: a ficha guarda a escolha, e a
+  // leitura resolve o que ela significa.
+  const raceLink = await resolveRaceLink(player);
+  const talentLink = await resolveTalents(player, klass);
+  const fromCodex = [...fromClass, ...raceLink.abilities];
 
   // Com classe ligada, os círculos e os limites vêm da tabela dela; sem ela, a
   // ficha continua sendo o que alguém digitou. Nos dois casos as magias ligadas
   // ao grimório são materializadas por último, já dentro dos círculos certos.
-  const casting = await getClassCasting(player.classId, player.level);
+  const casting = await getClassCasting(player.classId, player.level, klass);
   const spellcasting = casting
     ? applyClassCasting(player.playerSpellcasting, casting)
     : player.playerSpellcasting;
@@ -113,9 +154,15 @@ async function resolveLinks<T extends IPublicPlayer | null>(
       ? { playerSpellcasting: await resolveSpellRefs(spellcasting) }
       : {}),
     ...(archetype.archetype ? { archetype: archetype.archetype } : {}),
-    ...(fromClass.length > 0
-      ? { abilities: mergeClassAbilities(player.abilities, fromClass) }
+    ...(fromCodex.length > 0
+      ? { abilities: mergeClassAbilities(player.abilities, fromCodex) }
       : {}),
+    // O texto livre acompanha a raça do códice: renomeá-la lá corrige aqui.
+    ...(raceLink.lineage
+      ? { lineage: raceLink.lineage, race: raceLink.lineage.label }
+      : {}),
+    ...(talentLink.talents ? { talents: talentLink.talents } : {}),
+    ...(talentLink.talentSlots ? { talentSlots: talentLink.talentSlots } : {}),
   };
 }
 
@@ -174,6 +221,18 @@ export async function updatePlayer(slug: string, updateData: Partial<IPlayer>) {
       updateData.archetype
     ) as IPlayer['archetype'];
   }
+
+  if (
+    'raceId' in updateData ||
+    'raceChoice' in updateData ||
+    'talents' in updateData ||
+    typeof updateData.race === 'string'
+  ) {
+    const stored = await PlayerModel.findOne({ slug })
+      .select(LINK_FIELDS)
+      .lean<IStoredSheetLinks>();
+    await prepareSheetLinksWrite(stored, updateData as Record<string, unknown>);
+  }
   return service.update(slug, updateData);
 }
 
@@ -198,6 +257,18 @@ export async function updatePlayerById(
   // tabela da classe a cada leitura.
   if ('archetype' in updateData) {
     updateData.archetype = stripDerivedArchetype(updateData.archetype);
+  }
+
+  if (
+    'raceId' in updateData ||
+    'raceChoice' in updateData ||
+    'talents' in updateData ||
+    typeof updateData.race === 'string'
+  ) {
+    const stored = await PlayerModel.findById(id)
+      .select(LINK_FIELDS)
+      .lean<IStoredSheetLinks>();
+    await prepareSheetLinksWrite(stored, updateData);
   }
 
   if ('playerSpellcasting' in updateData) {

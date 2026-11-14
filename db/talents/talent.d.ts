@@ -39,6 +39,13 @@ export interface ITalentDoc extends Document {
   /** O que não casou com nenhum rótulo conhecido, preservado em vez de perdido. */
   description?: string;
 
+  /**
+   * O talento pode ser pego mais de uma vez. Ausente = decidir pelo texto
+   * (`isStackableTalent`); um valor gravado vence a detecção, e a importação
+   * do tópico não o sobrescreve.
+   */
+  stackable?: boolean;
+
   /** Tópico de onde veio, para reimportar e para citar a fonte. */
   sourceUrl?: string;
   importedAt?: Date;

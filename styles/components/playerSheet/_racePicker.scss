@@ -1,0 +1,638 @@
+@use '../../../styles/globals' as *;
+@use 'vars' as *;
+
+// ── Seletor de raça (Modal) ─────────────────────────────────
+//
+// O modal vive no `body`, fora do container da ficha: a largura vem do
+// viewport (que dentro do iframe do fórum é a do iframe) e o layout interno
+// responde ao próprio corpo (`container: sheetRacePicker`).
+
+$picker-art-rest: saturate(0.92) brightness(0.92);
+
+@include desktop {
+  .overlay .modalShell.sheetRacePickerShell,
+  .overlay .modalShell.sheetTalentPickerShell {
+    max-width: min(46rem, 100%);
+  }
+}
+
+.sheetRacePicker {
+  // O container é o invólucro, e não o corpo que ele organiza: uma consulta
+  // de container só vale para os descendentes.
+  container: sheetRacePicker / inline-size;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.sheetRacePickerBody {
+  display: grid;
+  flex: 1;
+  grid-template-columns: minmax(0, 1fr);
+  gap: $spacing-4;
+  padding: $spacing-4 $spacing-5 $spacing-4;
+  align-content: start;
+}
+
+.sheetRacePickerMain {
+  display: grid;
+  gap: $spacing-3;
+  align-content: start;
+  min-width: 0;
+}
+
+.sheetRacePickerSide {
+  display: grid;
+  gap: $spacing-2;
+  align-content: start;
+  min-width: 0;
+}
+
+@container sheetRacePicker (min-width: 36rem) {
+  .sheetRacePickerBody {
+    grid-template-columns: minmax(0, 1fr) 14rem;
+    grid-template-areas:
+      'steps steps'
+      'main side';
+  }
+
+  .sheetRacePickerSteps,
+  .sheetRacePickerStepMini {
+    grid-area: steps;
+  }
+
+  .sheetRacePickerMain {
+    grid-area: main;
+  }
+
+  .sheetRacePickerSide {
+    grid-area: side;
+    position: sticky;
+    top: 0;
+    align-self: start;
+    padding-left: $spacing-4;
+    border-left: 1px solid $color-border;
+  }
+}
+
+// ── Passos ──
+.sheetRacePickerSteps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-1;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: $spacing-1;
+  }
+
+  li + li::before {
+    content: '';
+    width: 0.875rem;
+    height: 1px;
+    margin-right: $spacing-1;
+    background: $color-border-strong;
+  }
+
+  @include mobile {
+    display: none;
+  }
+}
+
+.sheetRacePickerStepMini {
+  display: none;
+  text-transform: uppercase;
+  @include caption($color-accent, $font-weight-semibold);
+
+  @include mobile {
+    display: block;
+  }
+}
+
+.sheetRacePickerStep {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-2;
+  padding: $spacing-1 $spacing-2;
+  border: 0;
+  border-radius: $radius-sm;
+  background: none;
+  cursor: pointer;
+  text-transform: uppercase;
+  @include caption($color-text-subtle, $font-weight-semibold);
+  @include focus-ring();
+
+  &:disabled {
+    cursor: default;
+  }
+
+  &--done {
+    color: $color-text-muted;
+  }
+
+  &--current {
+    color: $color-accent;
+    background: $accent-overlay-hover;
+  }
+}
+
+.sheetRacePickerStepPip {
+  width: 0.4375rem;
+  height: 0.4375rem;
+  transform: rotate(45deg);
+  border: 1px solid $color-border-strong;
+  background: $surface;
+
+  .sheetRacePickerStep--done & {
+    background: $color-accent-fill;
+    border-color: $color-accent-fill;
+  }
+
+  .sheetRacePickerStep--current & {
+    border-color: $color-accent-line;
+  }
+
+  .sheetRacePickerStep--bad & {
+    border-color: $color-warning;
+  }
+}
+
+// ── Tiles de raça ──
+.sheetRacePickerTiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8.25rem, 1fr));
+  gap: $spacing-2;
+
+  @include mobile {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.sheetRacePickerTile {
+  position: relative;
+  display: grid;
+  grid-template-rows: 4.5rem auto;
+  padding: 0;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  background: $surface;
+  overflow: hidden;
+  cursor: pointer;
+  text-align: left;
+  @include elevation(1);
+  @include focus-ring();
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+
+  &:hover {
+    border-color: with-alpha($color-accent-line, 0.5);
+  }
+
+  &[aria-checked='true'] {
+    border-color: $color-accent-line;
+    @include elevation(3);
+  }
+}
+
+.sheetRacePickerTileArt {
+  position: relative;
+  overflow: hidden;
+
+  img {
+    filter: $picker-art-rest;
+    transition: filter 0.2s ease;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 40%, $surface);
+  }
+
+  .sheetRacePickerTile:hover &,
+  .sheetRacePickerTile[aria-checked='true'] & {
+    img {
+      filter: none;
+    }
+  }
+}
+
+.sheetRacePickerTileBody {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: $spacing-1;
+  margin-top: -0.625rem;
+  padding: 0 $spacing-2 $spacing-2;
+}
+
+.sheetRacePickerTileName {
+  @include cinzel-sm($color-text, $font-weight-bold, 1.2, 0.03em);
+
+  .sheetRacePickerTile[aria-checked='true'] & {
+    color: $color-accent;
+  }
+}
+
+.sheetRacePickerTileMeta {
+  @include mono-xs($color-text-muted, $font-weight-regular, 1.3);
+}
+
+.sheetRacePickerTilePills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-1;
+}
+
+// O losango sobre a arte: a arte continua escura nos dois temas, então o
+// contorno fica claro por cima dela (theme-scope pela mesma razão).
+.sheetRacePickerTick {
+  position: absolute;
+  top: $spacing-2;
+  right: $spacing-2;
+  z-index: 2;
+  width: 0.625rem;
+  height: 0.625rem;
+  transform: rotate(45deg);
+  border: 1px solid with-alpha($neutral-2000, 0.7);
+  background: with-alpha($neutral-100, 0.5);
+
+  .sheetRacePickerTile[aria-checked='true'] & {
+    background: $color-accent-fill;
+    border-color: $color-accent-fill;
+    box-shadow: 0 0 0 #{$spacing-1 * 0.5} with-alpha($neutral-100, 0.5);
+  }
+}
+
+.sheetRacePickerPill {
+  padding: $spacing-1 $spacing-2;
+  border: 1px solid with-alpha($color-accent-line, 0.5);
+  border-radius: $radius-full;
+  text-transform: uppercase;
+  @include caption($color-accent, $font-weight-semibold, 1, 0.12em);
+
+  &--unique {
+    border-color: $warning-border;
+    color: $color-warning;
+  }
+}
+
+// ── Opções ──
+.sheetRacePickerOptions {
+  display: grid;
+  gap: $spacing-2;
+}
+
+.sheetRacePickerGroup {
+  display: grid;
+  gap: $spacing-2;
+}
+
+.sheetRacePickerCaption,
+.sheetRacePickerPoolSub {
+  text-transform: uppercase;
+  @include caption($color-text-muted, $font-weight-semibold);
+}
+
+.sheetRacePickerGroup > .sheetRacePickerCaption {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+  margin-top: $spacing-1;
+  color: $color-accent;
+
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      with-alpha($color-accent-line, 0.35),
+      transparent
+    );
+  }
+}
+
+.sheetRacePickerOption {
+  display: grid;
+  grid-template-columns: 0.875rem minmax(0, 1fr);
+  gap: $spacing-1 $spacing-3;
+  align-items: start;
+  width: 100%;
+  padding: $spacing-2 $spacing-3;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  background: $surface;
+  color: $color-text;
+  cursor: pointer;
+  text-align: left;
+  @include focus-ring();
+
+  &:hover:not(:disabled) {
+    border-color: with-alpha($color-accent-line, 0.5);
+    background: $accent-overlay;
+  }
+
+  &[aria-checked='true'] {
+    border-color: $color-accent-line;
+    background: $accent-overlay-hover;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+  }
+}
+
+.sheetRacePickerMark {
+  display: grid;
+  place-items: center;
+  width: 0.75rem;
+  height: 0.75rem;
+  margin-top: 0.1875rem;
+  border: 1px solid $color-border-control;
+  border-radius: $radius-full;
+
+  &--square {
+    border-radius: $radius-sm;
+  }
+
+  .sheetRacePickerOption[aria-checked='true'] & {
+    border-color: $color-accent-line;
+
+    &::after {
+      content: '';
+      width: 0.375rem;
+      height: 0.375rem;
+      border-radius: inherit;
+      background: $color-accent-fill;
+    }
+  }
+}
+
+.sheetRacePickerOptionName {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: $spacing-1 $spacing-2;
+  @include main-sm($color-text, $font-weight-semibold);
+
+  .sheetRacePickerOption:disabled & {
+    opacity: 0.55;
+  }
+}
+
+.sheetRacePickerChip {
+  padding: 0 $spacing-2;
+  border: 1px solid $color-border-strong;
+  border-radius: $radius-sm;
+  @include mono-xs($color-text, $font-weight-bold, 1.6);
+}
+
+.sheetRacePickerOptionText,
+.sheetRacePickerOptionWhy,
+.sheetRacePickerOptionTags {
+  grid-column: 2;
+}
+
+.sheetRacePickerOptionText {
+  @include main-xs($color-text-muted, $font-weight-regular);
+
+  &--clamp {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+  }
+
+  .sheetRacePickerOption:disabled & {
+    opacity: 0.55;
+  }
+}
+
+.sheetRacePickerOptionWhy {
+  text-transform: uppercase;
+  @include caption($color-text-muted, $font-weight-semibold, 1.3, 0.06em);
+}
+
+.sheetRacePickerOptionTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-1;
+}
+
+.sheetRacePickerTag {
+  padding: 0 $spacing-2;
+  border: 1px solid $color-border-strong;
+  border-radius: $radius-sm;
+  @include main-xs($color-text, $font-weight-regular, 1.6);
+}
+
+// ── Herança Híbrida ──
+.sheetRacePickerPoolHead {
+  display: flex;
+  align-items: baseline;
+  gap: $spacing-3;
+  margin-top: $spacing-2;
+
+  b {
+    @include cinzel-sm($color-accent, $font-weight-bold, 1.3, 0.05em);
+  }
+
+  small {
+    text-transform: uppercase;
+    @include caption($color-text-muted, $font-weight-semibold, 1);
+  }
+
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      with-alpha($color-accent-line, 0.35),
+      transparent
+    );
+  }
+}
+
+.sheetRacePickerCounter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-3;
+  padding: $spacing-3;
+  border: 1px solid $color-border-strong;
+  border-radius: $radius-md;
+  background: $surface;
+}
+
+.sheetRacePickerCounterBig {
+  @include mono-xl($color-text, $font-weight-bold, 1);
+
+  small {
+    @include main-sm($color-text-muted, $font-weight-regular);
+  }
+}
+
+.sheetRacePickerCounterPips {
+  display: flex;
+  gap: $spacing-2;
+}
+
+.sheetRacePickerCounterPip {
+  width: 0.625rem;
+  height: 0.625rem;
+  transform: rotate(45deg);
+  border: 1px solid $color-accent-line-2;
+
+  &--on {
+    background: $color-accent-fill;
+    border-color: $color-accent-fill;
+  }
+}
+
+.sheetRacePickerNote {
+  margin: 0;
+  @include main-xs($color-text-muted, $font-weight-regular);
+
+  b {
+    color: $color-text;
+    font-weight: $font-weight-semibold;
+  }
+}
+
+.sheetRacePickerSwap {
+  margin: 0;
+  padding: $spacing-2 $spacing-3;
+  border: 1px dashed $color-border-strong;
+  border-radius: $radius-sm;
+  @include main-xs($color-text-muted, $font-weight-regular);
+
+  b {
+    color: $color-text;
+    font-weight: $font-weight-semibold;
+  }
+}
+
+// ── Lateral: o que a ficha ganha ──
+.sheetRacePickerGrant {
+  display: grid;
+  gap: $spacing-1 * 0.5;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 $spacing-2;
+    padding: $spacing-1 0 $spacing-1 $spacing-4;
+    @include main-xs($color-text, $font-weight-regular);
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: $spacing-1 * 0.25;
+      top: 0.72rem;
+      width: 0.3125rem;
+      height: 0.3125rem;
+      transform: rotate(45deg);
+      border: 1px solid $color-accent-line-2;
+    }
+  }
+}
+
+.sheetRacePickerGrantOrigin {
+  text-transform: uppercase;
+  white-space: nowrap;
+  @include caption($color-accent, $font-weight-semibold);
+}
+
+.sheetRacePickerIssues {
+  display: grid;
+  gap: $spacing-1;
+  margin: 0;
+  padding: $spacing-2 $spacing-3;
+  border: 1px solid $warning-border;
+  border-radius: $radius-sm;
+  background: $warning-bg;
+  list-style: none;
+  @include main-xs($color-text, $font-weight-regular);
+
+  b {
+    color: $color-warning;
+    font-weight: $font-weight-semibold;
+  }
+}
+
+.sheetRacePickerOk {
+  margin: 0;
+  @include main-xs($color-success, $font-weight-regular);
+}
+
+// ── Rodapé ──
+.sheetRacePickerFoot {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-3;
+  padding: $spacing-3 $spacing-5;
+  border-top: 1px solid $color-border;
+  background: $surface-elevated;
+}
+
+.sheetRacePickerFootNote {
+  @include main-xs($color-text-muted, $font-weight-regular);
+
+  b {
+    color: $color-text;
+    font-weight: $font-weight-semibold;
+  }
+}
+
+.sheetRacePickerActions {
+  display: flex;
+  gap: $spacing-2;
+  margin-left: auto;
+}
+
+.sheetRacePickerButton {
+  padding: $spacing-2 $spacing-3;
+  border-radius: $radius-sm;
+  cursor: pointer;
+  white-space: nowrap;
+  @include main-xs($color-text, $font-weight-semibold, 1.3);
+
+  &--primary {
+    @include btn-primary;
+  }
+
+  &--secondary {
+    @include btn-secondary;
+  }
+
+  &--ghost {
+    @include btn-ghost;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheetRacePickerTile,
+  .sheetRacePickerTileArt img {
+    transition: none;
+  }
+}

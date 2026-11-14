@@ -1,4 +1,5 @@
 import type ITalentDoc from '../talents/talent.d';
+import { isStackableTalent } from '../../lib/stackableTalent';
 
 /**
  * Rótulos do talento geral, em pt-BR.
@@ -27,6 +28,34 @@ export const talentSummary = (talent: ITalentDoc): string =>
     .filter(Boolean)
     .join(' · ');
 
+/** `stackable` no formulário: detectar pelo texto, ou decisão explícita. */
+const STACKABLE_OPTIONS = [
+  { value: 'auto', label: 'Detectar pelo texto' },
+  { value: 'sim', label: 'Sim, pode ser pego mais de uma vez' },
+  { value: 'nao', label: 'Não, só uma vez' },
+] as const;
+
+const stackableValue = (talent?: ITalentDoc) =>
+  talent?.stackable === true
+    ? 'sim'
+    : talent?.stackable === false
+      ? 'nao'
+      : 'auto';
+
+/** O que a detecção diz hoje — para o formulário mostrar o que "auto" resolve. */
+export const detectedStackable = (talent?: ITalentDoc): boolean =>
+  isStackableTalent(
+    [
+      talent?.benefit,
+      talent?.normal,
+      talent?.special,
+      talent?.description,
+      talent?.prerequisites,
+    ]
+      .filter(Boolean)
+      .join('\n')
+  );
+
 export const talentPromptFields = (talent?: ITalentDoc) => [
   {
     name: 'name',
@@ -42,6 +71,15 @@ export const talentPromptFields = (talent?: ITalentDoc) => [
     type: field.multiline ? ('multiline' as const) : undefined,
     initialValue: (talent?.[field.name] as string | undefined) ?? '',
   })),
+  {
+    name: 'stackable',
+    label: `Pode ser pego mais de uma vez (hoje: ${
+      detectedStackable(talent) ? 'sim' : 'não'
+    } pelo texto)`,
+    required: false,
+    options: STACKABLE_OPTIONS,
+    initialValue: stackableValue(talent),
+  },
 ];
 
 export const talentFromPrompt = (
@@ -54,5 +92,13 @@ export const talentFromPrompt = (
     // um branco que a tela exibiria como " · ".
     (next as Record<string, unknown>)[String(field.name)] = value || undefined;
   }
+  // `null`, e não `undefined`: o corpo vai por JSON, que descartaria a chave e
+  // deixaria o valor antigo gravado. Quem lê trata `null` como "detectar".
+  (next as Record<string, unknown>).stackable =
+    values.stackable === 'sim'
+      ? true
+      : values.stackable === 'nao'
+        ? false
+        : null;
   return next;
 };

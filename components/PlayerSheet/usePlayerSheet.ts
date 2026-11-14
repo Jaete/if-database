@@ -11,6 +11,7 @@ import {
 import type { KeyboardEvent, MouseEvent } from 'react';
 import type { IPublicPlayer } from '@/db/players/publicFields';
 import { buildMenu } from './sheetData';
+import type { ScreenId } from './sheetData';
 
 export type SheetView = 'menu' | 'screen';
 export type Transition = 'none' | 'enter' | 'enterBack';
@@ -108,7 +109,10 @@ export const usePlayerSheet = (player: IPublicPlayer, editable = false) => {
     (index: number, focusPanel = false) => {
       const item = menu[index];
       if (item.disabled) {
-        setMessage(`${player.name.split(' ')[0]} não conjura magias.`);
+        setMessage(
+          item.disabledReason ??
+            `${player.name.split(' ')[0]} não conjura magias.`
+        );
         return;
       }
       setTransition(index >= active ? 'enter' : 'enterBack');
@@ -123,6 +127,14 @@ export const usePlayerSheet = (player: IPublicPlayer, editable = false) => {
     },
     [menu, active, isCompact, player.name]
   );
+
+  /** Abre uma tela pelo id, para um painel levar a outro (placa → habilidades). */
+  const openScreen = (id: ScreenId) => {
+    const index = menu.findIndex((item) => item.id === id);
+    if (index < 0) return;
+    setCursorAt(index);
+    open(index);
+  };
 
   const backToMenu = useCallback(() => {
     setCursorAt(active);
@@ -221,6 +233,7 @@ export const usePlayerSheet = (player: IPublicPlayer, editable = false) => {
     cursorRef,
     panelRef,
     registerItem,
+    openScreen,
     backToMenu,
     handleMenuClick,
     handleMenuHover,
