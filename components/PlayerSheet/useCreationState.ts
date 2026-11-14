@@ -93,6 +93,44 @@ const mergeBodies = (a: IDraftBody, b: IDraftBody): IDraftBody => ({
   ...((b.skills ?? a.skills) ? { skills: b.skills ?? a.skills } : {}),
 });
 
+// ── Cópia local do que ainda não chegou ao servidor ──────────
+//
+// O servidor é a fonte da verdade, mas uma falha de rede, o Render acordando
+// ou um F5 no meio do envio não podem levar o que a pessoa digitou. O que está
+// pendente fica também no navegador e é reenviado ao voltar.
+
+const backupKey = (id: string) => `ifdb-creation-backup:${id}`;
+
+function readBackup(id: string): IDraftBody | null {
+  try {
+    const raw = window.localStorage.getItem(backupKey(id));
+    return raw ? (JSON.parse(raw) as IDraftBody) : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeBackup(id: string, body: IDraftBody | null) {
+  try {
+    if (body) window.localStorage.setItem(backupKey(id), JSON.stringify(body));
+    else window.localStorage.removeItem(backupKey(id));
+  } catch {
+    // Sem armazenamento (aba anônima, bloqueio): segue só com o servidor.
+  }
+}
+
+/**
+ * O servidor RECUSOU o conteúdo (valor inválido, estado que não aceita mais
+ * escrita): aí a tela volta ao que vale. Qualquer outra falha — rede, 5xx,
+ * sessão ou origem — é passageira: o que foi digitado fica e é reenviado.
+ */
+const isRejection = (error: unknown) => {
+  const status = (error as { status?: number })?.status;
+  return status === 400 || status === 409 || status === 422;
+};
+
+const RETRY_DELAYS = [2000, 5000, 10000, 20000, 30000];
+
 export const useCreationState = (args: {
   player: IPublicPlayer;
   identified: boolean;
@@ -112,34 +150,13 @@ export const useCreationState = (args: {
   const [saving, setSaving] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  // Há alterações que o servidor ainda não confirmou (falha passageira).
+  const [unsaved, setUnsaved] = useState(false);
 
   const pending = useRef<IDraftBody | null>(null);
   const inFlight = useRef(false);
   const timer = useRef(0);
-
-  // O rascunho só carrega para quem pode vê-lo (o servidor decide).
-  useEffect(() => {
-    // Só quem pode editar (dona ou admin) lê o rascunho, e só até a aprovação.
-    if (!identified || !inCreation || !(access.isOwner || access.isStaff)) {
-      return;
-    }
-    let alive = true;
-    call<CreationPayload>(api(id, 'draft'), 'GET')
-      .then((next) => {
-        if (!alive) return;
-        setData(next);
-        setForbidden(false);
-        setLoaded(true);
-      })
-      .catch(() => {
-        if (!alive) return;
-        setForbidden(true);
-        setLoaded(true);
-      });
-    return () => {
-      alive = false;
-    };
-  }, [id, identified, inCreation, access.isOwner, access.isStaff, sheetStatus]);
+  const retries = useRef(0);
 
   // Sem identificação (nem sessão) o rascunho nunca carrega: é visitante.
   useEffect(() => {
@@ -155,25 +172,52 @@ export const useCreationState = (args: {
     pending.current = null;
     inFlight.current = true;
     setSaving(true);
+    let retryIn = 0;
     try {
       const next = await call<CreationPayload>(api(id, 'draft'), 'PATCH', body);
       // O que foi digitado enquanto a resposta voltava continua na tela.
       setData(pending.current ? applyBody(next, pending.current) : next);
+      writeBackup(id, pending.current);
+      retries.current = 0;
+      setUnsaved(!!pending.current);
       setError('');
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Não foi possível salvar.');
-      // Volta ao que o servidor tem: a tela não pode mostrar o que não valeu.
-      try {
-        setData(await call<CreationPayload>(api(id, 'draft'), 'GET'));
-      } catch {
-        // Sem rede: fica o que está.
+      const message =
+        e instanceof Error ? e.message : 'Não foi possível salvar.';
+      if (isRejection(e)) {
+        // O servidor não aceitou ESTE conteúdo: a tela volta ao que vale.
+        setError(message);
+        writeBackup(id, pending.current);
+        setUnsaved(!!pending.current);
+        try {
+          const fresh = await call<CreationPayload>(api(id, 'draft'), 'GET');
+          setData(pending.current ? applyBody(fresh, pending.current) : fresh);
+        } catch {
+          // Sem rede: fica o que está.
+        }
+      } else {
+        // Passageira: nada se perde. O corpo volta para a fila (com o que foi
+        // digitado depois por cima) e sai de novo, cada vez mais espaçado.
+        pending.current = pending.current
+          ? mergeBodies(body, pending.current)
+          : body;
+        writeBackup(id, pending.current);
+        setUnsaved(true);
+        setError(`Não salvo: ${message} Tentando de novo…`);
+        retryIn =
+          RETRY_DELAYS[Math.min(retries.current, RETRY_DELAYS.length - 1)];
+        retries.current += 1;
       }
     } finally {
       inFlight.current = false;
       setSaving(false);
-      // O que chegou durante a resposta sai logo em seguida.
+      // O que chegou durante a resposta sai logo em seguida; depois de uma
+      // falha passageira, só depois da espera.
       if (pending.current) {
-        timer.current = window.setTimeout(() => void flushRef.current(), 0);
+        timer.current = window.setTimeout(
+          () => void flushRef.current(),
+          retryIn
+        );
       }
     }
   }, [id]);
@@ -183,16 +227,54 @@ export const useCreationState = (args: {
     flushRef.current = flush;
   });
 
+  // O rascunho só carrega para quem pode vê-lo (o servidor decide).
+  useEffect(() => {
+    // Só quem pode editar (dona ou admin) lê o rascunho, e só até a aprovação.
+    if (!identified || !inCreation || !(access.isOwner || access.isStaff)) {
+      return;
+    }
+    let alive = true;
+    call<CreationPayload>(api(id, 'draft'), 'GET')
+      .then((next) => {
+        if (!alive) return;
+        // Volta com o que não tinha chegado ao servidor (F5, aba fechada, rede
+        // caída): reaplica na tela e reenvia.
+        const backup = readBackup(id);
+        if (backup) {
+          pending.current = pending.current
+            ? mergeBodies(backup, pending.current)
+            : backup;
+          setData(applyBody(next, pending.current));
+          setUnsaved(true);
+          timer.current = window.setTimeout(() => void flushRef.current(), 0);
+        } else {
+          setData(next);
+        }
+        setForbidden(false);
+        setLoaded(true);
+      })
+      .catch(() => {
+        if (!alive) return;
+        setForbidden(true);
+        setLoaded(true);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [id, identified, inCreation, access.isOwner, access.isStaff, sheetStatus]);
+
   const patch = useCallback(
     (body: IDraftBody) => {
       setData((prev) => (prev ? applyBody(prev, body) : prev));
       pending.current = pending.current
         ? mergeBodies(pending.current, body)
         : body;
+      writeBackup(id, pending.current);
+      setUnsaved(true);
       window.clearTimeout(timer.current);
       timer.current = window.setTimeout(() => void flush(), 450);
     },
-    [flush]
+    [flush, id]
   );
 
   // Sair da tela com o que está esperando: grava antes.
@@ -205,6 +287,8 @@ export const useCreationState = (args: {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(pending.current),
       });
+      // A cópia local fica: se este envio de saída não chegar, a próxima
+      // abertura reenvia (gravar o mesmo valor de novo é inofensivo).
       pending.current = null;
     };
     window.addEventListener('pagehide', onHide);
@@ -303,6 +387,7 @@ export const useCreationState = (args: {
       },
       patch,
       saving,
+      unsaved,
       error,
       clearError: () => setError(''),
       rollAttributes: () => roll('roll-attributes'),
@@ -335,6 +420,7 @@ export const useCreationState = (args: {
       step,
       patch,
       saving,
+      unsaved,
       error,
       roll,
       transition,

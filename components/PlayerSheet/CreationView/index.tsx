@@ -49,7 +49,8 @@ const hasIssue = (data: CreationPayload, step: string) =>
 const CreationView = () => {
   const handles = useCssHandles(LevelUpViewHandles);
   const creation = useCreation();
-  const { data, player, step, setStep, close, error, saving } = creation;
+  const { data, player, step, setStep, close, error, saving, unsaved } =
+    creation;
   const catalogOpen = !!useCatalogRequest().request;
   const [askSubmit, setAskSubmit] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -241,7 +242,11 @@ const CreationView = () => {
           <div className={handles.luViewHead}>
             <small>
               {player.ownerUsername}
-              {saving ? ' · salvando…' : ' · salvo no servidor'}
+              {saving
+                ? ' · salvando…'
+                : unsaved
+                  ? ' · não salvo · tentando de novo'
+                  : ' · salvo no servidor'}
             </small>
             <h2>
               Criação <span>Nível 1</span>

@@ -44,6 +44,8 @@ export interface ICreation {
   /** Salva um passo (debounce); o servidor devolve o rascunho refeito. */
   patch: (body: IDraftBody) => void;
   saving: boolean;
+  /** Há alterações que o servidor ainda não confirmou; reenviadas sozinhas. */
+  unsaved: boolean;
   /** Falha do último salvamento, ou aviso de regra. */
   error: string;
   clearError: () => void;
@@ -74,6 +76,7 @@ const CreationContext = createContext<ICreation>({
   close: () => {},
   patch: () => {},
   saving: false,
+  unsaved: false,
   error: '',
   clearError: () => {},
   rollAttributes: noop,
