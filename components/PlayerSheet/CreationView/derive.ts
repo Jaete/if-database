@@ -18,6 +18,8 @@ import {
   raceBonus,
   raceLanguages,
   racialGrants,
+  raceSpeed,
+  type ISpeedSpec,
   subraceRule,
   sumGrants,
   type IBonusSpec,
@@ -49,6 +51,8 @@ export interface IDerived {
   grantEntries: IGrantEntry[];
   grantTotals: IGrantTotals;
   grants: ICreationGrantPicks;
+  /** O deslocamento que a raça (ou a sub-raça) dá. */
+  speed: ISpeedSpec;
   /** As perícias da classe escolhidas. */
   classSkills: string[];
 }
@@ -105,6 +109,7 @@ export function derive(data: CreationPayload, player: IPublicPlayer): IDerived {
     grantEntries,
     grantTotals: sumGrants(grantEntries),
     grants: { ...emptyGrantPicks(), ...(creation.grants ?? {}) },
+    speed: raceSpeed(race ?? undefined, subrace),
     classSkills: creation.classSkills ?? [],
   };
 }

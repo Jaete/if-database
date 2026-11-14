@@ -22,10 +22,13 @@
     "prepare": "husky",
     "test:levelup": "npx tsx __tests__/levelUp.test.ts",
     "test:creation": "npx tsx __tests__/creation.test.ts",
+    "test:catalogs": "npx tsx __tests__/catalogPicks.test.ts",
     "test:creation:db": "npx tsx __tests__/creation.db.test.ts",
+    "test:catalogs:db": "npx tsx __tests__/catalogPicks.db.test.ts",
     "test:creation:e2e": "node __tests__/e2e/creation.smoke.mjs",
     "migrate:creation-data": "npx tsx scripts/applyCreationClassData.ts",
     "migrate:race-grants": "npx tsx scripts/applyRaceCreationGrants.ts",
+    "migrate:catalog-picks": "npx tsx scripts/applyCatalogPickOverrides.ts",
     "test:levelup:db": "npx tsx __tests__/levelUp.db.test.ts"
   },
   "dependencies": {

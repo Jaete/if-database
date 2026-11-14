@@ -196,6 +196,10 @@ const PlayerSchema = new Schema<IPlayer>(
     // serviços de nível escrevem aqui (ver services/levelUp.service.ts).
     levelLocks: { type: Schema.Types.Mixed },
     featureChoices: { type: Schema.Types.Mixed },
+    // As escolhas das listas da classe (`ICatalogPick`: Técnicas de Investida,
+    // Formas de Fúria…). Só os serviços de nível escrevem aqui; a leitura as
+    // resolve em habilidades.
+    catalogPicks: { type: Schema.Types.Mixed },
     novelties: { type: Schema.Types.Mixed },
 
     // ── Equipamento (slots + mochila + moedas) ──

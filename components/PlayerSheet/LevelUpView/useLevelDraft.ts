@@ -20,7 +20,9 @@ export type StepId =
   | 'truques'
   | 'magias'
   | 'vida'
-  | 'revisao';
+  | 'revisao'
+  // Uma lista de escolha da classe com escolhas neste nível: `cat:<slug>`.
+  | `cat:${string}`;
 
 export interface IStep {
   id: StepId;
@@ -38,13 +40,29 @@ export interface IDraft {
   milestoneTalent: string | null;
   spellIds: string[];
   cantripIds: string[];
+  /** Itens escolhidos em cada lista da classe, por slug da lista. */
+  catalogPicks: Record<string, string[]>;
   hpMode: 'fixed' | 'roll' | 'manual' | null;
   manualHp: string;
   seenGains: boolean;
 }
 
 /** Os passos saem do plano do nível: só aparece o que a tabela da classe pede. */
-export function stepsOf(plan: ILevelPlan): IStep[] {
+/** O arquétipo que vale agora: o que este nível escolhe, ou o que a ficha já tem. */
+const archetypeNow = (plan: ILevelPlan, d: IDraft | null) =>
+  plan.archetype?.pickSlug
+    ? (d?.archetypeSlug ?? null)
+    : (plan.archetypeSlug ?? plan.archetype?.currentSlug ?? null);
+
+/** As listas de escolha com escolhas a fazer (as que exigem arquétipo só com ele). */
+export const activeCatalogs = (plan: ILevelPlan, d: IDraft | null) =>
+  plan.catalogPicks.filter(
+    (c) =>
+      c.need > 0 &&
+      (!c.requiresArchetype || c.requiresArchetype === archetypeNow(plan, d))
+  );
+
+export function stepsOf(plan: ILevelPlan, d: IDraft | null = null): IStep[] {
   const steps: IStep[] = [{ id: 'ganhos', title: 'Ganhos', required: false }];
   if (plan.featureChoices.length > 0) {
     steps.push({ id: 'carac', title: 'Característica', required: true });
@@ -69,6 +87,9 @@ export function stepsOf(plan: ILevelPlan): IStep[] {
       title: 'Magias',
       required: plan.spells.need > 0,
     });
+  }
+  for (const c of activeCatalogs(plan, d)) {
+    steps.push({ id: `cat:${c.slug}`, title: c.name, required: true });
   }
   steps.push({ id: 'vida', title: 'Vida', required: true });
   steps.push({ id: 'revisao', title: 'Revisão', required: false });
@@ -139,8 +160,13 @@ export function stepDone(plan: ILevelPlan, d: IDraft, id: StepId): boolean {
       return d.spellIds.length === plan.spells.need;
     case 'vida':
       return hpGainFor(plan, d) !== null;
-    default:
+    default: {
+      if (id.startsWith('cat:')) {
+        const cat = plan.catalogPicks.find((c) => `cat:${c.slug}` === id);
+        return !!cat && (d.catalogPicks[cat.slug] ?? []).length === cat.need;
+      }
       return false;
+    }
   }
 }
 
@@ -162,6 +188,9 @@ export function buildChoices(plan: ILevelPlan, d: IDraft): ISealChoices {
       : undefined,
     spellIds: d.spellIds,
     cantripIds: d.cantripIds,
+    catalogPicks: activeCatalogs(plan, d).flatMap((c) =>
+      (d.catalogPicks[c.slug] ?? []).map((item) => ({ catalog: c.slug, item }))
+    ),
     hp:
       plan.hp.mode === 'manual'
         ? { mode: 'manual', manual: Number(d.manualHp) }
@@ -180,6 +209,7 @@ function initialDraft(plan: ILevelPlan, saved: Partial<IDraft> | null): IDraft {
     milestoneTalent: null,
     spellIds: [],
     cantripIds: [],
+    catalogPicks: {},
     hpMode: null,
     manualHp: '',
     seenGains: false,
@@ -201,6 +231,10 @@ function initialDraft(plan: ILevelPlan, saved: Partial<IDraft> | null): IDraft {
     }
     base.spellIds = sealed.spellIds ?? [];
     base.cantripIds = sealed.cantripIds ?? [];
+    base.catalogPicks = {};
+    for (const pick of sealed.catalogPicks ?? []) {
+      (base.catalogPicks[pick.catalog] ??= []).push(pick.item);
+    }
     base.hpMode = sealed.hp.mode;
     base.manualHp = sealed.hp.manual ? String(sealed.hp.manual) : '';
     base.seenGains = true;
@@ -254,7 +288,7 @@ export function useLevelDraft(
     }
   };
 
-  const steps = stepsOf(plan);
+  const steps = stepsOf(plan, draft);
   const required = steps.filter((s) => s.required);
   const doneCount = required.filter((s) => stepDone(plan, draft, s.id)).length;
 

@@ -87,6 +87,25 @@ const RaceStep = () => {
                 ) : (
                   <span className={handles.crChip}>sem bônus de atributo</span>
                 )}
+                {Object.keys(d.speed).length > 0 ? (
+                  <span className={handles.crChip}>
+                    {[
+                      d.speed.walk !== undefined && `${d.speed.walk} m`,
+                      d.speed.fly !== undefined && `voo ${d.speed.fly} m`,
+                      d.speed.swim !== undefined && `natação ${d.speed.swim} m`,
+                      d.speed.climb !== undefined &&
+                        `escalada ${d.speed.climb} m`,
+                      d.speed.burrow !== undefined &&
+                        `escavação ${d.speed.burrow} m`,
+                    ]
+                      .filter(Boolean)
+                      .join(' · ') || 'deslocamento'}
+                  </span>
+                ) : (
+                  <span className={handles.crChip}>
+                    deslocamento: a staff confirma
+                  </span>
+                )}
                 {d.race.unique && (
                   <LevelUpPill tone="warn">raça única</LevelUpPill>
                 )}

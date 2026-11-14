@@ -1,0 +1,227 @@
+[
+  {
+    "class": "espadachim",
+    "slug": "manobras-de-mao-unica",
+    "name": "Manobras de Mão Única",
+    "description": "As cinco manobras concedidas por Mão Única, enquanto o espadachim luta com uma arma perfurante de uma mão ou leve e mantém a outra mão livre.",
+    "items": 5
+  },
+  {
+    "class": "espadachim",
+    "slug": "tecnicas-de-investida",
+    "name": "Técnicas de Investida",
+    "description": "No 2º nível e a cada dois níveis subsequentes, o espadachim escolhe aprender uma destas técnicas.",
+    "items": 16
+  },
+  {
+    "class": "mago-branco",
+    "slug": "magias",
+    "name": "Magias",
+    "description": "As magias de 1º círculo em diante que Mago Branco aprende, em ordem de círculo. Cada nome abre a magia no grimório.",
+    "items": 133
+  },
+  {
+    "class": "mago-branco",
+    "slug": "truques",
+    "name": "Truques",
+    "description": "Os truques (magias de círculo 0) que Mago Branco aprende. Cada nome abre a magia no grimório.",
+    "items": 24
+  },
+  {
+    "class": "monge",
+    "slug": "tecnicas-blitz",
+    "name": "Técnicas Blitz",
+    "description": "A cada dois níveis subsequentes, o monge pode selecionar uma técnica de blitz. Essas técnicas poderosas utilizam o Ki do monge, consumindo 1 ponto deKi em sua execução, para realizar feitos incríveis de poder místico e força. Uma vez escolhida, uma técnica de blitz não pode ser trocada depois. A menos que especificado de outra forma, o monge não pode selecionar a mesma técnica de blitz mais de uma vez.\nUma lista completa de técnicas de blitz pode ser encontrada mais abaixo.\n\n\n\nNível 8:",
+    "items": 13
+  },
+  {
+    "class": "monge",
+    "slug": "habilidades-de-furia-berserker",
+    "name": "Habilidades de Fúria (Berserker)",
+    "description": "À medida que adquire níveis, o monge selvagem aprende a usar sua fúria de novas formas. A partir do 5º nível, ele recebe um poder de fúria da lista de poderes de fúria do bárbaro. Ele recebe outro poder de fúria a cada dois níveis de monge após o 5º. O monge selvagem só obtém os benefícios dos poderes de fúria enquanto estiver em fúria, e alguns desses poderes exigem que ele realize uma ação antes de usá-los. A menos que especificado de outra forma, o monge selvagem não pode escolher o mesmo poder mais de uma vez.\nAlguns desses poderes de fúria são posturas. Ativar uma postura é uma ação de movimento. O monge selvagem não pode ter mais de uma postura ativa ao mesmo tempo. Se ativar uma nova postura enquanto outra estiver ativa, a anterior termina imediatamente. A postura pode ser encerrada voluntariamente no início do turno do monge selvagem como uma ação livre; caso contrário, dura até o fim da fúria.\n\n\nNível 10:",
+    "items": 18
+  },
+  {
+    "class": "mago-negro",
+    "slug": "magias",
+    "name": "Magias",
+    "description": "As magias de 1º círculo em diante que Mago Negro aprende, em ordem de círculo. Cada nome abre a magia no grimório.",
+    "items": 93
+  },
+  {
+    "class": "mago-negro",
+    "slug": "truques",
+    "name": "Truques",
+    "description": "Os truques (magias de círculo 0) que Mago Negro aprende. Cada nome abre a magia no grimório.",
+    "items": 17
+  },
+  {
+    "class": "druida",
+    "slug": "magias",
+    "name": "Magias",
+    "description": "As magias de 1º círculo em diante que Druida aprende, em ordem de círculo. Cada nome abre a magia no grimório.",
+    "items": 76
+  },
+  {
+    "class": "druida",
+    "slug": "truques",
+    "name": "Truques",
+    "description": "Os truques (magias de círculo 0) que Druida aprende. Cada nome abre a magia no grimório.",
+    "items": 17
+  },
+  {
+    "class": "cavaleiro-das-trevas",
+    "slug": "magias",
+    "name": "Magias",
+    "description": "As magias de 1º círculo em diante que Cavaleiro das Trevas aprende, em ordem de círculo. Cada nome abre a magia no grimório.",
+    "items": 37
+  },
+  {
+    "class": "mago-do-tempo",
+    "slug": "magias",
+    "name": "Magias",
+    "description": "As magias de 1º círculo em diante que Mago do Tempo aprende, em ordem de círculo. Cada nome abre a magia no grimório.",
+    "items": 31
+  },
+  {
+    "class": "mago-do-tempo",
+    "slug": "truques",
+    "name": "Truques",
+    "description": "Os truques (magias de círculo 0) que Mago do Tempo aprende. Cada nome abre a magia no grimório.",
+    "items": 10
+  },
+  {
+    "class": "berserker",
+    "slug": "formas-de-furia",
+    "name": "Formas de Fúria",
+    "description": "No 2º nível, um berserker seleciona uma das seguintes formas de fúria. Ele seleciona uma forma adicional nos níveis 5, 10, 15 e 20. Sempre que ele entra em fúria, ele assume uma de suas formas de fúria escolhidas. Um berserker não pode trocar de forma de fúria enquanto estiver em fúria.",
+    "items": 27
+  },
+  {
+    "class": "berserker",
+    "slug": "poderes-de-furia",
+    "name": "Poderes de Fúria",
+    "description": "Conforme o berserker ganha níveis, aprende novas maneiras de usar sua fúria.\nA partir do 2º nível, ganha um poder de fúria.\nEle ganha outro poder a cada 2 níveis após o 2º.\n\nEle só recebe os benefícios dos poderes enquanto estiver em fúria, e alguns exigem ações específicas.\n\nA menos que indicado, um poder não pode ser escolhido mais de uma vez.\n\nAlguns poderes são posturas. Ativar uma postura é uma ação de movimento.\nEle não pode ter mais de uma postura ativa ao mesmo tempo. Ativar outra postura termina a anterior. A postura termina na fúria ou pode ser encerrada voluntariamente no início do turno.\n\nUma lista completa de poderes de fúria pode ser encontrada mais abaixo\n\nNível 6:",
+    "items": 89
+  },
+  {
+    "class": "dancarino",
+    "slug": "talentos-de-danca",
+    "name": "Talentos de Dança",
+    "description": "À medida que uma dançarina ganha experiência, ela aprende vários talentos que a ajudam e confundem seus inimigos. A partir do 2º nível, a dançarina ganha um talento de dança. Ela ganha um talento adicional a cada 2 níveis de dançarina após o 2º nível. A menos que especificado de outra forma, uma dançarina não pode selecionar o mesmo talento mais de uma vez.\n\nNo 12º nível, e a cada dois níveis depois disso, uma dançarina pode escolher um dos seguintes talentos de dança avançados no lugar de um talento de dança.",
+    "items": 64
+  },
+  {
+    "class": "dancarino",
+    "slug": "dancas-misticas",
+    "name": "Danças Místicas",
+    "description": "A partir do 6º nível, e a cada três níveis de dançarina após isso, a dançarina aprende uma nova dança mística. Algumas danças místicas exigem outras danças como pré-requisito.\nExecutar uma dança mística requer uma ação padrão, provoca ataques de oportunidade e custa 1 ponto de Ki para ativar.\nEla pode manter uma dança mística como ação livre se ela durar vários assaltos.\nA dançarina só pode ter 1 dança mística ativa por vez.",
+    "items": 38
+  },
+  {
+    "class": "clerigo",
+    "slug": "magias",
+    "name": "Magias",
+    "description": "As magias de alinhamento do clérigo, além da lista da ordem deífica, em ordem de círculo. Cada nome abre a magia no grimório. Quando cada círculo abre, e a restrição de descritor, estão em Conjuração de Magias.",
+    "items": 25
+  },
+  {
+    "class": "clerigo",
+    "slug": "ordens-dominios",
+    "name": "Ordens & Domínios",
+    "kind": "relacao",
+    "description": "Cada ordem serve a uma deidade e libera um conjunto de domínios. O clérigo jura uma ordem e escolhe dois desses domínios.",
+    "items": 0
+  },
+  {
+    "class": "geomante",
+    "slug": "magias",
+    "name": "Magias",
+    "description": "As magias de 1º círculo em diante que Geomante aprende, em ordem de círculo. Cada nome abre a magia no grimório.",
+    "items": 14
+  },
+  {
+    "class": "ilusionista",
+    "slug": "magias",
+    "name": "Magias",
+    "description": "As magias de 1º círculo em diante que Ilusionista aprende, em ordem de círculo. Cada nome abre a magia no grimório.",
+    "items": 28
+  },
+  {
+    "class": "ilusionista",
+    "slug": "truques",
+    "name": "Truques",
+    "description": "Os truques (magias de círculo 0) que Ilusionista aprende. Cada nome abre a magia no grimório.",
+    "items": 17
+  },
+  {
+    "class": "bardo",
+    "slug": "musicas",
+    "name": "Músicas",
+    "description": "As músicas de bardo: magias de 1º círculo em diante que só o bardo conhece, em ordem de círculo. Cada nome abre a magia no grimório. Ver a característica Músicas para como aprendê-las e executá-las.",
+    "items": 122
+  },
+  {
+    "class": "bardo",
+    "slug": "jingles",
+    "name": "Jingles",
+    "description": "Os jingles: músicas de nível 0 que só o bardo conhece. Não consomem slots de magia e podem ser usados novamente. Cada nome abre a magia no grimório. Ver a característica Jingles.",
+    "items": 10
+  },
+  {
+    "class": "bardo",
+    "slug": "performances-bardicas",
+    "name": "Performances Bardicas",
+    "description": "As performances que o bardo domina com a característica Performance Bardica, conforme o nível indicado em cada uma.",
+    "items": 14
+  },
+  {
+    "class": "bardo",
+    "slug": "performances-versateis-avancadas",
+    "name": "Performances Versáteis Avançadas",
+    "description": "No 6º nível, e a cada quatro níveis de bardo depois disso, o bardo pode selecionar um tipo adicional de Atuação para Performance Versátil ou uma das opções abaixo.",
+    "items": 4
+  },
+  {
+    "class": "invocador",
+    "slug": "magias",
+    "name": "Magias",
+    "description": "As magias de 1º círculo em diante que Invocador aprende, em ordem de círculo. Cada nome abre a magia no grimório.",
+    "items": 103
+  },
+  {
+    "class": "invocador",
+    "slug": "truques",
+    "name": "Truques",
+    "description": "Os truques (magias de círculo 0) que Invocador aprende. Cada nome abre a magia no grimório.",
+    "items": 21
+  },
+  {
+    "class": "necromante",
+    "slug": "magias",
+    "name": "Magias",
+    "description": "As magias de 1º círculo em diante que Necromante aprende, em ordem de círculo. Cada nome abre a magia no grimório.",
+    "items": 78
+  },
+  {
+    "class": "necromante",
+    "slug": "truques",
+    "name": "Truques",
+    "description": "Os truques (magias de círculo 0) que Necromante aprende. Cada nome abre a magia no grimório.",
+    "items": 12
+  },
+  {
+    "class": "paladino",
+    "slug": "magias",
+    "name": "Magias",
+    "description": "As magias de 1º círculo em diante que Paladino aprende, em ordem de círculo. Cada nome abre a magia no grimório.",
+    "items": 47
+  },
+  {
+    "class": "paladino",
+    "slug": "artes-divinas",
+    "name": "Artes Divinas",
+    "description": "No 7º nível, as artes da luz divina despertam dentro do paladino.\nEle invoca esse poder sagrado quando seus aliados estão em perigo.\nO paladino ganha duas Artes Divinas no 7º nível e mais uma a cada três níveis de paladino subsequentes.\nCada Arte Divina requer 1 ponto da Reserva Sagrada para ser ativada.\n(A lista completa de Artes Divinas pode ser encontrada em: Artes Divinas)\n\nNível 7:",
+    "items": 14
+  }
+]

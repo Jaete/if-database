@@ -352,6 +352,55 @@ export function catalogFields(catalog?: IClassCatalog, kind?: CatalogKind) {
         <IconPicker value={value} onChange={onChange} />
       ),
     },
+    // Lista de escolha: o cronograma vem do texto da descrição; estes campos,
+    // quando preenchidos, valem no lugar dele (lib/catalogPicks.ts).
+    ...(resolved === 'relacao'
+      ? []
+      : [
+          {
+            name: 'pickable',
+            label: 'É lista de escolha? (sim / não — vazio = pelo texto)',
+            required: false,
+            initialValue:
+              catalog?.pickable === undefined
+                ? ''
+                : catalog.pickable
+                  ? 'sim'
+                  : 'não',
+            placeholder: 'vazio',
+          },
+          {
+            name: 'pickLevels',
+            label:
+              'Níveis das escolhas (ex.: 2, 4, 6 — repetir o nível dá mais de uma)',
+            required: false,
+            initialValue: (catalog?.pickLevels ?? []).join(', '),
+            placeholder: 'vazio = lido da descrição',
+          },
+          {
+            name: 'picksPerLevel',
+            label: 'Escolhas por nível (vazio = 1)',
+            required: false,
+            initialValue: catalog?.picksPerLevel
+              ? String(catalog.picksPerLevel)
+              : '',
+            placeholder: '1',
+          },
+          {
+            name: 'requiresArchetype',
+            label: 'Só para o arquétipo (slug)',
+            required: false,
+            initialValue: catalog?.requiresArchetype ?? '',
+            placeholder: 'ex.: monge-selvagem',
+          },
+          {
+            name: 'freeTextLabel',
+            label: 'Item de texto livre (rótulo)',
+            required: false,
+            initialValue: catalog?.freeTextLabel ?? '',
+            placeholder: 'ex.: Outro tipo de Atuação',
+          },
+        ]),
   ];
 }
 

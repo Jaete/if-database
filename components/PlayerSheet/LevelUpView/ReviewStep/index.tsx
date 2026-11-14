@@ -20,7 +20,7 @@ interface IProps extends IStepProps {
 /** O resumo do nível, com link para cada passo que ainda falta. */
 const ReviewStep = ({ plan, draft, onGo }: IProps) => {
   const handles = useCssHandles(LevelUpViewHandles);
-  const steps = stepsOf(plan);
+  const steps = stepsOf(plan, draft);
   const required = steps.filter((s) => s.required);
   const missing = required.filter((s) => !stepDone(plan, draft, s.id));
   const gain = hpGainFor(plan, draft);
@@ -131,6 +131,19 @@ const ReviewStep = ({ plan, draft, onGo }: IProps) => {
                 : 'Falta escolher o talento da classe',
               'talento',
               stepDone(plan, draft, 'talento')
+            )}
+          {steps
+            .filter((s) => s.id.startsWith('cat:'))
+            .map((s) =>
+              row(
+                s.title,
+                stepDone(plan, draft, s.id)
+                  ? (draft.catalogPicks[s.id.slice(4)] ?? []).join(', ')
+                  : `Falta escolher em ${s.title}`,
+                s.id,
+                stepDone(plan, draft, s.id),
+                `cat-${s.id}`
+              )
             )}
           {plan.milestone &&
             row(

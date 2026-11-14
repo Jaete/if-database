@@ -11,6 +11,7 @@ import SoundButton from '../SoundButton';
 import ArchetypeStep from './ArchetypeStep';
 import AttributeStep from './AttributeStep';
 import CantripStep from './CantripStep';
+import CatalogPickStep from './CatalogPickStep';
 import FeatureStep from './FeatureStep';
 import GainsStep from './GainsStep';
 import HpStep from './HpStep';
@@ -156,6 +157,14 @@ const LevelUpInner = ({ plan }: IInnerProps) => {
       case 'vida':
         return hpGain !== null ? `+${hpGain} vida` : 'Fixo ou rolar';
       default:
+        if (id.startsWith('cat:')) {
+          const picked = draft.catalogPicks[id.slice(4)] ?? [];
+          const need =
+            plan.catalogPicks.find((c) => `cat:${c.slug}` === id)?.need ?? 0;
+          return picked.length > 0
+            ? picked.join(', ')
+            : `${need} para escolher`;
+        }
         return allDone
           ? 'Pronto para selar'
           : `${required.length - doneCount} pendente${required.length - doneCount === 1 ? '' : 's'}`;
@@ -222,6 +231,11 @@ const LevelUpInner = ({ plan }: IInnerProps) => {
         out.push({ text: stepDesc('marco'), kind: 'atributos' });
       }
     }
+    for (const c of plan.catalogPicks) {
+      (draft.catalogPicks[c.slug] ?? []).forEach((item) =>
+        out.push({ text: item, kind: c.name })
+      );
+    }
     draft.cantripIds.forEach((id) =>
       out.push({
         text: plan.cantrips.options.find((o) => o.id === id)?.name ?? id,
@@ -274,6 +288,9 @@ const LevelUpInner = ({ plan }: IInnerProps) => {
           />
         );
       default:
+        if (step.id.startsWith('cat:')) {
+          return <CatalogPickStep {...common} slug={step.id.slice(4)} />;
+        }
         return <ReviewStep {...common} onGo={goTo} />;
     }
   };

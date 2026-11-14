@@ -14,6 +14,11 @@ import type ICharacterClass from '../db/classes/class.d';
 import type { IClassLevel } from '../db/classes/class.d';
 import { archetypePickOf, featureKey } from '../db/l10n/classes';
 import { OWN_SHEET_MESSAGE, sheetFlags } from '../lib/sheetAccess';
+import {
+  picksDueAt,
+  FREE_TEXT_MAX,
+  type ICatalogPick,
+} from '../lib/catalogPicks';
 import { modifierOf, type AttributeKey } from '../lib/stats';
 import { archetypeFeatureOpen } from '../lib/archetypeFeatureLevel';
 import { earnedLevel, xpToNext, MAX_LEVEL } from '../lib/xp';
@@ -343,6 +348,7 @@ interface ISnapshot {
   archetype: { slug?: string; features?: string[] } | null;
   spellRefs: { spellId: string; prepared?: boolean }[];
   featureChoices: IFeatureChoiceRecord[];
+  catalogPicks: ICatalogPick[];
   levelLocks: ILevelLock[];
   novelties: INovelty[];
 }
@@ -377,6 +383,7 @@ function snapshotOf(p: IPlayerDoc): ISnapshot {
       })
     ),
     featureChoices: asArray<IFeatureChoiceRecord>(p.featureChoices),
+    catalogPicks: asArray<ICatalogPick>(p.catalogPicks),
     levelLocks: asArray<ILevelLock>(p.levelLocks),
     novelties: asArray<INovelty>(p.novelties),
   };
@@ -632,6 +639,31 @@ async function buildPlanFor(
     );
   }
 
+  // ── Listas de escolha da classe ──
+  const taken = new Set(snap.catalogPicks.map((p) => `${p.catalog}|${p.item}`));
+  const catalogPicks: ILevelPlan['catalogPicks'] = [];
+  for (const catalog of klass.catalogs ?? []) {
+    const due = picksDueAt(catalog, level);
+    if (due === 0) continue;
+    const options = (catalog.items ?? [])
+      .filter((i) => !taken.has(`${catalog.slug}|${i.name}`))
+      .map((i) => ({ name: i.name, description: i.description ?? '' }));
+    catalogPicks.push({
+      slug: catalog.slug,
+      name: catalog.name,
+      description: catalog.description ?? '',
+      // Lista esgotada não trava o selo; com texto livre, sempre há como escolher.
+      need: catalog.freeTextLabel ? due : Math.min(due, options.length),
+      options,
+      ...(catalog.requiresArchetype
+        ? { requiresArchetype: catalog.requiresArchetype }
+        : {}),
+      ...(catalog.freeTextLabel
+        ? { freeTextLabel: catalog.freeTextLabel }
+        : {}),
+    });
+  }
+
   // ── Vida ──
   const spec = parseHitDie(klass.hpPerLevel, klass.hitDie);
   const stored = await HpRollModel.findOne({
@@ -658,6 +690,8 @@ async function buildPlanFor(
     featureChoices,
     archetype,
     classTalentSlots,
+    archetypeSlug: snap.archetype?.slug ?? null,
+    catalogPicks,
     milestone: hasMilestone
       ? {
           text:
@@ -972,6 +1006,52 @@ export function canonicalizeChoices(
   );
   if (typeof cantripIds === 'string') return bad(cantripIds);
 
+  // Listas de escolha da classe: a quantidade que o nível dá, itens da lista
+  // (ou o texto livre da lista), sem repetir. Uma lista que exige arquétipo só
+  // vale para quem o tem (ou o escolhe neste selo).
+  const archetypeNow =
+    archetypeSlug ?? plan.archetypeSlug ?? plan.archetype?.currentSlug ?? null;
+  const rawPicks = asArray<unknown>(c.catalogPicks).filter(isRecord);
+  const catalogPicks: { catalog: string; item: string }[] = [];
+  for (const cat of plan.catalogPicks) {
+    if (cat.requiresArchetype && cat.requiresArchetype !== archetypeNow)
+      continue;
+    const mine = rawPicks.filter((p) => p.catalog === cat.slug);
+    if (mine.length !== cat.need) {
+      return bad(`Escolha ${cat.need} em "${cat.name}".`);
+    }
+    const seen = new Set<string>();
+    for (const p of mine) {
+      const item = typeof p.item === 'string' ? p.item.trim() : '';
+      const free =
+        cat.freeTextLabel && item.startsWith(`${cat.freeTextLabel}: `)
+          ? item.slice(cat.freeTextLabel.length + 2).trim()
+          : null;
+      const ok =
+        free !== null
+          ? free.length > 0 && free.length <= FREE_TEXT_MAX
+          : cat.options.some((o) => o.name === item);
+      if (!ok || seen.has(item)) {
+        return bad(
+          `"${cat.name}": escolha inválida${item ? ` ("${item}")` : ''}.`
+        );
+      }
+      seen.add(item);
+      catalogPicks.push({ catalog: cat.slug, item });
+    }
+  }
+  if (
+    rawPicks.some(
+      (p) =>
+        !catalogPicks.some(
+          (q) =>
+            q.catalog === p.catalog && q.item === String(p.item ?? '').trim()
+        )
+    )
+  ) {
+    return bad('Há uma escolha de lista que este nível não pede.');
+  }
+
   // Vida.
   const hp: { mode?: unknown; manual?: unknown } = isRecord(c.hp) ? c.hp : {};
   let hpChoice: ISealChoices['hp'];
@@ -1011,6 +1091,7 @@ export function canonicalizeChoices(
       ...(milestone ? { milestone } : {}),
       spellIds,
       cantripIds,
+      ...(catalogPicks.length ? { catalogPicks } : {}),
       hp: hpChoice,
     },
   };
@@ -1029,6 +1110,7 @@ function undoLock(snap: ISnapshot, lock: ILevelLock): ISnapshot {
       (r) => !lock.undo.spellIds.includes(r.spellId)
     ),
     featureChoices: snap.featureChoices.filter((f) => f.level !== lock.level),
+    catalogPicks: snap.catalogPicks.filter((p) => p.level !== lock.level),
     levelLocks: snap.levelLocks.filter((l) => l.level !== lock.level),
     playerStats: { ...snap.playerStats },
     archetype: snap.archetype ? { ...snap.archetype } : null,
@@ -1084,6 +1166,7 @@ function applyChoices(
     milestones: [...snap.milestones],
     spellRefs: [...snap.spellRefs],
     featureChoices: [...snap.featureChoices],
+    catalogPicks: [...snap.catalogPicks],
     archetype: snap.archetype ? { ...snap.archetype } : null,
   };
   const names: string[] = [];
@@ -1143,6 +1226,12 @@ function applyChoices(
     novel(`tal:${key}`, 'talentos', t.name);
   };
   choices.classTalentKeys.forEach(addTalent);
+
+  for (const pick of choices.catalogPicks ?? []) {
+    next.catalogPicks.push({ ...pick, level });
+    names.push(pick.item);
+    novel(`cat:${pick.catalog}:${pick.item}`, 'habilidades', pick.item);
+  }
 
   let stats = snap.playerStats;
   if (plan.milestone && choices.milestone) {
@@ -1254,6 +1343,7 @@ function fieldsOf(snap: ISnapshot, extra: Doc = {}): Doc {
     archetype: snap.archetype ?? undefined,
     'playerSpellcasting.spellRefs': snap.spellRefs,
     featureChoices: snap.featureChoices,
+    catalogPicks: snap.catalogPicks,
     levelLocks: snap.levelLocks,
     novelties: snap.novelties,
     ...extra,

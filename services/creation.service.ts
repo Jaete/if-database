@@ -45,6 +45,7 @@ import {
   raceBonus,
   raceLanguages,
   racialGrants,
+  raceSpeed,
   sumGrants,
   type IRaceRulesInput,
 } from '../lib/raceRules';
@@ -395,6 +396,26 @@ export async function evaluateSheet(sheet: ISheet, ctx?: ICreationContext) {
     },
   };
   const issues = creationIssues(input);
+  if (
+    context.race &&
+    Object.keys(
+      raceSpeed(
+        context.race,
+        effectiveSubrace(
+          context.race,
+          typeof sheet.raceChoice?.subrace === 'string'
+            ? sheet.raceChoice.subrace
+            : undefined
+        )
+      )
+    ).length === 0
+  ) {
+    issues.push({
+      step: 'raca',
+      kind: 'recommended',
+      message: 'Deslocamento: a raça não define, a staff confirma.',
+    });
+  }
   // O gil, quando a classe tem fórmula, vale o da rolagem gravada PARA ELA.
   if (context.klass && parseGilFormula(context.klass.startingGil)) {
     const roll = await CreationRollModel.findOne({
@@ -521,6 +542,14 @@ async function recompute(id: string) {
   // O gil vale por classe: trocar de classe troca para a rolagem gravada dela,
   // ou esvazia (e exige rolar).
   const unsetGil: Doc = {};
+  // Deslocamento: da raça (ou da sub-raça, se ela tiver o seu texto). Sem texto
+  // (a Lapinara), a ficha fica sem deslocamento e a staff confirma.
+  const speed = raceSpeed(
+    (ctx.race as (IRaceCatalogEntry & { speed?: string }) | null) ?? undefined,
+    sub
+  );
+  if (Object.keys(speed).length > 0) set['combat.speed'] = speed;
+  else unsetGil['combat.speed'] = '';
   if (ctx.klass) {
     const gil = await CreationRollModel.findOne({
       playerId: sheet._id,

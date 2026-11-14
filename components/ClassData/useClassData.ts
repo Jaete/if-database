@@ -29,6 +29,23 @@ import {
  * metade pode ter buracos — e aí `levels.length + 1` cairia em cima de um
  * nível que já existe.
  */
+/** Os campos de lista de escolha do modal; vazio = sem correção. */
+function catalogPickFields(values: Record<string, string>) {
+  const pickable = (values.pickable ?? '').trim().toLowerCase();
+  const levels = (values.pickLevels ?? '')
+    .split(/[,\s]+/)
+    .map(Number)
+    .filter((n) => Number.isInteger(n) && n >= 1 && n <= 20);
+  const per = Math.floor(Number(values.picksPerLevel));
+  return {
+    pickable: pickable.startsWith('s') ? true : pickable ? false : undefined,
+    pickLevels: levels.length > 0 ? levels : undefined,
+    picksPerLevel: per > 1 ? per : undefined,
+    requiresArchetype: values.requiresArchetype?.trim() || undefined,
+    freeTextLabel: values.freeTextLabel?.trim() || undefined,
+  };
+}
+
 export function nextLevelNumber(levels: IClassLevel[] | undefined): number {
   return (levels ?? []).reduce((max, l) => Math.max(max, l.level), 0) + 1;
 }
@@ -336,6 +353,10 @@ export function useClassData(initial: ICharacterClass) {
         icon: values.icon || current?.icon,
         description: values.description || undefined,
         items: current?.items ?? [],
+        // O que o modal não mexe (a tabela de relação) segue como estava.
+        ...(current?.groupA ? { groupA: current.groupA } : {}),
+        ...(current?.groupB ? { groupB: current.groupB } : {}),
+        ...catalogPickFields(values),
       };
       if (index < 0) catalogs.push(next);
       else catalogs[index] = next;

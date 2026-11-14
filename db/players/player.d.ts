@@ -1,4 +1,5 @@
 import ICitizen from '../citizens/citizen';
+import type { ICatalogPick } from '../../lib/catalogPicks';
 import type {
   AttributeMethod,
   Base,
@@ -64,5 +65,6 @@ export default interface IPlayer extends ICitizen {
   review?: IReviewEntry[];
   levelLocks?: ILevelLock[];
   featureChoices?: IFeatureChoiceRecord[];
+  catalogPicks?: ICatalogPick[];
   novelties?: INovelty[];
 }

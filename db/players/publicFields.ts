@@ -54,6 +54,7 @@ export const PLAYER_PUBLIC_FIELDS = [
   // Subida de nível: legíveis por todos, graváveis só pelos serviços de nível.
   'levelLocks',
   'featureChoices',
+  'catalogPicks',
   'novelties',
   'equipment',
   'professions',
@@ -96,6 +97,7 @@ export const PLAYER_WRITABLE_FIELDS = PLAYER_PUBLIC_FIELDS.filter(
       'level',
       'levelLocks',
       'featureChoices',
+      'catalogPicks',
       'novelties',
     ].includes(field)
 ) as readonly string[];

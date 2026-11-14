@@ -13,6 +13,7 @@ import { ATTRIBUTE_LABELS } from '../lib/levelUp';
 import { createEntityService } from './createEntityService';
 import { resolveSpellRefs } from './spellLink.service';
 import {
+  getCatalogPickAbilities,
   getChosenClassAbilities,
   getGrantedClassAbilities,
   mergeClassAbilities,
@@ -51,6 +52,7 @@ const PROGRESSION_FIELDS = [
   'level',
   'levelLocks',
   'featureChoices',
+  'catalogPicks',
   'novelties',
   // A criação (estado, rolagens e revisão) só muda por services/creation.service.ts.
   'status',
@@ -128,6 +130,18 @@ async function unlinkClassIfRenamed(
   if (linked?.name !== updateData.class) {
     updateData.classId = null;
   }
+}
+
+/** As listas de escolha da classe, só para quem tem escolhas gravadas. */
+async function loadCatalogs(classId: unknown) {
+  const id = String(classId ?? '');
+  if (!/^[0-9a-f]{24}$/i.test(id)) return null;
+  const { default: CharacterClassModel } =
+    await import('../db/classes/classes');
+  const klass = await CharacterClassModel.findById(id)
+    .select('catalogs.slug catalogs.name catalogs.items')
+    .lean<Pick<ICharacterClass, 'catalogs'>>();
+  return klass?.catalogs ?? null;
 }
 
 /** Tudo o que os resolvedores de leitura pedem da classe, num documento só. */
@@ -216,7 +230,19 @@ async function resolveLinks<T extends IPublicPlayer | null>(
     (player as { featureChoices?: unknown }).featureChoices,
     klass
   );
-  const fromClass = [...granted, ...chosen, ...archetype.abilities];
+  // As escolhas das listas da classe (Técnicas de Investida…): a lista só é
+  // lida quando a ficha tem alguma.
+  const picks = (player as { catalogPicks?: unknown }).catalogPicks;
+  const catalogs =
+    Array.isArray(picks) && picks.length > 0 && player.classId
+      ? await loadCatalogs(player.classId)
+      : null;
+  const fromClass = [
+    ...granted,
+    ...chosen,
+    ...getCatalogPickAbilities(picks, catalogs),
+    ...archetype.abilities,
+  ];
 
   // A raça e os talentos seguem o mesmo contrato: a ficha guarda a escolha, e a
   // leitura resolve o que ela significa.

@@ -41,6 +41,8 @@ export interface ISealChoices {
     | { use: 'attribute'; points: Partial<Record<AttributeKey, number>> }
     | { use: 'talent'; talentKey: string };
   spellIds: string[];
+  /** Itens das listas de escolha da classe (opcional: selos antigos não têm). */
+  catalogPicks?: { catalog: string; item: string }[];
   /** Truques novos do nível (opcional: selos antigos não têm). */
   cantripIds?: string[];
   hp: { mode: HpMode; manual?: number };
@@ -123,6 +125,18 @@ export interface IPlanSpell {
   description: string;
 }
 
+export interface IPlanCatalog {
+  slug: string;
+  name: string;
+  description: string;
+  need: number;
+  options: IPlanOption[];
+  /** Só vale para quem tem este arquétipo (slug). */
+  requiresArchetype?: string;
+  /** A lista aceita um item de texto livre com este rótulo. */
+  freeTextLabel?: string;
+}
+
 export interface ILevelPlan {
   level: number;
   /** Nível alcançado por XP (o plano é do `level` selado + 1). */
@@ -145,6 +159,13 @@ export interface ILevelPlan {
     taken: string[];
   };
   classTalentSlots: number;
+  /** O arquétipo que a ficha já tem (as listas podem exigir um). */
+  archetypeSlug: string | null;
+  /**
+   * As listas de escolha da classe com escolhas neste nível ("Técnicas de
+   * Investida"): `need` itens, fora os já escolhidos antes.
+   */
+  catalogPicks: IPlanCatalog[];
   milestone: { text: string } | null;
   talentOptions: IPlanTalent[];
   attributes: Record<AttributeKey, { total: number; base: number }>;

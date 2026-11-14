@@ -154,6 +154,12 @@ const CatalogSchema = new Schema<IClassCatalog>(
     items: [CatalogItemSchema],
     groupA: RelationGroupSchema,
     groupB: RelationGroupSchema,
+    // Lista de escolha: ver IClassCatalog.
+    pickable: Boolean,
+    pickLevels: [Number],
+    picksPerLevel: Number,
+    requiresArchetype: String,
+    freeTextLabel: String,
   },
   { _id: false }
 );

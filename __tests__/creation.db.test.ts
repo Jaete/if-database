@@ -1429,6 +1429,71 @@ async function main() {
     assert.ok(!view.issues.some((i) => /perícia\(s\) racial/.test(i.message)));
   });
 
+  // ── Deslocamento da raça ──
+  await test('speed is derived from the race: Fada walk 6/fly 9, Aquavista walk 7/swim 12, Lapinara empty+recommended', async () => {
+    const fadas = await race('fadas');
+    const yokais = await race('yokais');
+    const lapinara = await race('lapinara');
+    const a = await blank();
+    await svc.saveDraft(
+      a,
+      { fields: { raceId: String(fadas._id) } },
+      ownerActor
+    );
+    assert.deepEqual((await raw(a)).combat.speed, { walk: 6, fly: 9 });
+    const b = await blank();
+    await svc.saveDraft(
+      b,
+      {
+        fields: {
+          raceId: String(yokais._id),
+          raceChoice: { subrace: 'aquavista' },
+        },
+      },
+      ownerActor
+    );
+    assert.deepEqual((await raw(b)).combat.speed, { walk: 7, swim: 12 });
+    // Trocar a sub-raça troca o deslocamento (a sub-raça sem texto herda o da raça).
+    await svc.saveDraft(
+      b,
+      {
+        fields: {
+          raceId: String(yokais._id),
+          raceChoice: { subrace: 'yokai-caninos' },
+        },
+      },
+      ownerActor
+    );
+    assert.deepEqual((await raw(b)).combat.speed, { walk: 9 });
+    const c = await blank();
+    await svc.saveDraft(
+      c,
+      {
+        fields: {
+          raceId: String(lapinara._id),
+          raceChoice: { subrace: lapinara.subraces[0].slug },
+        },
+      },
+      ownerActor
+    );
+    assert.equal((await raw(c)).combat?.speed, undefined);
+    const view = await svc.getCreation(c, ownerActor);
+    assert.ok(
+      view.issues.some(
+        (i) => i.kind === 'recommended' && /Deslocamento/.test(i.message)
+      )
+    );
+    assert.ok(
+      !view.issues.some(
+        (i) => i.kind === 'required' && /Deslocamento/.test(i.message)
+      )
+    );
+    // Mestiço: o texto dele, não o dos pais.
+    const d = await blank();
+    await svc.saveDraft(d, { fields: mixed('elfos') }, ownerActor);
+    assert.deepEqual((await raw(d)).combat.speed, { walk: 9 });
+  });
+
   await cleanup();
   const left = await Player.countDocuments({ description: MARK });
   assert.equal(left, 0, 'sobraram fichas de teste');

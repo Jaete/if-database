@@ -153,6 +153,44 @@ export function getChosenClassAbilities(
 }
 
 /**
+ * As escolhas das listas da classe ("Técnicas de Investida") viradas em
+ * habilidades da ficha. A ficha guarda só `{ catalog, item, level }`; o texto
+ * vem da lista, na leitura. O item de texto livre ("Outro tipo de Atuação:
+ * Dança") não tem descrição na lista e entra com o que foi escrito.
+ */
+export function getCatalogPickAbilities(
+  picks: unknown,
+  catalogs:
+    | {
+        slug: string;
+        name: string;
+        items?: {
+          name: string;
+          description?: string;
+          tables?: IFeatureTable[];
+        }[];
+      }[]
+    | null
+): ICitizenAbility[] {
+  if (!Array.isArray(picks) || !catalogs) return [];
+  const out: ICitizenAbility[] = [];
+  for (const pick of picks) {
+    const catalog = catalogs.find((c) => c.slug === pick?.catalog);
+    const name = String(pick?.item ?? '');
+    if (!catalog || !name) continue;
+    const item = catalog.items?.find((i) => i.name === name);
+    out.push({
+      name,
+      description: flattenTables(item?.description, item?.tables) ?? '',
+      source: 'class',
+      origin: catalog.name,
+      level: Number(pick?.level) || undefined,
+    });
+  }
+  return out;
+}
+
+/**
  * Funde as características da classe na lista da ficha.
  *
  * Uma entrada manual de mesmo nome é substituída pela da classe, no lugar em

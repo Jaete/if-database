@@ -168,6 +168,19 @@ export interface IClassCatalog {
   groupA?: IRelationGroup;
   /** Segundo grupo da tabela de relação (ex.: Domínios). */
   groupB?: IRelationGroup;
+  /**
+   * Lista de ESCOLHA: o jogador aprende itens dela ao subir de nível. O
+   * cronograma vem do texto da descrição (lib/catalogPicks.ts); os campos
+   * abaixo, preenchidos na lista, valem no lugar da leitura.
+   */
+  pickable?: boolean;
+  /** Níveis das escolhas; um nível repetido dá mais de uma. */
+  pickLevels?: number[];
+  picksPerLevel?: number;
+  /** Só aparece para quem escolheu este arquétipo (slug). */
+  requiresArchetype?: string;
+  /** Aceita um item de texto livre além dos da lista ("Outro tipo de Atuação"). */
+  freeTextLabel?: string;
 }
 
 export interface ITalent {

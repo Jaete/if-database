@@ -102,6 +102,8 @@ const basePlan = (over: Partial<ILevelPlan> = {}): ILevelPlan => ({
   featureChoices: [],
   archetype: null,
   classTalentSlots: 0,
+  archetypeSlug: null,
+  catalogPicks: [],
   milestone: null,
   talentOptions: [],
   attributes: {

@@ -101,6 +101,18 @@ const CreationReview = () => {
     ],
     ['Vida', d.hp !== null ? String(d.hp) : ''],
     [
+      'Deslocamento',
+      d.speed.walk !== undefined
+        ? [
+            `${d.speed.walk} m`,
+            d.speed.fly !== undefined && `voo ${d.speed.fly} m`,
+            d.speed.swim !== undefined && `natação ${d.speed.swim} m`,
+          ]
+            .filter(Boolean)
+            .join(' · ')
+        : '',
+    ],
+    [
       'Características escolhidas',
       (data.creation.featureChoices ?? []).join(', '),
     ],

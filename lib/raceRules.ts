@@ -477,3 +477,73 @@ export function raceLanguages(
   const base = profileLanguages(race);
   return base.length > 0 ? base : ['Comum'];
 }
+
+// ── Deslocamento ─────────────────────────────────────────
+
+export interface ISpeedSpec {
+  walk?: number;
+  fly?: number;
+  swim?: number;
+  climb?: number;
+  burrow?: number;
+  /** Frases extras sobre o deslocamento ("não é reduzido por armadura pesada"). */
+  note?: string;
+}
+
+const METERS = /(\d+(?:[.,]\d+)?)\s*metros?/i;
+
+/**
+ * "Seu deslocamento base é de 6 metros em terra e 9 metros em voo." →
+ * `{ walk: 6, fly: 9 }`. Cada trecho com "N metros" é classificado pelas
+ * palavras dele (voo, natação, escalada, escavação; o resto é caminhada, e o
+ * primeiro vale); trechos sem número que falam de deslocamento viram `note`.
+ * Texto vazio ou sem número devolve `{}`.
+ */
+export function parseSpeed(text?: string | null): ISpeedSpec {
+  const out: ISpeedSpec = {};
+  const notes: string[] = [];
+  const clauses = (text ?? '')
+    .split(/[.;]|\be\b(?=\s*\d)/i)
+    .map((c) => c.trim())
+    .filter(Boolean);
+  for (const clause of clauses) {
+    const m = METERS.exec(clause);
+    if (!m) {
+      if (/deslocamento/i.test(clause)) notes.push(`${clause}.`);
+      continue;
+    }
+    const meters = Number(m[1].replace(',', '.'));
+    const f = fold(clause);
+    const kind: keyof ISpeedSpec = /\bvo(o|ar)\b|voando/.test(f)
+      ? 'fly'
+      : /natacao|nadar/.test(f)
+        ? 'swim'
+        : /escalad/.test(f)
+          ? 'climb'
+          : /escav/.test(f)
+            ? 'burrow'
+            : 'walk';
+    if (out[kind] === undefined) (out as Record<string, number>)[kind] = meters;
+  }
+  if (notes.length > 0) out.note = notes.join(' ');
+  return out;
+}
+
+/** O texto de deslocamento que vale: o da sub-raça, se ela tiver o seu. */
+export function effectiveSpeedText(
+  race: (IRaceRulesInput & { speed?: string }) | undefined,
+  subraceSlug?: string
+): string | undefined {
+  if (!race) return undefined;
+  const sub = subraceSlug
+    ? (race.subraces.find((s) => s.slug === subraceSlug) as
+        { speed?: string } | undefined)
+    : undefined;
+  return sub?.speed?.trim() || race.speed?.trim() || undefined;
+}
+
+/** O deslocamento da ficha: o do Mestiço é o texto DELE, não o dos pais. */
+export const raceSpeed = (
+  race: (IRaceRulesInput & { speed?: string }) | undefined,
+  subraceSlug?: string
+): ISpeedSpec => parseSpeed(effectiveSpeedText(race, subraceSlug));

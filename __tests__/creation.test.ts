@@ -26,6 +26,8 @@ import {
   checkRacialPicks,
   parseAbilityIncrease,
   parseCreationGrants,
+  parseSpeed,
+  raceSpeed,
   racialGrants,
   sumGrants,
   parseBonusOverride,
@@ -587,6 +589,62 @@ test('creation grants: required to submit', () => {
     },
   });
   assert.equal(done.filter((i) => i.kind === 'required').length, 0);
+});
+
+// ── Deslocamento ──
+test('speed parsing: the real race texts', () => {
+  const cases: [string | undefined, Record<string, unknown>][] = [
+    [
+      'Seres de pernas curtas e braços largos, são pesados por natureza, os anãos possuem um deslocamento de 7 metros.',
+      { walk: 7 },
+    ],
+    [
+      'Seu deslocamento base de caminhada é 7 metros. Seu deslocamento não é reduzido por uso de armadura pesada.',
+      {
+        walk: 7,
+        note: 'Seu deslocamento não é reduzido por uso de armadura pesada.',
+      },
+    ],
+    ['Seu deslocamento base é de 12 metros.', { walk: 12 }],
+    ['Seu deslocamento base é de 9 metros.', { walk: 9 }],
+    [
+      'Seu deslocamento base é de 6 metros em terra e 9 metros em voo.',
+      { walk: 6, fly: 9 },
+    ],
+    [
+      'Seu deslocamento base de caminhada é 7 metros. Você também tem um deslocamento de natação de 12 metros.',
+      { walk: 7, swim: 12 },
+    ],
+    ['Seu deslocamento base é de 6 metros.', { walk: 6 }],
+    [undefined, {}],
+    ['', {}],
+    ['9 metros de natação e 4,5 metros de escalada', { swim: 9, climb: 4.5 }],
+  ];
+  for (const [text, want] of cases)
+    assert.deepEqual(parseSpeed(text), want, String(text));
+});
+test('speed: the subrace text wins; the mestiço uses its own text', () => {
+  const aqua = {
+    ...race('yokais'),
+    speed: 'Seu deslocamento base é de 9 metros.',
+    subraces: race('yokais').subraces.map((s) =>
+      s.slug === 'aquavista'
+        ? {
+            ...s,
+            speed:
+              'Seu deslocamento base de caminhada é 7 metros. Você também tem um deslocamento de natação de 12 metros.',
+          }
+        : s
+    ),
+  };
+  assert.deepEqual(raceSpeed(aqua, 'aquavista'), { walk: 7, swim: 12 });
+  assert.deepEqual(raceSpeed(aqua, 'yokai-caninos'), { walk: 9 });
+  const mest = {
+    ...race('mesticos'),
+    speed: 'Seu deslocamento base de caminhada é 9 metros.',
+  };
+  assert.deepEqual(raceSpeed(mest), { walk: 9 });
+  assert.deepEqual(raceSpeed(race('lapinara')), {});
 });
 
 console.log(`\n${passed} ok`);
