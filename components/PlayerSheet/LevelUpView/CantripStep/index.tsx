@@ -37,7 +37,7 @@ const CantripStep = ({ plan, draft, patch }: IStepProps) => {
         <div className={handles.luPaneHead}>
           <h3>Truques</h3>
           <p>
-            A classe passa a conhecer mais truques neste nível. Aprenda{' '}
+            A classe passa a conhecer mais truques neste nível. Escolha{' '}
             <b>
               {need} {need === 1 ? 'truque novo' : 'truques novos'}
             </b>
@@ -46,7 +46,7 @@ const CantripStep = ({ plan, draft, patch }: IStepProps) => {
         </div>
         <div className={handles.luFilterRow}>
           <span className={handles.luCounter}>
-            Aprender{' '}
+            Escolher{' '}
             <b>
               {draft.cantripIds.length}/{need}
             </b>
@@ -72,7 +72,7 @@ const CantripStep = ({ plan, draft, patch }: IStepProps) => {
                 <b>{s.name}</b>
                 <small>
                   {on
-                    ? 'aprender'
+                    ? 'escolhido'
                     : blocked
                       ? 'limite deste nível atingido'
                       : s.school}

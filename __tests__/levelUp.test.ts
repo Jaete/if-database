@@ -82,26 +82,11 @@ async function pure() {
     assert.equal(hpGainOf(5, 3), 8);
     assert.equal(hpGainOf(1, -3), 1);
   });
-  await test('magias: uma por espaço novo, limitada pelo que há', () => {
-    assert.equal(
-      spellNeed({
-        adds: [
-          { circle: 4, add: 1 },
-          { circle: 5, add: 1 },
-        ],
-        capacity: { 4: 1, 5: 1 },
-        available: { 4: 0, 5: 0 },
-      }),
-      0
-    );
-    assert.equal(
-      spellNeed({
-        adds: [{ circle: 4, add: 2 }],
-        capacity: { 1: 1, 4: 2 },
-        available: { 1: 3, 4: 1 },
-      }),
-      2
-    );
+  await test('magias: uma por espaço novo, limitada pelo total que cabe e pelo grimório', () => {
+    assert.equal(spellNeed({ slotsNew: 2, room: 5, available: 0 }), 0);
+    assert.equal(spellNeed({ slotsNew: 2, room: 5, available: 9 }), 2);
+    assert.equal(spellNeed({ slotsNew: 2, room: 1, available: 9 }), 1);
+    assert.equal(spellNeed({ slotsNew: 0, room: 4, available: 9 }), 0);
   });
 }
 
@@ -133,7 +118,7 @@ const basePlan = (over: Partial<ILevelPlan> = {}): ILevelPlan => ({
     adds: [],
     maxCircle: 0,
     need: 0,
-    capacity: {},
+    room: 0,
     options: [],
   },
   cantrips: { need: 0, capacity: 0, options: [] },
@@ -298,6 +283,49 @@ async function canonical() {
     });
     assert.ok('error' in canonicalizeChoices(plan, mk('a'), owner));
     assert.ok('choices' in canonicalizeChoices(plan, mk('b'), owner));
+  });
+  await test('magias: qualquer círculo até o máximo vale, sem limite por círculo', () => {
+    const sp = (id: string, circle: number) => ({
+      id,
+      name: id,
+      circle,
+      school: '',
+      castingTime: '',
+      range: '',
+      duration: '',
+      description: '',
+    });
+    const plan = basePlan({
+      spells: {
+        slots: [4, 3],
+        prevSlots: [4, 2],
+        adds: [
+          { circle: 2, add: 1 },
+          { circle: 1, add: 1 },
+        ],
+        maxCircle: 2,
+        need: 2,
+        room: 2,
+        options: [sp('a', 1), sp('b', 1), sp('c', 2)],
+      },
+    });
+    const hp = { hp: { mode: 'fixed' } };
+    // As duas do 1º círculo: não é mais um limite por círculo.
+    assert.ok(
+      'choices' in
+        canonicalizeChoices(plan, { ...hp, spellIds: ['a', 'b'] }, owner)
+    );
+    assert.ok(
+      'error' in canonicalizeChoices(plan, { ...hp, spellIds: ['a'] }, owner)
+    );
+    assert.ok(
+      'error' in
+        canonicalizeChoices(plan, { ...hp, spellIds: ['a', 'a'] }, owner)
+    );
+    assert.ok(
+      'error' in
+        canonicalizeChoices(plan, { ...hp, spellIds: ['a', 'zz'] }, owner)
+    );
   });
   await test('truques: exige exatamente o número do nível, dentro do limite', () => {
     const sp = (id: string) => ({

@@ -506,8 +506,8 @@ const refIds = (raw: unknown): string[] =>
   );
 
 /**
- * As magias preparadas não passam dos espaços do círculo na tabela da classe
- * (truques: `cantripsKnown`). Só recusa o círculo que CRESCEU além do limite:
+ * As magias preparadas não passam do TOTAL de espaços da tabela da classe, de
+ * qualquer círculo (truques: `cantripsKnown`). Só recusa o círculo que CRESCEU além do limite:
  * uma ficha antiga já acima dele continua podendo salvar outras coisas.
  */
 export async function assertSpellLimits(args: {
@@ -530,29 +530,45 @@ export async function assertSpellLimits(args: {
     .lean<{ _id: unknown; circle: number }[]>();
   const circleOf = new Map(docs.map((d) => [String(d._id), d.circle]));
   const tally = (ids: string[]) => {
-    const out = new Map<number, number>();
+    let cantrips = 0;
+    let prepared = 0;
+    let beyond = 0;
     for (const id of ids) {
       const c = circleOf.get(id);
-      if (c !== undefined) out.set(c, (out.get(c) ?? 0) + 1);
+      if (c === undefined) continue;
+      if (c === 0) cantrips += 1;
+      else {
+        prepared += 1;
+        if (c > casting.maxCircle) beyond += 1;
+      }
     }
-    return out;
+    return { cantrips, prepared, beyond };
   };
   const after = tally(next);
   const before = tally(stored);
-  for (const [circle, count] of after) {
-    const limit =
-      circle === 0
-        ? casting.cantripsKnown
-        : circle <= casting.maxCircle
-          ? (casting.slots[circle - 1] ?? 0)
-          : 0;
-    if (count > limit && count > (before.get(circle) ?? 0)) {
-      throw new PlayerSheetError(
-        circle === 0
-          ? `Truques demais: a classe conhece ${limit}.`
-          : `Magias demais no ${circle}º círculo: a classe tem ${limit} espaço(s).`
-      );
-    }
+
+  if (
+    after.cantrips > casting.cantripsKnown &&
+    after.cantrips > before.cantrips
+  ) {
+    throw new PlayerSheetError(
+      `Truques demais: a classe conhece ${casting.cantripsKnown}.`
+    );
+  }
+  if (after.beyond > 0 && after.beyond > before.beyond) {
+    throw new PlayerSheetError(
+      `Há magia de um círculo que o personagem ainda não conjura (até o ${casting.maxCircle}º).`
+    );
+  }
+  // O personagem CONHECE todas as magias da classe até o maior círculo; o que
+  // tem limite é PREPARAR: no máximo o total de espaços, de qualquer círculo.
+  if (
+    after.prepared > casting.preparedLimit &&
+    after.prepared > before.prepared
+  ) {
+    throw new PlayerSheetError(
+      `Magias preparadas demais: o limite é ${casting.preparedLimit}, a soma dos espaços de todos os círculos.`
+    );
   }
 }
 

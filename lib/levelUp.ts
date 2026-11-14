@@ -154,8 +154,11 @@ export interface ILevelPlan {
     adds: { circle: number; add: number }[];
     maxCircle: number;
     need: number;
-    /** Quantas magias a mais cabem em cada círculo (limite = espaços). */
-    capacity: Record<number, number>;
+    /**
+     * Quantas magias ainda cabem entre as PREPARADAS: o limite é o total de
+     * espaços de todos os círculos, não um por círculo.
+     */
+    room: number;
     options: IPlanSpell[];
   };
   cantrips: {
@@ -223,21 +226,17 @@ export function spellAdds(
 }
 
 /**
- * Quantas magias o nível ensina: uma por espaço novo, limitada pelo que há
- * para aprender dentro do limite de cada círculo. Magia faltando no grimório
- * deixa a vaga aberta e não trava o selo.
+ * Quantas magias o nível deixa PREPARAR: uma por espaço novo, limitada pelo que
+ * ainda cabe no total de espaços e pelo que há no grimório. Todas as magias da
+ * classe até o maior círculo já são conhecidas; preparar é que tem limite.
+ * Magia faltando deixa a vaga aberta e não trava o selo.
  */
 export function spellNeed(args: {
-  adds: { circle: number; add: number }[];
-  capacity: Record<number, number>;
-  available: Record<number, number>;
+  slotsNew: number;
+  room: number;
+  available: number;
 }): number {
-  const slotsNew = args.adds.reduce((sum, a) => sum + a.add, 0);
-  let room = 0;
-  for (const [circle, cap] of Object.entries(args.capacity)) {
-    room += Math.min(cap, args.available[Number(circle)] ?? 0);
-  }
-  return Math.min(slotsNew, room);
+  return Math.max(0, Math.min(args.slotsNew, args.room, args.available));
 }
 
 export interface IAttributeState {

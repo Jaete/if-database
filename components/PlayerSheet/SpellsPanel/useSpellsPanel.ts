@@ -92,14 +92,17 @@ export const useSpellsPanel = () => {
   const cantripCount = prepared.filter((p) => p.circle === 0).length;
   const spellCount = prepared.filter((p) => p.circle > 0).length;
 
-  // Cada círculo tem o próprio limite: os espaços dele na tabela da classe.
+  // Truque tem o limite dele (o da tabela). As demais magias dividem UM limite:
+  // o total de espaços de todos os círculos, de qualquer círculo.
   const limitOf = (circle: number) =>
     circle === 0
       ? cantripsKnown
       : (levels.find((l) => l.level === circle)?.slotsTotal ?? 0);
   const countOf = (circle: number) => inCircle(circle).length;
   const remainingOf = (circle: number) =>
-    Math.max(0, limitOf(circle) - countOf(circle));
+    circle === 0
+      ? Math.max(0, cantripsKnown - cantripCount)
+      : Math.max(0, (preparedLimit || 0) - spellCount);
 
   const takenIds = useMemo(
     () => new Set(refs.map((ref) => ref.spellId)),

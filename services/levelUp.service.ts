@@ -533,7 +533,7 @@ async function buildPlanFor(
   const maxCircle = slots.reduce((m, n, i) => (n > 0 ? i + 1 : m), 0);
   const adds = spellAdds(slots, prevSlots);
   let options: IPlanSpell[] = [];
-  const capacity: Record<number, number> = {};
+  let room = 0;
   let need = 0;
   if (adds.length > 0 && maxCircle > 0) {
     const refIds = snap.spellRefs.map((r) => r.spellId);
@@ -542,10 +542,9 @@ async function buildPlanFor(
           .select('circle')
           .lean<{ circle: number }[]>()
       : [];
-    for (let c = 1; c <= maxCircle; c += 1) {
-      const used = prepared.filter((s) => s.circle === c).length;
-      capacity[c] = Math.max(0, (slots[c - 1] ?? 0) - used);
-    }
+    // O limite de preparadas é o TOTAL de espaços, não um por círculo.
+    const total = slots.reduce((sum, n) => sum + n, 0);
+    room = Math.max(0, total - prepared.filter((s) => s.circle >= 1).length);
     const docs = await SpellModel.find({
       classIds: klass._id,
       circle: { $gte: 1, $lte: maxCircle },
@@ -563,10 +562,11 @@ async function buildPlanFor(
       duration: d.duration ?? '',
       description: d.description ?? '',
     }));
-    const available: Record<number, number> = {};
-    for (const o of options)
-      available[o.circle] = (available[o.circle] ?? 0) + 1;
-    need = spellNeed({ adds, capacity, available });
+    need = spellNeed({
+      slotsNew: adds.reduce((sum, a) => sum + a.add, 0),
+      room,
+      available: options.length,
+    });
   }
 
   // ── Truques ──
@@ -648,7 +648,7 @@ async function buildPlanFor(
       : null,
     talentOptions,
     attributes,
-    spells: { slots, prevSlots, adds, maxCircle, need, capacity, options },
+    spells: { slots, prevSlots, adds, maxCircle, need, room, options },
     cantrips: {
       need: cantripNeed,
       capacity: cantripCapacity,
@@ -917,12 +917,13 @@ export function canonicalizeChoices(
     rawIds: unknown,
     options: IPlanSpell[],
     need: number,
-    capacity: Record<number, number>,
-    label: string
+    room: number,
+    label: string,
+    verb: string
   ): string[] | string => {
     const ids = asArray<unknown>(rawIds);
-    if (ids.length !== need) return `Aprenda ${need} ${label} neste nível.`;
-    const tally: Record<number, number> = {};
+    if (ids.length !== need) return `${verb} ${need} ${label} neste nível.`;
+    if (ids.length > room) return `Não há espaço para ${label}.`;
     const used = new Set<string>();
     for (const id of ids) {
       const spell = options.find((s) => s.id === id);
@@ -930,12 +931,6 @@ export function canonicalizeChoices(
         return `${label[0].toUpperCase()}${label.slice(1)}: escolha inválida.`;
       }
       used.add(id);
-      tally[spell.circle] = (tally[spell.circle] ?? 0) + 1;
-      if (tally[spell.circle] > (capacity[spell.circle] ?? 0)) {
-        return spell.circle === 0
-          ? 'Truques demais para este nível.'
-          : `O ${spell.circle}º círculo não tem mais espaço livre.`;
-      }
     }
     return ids as string[];
   };
@@ -943,16 +938,18 @@ export function canonicalizeChoices(
     c.spellIds,
     plan.spells.options,
     plan.spells.need,
-    plan.spells.capacity,
-    'magia(s)'
+    plan.spells.room,
+    'magia(s)',
+    'Prepare'
   );
   if (typeof spellIds === 'string') return bad(spellIds);
   const cantripIds = pickSpells(
     c.cantripIds,
     plan.cantrips.options,
     plan.cantrips.need,
-    { 0: plan.cantrips.capacity },
-    'truque(s)'
+    plan.cantrips.capacity,
+    'truque(s)',
+    'Escolha'
   );
   if (typeof cantripIds === 'string') return bad(cantripIds);
 

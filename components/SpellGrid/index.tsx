@@ -73,10 +73,12 @@ function spellState(choice: ISpellChoice, spell: ISpell): SpellState {
   if (spell.circle > choice.maxCircle) {
     return { kind: 'locked', opensAt: choice.opensAt[spell.circle] };
   }
-  const used = choice.known.length ? countKnownIn(choice, spell.circle) : 0;
-  return used >= (choice.limits[spell.circle] ?? 0)
-    ? { kind: 'full' }
-    : { kind: 'open' };
+  // Truque tem o limite dele; as demais dividem UM limite: o total de espaços.
+  const used =
+    spell.circle === 0 ? countKnownIn(choice, 0) : choice.preparedCount;
+  const limit =
+    spell.circle === 0 ? (choice.limits[0] ?? 0) : choice.preparedLimit;
+  return used >= limit ? { kind: 'full' } : { kind: 'open' };
 }
 
 // Quantas das magias preparadas estão neste círculo: o catálogo é a única
@@ -90,7 +92,10 @@ function circleCounter(choice: ISpellChoice, circle: number) {
     const at = choice.opensAt[circle];
     return at ? `a partir do nível ${at}` : 'ainda não conjura';
   }
-  return `${choice.counts[circle] ?? 0}/${choice.limits[circle] ?? 0}`;
+  // Truques: n/limite. Os demais círculos só contam, porque o limite é o total.
+  return circle === 0
+    ? `${choice.counts[0] ?? 0}/${choice.limits[0] ?? 0}`
+    : countLabel(choice.counts[circle] ?? 0);
 }
 
 const SpellToggle = ({
@@ -121,7 +126,7 @@ const SpellToggle = ({
   const text = known
     ? 'Preparada'
     : swapOnly
-      ? 'Círculo cheio: troque'
+      ? 'Limite de preparadas: troque'
       : 'Preparar';
   return (
     <button
@@ -133,7 +138,7 @@ const SpellToggle = ({
       disabled={swapOnly}
       title={
         swapOnly
-          ? 'Todos os espaços deste círculo estão ocupados. Desmarque uma magia dele para trocar.'
+          ? 'Você já preparou o total de espaços. Desmarque uma magia para trocar.'
           : undefined
       }
       onClick={() =>
@@ -296,6 +301,16 @@ const SpellGrid = ({
             role="status"
           >
             {feedback.text}
+          </p>
+        )}
+
+        {choice && (
+          <p
+            className={handles.spellbookChoiceTotal}
+            role="status"
+            aria-live="polite"
+          >
+            Preparadas: <b>{choice.preparedCount}</b> / {choice.preparedLimit}
           </p>
         )}
 

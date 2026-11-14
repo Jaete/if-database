@@ -141,15 +141,9 @@ async function main() {
     const classTalents = plan.talentOptions.filter(
       (t) => t.scope === 'class' && t.ok
     );
-    const spellIds: string[] = [];
-    const tally: Record<number, number> = {};
-    for (const s of plan.spells.options) {
-      if (spellIds.length >= plan.spells.need) break;
-      if ((tally[s.circle] ?? 0) < (plan.spells.capacity[s.circle] ?? 0)) {
-        spellIds.push(s.id);
-        tally[s.circle] = (tally[s.circle] ?? 0) + 1;
-      }
-    }
+    const spellIds = plan.spells.options
+      .slice(0, plan.spells.need)
+      .map((o) => o.id);
     const attr = (['str', 'dex', 'con', 'int', 'wis', 'cha'] as const).find(
       (k) => plan.attributes[k].total <= 18
     )!;
@@ -518,6 +512,56 @@ async function main() {
       assert.equal(
         (await svc.getLevelPlan(id, owner)).hp.roll?.rollId,
         a.rollId
+      );
+    });
+
+    await test('preparadas: o limite é o TOTAL de espaços, de qualquer círculo (assertSpellLimits)', async () => {
+      const { updatePlayerById } = await import('../services/player.service');
+      const { default: Spell } = await import('../db/spells/spells');
+      const { getClassCasting } =
+        await import('../services/classSpells.service');
+      let found: { c: (typeof free)[number]; level: number } | undefined;
+      for (const c of free) {
+        for (const level of [3, 5]) {
+          if (row(c, level)) {
+            const casting = await getClassCasting(String(c._id), level);
+            const n = casting
+              ? await Spell.countDocuments({ classIds: c._id, circle: 1 })
+              : 0;
+            if (casting && n > casting.preparedLimit) {
+              found = { c, level };
+              break;
+            }
+          }
+        }
+        if (found) break;
+      }
+      assert.ok(
+        found,
+        'precisa de uma classe com mais magias de 1º círculo que espaços'
+      );
+      const id = await create(found.c._id, found.level);
+      const casting = (await getClassCasting(
+        String(found.c._id),
+        found.level
+      ))!;
+      const docs = await Spell.find({ classIds: found.c._id, circle: 1 })
+        .limit(casting.preparedLimit + 1)
+        .select('_id')
+        .lean<{ _id: Types.ObjectId }[]>();
+      const refs = (n: number) => ({
+        playerSpellcasting: {
+          spellRefs: docs
+            .slice(0, n)
+            .map((d) => ({ spellId: String(d._id), prepared: true })),
+        },
+      });
+      // Todas do 1º círculo, até o total: vale (o limite não é por círculo).
+      await updatePlayerById(id, refs(casting.preparedLimit));
+      // Um acima do total: recusado.
+      await assert.rejects(
+        () => updatePlayerById(id, refs(casting.preparedLimit + 1)),
+        /preparadas demais/
       );
     });
 

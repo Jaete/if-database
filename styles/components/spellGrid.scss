@@ -344,6 +344,16 @@
   @include main-sm($color-text-muted, $font-weight-regular);
 }
 
+.spellbookChoiceTotal {
+  margin: $spacing-2 0 0;
+  @include mono-sm($color-text-muted, $font-weight-regular);
+
+  b {
+    color: $color-accent;
+    font-weight: $font-weight-bold;
+  }
+}
+
 .spellbookChoiceTag {
   @include flex-center;
 }

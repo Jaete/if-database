@@ -30,6 +30,7 @@ const SpellGridHandles = [
   'spellbookEmpty',
   'spellbookChoiceItem',
   'spellbookChoiceWhole',
+  'spellbookChoiceTotal',
   'spellbookChoiceTag',
   'spellbookChoiceToggle',
 ] as const;

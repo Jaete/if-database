@@ -62,8 +62,16 @@ export interface ISpellChoice {
   known: string[];
   /** Ids preparados na ficha gravada, para marcar o que mudou. */
   saved: string[];
-  /** Por círculo: [truques, 1º, 2º, …]. */
+  /** Só os truques usam limite por círculo: `limits[0]` é `cantripsKnown`. */
   limits: number[];
+  /**
+   * O limite de PREPARADAS: o total de espaços de todos os círculos que o
+   * personagem conjura. Todas as magias da classe até o maior círculo são
+   * conhecidas; preparar é que tem teto.
+   */
+  preparedLimit: number;
+  /** Quantas preparadas já há (truques de fora), rascunho incluído. */
+  preparedCount: number;
   /** Quantas já preparadas por círculo (a camada mede com o catálogo). */
   counts: number[];
   /** Maior círculo que o personagem conjura no nível de agora. */

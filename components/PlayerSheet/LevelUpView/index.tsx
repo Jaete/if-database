@@ -145,13 +145,13 @@ const LevelUpInner = ({ plan }: IInnerProps) => {
         return (
           draft.cantripIds
             .map((i) => plan.cantrips.options.find((o) => o.id === i)?.name)
-            .join(', ') || `${plan.cantrips.need} para aprender`
+            .join(', ') || `${plan.cantrips.need} para escolher`
         );
       case 'magias':
         return plan.spells.need
           ? draft.spellIds
               .map((i) => plan.spells.options.find((o) => o.id === i)?.name)
-              .join(', ') || `${plan.spells.need} para aprender`
+              .join(', ') || `${plan.spells.need} para preparar`
           : 'Nada novo';
       case 'vida':
         return hpGain !== null ? `+${hpGain} vida` : 'Fixo ou rolar';

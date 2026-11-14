@@ -24,8 +24,24 @@ export const usePlayerSheet = (player: IPublicPlayer, editable = false) => {
   const menu = buildMenu(player, editable);
   const count = menu.length;
 
-  const [active, setActive] = useState(0);
-  const [cursorAt, setCursorAt] = useState(0);
+  // A tela aberta e a do cursor são guardadas pelo ID, não pela posição: o
+  // menu muda de tamanho (Arquétipo e Talentos entram e saem conforme a ficha
+  // e o modo de edição), e uma posição guardada passaria a apontar para outra
+  // tela — ou para fora da lista. Se a tela some, cai na primeira (Status).
+  const [activeId, setActiveId] = useState<ScreenId>(menu[0].id);
+  const [cursorId, setCursorId] = useState<ScreenId>(menu[0].id);
+  const indexOf = (id: ScreenId) =>
+    Math.max(
+      0,
+      menu.findIndex((item) => item.id === id)
+    );
+  const active = indexOf(activeId);
+  const cursorAt = indexOf(cursorId);
+  // Funções simples: o React Compiler memoiza sozinho.
+  const idAt = (index: number) =>
+    menu[Math.min(Math.max(index, 0), menu.length - 1)].id;
+  const setActive = (index: number) => setActiveId(idAt(index));
+  const setCursorAt = (index: number) => setCursorId(idAt(index));
   const [view, setView] = useState<SheetView>('menu');
   const [transition, setTransition] = useState<Transition>('none');
   const [screenSeq, setScreenSeq] = useState(0);
@@ -100,33 +116,30 @@ export const usePlayerSheet = (player: IPublicPlayer, editable = false) => {
     }
   }, [focusSeq, cursorAt, isCompact]);
 
-  const moveCursor = useCallback((index: number, focus = true) => {
+  const moveCursor = (index: number, focus = true) => {
     setCursorAt(index);
     if (focus) itemRefs.current[index]?.focus();
-  }, []);
+  };
 
-  const open = useCallback(
-    (index: number, focusPanel = false) => {
-      const item = menu[index];
-      if (item.disabled) {
-        setMessage(
-          item.disabledReason ??
-            `${player.name.split(' ')[0]} não conjura magias.`
-        );
-        return;
-      }
-      setTransition(index >= active ? 'enter' : 'enterBack');
-      setActive(index);
-      setScreenSeq((n) => n + 1);
-      setView('screen');
-      setMessage('');
-      if (focusPanel || isCompact) {
-        focusTarget.current = 'panel';
-        setFocusSeq((n) => n + 1);
-      }
-    },
-    [menu, active, isCompact, player.name]
-  );
+  const open = (index: number, focusPanel = false) => {
+    const item = menu[index];
+    if (item.disabled) {
+      setMessage(
+        item.disabledReason ??
+          `${player.name.split(' ')[0]} não conjura magias.`
+      );
+      return;
+    }
+    setTransition(index >= active ? 'enter' : 'enterBack');
+    setActive(index);
+    setScreenSeq((n) => n + 1);
+    setView('screen');
+    setMessage('');
+    if (focusPanel || isCompact) {
+      focusTarget.current = 'panel';
+      setFocusSeq((n) => n + 1);
+    }
+  };
 
   /** Abre uma tela pelo id, para um painel levar a outro (placa → habilidades). */
   const openScreen = (id: ScreenId) => {
@@ -136,12 +149,12 @@ export const usePlayerSheet = (player: IPublicPlayer, editable = false) => {
     open(index);
   };
 
-  const backToMenu = useCallback(() => {
+  const backToMenu = () => {
     setCursorAt(active);
     setView('menu');
     focusTarget.current = 'menu';
     setFocusSeq((n) => n + 1);
-  }, [active]);
+  };
 
   const handleMenuClick = (e: MouseEvent<HTMLDivElement>) => {
     const button = (e.target as HTMLElement).closest<HTMLElement>('[data-i]');

@@ -75,9 +75,11 @@ const SpellStep = ({ plan, draft, patch }: IStepProps) => {
             .{' '}
             {sp.need > 0 ? (
               <>
-                Aprenda {sp.need}{' '}
-                {sp.need === 1 ? 'magia nova' : 'magias novas'} de{' '}
-                <b>qualquer círculo até o {sp.maxCircle}º</b>, não só do novo.
+                Você já conhece as magias da classe até o {sp.maxCircle}º
+                círculo. Prepare {sp.need}{' '}
+                {sp.need === 1 ? 'magia a mais' : 'magias a mais'}, de{' '}
+                <b>qualquer círculo até o {sp.maxCircle}º</b>: o limite de
+                preparadas é o total de espaços.
               </>
             ) : null}
           </p>
@@ -112,7 +114,7 @@ const SpellStep = ({ plan, draft, patch }: IStepProps) => {
             ))}
           </div>
           <span className={handles.luCounter}>
-            Aprender{' '}
+            Preparar{' '}
             <b>
               {draft.spellIds.length}/{sp.need}
             </b>
@@ -122,9 +124,7 @@ const SpellStep = ({ plan, draft, patch }: IStepProps) => {
           <div className={handles.luSpells}>
             {list.map((s) => {
               const on = draft.spellIds.includes(s.id);
-              const circleFull =
-                !on && pickedIn(s.circle) >= (sp.capacity[s.circle] ?? 0);
-              const blocked = !on && (full || circleFull);
+              const blocked = !on && full;
               return (
                 <button
                   key={s.id}
@@ -143,12 +143,10 @@ const SpellStep = ({ plan, draft, patch }: IStepProps) => {
                   <b>{s.name}</b>
                   <small>
                     {on
-                      ? 'aprender'
-                      : circleFull
-                        ? 'círculo sem espaço livre'
-                        : full
-                          ? 'limite deste nível atingido'
-                          : s.school}
+                      ? 'preparar'
+                      : full
+                        ? 'limite deste nível atingido'
+                        : s.school}
                   </small>
                 </button>
               );
@@ -157,23 +155,23 @@ const SpellStep = ({ plan, draft, patch }: IStepProps) => {
         ) : (
           <div className={handles.luNote}>
             <b>Nenhuma magia de {tab}º círculo disponível no grimório.</b>{' '}
-            Aprenda de outro círculo.
+            Prepare uma de outro círculo.
           </div>
         )}
         {leftover > 0 && sp.need > 0 && (
           <div className={handles.luNote}>
             <b>
-              {leftover} {leftover === 1 ? 'vaga' : 'vagas'} sem círculo com
-              espaço.
+              {leftover} {leftover === 1 ? 'vaga' : 'vagas'} sem magia
+              disponível para preparar.
             </b>{' '}
             Os espaços novos somam {slotsNew}, mas só {sp.need}{' '}
-            {sp.need === 1 ? 'magia cabe' : 'magias cabem'} nos limites de cada
-            círculo e no grimório.
+            {sp.need === 1 ? 'magia cabe' : 'magias cabem'} entre as preparadas
+            e no grimório.
           </div>
         )}
         {sp.need === 0 && (
           <div className={handles.luNote}>
-            Não há magia disponível para aprender neste nível. As vagas ficam
+            Não há magia disponível para preparar neste nível. As vagas ficam
             abertas e o passo já conta como feito.
           </div>
         )}

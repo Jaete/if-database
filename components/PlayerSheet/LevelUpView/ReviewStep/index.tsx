@@ -153,7 +153,7 @@ const ReviewStep = ({ plan, draft, onGo }: IProps) => {
                         plan.cantrips.options.find((o) => o.id === id)?.name
                     )
                     .join(', ')
-                : `Falta aprender ${plan.cantrips.need - draft.cantripIds.length}`,
+                : `Falta escolher ${plan.cantrips.need - draft.cantripIds.length}`,
               'truques',
               stepDone(plan, draft, 'truques')
             )}
@@ -161,7 +161,7 @@ const ReviewStep = ({ plan, draft, onGo }: IProps) => {
             row(
               'Magias',
               plan.spells.need === 0
-                ? 'Nada novo para aprender'
+                ? 'Nada novo para preparar'
                 : draft.spellIds.length >= plan.spells.need
                   ? draft.spellIds
                       .map(
@@ -169,7 +169,7 @@ const ReviewStep = ({ plan, draft, onGo }: IProps) => {
                           plan.spells.options.find((o) => o.id === id)?.name
                       )
                       .join(', ')
-                  : `Falta aprender ${plan.spells.need - draft.spellIds.length}`,
+                  : `Falta preparar ${plan.spells.need - draft.spellIds.length}`,
               'magias',
               stepDone(plan, draft, 'magias')
             )}

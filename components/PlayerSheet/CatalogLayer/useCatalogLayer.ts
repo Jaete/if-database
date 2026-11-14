@@ -307,6 +307,8 @@ export const useCatalogLayerState = (
   let cantripsKnown = Number(value('playerSpellcasting.cantripsKnown')) || 0;
   let maxCircle = Number(value('playerSpellcasting.maxCircle')) || 0;
   const limits: number[] = [];
+  // Preparadas: o TOTAL de espaços, de qualquer círculo.
+  let preparedLimit = 0;
   if (classDirty && classDoc) {
     // Classe trocada no rascunho: a tabela é a da nova classe, no nível de hoje.
     const row = [...(classDoc.levels ?? [])]
@@ -318,11 +320,15 @@ export const useCatalogLayerState = (
     limits[0] = cantripsKnown;
     table.forEach((n, i) => {
       limits[i + 1] = Number(n) || 0;
+      preparedLimit += Number(n) || 0;
     });
   } else {
     limits[0] = cantripsKnown;
     for (const row of levelsRead) {
-      if (row.level > 0) limits[row.level] = row.slotsTotal;
+      if (row.level > 0) {
+        limits[row.level] = row.slotsTotal;
+        preparedLimit += Number(row.slotsTotal) || 0;
+      }
     }
   }
   const opensAt: Record<number, number> = {};
@@ -347,6 +353,8 @@ export const useCatalogLayerState = (
     known,
     saved: savedKnown,
     limits,
+    preparedLimit,
+    preparedCount: counts.slice(1).reduce((sum, n) => sum + n, 0),
     counts,
     maxCircle,
     opensAt,
