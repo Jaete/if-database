@@ -1,11 +1,18 @@
 'use client';
 
+import { useEffect } from 'react';
 import type { IPublicPlayer } from '@/db/players/publicFields';
 import { useCssHandles, applyModifiers } from '@/hooks/useCssHandles';
 import { usePlayerSheet } from './usePlayerSheet';
 import { useSheetEditing } from './useSheetEditing';
 import { EditingProvider } from './EditingContext';
 import { CatalogLayerProvider } from './CatalogLayerContext';
+import { LevelUpProvider } from './LevelUpContext';
+import { useLevelUpState } from './useLevelUpState';
+import { useSheetSounds } from './useSheetSounds';
+import { useSheetSoundEvents } from './useSheetSoundEvents';
+import LevelUpLayerHost from './LevelUpLayerHost';
+import type { IEventView } from '@/services/levelUp.service';
 import CatalogLayerHost from './CatalogLayerHost';
 import SaveBar from './SaveBar';
 import Header from './Header';
@@ -40,15 +47,23 @@ interface IProps {
   player: IPublicPlayer;
   /** Origem do fórum autorizada a falar com este iframe. Vazia = sem edição. */
   forumOrigin: string;
+  /** O histórico da ficha (XP, selos, reaberturas), lido no servidor. */
+  history?: IEventView[];
 }
 
 const initialSpellRefs = (player: IPublicPlayer) =>
   player.playerSpellcasting?.spellRefs ?? [];
 
-const PlayerSheet = ({ player: initialPlayer, forumOrigin }: IProps) => {
+const PlayerSheet = ({
+  player: initialPlayer,
+  forumOrigin,
+  history = [],
+}: IProps) => {
   const handles = useCssHandles(PlayerSheetHandles);
   const {
     player,
+    replacePlayer,
+    identified,
     permission,
     isEditing,
     setIsEditing,
@@ -71,6 +86,12 @@ const PlayerSheet = ({ player: initialPlayer, forumOrigin }: IProps) => {
   } = useSheetEditing(initialPlayer, forumOrigin);
 
   const canEdit = permission === 'granted';
+  const levelUp = useLevelUpState({
+    player,
+    identified,
+    initialHistory: history,
+    onPlayer: replacePlayer,
+  });
 
   const {
     uid,
@@ -96,6 +117,25 @@ const PlayerSheet = ({ player: initialPlayer, forumOrigin }: IProps) => {
 
   const panelId = `${uid}-panel`;
   const current = menu[active];
+
+  // Abrir uma seção com novidades as marca como vistas (só vale para o dono).
+  const { markSeen } = levelUp;
+  const currentId = current.id;
+  useEffect(() => {
+    markSeen(currentId);
+  }, [currentId, markSeen]);
+
+  useSheetSounds(sheetRef);
+  const sounds = useSheetSoundEvents({
+    isEditing,
+    isDirty,
+    status,
+    saveError,
+    screenId: current.id,
+    setField,
+    read,
+    cancel,
+  });
 
   const preparedSpells = (player.playerSpellcasting?.spellLevels ?? [])
     .filter((l) => l.level > 0)
@@ -202,92 +242,97 @@ const PlayerSheet = ({ player: initialPlayer, forumOrigin }: IProps) => {
       list={list}
       objects={objects}
       read={read}
-      setField={setField}
+      setField={sounds.setField}
       isFieldDirty={isFieldDirty}
       isDirtyUnder={isDirtyUnder}
       revertField={revertField}
     >
-      <CatalogLayerProvider>
-        <div className={handles.playerSheetStage}>
-          <article
-            ref={sheetRef}
-            className={handles.playerSheet}
-            data-view={view}
-            // Lido pelo EmbedCloseBridge: com alteração não salva, o Esc não
-            // fecha o modal do fórum e não joga a edição fora.
-            data-unsaved={isDirty || undefined}
-            aria-label={`Ficha de ${player.name}`}
-          >
-            {canEdit && (
-              <button
-                type="button"
-                className={`${handles.sheetEditToggle}${
-                  isEditing
-                    ? ` ${applyModifiers(handles.sheetEditToggle, 'editing')}`
-                    : ''
-                }`}
-                onClick={() => (isEditing ? cancel() : setIsEditing(true))}
-                aria-pressed={isEditing}
-              >
-                {isEditing ? 'Concluir edição' : 'Editar ficha'}
-              </button>
-            )}
-            <Header player={player} />
-            <NarrationStyle player={player} />
-            <div className={handles.playerSheetBody}>
-              <CommandMenu
-                player={player}
-                uid={uid}
-                panelId={panelId}
-                items={menu}
-                active={active}
-                cursorAt={cursorAt}
-                menuRef={menuRef}
-                cursorRef={cursorRef}
-                registerItem={registerItem}
-                onClick={handleMenuClick}
-                onHover={handleMenuHover}
-                onKeyDown={handleMenuKeyDown}
-              />
-              <div
-                ref={panelRef}
-                className={handles.playerSheetPanel}
-                onKeyDown={handlePanelKeyDown}
-              >
-                {transition !== 'none' && (
-                  <div
-                    key={`wipe-${screenSeq}`}
-                    className={handles.playerSheetWipe}
-                    aria-hidden="true"
-                  />
-                )}
-                <Screen
-                  key={screenSeq}
-                  id={panelId}
-                  labelledBy={tabId(uid, current.id)}
-                  title={screen.title}
-                  sub={screen.sub}
-                  transition={transition}
-                  onBack={backToMenu}
+      <LevelUpProvider value={levelUp}>
+        <CatalogLayerProvider>
+          <div className={handles.playerSheetStage}>
+            <article
+              ref={sheetRef}
+              className={handles.playerSheet}
+              data-view={view}
+              // Lido pelo EmbedCloseBridge: com alteração não salva, o Esc não
+              // fecha o modal do fórum e não joga a edição fora.
+              data-unsaved={isDirty || undefined}
+              aria-label={`Ficha de ${player.name}`}
+            >
+              {canEdit && (
+                <button
+                  type="button"
+                  className={`${handles.sheetEditToggle}${
+                    isEditing
+                      ? ` ${applyModifiers(handles.sheetEditToggle, 'editing')}`
+                      : ''
+                  }`}
+                  onClick={() =>
+                    isEditing ? sounds.discard() : setIsEditing(true)
+                  }
+                  aria-pressed={isEditing}
                 >
-                  {screen.body}
-                </Screen>
+                  {isEditing ? 'Concluir edição' : 'Editar ficha'}
+                </button>
+              )}
+              <Header player={player} onOpenScreen={openScreen} />
+              <NarrationStyle player={player} />
+              <div className={handles.playerSheetBody}>
+                <CommandMenu
+                  player={player}
+                  uid={uid}
+                  panelId={panelId}
+                  items={menu}
+                  active={active}
+                  cursorAt={cursorAt}
+                  menuRef={menuRef}
+                  cursorRef={cursorRef}
+                  registerItem={registerItem}
+                  onClick={handleMenuClick}
+                  onHover={handleMenuHover}
+                  onKeyDown={handleMenuKeyDown}
+                />
+                <div
+                  ref={panelRef}
+                  className={handles.playerSheetPanel}
+                  onKeyDown={handlePanelKeyDown}
+                >
+                  {transition !== 'none' && (
+                    <div
+                      key={`wipe-${screenSeq}`}
+                      className={handles.playerSheetWipe}
+                      aria-hidden="true"
+                    />
+                  )}
+                  <Screen
+                    key={screenSeq}
+                    id={panelId}
+                    labelledBy={tabId(uid, current.id)}
+                    title={screen.title}
+                    sub={screen.sub}
+                    transition={transition}
+                    onBack={backToMenu}
+                  >
+                    {screen.body}
+                  </Screen>
+                </div>
               </div>
-            </div>
-            <Hints message={status || message} />
-            <CatalogLayerHost />
-            <SaveBar
-              visible={isDirty}
-              summary={summary}
-              count={dirtyCount}
-              isSaving={isSaving}
-              error={saveError}
-              onSave={save}
-              onDiscard={cancel}
-            />
-          </article>
-        </div>
-      </CatalogLayerProvider>
+              <Hints message={status || message} />
+              <CatalogLayerHost />
+              <LevelUpLayerHost />
+              <SaveBar
+                visible={isDirty}
+                summary={summary}
+                count={dirtyCount}
+                isSaving={isSaving}
+                error={saveError}
+                onSave={save}
+                onDiscard={sounds.discard}
+              />
+            </article>
+          </div>
+        </CatalogLayerProvider>
+      </LevelUpProvider>
     </EditingProvider>
   );
 };

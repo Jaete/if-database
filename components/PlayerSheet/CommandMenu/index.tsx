@@ -7,6 +7,8 @@ import { useCssHandles } from '@/hooks/useCssHandles';
 import { useEditing } from '../EditingContext';
 import { DASH, formatNumber, tabId } from '../sheetData';
 import type { IMenuItem } from '../sheetData';
+import { noveltyActive } from '@/lib/levelUp';
+import { useLevelUp } from '../LevelUpContext';
 import CommandMenuHandles from './handles';
 
 interface IProps {
@@ -49,6 +51,13 @@ const CommandMenu = ({
 }: IProps) => {
   const handles = useCssHandles(CommandMenuHandles);
   const { isDirtyUnder } = useEditing();
+  const { access } = useLevelUp();
+  // O losango de novidade é do dono: some ao abrir a seção ou em 7 dias.
+  const hasNovelty = (section: string) =>
+    access.isOwner &&
+    (player.novelties ?? []).some(
+      (n) => n.section === section && noveltyActive(n)
+    );
   const gil = player.equipment?.gil;
   const deity = player.deity?.split(',')[0]?.trim();
 
@@ -81,6 +90,14 @@ const CommandMenu = ({
           >
             <span className={handles.sheetMenuLabel}>
               {item.label}
+              {hasNovelty(item.id) && (
+                <i
+                  className={handles.sheetMenuNovelty}
+                  role="img"
+                  aria-label="novidade"
+                  title="Novidade"
+                />
+              )}
               {(SCREEN_PATHS[item.id] ?? []).some((path) =>
                 isDirtyUnder(path)
               ) && (

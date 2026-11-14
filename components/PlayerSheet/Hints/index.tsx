@@ -1,4 +1,5 @@
 import { useCssHandles } from '@/hooks/useCssHandles';
+import SoundButton from '../SoundButton';
 import HintsHandles from './handles';
 
 interface IProps {
@@ -32,6 +33,7 @@ const Hints = ({ message }: IProps) => {
       >
         {message}
       </div>
+      <SoundButton place="up" />
     </footer>
   );
 };

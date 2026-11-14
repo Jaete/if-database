@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { connectDB } from '@/lib/db';
 import { getPlayerById } from '@/services/player.service';
+import { getHistory } from '@/services/levelUp.service';
 import PlayerSheet from '@/components/PlayerSheet';
 import EmbedCloseBridge from '@/components/EmbedCloseBridge';
 
@@ -33,6 +34,7 @@ export default async function EmbedPlayerPage({ params }: { params: Params }) {
   if (!rawPlayer) notFound();
 
   const player = JSON.parse(JSON.stringify(rawPlayer));
+  const history = JSON.parse(JSON.stringify(await getHistory(id)));
 
   // Nada é lido de searchParams de propósito: quem visualiza é descoberto pelo
   // handshake em postMessage com a página do fórum, não por um parâmetro na URL
@@ -46,6 +48,7 @@ export default async function EmbedPlayerPage({ params }: { params: Params }) {
       <PlayerSheet
         player={player}
         forumOrigin={process.env.FORUM_ORIGIN ?? ''}
+        history={history}
       />
       {/* Na visualização ampliada, o Esc dado com o foco na ficha fecha o
           modal do fórum. No post, a mensagem é ignorada lá do outro lado. */}

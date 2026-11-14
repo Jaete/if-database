@@ -432,7 +432,8 @@ export const buildMenu = (
     player.level ?? 0,
     player.talentMilestones ?? []
   );
-  const talentsOff = !editable && talents.reached === 0 && talents.taken === 0;
+  const talentsHidden =
+    !editable && talents.reached === 0 && talents.taken === 0;
 
   return [
     {
@@ -465,15 +466,16 @@ export const buildMenu = (
       meta: `${archetype.chosen}/${archetype.slots}`,
       disabled: false,
     },
-    {
+    // Como o Arquétipo: some (em vez de aparecer riscado) para quem só lê uma
+    // ficha que ainda não alcançou marco nenhum e não tem talento.
+    !talentsHidden && {
       id: 'talentos' as const,
       label: 'Talentos',
       desc: talents.taken
         ? 'Gerais e da classe'
         : 'Escolhidos nos marcos da classe',
       meta: `${talents.taken}/${talents.reached}`,
-      disabled: talentsOff,
-      disabledReason: `${player.name.split(' ')[0]} ainda não alcançou um marco de talento.`,
+      disabled: false,
     },
     {
       id: 'magias',

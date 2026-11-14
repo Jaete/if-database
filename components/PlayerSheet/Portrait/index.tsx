@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { applyModifiers, useCssHandles } from '@/hooks/useCssHandles';
-import { PortraitPlaceholderIcon } from '../../Icons';
+import { LevelUpIcon, PortraitPlaceholderIcon } from '../../Icons';
 import { isHttpUrl } from '../sheetData';
 import PortraitHandles from './handles';
 
@@ -12,17 +12,31 @@ interface IProps {
   name: string;
   variant?: 'hud' | 'chronicle';
   badge?: string;
+  /** Há nível para subir (só para o dono): anel girando, brilho e faíscas. */
+  ready?: boolean;
 }
 
-const Portrait = ({ image, name, variant = 'hud', badge }: IProps) => {
+const Portrait = ({ image, name, variant = 'hud', badge, ready }: IProps) => {
   const handles = useCssHandles(PortraitHandles);
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
   const showImage = isHttpUrl(image) && failedSrc !== image;
 
   return (
     <div
-      className={`${handles.sheetPortrait} ${applyModifiers(handles.sheetPortrait, variant)}`}
+      className={`${handles.sheetPortrait} ${applyModifiers(handles.sheetPortrait, variant)}${
+        ready ? ` ${handles.sheetPortrait}--ready` : ''
+      }`}
     >
+      {ready && (
+        <span className={handles.sheetPortraitSparks} aria-hidden="true">
+          {[12, 30, 52, 70, 88].map((x, i) => (
+            <i
+              key={i}
+              style={{ left: `${x}%`, animationDelay: `${i * 0.45}s` }}
+            />
+          ))}
+        </span>
+      )}
       {showImage ? (
         <Image
           className={handles.sheetPortraitImage}
@@ -43,7 +57,12 @@ const Portrait = ({ image, name, variant = 'hud', badge }: IProps) => {
           <PortraitPlaceholderIcon />
         </div>
       )}
-      {badge && <span className={handles.sheetPortraitBadge}>{badge}</span>}
+      {badge && (
+        <span className={handles.sheetPortraitBadge}>
+          {ready && <LevelUpIcon width={12} height={12} />}
+          {badge}
+        </span>
+      )}
     </div>
   );
 };

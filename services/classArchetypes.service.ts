@@ -5,6 +5,7 @@ import type {
 import type ICharacterClass from '../db/classes/class.d';
 import type { IArchetype, IClassLevel } from '../db/classes/class.d';
 import CharacterClassModel from '../db/classes/classes';
+import { archetypeFeatureLevel } from '../lib/archetypeFeatureLevel';
 import { archetypePickOf, featureKey } from '../db/l10n/classes';
 
 /**
@@ -33,7 +34,8 @@ export interface IArchetypeOption {
   name: string;
   slug: string;
   description?: string;
-  features: { name: string; description?: string }[];
+  /** `level`: em que nível a habilidade abre (`null` = desde a escolha). */
+  features: { name: string; description?: string; level: number | null }[];
 }
 
 /**
@@ -146,6 +148,7 @@ export async function getArchetypeCatalog(
       features: (archetype.features ?? []).map((feature) => ({
         name: feature.name,
         description: feature.description,
+        level: archetypeFeatureLevel(feature),
       })),
     })),
   };

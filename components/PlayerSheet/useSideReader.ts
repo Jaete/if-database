@@ -1,6 +1,7 @@
 'use client';
 
 import { useId, useState } from 'react';
+import { sheetSounds } from '@/lib/sheetSounds';
 
 /**
  * Leitura de uma entrada de lista, no leitor ao lado ou no modal.
@@ -26,6 +27,7 @@ export const useSideReader = <T>() => {
 
   /** Ação explícita (o olho): leitor ao lado se existir, senão o modal. */
   const open = (key: string, item: T) => {
+    sheetSounds.play('paperSlide');
     if (isVisible()) setSelectedKey(key);
     else setReading(item);
   };

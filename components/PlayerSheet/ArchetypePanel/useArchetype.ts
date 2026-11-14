@@ -9,7 +9,8 @@ export interface IArchetypeOption {
   name: string;
   slug: string;
   description?: string;
-  features: { name: string; description?: string }[];
+  /** `level`: em que nível abre; `null` = desde a escolha do arquétipo. */
+  features: { name: string; description?: string; level?: number | null }[];
 }
 
 /** Uma habilidade de arquétipo pronta para a linha da lista. */
@@ -69,6 +70,16 @@ export const useArchetype = () => {
 
   const current = catalog?.find((option) => option.slug === storedSlug);
 
+  // Só as habilidades que o nível da ficha já alcança: no 3º nível, a de 5º
+  // ainda não aparece para escolher.
+  const available = useMemo(
+    () =>
+      (current?.features ?? []).filter(
+        (feature) => (feature.level ?? 0) <= level
+      ),
+    [current, level]
+  );
+
   /**
    * Descrição de cada habilidade, por nome dobrado.
    *
@@ -108,6 +119,9 @@ export const useArchetype = () => {
 
   const add = (name: string) => {
     if (taken.has(featureKey(name)) || remaining <= 0) return;
+    if (!available.some((f) => featureKey(f.name) === featureKey(name))) {
+      return;
+    }
     setField(`${PATH}.features`, [...chosen, name]);
   };
 
@@ -128,7 +142,7 @@ export const useArchetype = () => {
     name: current?.name ?? storedName,
     description: current?.description,
     options: catalog,
-    features: current?.features ?? [],
+    features: available,
     rows,
     taken,
     add,

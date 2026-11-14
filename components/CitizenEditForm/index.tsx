@@ -259,61 +259,72 @@ const CitizenEditForm = ({
         {/* ── Progressão ───────────────────────────────── */}
         <div className={handles.section}>
           <h3 className={handles.sectionTitle}>Progressão</h3>
-          <div className={handles.grid3}>
-            <FormField
-              label="Nível"
-              id="level"
-              name="level"
-              type="number"
-              value={formData.level !== undefined ? String(formData.level) : ''}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  level: e.target.value
-                    ? parseInt(e.target.value, 10)
-                    : undefined,
-                }))
-              }
-            />
-            <FormField
-              label="XP Atual"
-              id="exp-current"
-              type="number"
-              value={
-                formData.experience?.current !== undefined
-                  ? String(formData.experience.current)
-                  : ''
-              }
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  experience: {
-                    current: parseInt(e.target.value, 10) || 0,
-                    nextLevel: prev.experience?.nextLevel || 0,
-                  },
-                }))
-              }
-            />
-            <FormField
-              label="XP Próximo Nível"
-              id="exp-next"
-              type="number"
-              value={
-                formData.experience?.nextLevel !== undefined
-                  ? String(formData.experience.nextLevel)
-                  : ''
-              }
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  experience: {
-                    current: prev.experience?.current || 0,
-                    nextLevel: parseInt(e.target.value, 10) || 0,
-                  },
-                }))
-              }
-            />
-          </div>
+          {variant === 'player' && !isCreate ? (
+            <p>
+              Nível selado {formData.level ?? '—'} · XP{' '}
+              {formData.experience?.current ?? 0} /{' '}
+              {formData.experience?.nextLevel ?? 0}. Somente leitura: use
+              &ldquo;Conceder XP&rdquo; na ficha.
+            </p>
+          ) : (
+            <div className={handles.grid3}>
+              <FormField
+                label="Nível"
+                id="level"
+                name="level"
+                type="number"
+                value={
+                  formData.level !== undefined ? String(formData.level) : ''
+                }
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    level: e.target.value
+                      ? parseInt(e.target.value, 10)
+                      : undefined,
+                  }))
+                }
+              />
+              <FormField
+                label="XP Atual"
+                id="exp-current"
+                type="number"
+                value={
+                  formData.experience?.current !== undefined
+                    ? String(formData.experience.current)
+                    : ''
+                }
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    experience: {
+                      current: parseInt(e.target.value, 10) || 0,
+                      nextLevel: prev.experience?.nextLevel || 0,
+                    },
+                  }))
+                }
+              />
+              <FormField
+                label="XP Próximo Nível"
+                id="exp-next"
+                type="number"
+                value={
+                  formData.experience?.nextLevel !== undefined
+                    ? String(formData.experience.nextLevel)
+                    : ''
+                }
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    experience: {
+                      current: prev.experience?.current || 0,
+                      nextLevel: parseInt(e.target.value, 10) || 0,
+                    },
+                  }))
+                }
+              />
+            </div>
+          )}
         </div>
 
         {/* ── Recursos Principais ──────────────────────── */}

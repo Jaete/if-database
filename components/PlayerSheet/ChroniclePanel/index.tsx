@@ -6,6 +6,8 @@ import { formatDate, isHttpUrl, splitLines } from '../sheetData';
 import ChroniclePanelHandles from './handles';
 import { useEditing } from '../EditingContext';
 import EditableText from '../EditableText';
+import XpLog from '../XpLog';
+import LevelMarks from '../LevelMarks';
 
 interface IProps {
   player: IPublicPlayer;
@@ -85,6 +87,13 @@ const ChroniclePanel = ({ player }: IProps) => {
         {!hasText && !editable && (
           <p className={handles.sheetEmpty}>Nenhuma crônica registrada.</p>
         )}
+
+        <Block title="Histórico da ficha">
+          <XpLog />
+        </Block>
+        <Block title="Marcos de nível">
+          <LevelMarks />
+        </Block>
       </div>
 
       {hasRegistry && (

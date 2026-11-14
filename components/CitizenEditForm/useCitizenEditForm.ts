@@ -857,8 +857,14 @@ export const useCitizenEditForm = ({
       alignment: formData.alignment || undefined,
       image: formData.image || undefined,
       icon: formData.icon || undefined,
-      level: formData.level || undefined,
-      experience: formData.experience || undefined,
+      // Num personagem já existente a progressão não é editável aqui: o nível
+      // selado e a XP só mudam por "Conceder XP" e pela subida de nível.
+      ...(variant === 'player' && !isCreate
+        ? {}
+        : {
+            level: formData.level || undefined,
+            experience: formData.experience || undefined,
+          }),
       combat: formData.combat || undefined,
       chi: formData.chi || undefined,
       proficiencyBonus: formData.proficiencyBonus || undefined,

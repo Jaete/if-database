@@ -71,6 +71,9 @@ export const useSheetEditing = (
     return window.parent === window || !forumOrigin ? 'none' : 'unknown';
   });
   const [isEditing, setIsEditing] = useState(false);
+  // Há uma sessão do embed (qualquer conta do fórum): é o que deixa o dono da
+  // ficha rodar a subida de nível, mesmo sem poder editar.
+  const [identified, setIdentified] = useState(false);
   // `unknown` porque o rascunho guarda desde um escalar de campo até listas de
   // objetos (perícias, testes de resistência). Os leitores abaixo é que dão o
   // tipo certo a cada tipo de editor.
@@ -160,6 +163,7 @@ export const useSheetEditing = (
           return;
         }
         const data = await res.json();
+        setIdentified(true);
         setPermission(data.role === 'admin' ? 'granted' : 'none');
       } catch {
         if (alive) {
@@ -176,6 +180,7 @@ export const useSheetEditing = (
         // Sem rede: a permissão fica 'none' do mesmo jeito.
       }
       if (!alive) return;
+      setIdentified(false);
       setPermission('none');
     };
 
@@ -204,6 +209,7 @@ export const useSheetEditing = (
         if (res.ok) {
           const data = await res.json();
           if (Number(data.forumUserId) === forumUserId) {
+            setIdentified(true);
             setPermission(data.role === 'admin' ? 'granted' : 'none');
             return;
           }
@@ -316,6 +322,11 @@ export const useSheetEditing = (
     [player]
   );
 
+  /** A ficha como o servidor a devolveu depois de uma escrita fora do rascunho. */
+  const replacePlayer = useCallback((next: IPublicPlayer) => {
+    setPlayer(next);
+  }, []);
+
   const cancel = useCallback(() => {
     setDraft({});
     setIsEditing(false);
@@ -402,6 +413,8 @@ export const useSheetEditing = (
 
   return {
     player,
+    replacePlayer,
+    identified,
     permission,
     isEditing,
     setIsEditing,

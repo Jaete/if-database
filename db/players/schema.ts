@@ -167,6 +167,16 @@ const PlayerSchema = new Schema<IPlayer>(
     // 'attribute' ou 'talent'. Só a escolha; os marcos vêm da classe.
     talentMilestones: { type: Schema.Types.Mixed },
 
+    // ── Subida de nível ──
+    // O que o dono escolheu e selou em cada nível (`ILevelLock`), as
+    // características escolhidas entre opções (`IFeatureChoiceRecord`) e as
+    // novidades que ainda aparecem marcadas (`INovelty`). Mixed pelo mesmo
+    // motivo do arquétipo: o que dá forma a isso é a tabela da classe. Só os
+    // serviços de nível escrevem aqui (ver services/levelUp.service.ts).
+    levelLocks: { type: Schema.Types.Mixed },
+    featureChoices: { type: Schema.Types.Mixed },
+    novelties: { type: Schema.Types.Mixed },
+
     // ── Equipamento (slots + mochila + moedas) ──
     // Os slots são Mixed porque existem nas duas formas no banco: a string crua
     // que este schema declarava antes, e o objeto { name, description } que a

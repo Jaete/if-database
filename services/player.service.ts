@@ -10,6 +10,7 @@ import {
 import { createEntityService } from './createEntityService';
 import { resolveSpellRefs } from './spellLink.service';
 import {
+  getChosenClassAbilities,
   getGrantedClassAbilities,
   mergeClassAbilities,
   stripClassAbilities,
@@ -34,6 +35,27 @@ import {
 } from './playerSheetLinks.service';
 
 const service = createEntityService<IPlayer>(PlayerModel);
+
+/**
+ * A progressão (XP, nível selado, selos, características escolhidas e
+ * novidades) só muda por services/levelUp.service.ts. Qualquer escrita genérica
+ * que a traga é ignorada: o formulário do app e a ficha embutida devolvem a
+ * ficha inteira, e sobrescreveriam a XP e os selos com o valor de quando
+ * foram abertos.
+ */
+const PROGRESSION_FIELDS = [
+  'experience',
+  'level',
+  'levelLocks',
+  'featureChoices',
+  'novelties',
+] as const;
+
+function stripProgression<T extends object>(data: T): T {
+  const copy = { ...data } as Record<string, unknown>;
+  for (const key of PROGRESSION_FIELDS) delete copy[key];
+  return copy as T;
+}
 
 // O que a escrita de raça e talentos precisa do documento antes da alteração.
 const LINK_FIELDS =
@@ -149,7 +171,12 @@ async function resolveLinks<T extends IPublicPlayer | null>(
     player.archetype,
     klass
   );
-  const fromClass = [...granted, ...archetype.abilities];
+  // As escolhidas entre opções (subida de nível) entram junto das garantidas.
+  const chosen = getChosenClassAbilities(
+    (player as { featureChoices?: unknown }).featureChoices,
+    klass
+  );
+  const fromClass = [...granted, ...chosen, ...archetype.abilities];
 
   // A raça e os talentos seguem o mesmo contrato: a ficha guarda a escolha, e a
   // leitura resolve o que ela significa.
@@ -221,7 +248,8 @@ function mergeSpellcastingForWrite(
   };
 }
 
-export async function updatePlayer(slug: string, updateData: Partial<IPlayer>) {
+export async function updatePlayer(slug: string, incoming: Partial<IPlayer>) {
+  const updateData = stripProgression(incoming);
   // O editor do app lê a ficha crua e não vê as características da classe, mas
   // a limpeza vale pelos dois caminhos de escrita: uma entrada de classe que
   // chegasse aqui seria gravada como cópia manual.
@@ -278,9 +306,10 @@ export async function updatePlayer(slug: string, updateData: Partial<IPlayer>) {
 // subdocumento inteiro, então gravar `combat.ac` apagaria `combat.hp`.
 export async function updatePlayerById(
   id: string,
-  updateData: Record<string, unknown>
+  incoming: Record<string, unknown>
 ) {
   if (!/^[0-9a-f]{24}$/i.test(id)) return null;
+  const updateData = stripProgression(incoming);
   // Escolher a classe grava `classId` e `class` juntos; o texto bate por
   // construção e não há vínculo a desligar.
   if (!('classId' in updateData)) await unlinkClassIfRenamed(id, updateData);

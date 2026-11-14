@@ -49,6 +49,10 @@ export const PLAYER_PUBLIC_FIELDS = [
   'raceChoice',
   'talents',
   'talentMilestones',
+  // Subida de nível: legíveis por todos, graváveis só pelos serviços de nível.
+  'levelLocks',
+  'featureChoices',
+  'novelties',
   'equipment',
   'professions',
   'appearance',
@@ -83,6 +87,13 @@ export const PLAYER_WRITABLE_FIELDS = PLAYER_PUBLIC_FIELDS.filter(
       'forumTopicUrl',
       'importedAt',
       'updatedAt',
+      // A XP só entra por "Conceder XP" e a subida só por selo: nunca por
+      // edição de campo.
+      'experience',
+      'level',
+      'levelLocks',
+      'featureChoices',
+      'novelties',
     ].includes(field)
 ) as readonly string[];
 

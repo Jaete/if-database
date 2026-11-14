@@ -1,4 +1,9 @@
 import ICitizen from '../citizens/citizen';
+import type {
+  IFeatureChoiceRecord,
+  ILevelLock,
+  INovelty,
+} from '../../lib/levelUp';
 
 /**
  * Personagem de jogador. Em dados é um cidadão com dono e procedência.
@@ -14,4 +19,7 @@ export default interface IPlayer extends ICitizen {
   // Tópico do fórum de onde a ficha veio, quando importada.
   forumTopicUrl?: string;
   importedAt?: Date;
+  levelLocks?: ILevelLock[];
+  featureChoices?: IFeatureChoiceRecord[];
+  novelties?: INovelty[];
 }

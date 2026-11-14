@@ -2,24 +2,34 @@ import type { IPublicPlayer } from '@/db/players/publicFields';
 import { useCssHandles } from '@/hooks/useCssHandles';
 import { formatModifier } from '@/lib/stats';
 import Portrait from '../Portrait';
-import { DASH, formatMeters, formatNumber } from '../sheetData';
+import { DASH, formatMeters } from '../sheetData';
 import HeaderHandles from './handles';
 import { useEditing } from '../EditingContext';
 import EditableText from '../EditableText';
 import { useCatalogRequest } from '../CatalogLayerContext';
 import ChooserField from '../ChooserField';
 import { useRaceChoice } from '../useRaceChoice';
+import XpBlock from '../XpBlock';
+import LevelUpPill from '../LevelUpPill';
+import { noveltyActive } from '@/lib/levelUp';
+import { useLevelUp } from '../LevelUpContext';
+import type { ScreenId } from '../sheetData';
 
 interface IProps {
   player: IPublicPlayer;
+  onOpenScreen: (id: ScreenId) => void;
 }
 
-const Header = ({ player }: IProps) => {
+const Header = ({ player, onOpenScreen }: IProps) => {
   const handles = useCssHandles(HeaderHandles);
   const { editable, value, isDirtyUnder } = useEditing();
   const { lineage } = useRaceChoice();
   const catalog = useCatalogRequest();
-  const { combat, experience, chi, senses } = player;
+  const { access, progress } = useLevelUp();
+  const { combat, chi, senses } = player;
+  const novelty = (key: string) =>
+    access.isOwner &&
+    (player.novelties ?? []).some((n) => n.key === key && noveltyActive(n));
 
   const eyebrow = [
     player.kingdom,
@@ -33,13 +43,6 @@ const Header = ({ player }: IProps) => {
   const epithet =
     typeof draftEpithet === 'string' ? draftEpithet : player.subtitle;
 
-  const hasXp = editable || (!!experience && experience.nextLevel > 0);
-  // `hasXp` também é verdadeiro no modo de edição, quando ainda pode não haver
-  // experiência nenhuma — daí a barra ter a sua própria checagem.
-  const xpRatio =
-    experience && experience.nextLevel > 0
-      ? Math.min(1, Math.max(0, experience.current / experience.nextLevel))
-      : 0;
   const hasChi = editable || (!!chi && (chi.max > 0 || chi.current > 0));
   const hasChiBar = !!chi && chi.max > 0;
   const hpValue = combat?.hp?.value;
@@ -83,6 +86,7 @@ const Header = ({ player }: IProps) => {
         image={player.image}
         name={player.name}
         badge={player.level !== undefined ? `Nv ${player.level}` : undefined}
+        ready={access.isOwner && progress.pending > 0}
       />
 
       <div className={handles.sheetWho}>
@@ -148,49 +152,13 @@ const Header = ({ player }: IProps) => {
             </EditableText>
           )}
         </div>
-        {epithet && <span className={handles.sheetEpithetHud}>{epithet}</span>}
-        {hasXp && (
-          <div className={handles.sheetXp}>
-            <div className={handles.sheetXpRow}>
-              <span>Experiência</span>
-              <b>
-                {editable ? (
-                  <>
-                    <EditableText
-                      path="experience.current"
-                      label="Experiência atual"
-                      as="number"
-                      placeholder="0"
-                    >
-                      {value('experience.current')}
-                    </EditableText>{' '}
-                    /{' '}
-                    <EditableText
-                      path="experience.nextLevel"
-                      label="Experiência do próximo nível"
-                      as="number"
-                      placeholder="0"
-                    >
-                      {value('experience.nextLevel')}
-                    </EditableText>
-                  </>
-                ) : (
-                  <>
-                    {formatNumber(experience!.current)} /{' '}
-                    {formatNumber(experience!.nextLevel)}
-                  </>
-                )}
-              </b>
-            </div>
-            {experience &&
-              bar(
-                xpRatio,
-                `Experiência para o nível ${(player.level ?? 0) + 1}`,
-                experience.current,
-                experience.nextLevel
-              )}
-          </div>
+        {novelty('lvl') && (
+          <span>
+            <LevelUpPill tone="novo">novo nível</LevelUpPill>
+          </span>
         )}
+        {epithet && <span className={handles.sheetEpithetHud}>{epithet}</span>}
+        <XpBlock ownerName={player.ownerUsername} onOpenScreen={onOpenScreen} />
       </div>
 
       <div className={handles.sheetResources}>
@@ -206,6 +174,7 @@ const Header = ({ player }: IProps) => {
             </EditableText>
           </span>
           {hasHpBar && bar(1, 'Vida máxima', hpValue, hpValue, 'hp')}
+          {novelty('hp') && <LevelUpPill tone="novo">vida maior</LevelUpPill>}
           {(editable || combat?.hp?.formula) && (
             <span className={handles.sheetResourceFormula}>
               <EditableText

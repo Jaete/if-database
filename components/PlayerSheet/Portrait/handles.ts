@@ -3,6 +3,7 @@ const PortraitHandles = [
   'sheetPortraitImage',
   'sheetPortraitPlaceholder',
   'sheetPortraitBadge',
+  'sheetPortraitSparks',
 ] as const;
 
 export default PortraitHandles;

@@ -6,6 +6,7 @@ const CommandMenuHandles = [
   'sheetMenuLabel',
   'sheetMenuMeta',
   'sheetMenuDot',
+  'sheetMenuNovelty',
   'sheetMenuDesc',
   'sheetRailFoot',
   'sheetRailKey',

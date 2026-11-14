@@ -128,6 +128,31 @@ export async function getGrantedClassAbilities(
 }
 
 /**
+ * As características que o jogador ESCOLHEU entre opções ("Mente Clara ou
+ * Aura do Medo"). A ficha guarda só `{ level, name }`; a descrição vem daqui.
+ */
+export function getChosenClassAbilities(
+  choices: unknown,
+  klass: Pick<ICharacterClass, 'features'> | null
+): ICitizenAbility[] {
+  if (!Array.isArray(choices) || !klass) return [];
+  const described = describeBy(klass.features);
+  const out: ICitizenAbility[] = [];
+  for (const choice of choices) {
+    const name = String(choice?.name ?? '');
+    if (!name) continue;
+    const feature = described.get(featureKey(name));
+    out.push({
+      name: feature?.name ?? name,
+      description: flattenTables(feature?.description, feature?.tables),
+      source: 'class',
+      level: Number(choice?.level) || undefined,
+    });
+  }
+  return out;
+}
+
+/**
  * Funde as características da classe na lista da ficha.
  *
  * Uma entrada manual de mesmo nome é substituída pela da classe, no lugar em

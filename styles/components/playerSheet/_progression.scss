@@ -1,0 +1,774 @@
+@use '../../../styles/globals' as *;
+@use 'vars' as *;
+
+// XP e nível no cabeçalho, diário e marcos na Crônica, novidades no menu e o
+// seletor de som do rodapé. As telas que cobrem a ficha estão em levelUp.scss.
+
+@keyframes sheetSpinRing {
+  to {
+    --sheet-ring-angle: 360deg;
+  }
+}
+@keyframes sheetBreathe {
+  50% {
+    box-shadow:
+      inset 0 0 0 1px $color-accent-line,
+      0 0 6px transparent;
+  }
+}
+@keyframes sheetSparkRise {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(0.6);
+  }
+  20% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-4.4rem) scale(1);
+  }
+}
+@keyframes sheetSweep {
+  from {
+    background-position: -60% 0;
+  }
+  to {
+    background-position: 160% 0;
+  }
+}
+@keyframes sheetCtaShine {
+  0%,
+  40% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+@keyframes sheetCtaPulse {
+  50% {
+    box-shadow: $glow-gold;
+  }
+}
+
+@property --sheet-ring-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+// ── Retrato com nível disponível (só para o dono) ──
+.sheetPortrait--ready {
+  overflow: visible;
+  box-shadow:
+    inset 0 0 0 1px $color-accent-line,
+    $glow-gold-strong;
+  animation: sheetBreathe 2.4s ease-in-out infinite;
+
+  .sheetPortraitImage,
+  .sheetPortraitPlaceholder {
+    border-radius: inherit;
+  }
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -$spacing-1;
+    border-radius: $radius-xl;
+    padding: $spacing-1;
+    background: conic-gradient(
+      from var(--sheet-ring-angle, 0deg),
+      transparent 0 20%,
+      $color-accent-line 30%,
+      transparent 45% 70%,
+      $color-accent-line-2 82%,
+      transparent 95%
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: sheetSpinRing 3.2s linear infinite;
+    pointer-events: none;
+  }
+  .sheetPortraitBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: $spacing-1;
+    color: $color-text-on-accent;
+    background: $color-accent-fill;
+    box-shadow: 0 0 0 1px $color-accent-fill;
+  }
+}
+
+.sheetPortraitSparks {
+  position: absolute;
+  inset: -$spacing-3;
+  pointer-events: none;
+
+  i {
+    position: absolute;
+    bottom: 10%;
+    width: 0.2rem;
+    height: 0.2rem;
+    border-radius: $radius-full;
+    background: $color-accent-line;
+    box-shadow: 0 0 6px $color-accent-line;
+    opacity: 0;
+    animation: sheetSparkRise 2.6s ease-out infinite;
+  }
+}
+
+// ── Bloco de XP ──
+.sheetXpBlock {
+  margin-top: $spacing-1;
+  display: grid;
+  gap: $spacing-1;
+
+  &--negative {
+    color: $color-error !important;
+  }
+}
+
+.sheetXpLabel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: $spacing-2;
+  @include main-xs($color-text-muted, $font-weight-regular);
+
+  b {
+    @include mono-xs($color-text, $font-weight-regular);
+  }
+}
+
+.sheetXpLabelText {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: $spacing-2;
+}
+
+.sheetXpPill {
+  display: inline-flex;
+  padding: $spacing-1 $spacing-2;
+  border-radius: $radius-full;
+  border: 1px solid $color-border-strong;
+  @include caption($color-text-muted, $font-weight-semibold);
+
+  &--warn {
+    border-color: $warning-border;
+    color: $color-warning;
+  }
+  &--dash {
+    border-style: dashed;
+    border-color: with-alpha($color-accent-line, 0.5);
+    color: $color-accent;
+  }
+}
+
+.sheetXpBar {
+  position: relative;
+  height: $spacing-1;
+  border-radius: $radius-full;
+  background: $color-border;
+  overflow: hidden;
+
+  i {
+    position: absolute;
+    inset: 0;
+    display: block;
+    background: linear-gradient(90deg, $gold-500, $gold-300);
+    transform-origin: left;
+    transition: transform 0.6s $ease-out;
+  }
+  &--full i::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      with-alpha($gold-100, 0.75),
+      transparent
+    );
+    background-size: 40% 100%;
+    background-repeat: no-repeat;
+    animation: sheetSweep 2s ease-in-out infinite;
+  }
+  &--negative i {
+    background: repeating-linear-gradient(
+      135deg,
+      $color-error 0 4px,
+      with-alpha($color-error, 0.5) 4px 8px
+    );
+  }
+}
+
+.sheetXpNote--negative {
+  @include main-xs($color-error, $font-weight-regular);
+}
+
+.sheetXpActions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: $spacing-2;
+}
+
+.sheetXpLink {
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: $color-border-strong;
+  text-underline-offset: $spacing-1;
+  @include main-xs($color-text-muted, $font-weight-regular);
+  @include focus-ring;
+
+  &:hover {
+    color: $color-accent;
+  }
+}
+
+.sheetXpGrant {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-1;
+  padding: $spacing-1 $spacing-3 $spacing-1 $spacing-2;
+  border-radius: $radius-full;
+  cursor: pointer;
+  @include btn-secondary;
+  @include main-xs($color-text, $font-weight-semibold, 1.6);
+}
+
+.sheetPendingHint {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-2;
+  @include main-xs($color-text-muted, $font-weight-regular);
+
+  i {
+    width: 0.4rem;
+    height: 0.4rem;
+    transform: rotate(45deg);
+    border: 1px solid $color-accent-line;
+  }
+}
+
+// ── "Subir de nível" ──
+.sheetLevelCta {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: $spacing-1 $spacing-3;
+  width: 100%;
+  margin-top: $spacing-2;
+  padding: $spacing-2 $spacing-4 $spacing-2 $spacing-3;
+  border-radius: $radius-md;
+  border: 1px solid $color-accent-line;
+  background: linear-gradient(
+    100deg,
+    color-mix(in srgb, #{$color-accent-fill} 26%, #{$surface}),
+    $surface 70%
+  );
+  color: $color-text;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: $glow-gold-strong;
+  animation: sheetCtaPulse 2.2s ease-in-out infinite;
+  @include focus-ring;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(
+      105deg,
+      transparent 30%,
+      with-alpha($color-accent-line, 0.4) 48%,
+      transparent 66%
+    );
+    transform: translateX(-100%);
+    animation: sheetCtaShine 2.8s ease-in-out infinite;
+  }
+  &:hover {
+    border-color: $color-accent;
+  }
+}
+
+.sheetLevelCtaIcon {
+  width: 2.1rem;
+  height: 2.1rem;
+  display: grid;
+  place-items: center;
+  border-radius: $radius-full;
+  background: $accent-fill-gradient;
+  color: $color-text-on-accent;
+}
+
+.sheetLevelCtaText {
+  display: grid;
+  min-width: 0;
+
+  b {
+    @include cinzel-md($color-accent, $font-weight-bold, 1.2, 0.06em);
+    @include gold-gradient-text;
+  }
+  small {
+    @include main-xs($color-text-muted, $font-weight-regular);
+  }
+}
+
+.sheetLevelCtaRange {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+  @include mono-sm($color-accent, $font-weight-bold, 1);
+}
+
+// ── Histórico e marcos (Crônica) ──
+.sheetXpLog {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sheetXpLogItem {
+  display: grid;
+  grid-template-columns: 4.6rem minmax(0, 1fr) auto;
+  gap: $spacing-1 $spacing-3;
+  align-items: baseline;
+  padding: $spacing-2 $spacing-1;
+  border-bottom: 1px solid $color-border;
+}
+
+.sheetXpLogAmount {
+  @include mono-sm($color-accent, $font-weight-bold, 1.3);
+  text-align: right;
+
+  &--negative {
+    color: $color-error;
+  }
+}
+
+.sheetXpLogWhy {
+  min-width: 0;
+  @include main-sm($color-text, $font-weight-regular);
+}
+
+.sheetXpLogMeta {
+  grid-column: 2;
+  @include main-xs($color-text-muted, $font-weight-regular, 1.4);
+}
+
+.sheetXpLogTag {
+  grid-column: 3;
+  grid-row: 1 / span 2;
+  align-self: center;
+  padding: $spacing-1 $spacing-2;
+  border-radius: $radius-full;
+  border: 1px solid with-alpha($color-accent-line, 0.5);
+  white-space: nowrap;
+  @include caption($color-accent, $font-weight-semibold);
+}
+
+.sheetXpLogAct {
+  grid-column: 3;
+  grid-row: 1 / span 2;
+  align-self: center;
+  justify-self: end;
+
+  button {
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+    text-decoration: underline;
+    text-decoration-color: $color-border-strong;
+    text-underline-offset: $spacing-1;
+    @include main-xs($color-text-muted, $font-weight-regular);
+    @include focus-ring;
+
+    &:hover {
+      color: $color-accent;
+    }
+  }
+}
+
+.sheetXpLogEmpty {
+  margin: 0;
+  @include main-sm($color-text-muted, $font-weight-regular);
+}
+
+.sheetMarks {
+  display: grid;
+  gap: $spacing-2;
+}
+
+.sheetMark {
+  display: grid;
+  grid-template-columns: 2.4rem minmax(0, 1fr) auto;
+  gap: $spacing-1 $spacing-3;
+  align-items: center;
+  padding: $spacing-3;
+  border: 1px solid $color-border-strong;
+  border-radius: $radius-md;
+  background: $surface-raised;
+
+  &--open {
+    border-style: dashed;
+    border-color: $color-accent-line;
+    background: $accent-overlay;
+  }
+  &--old {
+    background: transparent;
+  }
+}
+
+.sheetMarkNumber {
+  position: relative;
+  width: 2.4rem;
+  height: 2.4rem;
+  display: grid;
+  place-items: center;
+  border-radius: $radius-full;
+  border: 1px solid with-alpha($color-accent-line, 0.5);
+  background: linear-gradient(180deg, $surface-elevated, $surface-raised);
+  @include cinzel-sm($color-accent, $font-weight-bold, 1);
+
+  .sheetMark--old & {
+    color: $color-text-subtle;
+    border-color: $color-border-strong;
+    background: none;
+  }
+}
+
+.sheetMarkLock {
+  position: absolute;
+  right: -$spacing-1;
+  bottom: -$spacing-1;
+  width: 1rem;
+  height: 1rem;
+  display: grid;
+  place-items: center;
+  border-radius: $radius-full;
+  background: $surface;
+  border: 1px solid $color-border-strong;
+  color: $color-accent;
+}
+
+.sheetMarkBody {
+  min-width: 0;
+  display: grid;
+  gap: $spacing-1;
+
+  b {
+    @include cinzel-sm($color-text, $font-weight-semibold, 1.3, 0.03em);
+  }
+  span {
+    @include main-xs($color-text-muted, $font-weight-regular);
+  }
+}
+
+.sheetMarkActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-2;
+  justify-content: flex-end;
+}
+
+.sheetMarkBtn {
+  padding: $spacing-2 $spacing-3;
+  border-radius: $radius-sm;
+  cursor: pointer;
+  @include main-xs($color-text, $font-weight-semibold, 1.3);
+
+  &--ghost {
+    @include btn-ghost;
+  }
+  &--secondary {
+    @include btn-secondary;
+  }
+}
+
+.sheetMarkPill {
+  display: inline-flex;
+  align-items: center;
+  padding: $spacing-1 $spacing-2;
+  border-radius: $radius-full;
+  border: 1px solid with-alpha($color-accent-line, 0.5);
+  @include caption($color-accent, $font-weight-semibold);
+
+  &--muted {
+    border-color: $color-border-strong;
+    color: $color-text-muted;
+  }
+  &--dash {
+    border-style: dashed;
+  }
+}
+
+.sheetMarkLegend {
+  margin: $spacing-2 0 0;
+  @include main-xs($color-text-muted, $font-weight-regular);
+}
+
+.sheetReopenVeil {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: $spacing-4;
+  background: $overlay;
+  backdrop-filter: blur(3px);
+}
+
+.sheetReopenDialog {
+  display: grid;
+  gap: $spacing-3;
+  justify-items: center;
+  width: min(28rem, 100%);
+  padding: $spacing-6 $spacing-5 $spacing-5;
+  text-align: center;
+  border-radius: $radius-xl;
+  border: 1px solid with-alpha($color-accent-line, 0.6);
+  background: linear-gradient(180deg, $surface-elevated, $surface-float);
+  color: $color-accent;
+  @include elevation(4);
+
+  h3 {
+    @include cinzel-xl($color-text, $font-weight-bold, 1.25, 0.04em);
+  }
+  p {
+    margin: 0;
+    @include main-sm($color-text, $font-weight-regular);
+  }
+  label {
+    display: grid;
+    gap: $spacing-1;
+    width: 100%;
+    text-align: left;
+
+    span {
+      @include caption($color-text-muted, $font-weight-semibold);
+    }
+    input {
+      padding: $spacing-2 $spacing-3;
+      border-radius: $radius-sm;
+      @include field-input;
+      @include main-sm($color-text, $font-weight-regular);
+    }
+  }
+  > div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $spacing-2;
+    justify-content: center;
+    width: 100%;
+
+    button {
+      flex: 1 1 10rem;
+      padding: $spacing-3 $spacing-4;
+      border-radius: $radius-sm;
+      cursor: pointer;
+      @include main-sm($color-text, $font-weight-semibold, 1.3);
+
+      &:first-child {
+        @include btn-secondary;
+      }
+      &:last-child {
+        @include btn-primary;
+        color: $color-text-on-accent;
+      }
+    }
+  }
+}
+
+// ── Novidade no menu ──
+.sheetMenuNovelty {
+  display: inline-block;
+  width: 0.45rem;
+  height: 0.45rem;
+  margin-left: $spacing-2;
+  transform: rotate(45deg);
+  background: $color-accent-fill;
+  box-shadow: 0 0 0 3px $accent-overlay-hover;
+  vertical-align: middle;
+}
+
+// ── Seletor de som (rodapé, cerimônia e topo da subida) ──
+.sheetSoundWrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.sheetSoundBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-1;
+  padding: $spacing-1 $spacing-2 $spacing-1 0.45rem;
+  border-radius: $radius-full;
+  border: 1px solid $color-border-strong;
+  background: transparent;
+  color: $color-text-muted;
+  cursor: pointer;
+  @include main-xs(currentColor, $font-weight-semibold, 1.4);
+  @include focus-ring;
+
+  &:hover {
+    color: $color-accent;
+    border-color: $color-accent-line;
+  }
+  &[aria-pressed='false'] {
+    color: $color-text-subtle;
+  }
+}
+
+.sheetSoundPop {
+  position: absolute;
+  right: 0;
+  z-index: 50;
+  display: grid;
+  gap: $spacing-1;
+  width: 15.5rem;
+  padding: $spacing-3;
+  text-align: left;
+  border-radius: $radius-lg;
+  border: 1px solid with-alpha($color-accent-line, 0.45);
+  background: $surface-float;
+  @include elevation(4);
+
+  &--up {
+    bottom: calc(100% + #{$spacing-2});
+  }
+  &--down {
+    top: calc(100% + #{$spacing-2});
+  }
+}
+
+.sheetSoundCap {
+  padding: $spacing-1 $spacing-1 $spacing-1;
+  @include caption($color-text-muted, $font-weight-semibold);
+}
+
+.sheetSoundSwitch {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: $spacing-1 $spacing-3;
+  padding: $spacing-2 $spacing-1;
+  border-radius: $radius-sm;
+  cursor: pointer;
+
+  &:hover {
+    background: $accent-overlay-hover;
+  }
+  b {
+    @include main-sm($color-text, $font-weight-semibold);
+  }
+  small {
+    grid-column: 1;
+    @include main-xs($color-text-muted, $font-weight-regular);
+  }
+  input {
+    appearance: none;
+    grid-row: 1 / span 2;
+    grid-column: 2;
+    position: relative;
+    width: 2.1rem;
+    height: 1.25rem;
+    margin: 0;
+    border-radius: $radius-full;
+    background: $color-border-strong;
+    cursor: pointer;
+    @include focus-ring;
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: $spacing-1;
+      left: $spacing-1;
+      width: 0.875rem;
+      height: 0.875rem;
+      border-radius: $radius-full;
+      background: $surface;
+      transition: transform 0.15s;
+    }
+    &:checked {
+      background: $color-accent-fill;
+
+      &::after {
+        transform: translateX(0.875rem);
+      }
+    }
+  }
+}
+
+.sheetHints .sheetSoundWrap {
+  margin-left: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheetPortrait--ready::before,
+  .sheetPortraitSparks,
+  .sheetXpBar--full i::after,
+  .sheetLevelCta::after {
+    display: none;
+  }
+  .sheetPortrait--ready,
+  .sheetLevelCta {
+    animation: none;
+  }
+}
+
+@include compact {
+  .sheetXpLogItem {
+    grid-template-columns: 4rem minmax(0, 1fr);
+  }
+  .sheetXpLogTag,
+  .sheetXpLogAct {
+    grid-column: 2;
+    grid-row: auto;
+    justify-self: start;
+  }
+  .sheetMark {
+    grid-template-columns: 2.4rem minmax(0, 1fr);
+  }
+  .sheetMarkActions {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+  .sheetLevelCta,
+  .sheetXpBlock {
+    grid-column: 1 / -1;
+  }
+}
+
+.sheetXpLogMore {
+  padding: $spacing-3 0;
+  text-align: center;
+
+  button {
+    padding: $spacing-2 $spacing-4;
+    border-radius: $radius-full;
+    cursor: pointer;
+    @include btn-secondary;
+    @include main-xs($color-text, $font-weight-semibold, 1.3);
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: wait;
+    }
+  }
+}

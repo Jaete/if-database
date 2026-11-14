@@ -19,7 +19,9 @@
     "link:classes": "npx tsx ./scripts/linkCharacterClasses.ts",
     "sync:spell-lists": "npx tsx ./scripts/syncClassSpellLists.ts",
     "import:races": "npx tsx ./scripts/importRaces.ts",
-    "prepare": "husky"
+    "prepare": "husky",
+    "test:levelup": "npx tsx __tests__/levelUp.test.ts",
+    "test:levelup:db": "npx tsx __tests__/levelUp.db.test.ts"
   },
   "dependencies": {
     "dotenv": "^17.3.1",

@@ -3,6 +3,7 @@
 import { createContext, useContext, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { CatalogRequest } from './CatalogLayer/types';
+import { sheetSounds } from '@/lib/sheetSounds';
 
 /**
  * Quem abre a camada de escolha: o campo de raça e de classe do topo, a placa
@@ -32,8 +33,14 @@ export const CatalogLayerProvider = ({ children }: { children: ReactNode }) => {
     <CatalogLayerContext.Provider
       value={{
         request,
-        open: setRequest,
-        close: () => setRequest(null),
+        open: (next) => {
+          sheetSounds.play('bookOpen');
+          setRequest(next);
+        },
+        close: () => {
+          sheetSounds.play('bookClose');
+          setRequest(null);
+        },
       }}
     >
       {children}

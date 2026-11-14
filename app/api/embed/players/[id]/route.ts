@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
+import { isSameOrigin } from '@/lib/embedRequest';
 import { getEmbedSession } from '@/services/embedAuth.service';
 import { pickWritablePlayerFields } from '@/db/players/publicFields';
 import { updatePlayerById, getPlayerById } from '@/services/player.service';
@@ -83,16 +84,6 @@ function normalizeSpellDC(
     ...casting,
     saveDC: spellSaveDC(modifier, proficiency),
   };
-}
-
-function isSameOrigin(request: NextRequest): boolean {
-  const origin = request.headers.get('origin');
-  if (!origin) return false;
-  try {
-    return new URL(origin).origin === request.nextUrl.origin;
-  } catch {
-    return false;
-  }
 }
 
 export async function PUT(

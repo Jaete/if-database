@@ -9,8 +9,6 @@ const HeaderHandles = [
   'sheetLineButton',
   'sheetLineWarn',
   'sheetEpithetHud',
-  'sheetXp',
-  'sheetXpRow',
   'sheetBar',
   'sheetBarFill',
   'sheetResources',

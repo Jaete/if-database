@@ -30,7 +30,11 @@ const EmbedThemeToggle = () => {
       <button
         type="button"
         className={handles.embedThemeToggle}
-        onClick={() => setPreference(next)}
+        onClick={() => {
+          setPreference(next);
+          // A ficha ouve isto para tocar o som; o botão não conhece o áudio.
+          window.dispatchEvent(new CustomEvent('ifdb:theme-toggle'));
+        }}
         aria-label={label}
         title={label}
       >

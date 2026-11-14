@@ -32,6 +32,7 @@ import { talentProgress } from '../sheetData';
 import { talentSlotsOf } from '@/services/talentSlots';
 import { REFS_PATH } from '../SpellsPanel/useSpellsPanel';
 import type { CatalogRequest, ICatalogScreen, ITrayInfo } from './types';
+import { sheetSounds } from '@/lib/sheetSounds';
 
 const fetchJson = async <T>(url: string): Promise<T> => {
   const res = await fetch(url);
@@ -281,6 +282,7 @@ export const useCatalogLayerState = (
     draftId: classDraft?._id ?? (classId || undefined),
     takenUnique,
     onPick: (klass) => {
+      sheetSounds.play('quill');
       setClassDraft(klass._id === classId ? undefined : klass);
       setConfirmedRemoval(false);
     },
@@ -292,8 +294,10 @@ export const useCatalogLayerState = (
     level,
     currentSlug: archetypeSlug || undefined,
     draftSlug: archetypeDraft,
-    onPick: (slug) =>
-      setArchetypeDraft(slug === archetypeSlug ? undefined : slug),
+    onPick: (slug) => {
+      sheetSounds.play('quill');
+      setArchetypeDraft(slug === archetypeSlug ? undefined : slug);
+    },
   };
 
   // Limites por círculo: a tabela da classe (resolvida na leitura da ficha).
@@ -346,13 +350,15 @@ export const useCatalogLayerState = (
     counts,
     maxCircle,
     opensAt,
-    onToggle: (spell) =>
+    onToggle: (spell) => {
+      sheetSounds.play('quill');
       setKnownDraft((prev) => {
         const base = prev ?? savedKnown;
         return base.includes(spell._id)
           ? base.filter((id) => id !== spell._id)
           : [...base, spell._id];
-      }),
+      });
+    },
   };
 
   const slots =
@@ -391,7 +397,10 @@ export const useCatalogLayerState = (
             class: openNodes.filter((n) => n.kind === 'class').length,
           },
           at,
-          onPick: (option) => setTalentPicks((prev) => [...prev, option]),
+          onPick: (option) => {
+            sheetSounds.play('quill');
+            setTalentPicks((prev) => [...prev, option]);
+          },
         }
       : undefined;
 
@@ -551,6 +560,7 @@ export const useCatalogLayerState = (
   })();
 
   const undo = () => {
+    sheetSounds.play('crumple');
     setRaceTouched(false);
     setRaceDraft(undefined);
     setClassDraft(undefined);
@@ -561,6 +571,7 @@ export const useCatalogLayerState = (
   };
 
   const apply = () => {
+    sheetSounds.play('stampLight');
     if (kind === 'race' && draftRace) {
       const race = bySlug.get(draftRace.slug);
       if (!race) return;

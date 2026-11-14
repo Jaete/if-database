@@ -138,26 +138,6 @@ $portrait-size-compact: 4.5rem;
   display: none;
 }
 
-.sheetXp {
-  margin-top: $spacing-2;
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-1;
-}
-
-.sheetXpRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: $spacing-2;
-  @include main-xs($color-text-muted, $font-weight-regular);
-
-  b {
-    font-variant-numeric: tabular-nums;
-    @include mono-xs($color-text, $font-weight-regular);
-  }
-}
-
 .sheetBar {
   height: $spacing-1;
   border-radius: $radius-full;
