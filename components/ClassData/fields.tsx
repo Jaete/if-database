@@ -10,6 +10,7 @@ import type {
   ITalent,
 } from '@/db/classes/class.d';
 import { formatSlotCell } from '@/db/l10n/classes';
+import { ATTRIBUTE_LABELS } from '@/lib/levelUp';
 import SlotsField from './SlotsField';
 import IconPicker from './IconPicker';
 
@@ -58,6 +59,22 @@ export function overviewFields(k: ICharacterClass) {
       required: false,
       initialValue: text(k.hpPerLevel),
       placeholder: 'ex.: 1d6 (ou 4) + modificador de Constituição',
+    },
+    {
+      name: 'startingGil',
+      label: 'Gil inicial (rolagem na criação)',
+      required: false,
+      initialValue: text(k.startingGil),
+      placeholder: 'ex.: 4d6 × 10 · 1d100 · 2d100 + 50',
+    },
+    {
+      name: 'spellcastingAbility',
+      label: 'Atributo de conjuração',
+      required: false,
+      initialValue: k.spellcastingAbility
+        ? ATTRIBUTE_LABELS[k.spellcastingAbility][0]
+        : '',
+      placeholder: 'FOR, DES, CON, INT, SAB ou CAR (vazio = não conjura)',
     },
     {
       name: 'armor',

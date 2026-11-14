@@ -40,7 +40,7 @@ const fail = (error: unknown) => {
   return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
 };
 
-// GET ?view=access            → { isAdmin, isOwner }
+// GET ?view=access            → { isStaff, isOwner }
 // GET ?view=plan              → o plano do próximo nível (dono ou admin)
 // GET ?view=sealed&level=N    → o plano de um nível selado (admin)
 export async function GET(
@@ -54,7 +54,7 @@ export async function GET(
     const view = request.nextUrl.searchParams.get('view');
     if (view === 'access') {
       return NextResponse.json({
-        isAdmin: !!actor?.isAdmin,
+        isStaff: !!actor?.isStaff,
         isOwner: !!actor?.isOwner,
       });
     }

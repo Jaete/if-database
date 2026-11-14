@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { IPublicPlayer } from '@/db/players/publicFields';
+import { isStaffRole } from '@/lib/sheetAccess';
 
 /**
  * Estado de edição da ficha embutida.
@@ -164,7 +165,7 @@ export const useSheetEditing = (
         }
         const data = await res.json();
         setIdentified(true);
-        setPermission(data.role === 'admin' ? 'granted' : 'none');
+        setPermission(isStaffRole(data.role) ? 'granted' : 'none');
       } catch {
         if (alive) {
           setStatus('');
@@ -210,7 +211,7 @@ export const useSheetEditing = (
           const data = await res.json();
           if (Number(data.forumUserId) === forumUserId) {
             setIdentified(true);
-            setPermission(data.role === 'admin' ? 'granted' : 'none');
+            setPermission(isStaffRole(data.role) ? 'granted' : 'none');
             return;
           }
         }

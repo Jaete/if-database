@@ -10,6 +10,29 @@ export const TRAIT_FIELDS = [
   { name: 'languages', label: 'Idiomas' },
 ] as const satisfies readonly { name: keyof IRaceProfile; label: string }[];
 
+/**
+ * Os traços mais as correções da staff para a criação de ficha: o leitor de
+ * texto (lib/raceRules.ts) é uma aproximação, e estes campos valem no lugar dele.
+ * Ficam só nos editores, nunca na ficha da raça exibida.
+ */
+export const EDITOR_TRAIT_FIELDS = [
+  ...TRAIT_FIELDS,
+  {
+    name: 'abilityBonusOverride',
+    label: 'Correção do incremento (criação de ficha)',
+    placeholder: 'ex.: CON+2, FOR+1 · LIVRE+1 = à escolha · NENHUM',
+  },
+  {
+    name: 'languagesOverride',
+    label: 'Correção dos idiomas (criação de ficha)',
+    placeholder: 'ex.: Comum, Anão',
+  },
+] as const satisfies readonly {
+  name: keyof IRaceProfile;
+  label: string;
+  placeholder?: string;
+}[];
+
 /** A crônica: três blocos de texto corrido. */
 export const LORE_FIELDS = [
   { name: 'history', label: 'História' },

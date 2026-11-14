@@ -343,6 +343,10 @@ export interface ICharacterClass extends Document {
   hitDie?: string;
   hpAtFirstLevel?: string;
   hpPerLevel?: string;
+  /** Fórmula do gil inicial rolado na criação: "4d6 × 10", "2d100 + 50". */
+  startingGil?: string;
+  /** Atributo de conjuração: dele saem a CD das magias e o ataque mágico. */
+  spellcastingAbility?: 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha';
 
   proficiencies?: IClassProficiencies;
   startingEquipment?: string[];

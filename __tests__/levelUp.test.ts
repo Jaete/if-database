@@ -145,8 +145,8 @@ const talent = (key: string, stackable = false) => ({
   missing: [],
   stackable,
 });
-const admin = { isAdmin: true };
-const owner = { isAdmin: false };
+const admin = { isStaff: true };
+const owner = { isStaff: false };
 
 async function canonical() {
   console.log('Escolhas canônicas');

@@ -53,7 +53,8 @@ export const useEntityGrid = <T extends IGridEntity, F>({
   const filtered = useMemo(
     () =>
       entities.filter((entity) =>
-        entity.name.toLowerCase().includes(searchTerm.toLowerCase())
+        // Ficha em criação ainda pode não ter nome.
+        (entity.name ?? '').toLowerCase().includes(searchTerm.toLowerCase())
       ),
     [entities, searchTerm]
   );
@@ -101,7 +102,7 @@ export const useEntityGrid = <T extends IGridEntity, F>({
       openTabSilently({
         mode: 'edit',
         slug: entity.slug,
-        label: `Editando: ${entity.name}`,
+        label: `Editando: ${entity.name || 'Ficha sem nome'}`,
         formData: toFormData(entity),
       });
     },

@@ -7,7 +7,15 @@ export interface IXpLine {
 }
 
 export type PlayerEventKind =
-  'grant' | 'correction' | 'seal' | 'reopen' | 'edit';
+  | 'grant'
+  | 'correction'
+  | 'seal'
+  | 'reopen'
+  | 'edit'
+  | 'create'
+  | 'submit'
+  | 'approve'
+  | 'return';
 
 /**
  * O histórico da ficha: só inclusão. Uma correção é um lançamento novo
@@ -38,6 +46,26 @@ export interface IHpRoll {
   level: number;
   die: number;
   result: number;
+  byUsername: string;
+  byForumUserId: number;
+  at: Date;
+}
+
+/**
+ * Uma rolagem da criação, gravada no servidor no instante em que acontece.
+ * `attributes` = 6×4d6 (24 dados); `gil` = o gil inicial. Uma por ficha e tipo.
+ */
+export interface ICreationRoll {
+  rollId: string;
+  playerId: Types.ObjectId;
+  kind: 'attributes' | 'gil';
+  /** Só no gil: a rolagem vale PARA esta classe. */
+  classSlug?: string;
+  /** Atributos: seis linhas de quatro dados. Gil: uma linha com os dados. */
+  sets: number[][];
+  /** Atributos: os seis totais (sem o menor dado). Gil: `[total]`. */
+  sums: number[];
+  formula?: string;
   byUsername: string;
   byForumUserId: number;
   at: Date;

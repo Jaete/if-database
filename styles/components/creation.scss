@@ -1,0 +1,828 @@
+@use '../../styles/globals' as *;
+
+// Criação da ficha (ficha em branco): os passos que a dona preenche, a moldura
+// "Ficha em criação", a faixa de rascunho e a revisão da staff. A casca da tela
+// (passos, painel, rodapé, diálogos) é a da subida de nível (`lu*`, em
+// levelUp.scss); aqui só entra o que é próprio da criação. Todos os nomes
+// começam com `cr`: o escopo dos handles é global.
+//
+// Tudo por tokens semânticos, então Escuro e Pergaminho vêm de graça.
+
+// ── Placa de raça e classe ───────────────────────────────
+
+.crPlate {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: $spacing-4;
+  align-items: center;
+  padding: $spacing-3;
+  border-radius: $radius-lg;
+  border: 1px solid $color-border-strong;
+  background: $surface-raised;
+  @include elevation(1);
+}
+
+.crPlateArt {
+  width: 6rem;
+  aspect-ratio: 3 / 4;
+  border-radius: $radius-md;
+  background-color: $surface-elevated;
+  background-size: cover;
+  background-position: center;
+  border: 1px solid $color-accent-line;
+
+  &:not([style]) {
+    display: none;
+  }
+}
+
+.crPlate:has(.crPlateArt[style]) {
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+.crPlate:not(:has(.crPlateArt[style])) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.crPlateBody {
+  display: grid;
+  gap: $spacing-2;
+  min-width: 0;
+}
+
+.crPlateName {
+  @include cinzel-xl($color-accent, $font-weight-bold, 1.2, 0.05em);
+}
+
+.crChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-2;
+}
+
+.crChip {
+  padding: $spacing-1 $spacing-2;
+  border-radius: $radius-full;
+  border: 1px solid $color-accent-line;
+  background: $accent-overlay;
+  @include main-xs($color-text, $font-weight-medium, 1.2);
+}
+
+.crRule {
+  @include main-xs($color-text-muted, $font-weight-regular);
+}
+
+// ── Campos ───────────────────────────────────────────────
+
+.crField {
+  display: grid;
+  gap: $spacing-1;
+
+  > span {
+    @include main-xs($color-text-muted, $font-weight-semibold, 1.3, 0.04em);
+  }
+}
+
+.crInput,
+.crTextarea {
+  @include field-input;
+  width: 100%;
+  padding: $spacing-2 $spacing-3;
+  border-radius: $radius-md;
+  @include main-sm($color-text, $font-weight-regular, 1.5);
+}
+
+.crTextarea {
+  resize: vertical;
+  min-height: 5rem;
+}
+
+.crHint {
+  @include main-xs($color-text-muted, $font-weight-regular);
+}
+
+// ── Atributos ────────────────────────────────────────────
+
+.crBlockHead h3 {
+  @include cinzel-md($color-accent, $font-weight-bold, 1.3, 0.06em);
+}
+
+.crMethods {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: $spacing-3;
+
+  @include mobile {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.crMethod {
+  display: grid;
+  gap: $spacing-1;
+  align-content: start;
+  text-align: left;
+  padding: $spacing-3;
+  border-radius: $radius-md;
+  border: 1px solid $color-border-control;
+  background: $surface;
+  cursor: pointer;
+  @include focus-ring;
+
+  b {
+    display: inline-flex;
+    align-items: center;
+    gap: $spacing-1;
+    @include cinzel-sm($color-text, $font-weight-bold, 1.3, 0.03em);
+  }
+  span {
+    @include main-xs($color-text-muted, $font-weight-regular, 1.4);
+  }
+
+  &:hover:not(:disabled) {
+    border-color: $color-accent-line;
+    background: $accent-overlay;
+  }
+  &[aria-checked='true'] {
+    border-color: $color-accent-line;
+    background: $accent-overlay-hover;
+    @include elevation(2);
+  }
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+}
+
+.crBudget {
+  @include mono-sm($color-text, $font-weight-bold, 1);
+
+  &[data-done] {
+    color: $color-success;
+  }
+}
+
+.crBuy {
+  display: grid;
+  gap: $spacing-2;
+}
+
+.crBuyRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 2.4rem auto 5rem;
+  align-items: center;
+  gap: $spacing-2;
+  padding: $spacing-2 $spacing-3;
+  border-radius: $radius-md;
+  border: 1px solid $color-border;
+  background: $surface;
+
+  b {
+    @include cinzel-md($color-accent, $font-weight-bold, 1, 0.06em);
+  }
+  small {
+    @include main-xs($color-text-muted, $font-weight-regular);
+  }
+  output {
+    @include mono-md($color-text, $font-weight-bold, 1);
+    text-align: center;
+  }
+  button {
+    width: 2rem;
+    height: 2rem;
+    border-radius: $radius-sm;
+    border: 1px solid $color-border-control;
+    background: $color-input-bg;
+    cursor: pointer;
+    @include mono-md($color-text, $font-weight-semibold, 1);
+    text-align: center;
+    @include focus-ring;
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.4;
+    }
+  }
+}
+
+.crTools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-2;
+  margin-bottom: $spacing-3;
+}
+
+.crStones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-2;
+  min-height: 3.2rem;
+  padding: $spacing-2 $spacing-3;
+  margin-bottom: $spacing-3;
+  border-radius: $radius-lg;
+  border: 1px dashed $color-border-strong;
+  background: $surface-raised;
+}
+
+.crStone {
+  width: 2.8rem;
+  height: 2.8rem;
+  border-radius: 50% 46% 54% 48%;
+  border: 1px solid $color-accent-line;
+  background: $surface-elevated;
+  cursor: grab;
+  @include elevation(1);
+  @include mono-md($color-accent, $font-weight-bold, 1);
+  // Depois do mixin, que alinha à esquerda.
+  text-align: center;
+  @include focus-ring;
+
+  &[aria-pressed='true'] {
+    background: $accent-overlay-hover;
+    border-color: $color-accent;
+    @include elevation(3);
+  }
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+}
+
+.crSlots,
+.crOrder {
+  display: grid;
+  gap: $spacing-2;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.crSlot,
+.crOrderRow {
+  display: grid;
+  grid-template-columns: 3.4rem 2.6rem 2.4rem minmax(0, 1fr);
+  align-items: center;
+  gap: $spacing-3;
+  padding: $spacing-2 $spacing-3;
+  border-radius: $radius-md;
+  border: 1px solid $color-border;
+  background: $surface;
+  text-align: left;
+}
+
+.crOrderRow {
+  grid-template-columns: 3.4rem 2.6rem 2.4rem minmax(0, 1fr) auto auto;
+
+  button {
+    width: 1.9rem;
+    height: 1.9rem;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border-radius: $radius-sm;
+    border: 1px solid $color-border-control;
+    background: $color-input-bg;
+    color: $color-text;
+    cursor: pointer;
+    @include focus-ring;
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.4;
+    }
+  }
+}
+
+.crSlot {
+  cursor: pointer;
+  border-style: dashed;
+  border-color: $color-border-control;
+  @include focus-ring;
+
+  &[data-filled] {
+    border-style: solid;
+    border-color: $color-accent-line;
+    background: $accent-overlay;
+  }
+  &[aria-pressed='true'] {
+    border-color: $color-accent;
+    background: $accent-overlay-hover;
+  }
+  &:disabled {
+    cursor: not-allowed;
+  }
+}
+
+.crSlotAttr {
+  @include cinzel-md($color-accent, $font-weight-bold, 1, 0.06em);
+}
+
+.crSlotVal {
+  @include mono-md($color-text, $font-weight-bold, 1);
+}
+
+.crSlotBonus {
+  @include mono-sm($color-accent, $font-weight-semibold, 1);
+}
+
+.crSlotTotal {
+  @include main-xs($color-text-muted, $font-weight-regular);
+  text-align: right;
+}
+
+.crPicks {
+  display: grid;
+  gap: $spacing-3;
+}
+
+.crPickRow {
+  display: grid;
+  gap: $spacing-2;
+
+  > span {
+    @include main-xs($color-text-muted, $font-weight-semibold);
+  }
+  > div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $spacing-2;
+  }
+}
+
+.crPickBtn {
+  min-width: 3rem;
+  padding: $spacing-2 $spacing-3;
+  border-radius: $radius-sm;
+  border: 1px solid $color-border-control;
+  background: $surface;
+  cursor: pointer;
+  @include cinzel-sm($color-text, $font-weight-bold, 1, 0.05em);
+  text-align: center;
+  @include focus-ring;
+
+  &[aria-checked='true'] {
+    border-color: $color-accent-line;
+    background: $accent-overlay-hover;
+    color: $color-accent;
+  }
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.4;
+  }
+}
+
+.crSummary {
+  display: grid;
+  align-content: start;
+  gap: $spacing-3;
+  min-width: 0;
+  padding: $spacing-5 $spacing-4;
+  border-left: 1px solid $color-border;
+  background: $surface-raised;
+  overflow-y: auto;
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    @include mono-sm($color-text, $font-weight-regular, 1.4);
+  }
+  th,
+  td {
+    padding: $spacing-1 $spacing-1;
+    text-align: center;
+  }
+  thead th {
+    @include caption($color-text-muted, $font-weight-semibold);
+  }
+  tbody th {
+    @include cinzel-sm($color-accent, $font-weight-bold, 1, 0.05em);
+  }
+  td b {
+    color: $color-accent;
+  }
+  p {
+    margin: 0;
+    @include main-sm($color-text-muted, $font-weight-regular);
+
+    b {
+      color: $color-text;
+    }
+  }
+
+  // No celular o resumo desce para baixo do painel (como o detalhe da subida) e
+  // vira uma faixa: só o total e o modificador de cada atributo.
+  @include mobile {
+    flex: none;
+    max-height: 10.5rem;
+    padding: $spacing-3 $spacing-4;
+    gap: $spacing-2;
+    border-left: 0;
+    border-top: 1px solid $color-accent-line;
+
+    table,
+    tbody {
+      display: block;
+    }
+    thead,
+    td:nth-child(2),
+    td:nth-child(3) {
+      display: none;
+    }
+    tbody {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: $spacing-1;
+    }
+    tr {
+      display: grid;
+      justify-items: center;
+    }
+  }
+}
+
+// ── Perícias, idiomas, magias ────────────────────────────
+
+.crSkills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-2;
+}
+
+.crSkill {
+  padding: $spacing-2 $spacing-3;
+  border-radius: $radius-full;
+  border: 1px solid $color-border-control;
+  background: $surface;
+  cursor: pointer;
+  @include main-sm($color-text, $font-weight-medium, 1.2);
+  @include focus-ring;
+
+  &[aria-pressed='true'] {
+    border-color: $color-accent-line;
+    background: $accent-overlay-hover;
+    color: $color-accent;
+  }
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+  }
+}
+
+.crLangs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-2;
+}
+
+.crSpellList {
+  display: grid;
+  gap: $spacing-2;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.crSpellItem {
+  display: flex;
+  justify-content: space-between;
+  gap: $spacing-3;
+  padding: $spacing-2 $spacing-3;
+  border-radius: $radius-md;
+  border: 1px solid $color-border;
+  background: $surface;
+  @include main-sm($color-text, $font-weight-medium);
+
+  small {
+    @include main-xs($color-text-muted, $font-weight-regular);
+  }
+}
+
+.crEmpty,
+.crAuto {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-2;
+  padding: $spacing-3;
+  border-radius: $radius-md;
+  border: 1px dashed $color-border-strong;
+  @include main-sm($color-text-muted, $font-weight-regular);
+
+  b {
+    color: $color-text;
+  }
+}
+
+// ── Dados 4d6 ────────────────────────────────────────────
+
+.crDiceSheet {
+  display: grid;
+  gap: $spacing-2;
+  justify-items: center;
+}
+
+.crDiceRow {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+}
+
+.crDie {
+  display: grid;
+  place-items: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: $radius-md;
+  border: 1px solid $color-accent-line;
+  background: $surface-elevated;
+  @include mono-md($color-text, $font-weight-bold, 1);
+  text-align: center;
+  @include elevation(1);
+
+  &[data-dropped] {
+    opacity: 0.45;
+    text-decoration: line-through;
+    border-style: dashed;
+    border-color: $color-border-strong;
+    color: $color-text-muted;
+  }
+}
+
+.crDiceSum {
+  min-width: 2.6rem;
+  margin-left: $spacing-2;
+  text-align: center;
+  @include cinzel-lg($color-accent, $font-weight-bold, 1, 0.04em);
+}
+
+// ── Revisão: pendências ──────────────────────────────────
+
+.crIssues {
+  display: grid;
+  gap: $spacing-2;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.crIssue {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-3;
+  padding: $spacing-2 $spacing-3;
+  border-radius: $radius-md;
+  @include main-sm($color-text, $font-weight-regular, 1.4);
+
+  &[data-kind='required'] {
+    border: 1px solid $color-accent-line;
+    background: $accent-overlay;
+  }
+  &[data-kind='recommended'] {
+    border: 1px dashed $color-border-strong;
+    color: $color-text-muted;
+  }
+  &[data-kind='ok'] {
+    border: 1px solid $success-border;
+    background: $success-bg;
+    color: $color-success;
+  }
+
+  button {
+    flex: none;
+    padding: $spacing-1 $spacing-3;
+    border-radius: $radius-sm;
+    cursor: pointer;
+    @include btn-secondary;
+    @include main-xs($color-text, $font-weight-semibold, 1.3);
+  }
+}
+
+// ── Revisão da staff ─────────────────────────────────────
+
+.crReview {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr 1.6fr 1.2fr;
+  overflow: hidden;
+
+  @include mobile {
+    grid-template-columns: minmax(0, 1fr);
+    overflow-y: auto;
+  }
+}
+
+.crReviewCol {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  gap: $spacing-3;
+  align-content: start;
+  overflow-y: auto;
+  padding: $spacing-4 $spacing-4 $spacing-6;
+  border-left: 1px solid $color-border;
+  scrollbar-width: thin;
+  scrollbar-color: $color-border-strong transparent;
+
+  &:first-child {
+    border-left: 0;
+  }
+  h3 {
+    @include cinzel-md($color-accent, $font-weight-bold, 1.3, 0.06em);
+  }
+}
+
+.crFieldList {
+  display: grid;
+  gap: $spacing-2;
+  margin: 0;
+}
+
+.crFieldItem {
+  display: grid;
+  gap: $spacing-1;
+  padding-bottom: $spacing-2;
+  border-bottom: 1px solid $color-border;
+
+  dt {
+    @include caption($color-text-muted, $font-weight-semibold);
+  }
+  dd {
+    margin: 0;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    @include main-sm($color-text, $font-weight-regular, 1.5);
+
+    &[data-empty] {
+      font-style: italic;
+      color: $color-text-subtle;
+    }
+  }
+}
+
+.crHistory {
+  display: grid;
+  gap: $spacing-3;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  @include main-sm($color-text, $font-weight-regular, 1.4);
+
+  li {
+    display: grid;
+    gap: $spacing-1;
+    padding-bottom: $spacing-2;
+    border-bottom: 1px solid $color-border;
+  }
+  small {
+    overflow-wrap: anywhere;
+    @include mono-xs($color-text-muted, $font-weight-regular);
+  }
+}
+
+.crStepFlags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-2 $spacing-4;
+  margin: 0;
+  padding: $spacing-3;
+  border-radius: $radius-md;
+  border: 1px solid $color-border;
+  @include main-sm($color-text, $font-weight-regular);
+
+  legend {
+    padding: 0 $spacing-2;
+    @include main-xs($color-text-muted, $font-weight-semibold);
+  }
+  label {
+    display: inline-flex;
+    align-items: center;
+    gap: $spacing-2;
+  }
+}
+
+// ── Faixa de rascunho e moldura "Ficha em criação" ───────
+
+.crBar {
+  position: relative;
+  z-index: 4;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-3;
+  padding: $spacing-2 $spacing-4;
+  border-bottom: 1px solid $color-accent-line;
+  background: $accent-overlay;
+
+  &[data-tone='returned'] {
+    border-bottom-color: $warning-border;
+    background: $warning-bg;
+  }
+}
+
+.crBarText {
+  display: grid;
+  gap: $spacing-1;
+  min-width: 0;
+  @include main-sm($color-text, $font-weight-regular, 1.4);
+
+  b {
+    @include caption($color-accent, $font-weight-bold);
+  }
+  small {
+    overflow-wrap: anywhere;
+    @include main-xs($color-text, $font-weight-regular, 1.5);
+  }
+}
+
+.crBar[data-tone='returned'] .crBarText b {
+  color: $color-warning;
+}
+
+.crBarActs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-2;
+}
+
+.crFrame {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  padding: $spacing-5;
+  overflow-y: auto;
+  background: radial-gradient(
+    60% 50% at 50% 40%,
+    $accent-overlay,
+    transparent 70%
+  );
+}
+
+.crFrameCard {
+  display: grid;
+  justify-items: center;
+  gap: $spacing-4;
+  width: min(34rem, 100%);
+  padding: $spacing-6 $spacing-5;
+  text-align: center;
+  border-radius: $radius-xl;
+  border: 1px dashed $color-accent-line;
+  background: $surface-raised;
+  color: $color-accent;
+
+  h2 {
+    @include cinzel-2xl($color-accent, $font-weight-bold, 1.2, 0.06em);
+  }
+  p {
+    margin: 0;
+    max-width: 44ch;
+    @include main-md($color-text-muted, $font-weight-regular, 1.6);
+  }
+}
+
+.crTrail {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: $spacing-2;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.crTrailStep {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-1;
+  padding: $spacing-1 $spacing-2;
+  border-radius: $radius-full;
+  border: 1px dashed $color-border-strong;
+  @include main-xs($color-text-muted, $font-weight-medium, 1.2);
+
+  &[data-done] {
+    border-style: solid;
+    border-color: $color-accent-line;
+    color: $color-accent;
+  }
+}
+
+// O códice (camada de escolha) abre por cima do assistente de criação: sem isto
+// ele ficaria sob a tela de passos (`.luView`, z-index 25) dentro da mesma camada.
+.luHost > .sheetCodex {
+  z-index: 30;
+}
+
+// Dentro dos diálogos da subida (centralizados), os campos ocupam a largura toda.
+.luSealDlg {
+  .crField,
+  .crStepFlags {
+    width: 100%;
+  }
+  .crStepFlags {
+    justify-content: center;
+  }
+}

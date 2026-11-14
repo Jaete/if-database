@@ -93,7 +93,7 @@ const LevelMarks = () => {
             </span>
           </span>
           <span className={handles.sheetMarkActions}>
-            {access.isAdmin ? (
+            {access.isStaff ? (
               <>
                 <button
                   type="button"
@@ -157,7 +157,7 @@ const LevelMarks = () => {
   return (
     <>
       <div className={handles.sheetMarks}>{marks}</div>
-      {access.isAdmin && (
+      {access.isStaff && (
         <p className={handles.sheetMarkLegend}>
           O admin pode tudo: editar escolhas seladas ou reabrir um nível. Cada
           ação entra no histórico acima, como as correções de XP.

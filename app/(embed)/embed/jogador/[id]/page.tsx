@@ -22,19 +22,37 @@ export async function generateMetadata({
   const { id } = await params;
   const player = await loadPlayer(id);
   return {
-    title: player
-      ? `${player.name} · Ficha de personagem`
-      : 'Ficha não encontrada',
+    title: !player
+      ? 'Ficha não encontrada'
+      : isUnsent(player.status)
+        ? 'Ficha em criação'
+        : `${player.name} · Ficha de personagem`,
   };
 }
+
+// Em criação e ainda não enviada, a ficha não é de ninguém além da dona e da
+// staff: o servidor nem manda os campos (a dona e a staff os recebem pela rota
+// de rascunho, que confere a permissão).
+const isUnsent = (status?: string) => status === 'blank' || status === 'draft';
 
 export default async function EmbedPlayerPage({ params }: { params: Params }) {
   const { id } = await params;
   const rawPlayer = await loadPlayer(id);
   if (!rawPlayer) notFound();
 
-  const player = JSON.parse(JSON.stringify(rawPlayer));
-  const history = JSON.parse(JSON.stringify(await getHistory(id)));
+  const unsent = isUnsent(rawPlayer.status);
+  const player = unsent
+    ? {
+        _id: String(rawPlayer._id),
+        status: rawPlayer.status,
+        ownerUsername: rawPlayer.ownerUsername,
+        name: '',
+        level: 1,
+      }
+    : JSON.parse(JSON.stringify(rawPlayer));
+  const history = unsent
+    ? []
+    : JSON.parse(JSON.stringify(await getHistory(id)));
 
   // Nada é lido de searchParams de propósito: quem visualiza é descoberto pelo
   // handshake em postMessage com a página do fórum, não por um parâmetro na URL

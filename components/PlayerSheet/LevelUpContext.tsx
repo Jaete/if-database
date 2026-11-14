@@ -38,7 +38,7 @@ export interface IHpRollResult {
 }
 
 export interface ILevelUp {
-  access: { isAdmin: boolean; isOwner: boolean };
+  access: { isStaff: boolean; isOwner: boolean };
   history: IEventView[];
   /** XP e nível derivados da ficha. */
   progress: {
@@ -74,7 +74,7 @@ export interface ILevelUp {
 const noop = async () => {};
 
 const LevelUpContext = createContext<ILevelUp>({
-  access: { isAdmin: false, isOwner: false },
+  access: { isStaff: false, isOwner: false },
   history: [],
   progress: { level: 1, earned: 1, pending: 0, pool: 0, into: 0, needed: null },
   view: 'sheet',

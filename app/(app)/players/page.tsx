@@ -1,5 +1,7 @@
 import { connectDB } from '@/lib/db';
 import { getAllPlayers } from '@/services/player.service';
+import { getAuthorizedSession } from '@/services/auth.service';
+import { redactPlayer } from '@/db/players/redact';
 import PlayersPageClient from './PlayersPageClient';
 import IPlayer from '@/db/players/player';
 
@@ -10,7 +12,12 @@ export default async function PlayersPage() {
   try {
     await connectDB();
     const players = await getAllPlayers();
-    serialized = JSON.parse(JSON.stringify(players));
+    const session = await getAuthorizedSession();
+    const staff = !!session && session.role !== 'viewer';
+    // Rascunho e estado de criação só para a staff.
+    serialized = JSON.parse(JSON.stringify(players)).map((p: IPlayer) =>
+      redactPlayer(p, staff)
+    );
   } catch (error) {
     console.error('Failed to load players:', error);
   }

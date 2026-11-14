@@ -31,6 +31,7 @@ export async function GET() {
         role: session.role,
         provider: session.provider,
         avatarUrl: session.avatarUrl,
+        forumUserId: session.forumUserId,
       },
       token,
     });

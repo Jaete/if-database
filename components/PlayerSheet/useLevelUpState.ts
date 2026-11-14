@@ -46,7 +46,7 @@ export const useLevelUpState = (args: {
   const { player, identified, initialHistory, onPlayer } = args;
   const id = String(player._id);
 
-  const [access, setAccess] = useState({ isAdmin: false, isOwner: false });
+  const [access, setAccess] = useState({ isStaff: false, isOwner: false });
   const [history, setHistory] = useState(initialHistory);
   const [view, setView] = useState<LevelView>('sheet');
   const [plan, setPlan] = useState<ILevelPlan | null>(null);

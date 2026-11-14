@@ -1,0 +1,1240 @@
+import { randomInt, randomUUID } from 'node:crypto';
+import type { Types } from 'mongoose';
+import PlayerModel from '../db/players/players';
+import UserModel from '../db/users/users';
+import CharacterClassModel from '../db/classes/classes';
+import SpellModel from '../db/spells/spells';
+import PlayerEventModel from '../db/playerProgress/playerEvents';
+import CreationRollModel from '../db/playerProgress/creationRolls';
+import type ICharacterClass from '../db/classes/class.d';
+import type { IRaceCatalogEntry } from '../db/races/race.d';
+import type { ICreationState, IReviewEntry } from '../db/players/player.d';
+import type { PlayerEventKind } from '../db/playerProgress/playerProgress';
+import { stripUnsafeKeys } from '../lib/sanitize';
+import { OWN_SHEET_MESSAGE } from '../lib/sheetAccess';
+import { isImageUrl, isUploadedImageUrl } from '../lib/imageUrl';
+import { modifierOf, type AttributeKey } from '../lib/stats';
+import { xpToNext } from '../lib/xp';
+import { parseHitDie } from '../lib/levelUp';
+import {
+  ATTRIBUTES,
+  SKILL_ATTR,
+  attributeTotals,
+  castingNumbers,
+  checkBase,
+  creationIssues,
+  level1Hp,
+  parseGilFormula,
+  parseSavingThrows,
+  parseSkillChoice,
+  rollAttributeSets,
+  rollGil,
+  type AttributeMethod,
+  type Base,
+  type CreationStep,
+  type ICreationInput,
+  type IIssue,
+  type PlayerStatus,
+} from '../lib/creation';
+import {
+  checkRacialPicks,
+  effectiveSubrace,
+  raceBonus,
+  raceLanguages,
+} from '../lib/raceRules';
+import { ATTRIBUTE_LABELS } from '../lib/levelUp';
+import { featureKey } from '../db/l10n/classes';
+import { getRaceCatalog } from './race.service';
+import { getPlayerById } from './player.service';
+import { getClassCasting } from './classSpells.service';
+import {
+  PlayerSheetError,
+  assertSpellLimits,
+  guardUniqueAfterWrite,
+  prepareSheetLinksWrite,
+  type IStoredSheetLinks,
+} from './playerSheetLinks.service';
+import type { IActor } from './levelUp.service';
+
+/**
+ * Criação da ficha: a staff abre uma ficha vazia para uma conta do fórum, a dona
+ * a preenche no nível 1 (rascunho no servidor), envia, e a staff aprova ou
+ * devolve com observações.
+ *
+ * Permissão em duas camadas, relidas do banco a cada chamada (como a subida de
+ * nível): a DONA mexe no rascunho enquanto a ficha não está aprovada; o ADMIN
+ * mexe sempre. Nada aqui amplia a edição geral da ficha: são rotas à parte, com
+ * escopo de criação, e a rota de edição livre segue só de admin.
+ *
+ * Sem 'use server': exporta classe de erro e tipos, e só roda no servidor.
+ */
+
+export class CreationError extends Error {
+  status: number;
+  issues?: IIssue[];
+  constructor(message: string, status = 400, issues?: IIssue[]) {
+    super(message);
+    this.name = 'CreationError';
+    this.status = status;
+    this.issues = issues;
+  }
+}
+
+type Doc = Record<string, unknown>;
+const OBJECT_ID = /^[0-9a-f]{24}$/i;
+const isRecord = (v: unknown): v is Doc =>
+  !!v && typeof v === 'object' && !Array.isArray(v);
+
+const STEPS: CreationStep[] = [
+  'identidade',
+  'raca',
+  'classe',
+  'atributos',
+  'nivel1',
+  'pericias',
+  'magias',
+  'equipamento',
+  'historia',
+];
+
+// ── Carga ────────────────────────────────────────────────
+
+interface ISheet extends Doc {
+  _id: Types.ObjectId;
+  slug: string;
+  status?: PlayerStatus;
+  name?: string;
+  classId?: unknown;
+  raceId?: unknown;
+  raceChoice?: Doc;
+  creation?: ICreationState;
+  review?: IReviewEntry[];
+  equipment?: Doc;
+  level?: number;
+  proficiencies?: Doc;
+  playerSpellcasting?: { spellRefs?: { spellId: string }[] } & Doc;
+  ownerForumUserId?: number;
+  ownerUsername?: string;
+  image?: string;
+}
+
+async function loadSheet(id: string): Promise<ISheet> {
+  if (!OBJECT_ID.test(id))
+    throw new CreationError('Ficha não encontrada.', 404);
+  const sheet = await PlayerModel.findById(id).lean<ISheet>();
+  if (!sheet) throw new CreationError('Ficha não encontrada.', 404);
+  return sheet;
+}
+
+function assertInCreation(sheet: ISheet) {
+  if (!sheet.status) {
+    throw new CreationError('Esta ficha não passou pela criação.', 409);
+  }
+}
+
+/** Edita o rascunho: a dona até a aprovação, o admin sempre. */
+function assertCanEdit(actor: IActor, sheet: ISheet) {
+  assertInCreation(sheet);
+  if (actor.isStaff) return;
+  if (!actor.isOwner) {
+    throw new CreationError(
+      'Só a dona da ficha ou um admin pode editá-la.',
+      403
+    );
+  }
+  if (sheet.status === 'approved') {
+    throw new CreationError(
+      'A ficha já foi aprovada: daqui em diante, só a subida de nível.',
+      403
+    );
+  }
+}
+
+/**
+ * Escrita no rascunho: além da permissão, a ficha precisa estar de fato no
+ * nível 1 e fora da aprovação. Os derivados são refeitos para o nível 1; numa
+ * ficha que já subiu eles corromperiam o que a subida selou. O admin edita uma
+ * ficha aprovada pelo editor completo, não por aqui.
+ */
+function assertWritable(actor: IActor, sheet: ISheet) {
+  assertCanEdit(actor, sheet);
+  if (sheet.status === 'approved') {
+    throw new CreationError(
+      'A ficha já foi aprovada: use o editor completo da ficha.',
+      409
+    );
+  }
+  if ((Number(sheet.level) || 1) > 1) {
+    throw new CreationError('A ficha já passou do nível 1.', 409);
+  }
+}
+
+/** Filtro de escrita: a dona nunca grava numa ficha aprovada. */
+const writeFilter = (id: string, actor: IActor) => ({
+  _id: id,
+  ...(actor.isStaff ? {} : { status: { $ne: 'approved' as const } }),
+});
+
+function assertAdmin(actor: IActor) {
+  if (!actor.isStaff) {
+    throw new CreationError(
+      actor.isOwner && actor.hasStaffRole
+        ? OWN_SHEET_MESSAGE
+        : 'Só a staff pode fazer isto.',
+      403
+    );
+  }
+}
+
+// ── Contexto: raça, classe e magias ──────────────────────
+
+export interface IClassInfo {
+  id: string;
+  slug: string;
+  name: string;
+  hitDie: number | null;
+  hpAtFirstLevel?: string;
+  skills: { n: number | null; list: string[] };
+  savingThrows: AttributeKey[];
+  spellcastingAbility?: AttributeKey;
+  startingGil?: string;
+  proficiencyBonus: number;
+  /** Concessões do nível 1 que são escolha, com os nomes das opções. */
+  featureChoices: { options: string[] }[];
+  /** Características garantidas do nível 1. */
+  autoFeatures: string[];
+  /** Texto de cada característica do nível 1 (opção ou garantida), por nome. */
+  featureText: Record<string, string>;
+  cantripsKnown: number;
+  slots: number[];
+  preparedLimit: number;
+  maxCircle: number;
+  caster: boolean;
+}
+
+export interface ICreationContext {
+  race: IRaceCatalogEntry | null;
+  parents: IRaceCatalogEntry[];
+  klass: IClassInfo | null;
+}
+
+const CLASS_FIELDS =
+  'name slug hitDie hpAtFirstLevel hpPerLevel startingGil spellcastingAbility proficiencies levels features isSpellcaster';
+
+export async function loadClassInfo(
+  classId: unknown
+): Promise<IClassInfo | null> {
+  const id = String(classId ?? '');
+  if (!OBJECT_ID.test(id)) return null;
+  const klass = await CharacterClassModel.findById(id)
+    .select(CLASS_FIELDS)
+    .lean<ICharacterClass & Doc>();
+  if (!klass) return null;
+  const row = (klass.levels ?? []).find((l) => l.level === 1);
+  const casting = await getClassCasting(id, 1, klass);
+  const die = parseHitDie(klass.hpPerLevel, klass.hitDie);
+  const grants = row?.grants ?? [];
+  return {
+    id,
+    slug: klass.slug,
+    name: klass.name,
+    hitDie: die?.die ?? null,
+    hpAtFirstLevel: klass.hpAtFirstLevel,
+    skills: parseSkillChoice(klass.proficiencies?.skills),
+    savingThrows: parseSavingThrows(klass.proficiencies?.savingThrows),
+    spellcastingAbility: klass.spellcastingAbility,
+    startingGil: klass.startingGil,
+    proficiencyBonus: row?.proficiencyBonus ?? 2,
+    featureChoices: grants
+      .filter((g) => g.options.length > 1)
+      .map((g) => ({ options: g.options.map((o) => o.name) })),
+    autoFeatures: grants
+      .filter((g) => g.options.length === 1)
+      .map((g) => g.options[0].name),
+    featureText: Object.fromEntries(
+      grants.flatMap((g) =>
+        g.options.map((o) => [
+          o.name,
+          (klass.features ?? []).find(
+            (f) => featureKey(f.name) === featureKey(o.name)
+          )?.description ?? '',
+        ])
+      )
+    ),
+    cantripsKnown: casting?.cantripsKnown ?? 0,
+    slots: casting?.slots ?? [],
+    preparedLimit: casting?.preparedLimit ?? 0,
+    maxCircle: casting?.maxCircle ?? 0,
+    caster: !!casting,
+  };
+}
+
+async function loadContext(sheet: ISheet): Promise<ICreationContext> {
+  const raceId = String(sheet.raceId ?? '');
+  const [race] = OBJECT_ID.test(raceId)
+    ? await getRaceCatalog({ _id: raceId })
+    : [];
+  const parentSlugs = Array.isArray(sheet.raceChoice?.parents)
+    ? (sheet.raceChoice.parents as string[])
+    : [];
+  const parents =
+    parentSlugs.length > 0
+      ? await getRaceCatalog({ slug: { $in: parentSlugs } })
+      : [];
+  return {
+    race: race ?? null,
+    parents,
+    klass: await loadClassInfo(sheet.classId),
+  };
+}
+
+async function spellCounts(refs: { spellId: string }[]) {
+  const ids = refs.map((r) => r.spellId).filter((i) => OBJECT_ID.test(i));
+  if (ids.length === 0) return { cantrips: 0, prepared: 0 };
+  const docs = await SpellModel.find({ _id: { $in: ids } })
+    .select('circle')
+    .lean<{ circle: number }[]>();
+  return {
+    cantrips: docs.filter((d) => d.circle === 0).length,
+    prepared: docs.filter((d) => d.circle > 0).length,
+  };
+}
+
+const rollSumsOf = async (sheetId: Types.ObjectId) => {
+  const roll = await CreationRollModel.findOne({
+    playerId: sheetId,
+    kind: 'attributes',
+  }).lean();
+  return roll?.sums;
+};
+
+/** O que falta, no servidor, com as MESMAS regras que a tela usa. */
+export async function evaluateSheet(sheet: ISheet, ctx?: ICreationContext) {
+  const context = ctx ?? (await loadContext(sheet));
+  const creation = sheet.creation ?? {};
+  const counts = await spellCounts(sheet.playerSpellcasting?.spellRefs ?? []);
+  const skillEntries = Array.isArray(sheet.proficiencies?.skills)
+    ? (sheet.proficiencies.skills as { proficient?: boolean }[])
+    : [];
+  const rule = context.race?.choiceRules ?? [];
+  const input: ICreationInput = {
+    name: sheet.name,
+    race: context.race ?? undefined,
+    raceChoice: sheet.raceChoice,
+    mixedNeeds: {
+      parents: 2,
+      hybrid: rule.find((r) => r.kind === 'hybridHeritage')?.count ?? 2,
+    },
+    klass: context.klass
+      ? {
+          skills: context.klass.skills,
+          featureChoiceCount: context.klass.featureChoices.length,
+          cantripsKnown: context.klass.cantripsKnown,
+          preparedLimit: context.klass.preparedLimit,
+          caster: context.klass.caster,
+        }
+      : undefined,
+    method: creation.method,
+    base: creation.base ?? {},
+    rollSums:
+      creation.method === 'roll' ? await rollSumsOf(sheet._id) : undefined,
+    racialPicks: creation.racialPicks ?? [],
+    featureChoices: creation.featureChoices ?? [],
+    skills: skillEntries
+      .filter((s) => s.proficient)
+      .map((s) => String((s as { name?: string }).name)),
+    cantrips: counts.cantrips,
+    prepared: counts.prepared,
+    soft: {
+      equipment: !!String(sheet.equipment?.backpack ?? '').trim(),
+      history:
+        !!String(sheet.backstory ?? '').trim() &&
+        !!String(sheet.appearance ?? '').trim(),
+      portrait: !!sheet.image,
+      extraLanguage: !!creation.extraLanguage,
+    },
+  };
+  const issues = creationIssues(input);
+  // O gil, quando a classe tem fórmula, vale o da rolagem gravada PARA ELA.
+  if (context.klass && parseGilFormula(context.klass.startingGil)) {
+    const roll = await CreationRollModel.findOne({
+      playerId: sheet._id,
+      kind: 'gil',
+      classSlug: context.klass.slug,
+    }).lean();
+    const gil = sheet.equipment?.gil;
+    if (!roll) {
+      issues.push({
+        step: 'equipamento',
+        kind: 'recommended',
+        message: 'O gil inicial da classe ainda não foi rolado.',
+      });
+    } else if (gil !== roll.sums[0]) {
+      issues.push({
+        step: 'equipamento',
+        kind: 'required',
+        message: 'O gil da ficha não confere com a rolagem da classe.',
+      });
+    }
+  }
+  return issues;
+}
+
+// ── Derivados ────────────────────────────────────────────
+
+/**
+ * Regrava tudo o que a ficha DERIVA do que a dona escolheu: totais de atributo
+ * (base + raça), vida do nível 1, bônus de proficiência, resistências,
+ * perícias, idiomas, características escolhidas e a conjuração da classe. É
+ * chamada depois de cada escrita, então o documento nunca guarda um número que
+ * não bate com as escolhas ao lado dele.
+ */
+async function recompute(id: string) {
+  const sheet = await loadSheet(id);
+  const ctx = await loadContext(sheet);
+  const creation = sheet.creation ?? {};
+  const set: Doc = {};
+  const sub = effectiveSubrace(
+    ctx.race ?? ({ subraces: [], name: '', slug: '' } as never),
+    typeof sheet.raceChoice?.subrace === 'string'
+      ? (sheet.raceChoice.subrace as string)
+      : undefined
+  );
+  const totals = attributeTotals(
+    creation.base ?? {},
+    ctx.race ?? undefined,
+    sub,
+    creation.racialPicks ?? []
+  );
+  const complete = ATTRIBUTES.every((k) => creation.base?.[k] !== undefined);
+  const pb = ctx.klass?.proficiencyBonus ?? 2;
+
+  if (complete) {
+    const stats: Doc = {};
+    const flat: Doc = {};
+    for (const key of ATTRIBUTES) {
+      const t = totals[key];
+      stats[key] = {
+        base: t.base,
+        raceBonus: t.race,
+        classBonus: 0,
+        total: t.total,
+        modifier: t.mod,
+      };
+      flat[key] = String(t.total);
+    }
+    set.playerStats = stats;
+    set.stats = flat;
+  }
+  set.proficiencyBonus = pb;
+
+  if (ctx.klass?.hitDie && complete) {
+    const hp = level1Hp(ctx.klass.hitDie, totals.con.total);
+    set['combat.hp.value'] = hp;
+    set['combat.hp.formula'] =
+      `${hp} (d${ctx.klass.hitDie} máximo + ${modifierOf(totals.con.total)} CON)`;
+  }
+
+  if (ctx.klass) {
+    set['proficiencies.savingThrows'] = ctx.klass.savingThrows.map((k) => ({
+      attribute: ATTRIBUTE_LABELS[k][1],
+      value: totals[k].mod + pb,
+    }));
+    const skills = Array.isArray(sheet.proficiencies?.skills)
+      ? (sheet.proficiencies.skills as { name: string }[])
+      : [];
+    set['proficiencies.skills'] = skills.map((s) => {
+      const attr = SKILL_ATTR[s.name];
+      return {
+        name: s.name,
+        proficient: true,
+        value: (attr ? totals[attr].mod : 0) + pb,
+      };
+    });
+    set.featureChoices = (creation.featureChoices ?? [])
+      .filter(Boolean)
+      .map((name) => ({ level: 1, name }));
+
+    if (ctx.klass.caster && ctx.klass.spellcastingAbility) {
+      const key = ctx.klass.spellcastingAbility;
+      const nums = castingNumbers(totals[key].total, pb);
+      set['playerSpellcasting.ability'] = ATTRIBUTE_LABELS[key][1];
+      set['playerSpellcasting.saveDC'] = nums.saveDC;
+      set['playerSpellcasting.attackBonus'] = nums.attackBonus;
+      set['playerSpellcasting.casterLevel'] = 1;
+    }
+  }
+
+  // O gil vale por classe: trocar de classe troca para a rolagem gravada dela,
+  // ou esvazia (e exige rolar).
+  const unsetGil: Doc = {};
+  if (ctx.klass) {
+    const gil = await CreationRollModel.findOne({
+      playerId: sheet._id,
+      kind: 'gil',
+      classSlug: ctx.klass.slug,
+    }).lean();
+    if (gil) {
+      set['equipment.gil'] = gil.sums[0];
+      set['creation.startingGil'] = gil.sums[0];
+    } else {
+      unsetGil['equipment.gil'] = '';
+      unsetGil['creation.startingGil'] = '';
+    }
+  }
+
+  const locked = ctx.race ? raceLanguages(ctx.race, sub, ctx.parents) : [];
+  set.languages = [
+    ...locked,
+    ...(creation.extraLanguage && !locked.includes(creation.extraLanguage)
+      ? [creation.extraLanguage]
+      : []),
+  ];
+
+  await PlayerModel.updateOne(
+    { _id: id },
+    {
+      $set: set,
+      ...(Object.keys(unsetGil).length ? { $unset: unsetGil } : {}),
+    }
+  );
+}
+
+// ── Eventos ──────────────────────────────────────────────
+
+async function record(
+  sheet: ISheet,
+  kind: PlayerEventKind,
+  reason: string,
+  actor: { username: string; forumUserId: number }
+) {
+  await PlayerEventModel.create({
+    playerId: sheet._id,
+    kind,
+    reason,
+    byUsername: actor.username,
+    byForumUserId: actor.forumUserId,
+    at: new Date(),
+  });
+}
+
+// ── Criar a ficha vazia (staff, no app) ──────────────────
+
+const randomUnit = () => randomInt(0, 1_000_000) / 1_000_000;
+
+export async function createBlankSheet(
+  ownerForumUserId: number,
+  staff: { username: string; forumUserId?: number }
+) {
+  if (!Number.isInteger(ownerForumUserId)) {
+    throw new CreationError('Escolha uma conta do fórum.');
+  }
+  const owner = await UserModel.findOne({ forumUserId: ownerForumUserId })
+    .select('username forumUserId')
+    .lean<{ username: string } | null>();
+  if (!owner) {
+    throw new CreationError('Conta do fórum não encontrada.', 404);
+  }
+  const created = await PlayerModel.create({
+    // O slug é provisório e muda quando o nome é escolhido; a tag do fórum usa
+    // o `_id`, que não muda.
+    slug: `ficha-${randomUUID().slice(0, 8)}`,
+    status: 'blank',
+    ownerForumUserId,
+    ownerUsername: owner.username,
+    level: 1,
+    experience: { current: 0, nextLevel: xpToNext(1) ?? 0 },
+    proficiencyBonus: 2,
+    creation: {},
+    review: [],
+  } as never);
+  await record(
+    created.toObject() as unknown as ISheet,
+    'create',
+    `Ficha vazia criada para ${owner.username}`,
+    { username: staff.username, forumUserId: staff.forumUserId ?? 0 }
+  );
+  return { id: String(created._id), ownerUsername: owner.username };
+}
+
+/** As contas do fórum e as fichas que cada uma já tem, para o seletor da staff. */
+export async function listOwnersWithSheets() {
+  const users = await UserModel.find({ forumUserId: { $exists: true } })
+    .select('username forumUserId avatarUrl')
+    .sort({ username: 1 })
+    .lean<{ username: string; forumUserId: number; avatarUrl?: string }[]>();
+  const sheets = await PlayerModel.find({
+    ownerForumUserId: { $in: users.map((u) => u.forumUserId) },
+  })
+    .select('name ownerForumUserId status class')
+    .lean<
+      {
+        _id: unknown;
+        name?: string;
+        ownerForumUserId: number;
+        status?: PlayerStatus;
+        class?: string;
+      }[]
+    >();
+  return users.map((u) => ({
+    username: u.username,
+    forumUserId: u.forumUserId,
+    avatarUrl: u.avatarUrl,
+    sheets: sheets
+      .filter((s) => s.ownerForumUserId === u.forumUserId)
+      .map((s) => ({
+        id: String(s._id),
+        name: s.name || '',
+        status: s.status ?? 'approved',
+        class: s.class,
+      })),
+  }));
+}
+
+// ── Leitura para a dona e a staff ────────────────────────
+
+const rollView = (r: {
+  rollId: string;
+  kind: string;
+  sets: number[][];
+  sums: number[];
+  formula?: string;
+  classSlug?: string;
+  at: Date;
+  byUsername: string;
+}) => ({
+  rollId: r.rollId,
+  kind: r.kind,
+  classSlug: r.classSlug,
+  sets: r.sets,
+  sums: r.sums,
+  formula: r.formula,
+  at: new Date(r.at).toISOString(),
+  byUsername: r.byUsername,
+});
+
+export async function getCreation(id: string, actor: IActor) {
+  const sheet = await loadSheet(id);
+  assertInCreation(sheet);
+  // A leitura vale também depois da aprovação, mas só para a staff conferir.
+  if (!actor.isStaff && !(actor.isOwner && sheet.status !== 'approved')) {
+    throw new CreationError('Sem permissão para ver este rascunho.', 403);
+  }
+  const ctx = await loadContext(sheet);
+  const rolls = await CreationRollModel.find({ playerId: sheet._id }).lean();
+  return {
+    status: sheet.status as PlayerStatus,
+    creation: sheet.creation ?? {},
+    review: sheet.review ?? [],
+    context: ctx,
+    rolls: rolls.map(rollView),
+    issues: await evaluateSheet(sheet, ctx),
+    // A ficha como a leitura a resolve (raça, classe e magias já ligadas).
+    player: await getPlayerById(id),
+  };
+}
+
+// ── Rascunho ─────────────────────────────────────────────
+
+const SCALARS: Record<string, number> = {
+  name: 120,
+  subtitle: 160,
+  gender: 60,
+  age: 60,
+  height: 60,
+  family: 120,
+  kingdom: 120,
+  clan: 120,
+  deity: 120,
+  image: 600,
+  appearance: 20000,
+  backstory: 20000,
+  narrationStyle: 6000,
+};
+const MAX_FREE_SKILLS = 20;
+const EQUIPMENT_KEYS = [
+  'head',
+  'torso',
+  'legs',
+  'feet',
+  'hand',
+  'offhand',
+  'accessory1',
+  'accessory2',
+  'backpack',
+];
+
+const asciiFold = (text: string) =>
+  text.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+
+export const slugOf = (name: string) =>
+  asciiFold(name)
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 60);
+
+async function uniqueSlug(
+  name: string,
+  id: Types.ObjectId
+): Promise<string | null> {
+  const base = slugOf(name);
+  if (!base) return null;
+  for (let n = 1; n < 50; n += 1) {
+    const slug = n === 1 ? base : `${base}-${n}`;
+    const clash = await PlayerModel.findOne({ slug, _id: { $ne: id } })
+      .select('_id')
+      .lean();
+    if (!clash) return slug;
+  }
+  return null;
+}
+
+export interface IDraftBody {
+  fields?: Doc;
+  creation?: Partial<ICreationState>;
+  skills?: string[];
+}
+
+export async function saveDraft(id: string, body: IDraftBody, actor: IActor) {
+  const sheet = await loadSheet(id);
+  assertWritable(actor, sheet);
+
+  const fields = stripUnsafeKeys(
+    isRecord(body?.fields) ? body.fields : {}
+  ) as Doc;
+  const update: Doc = {};
+  const unset: Doc = {};
+
+  for (const [key, max] of Object.entries(SCALARS)) {
+    if (!(key in fields)) continue;
+    const value = fields[key];
+    if (typeof value !== 'string') continue;
+    const text = value.slice(0, max);
+    if (key === 'image' && text.trim()) {
+      // A dona só usa imagem enviada ao app; o admin também pode colar http(s).
+      const ok = actor.isStaff ? isImageUrl(text) : isUploadedImageUrl(text);
+      if (!ok) {
+        throw new CreationError(
+          actor.isStaff
+            ? 'Use um link http(s) ou uma imagem enviada.'
+            : 'Envie o retrato como arquivo: links externos não são aceitos.'
+        );
+      }
+    }
+    if (text.trim()) update[key] = text;
+    else unset[key] = '';
+  }
+
+  if (isRecord(fields.equipment)) {
+    // Caminho ponto a ponto, e não o objeto inteiro: uma gravação concorrente
+    // (a rolagem do gil) não pode ser desfeita por um instantâneo velho. O gil
+    // só muda pela rolagem, então nem está na lista.
+    for (const key of EQUIPMENT_KEYS) {
+      const value = (fields.equipment as Doc)[key];
+      if (typeof value === 'string') {
+        update[`equipment.${key}`] = value.slice(0, 20000);
+      }
+    }
+  }
+
+  const stored: IStoredSheetLinks = {
+    _id: sheet._id,
+    slug: sheet.slug,
+    race: sheet.race as string | undefined,
+    raceId: sheet.raceId,
+    raceChoice: sheet.raceChoice,
+    classId: sheet.classId,
+    level: 1,
+    talents: sheet.talents,
+    playerSpellcasting: sheet.playerSpellcasting,
+  };
+  const prev = {
+    classId: sheet.classId,
+    class: sheet.class as string | undefined,
+    raceId: sheet.raceId,
+    race: sheet.race as string | undefined,
+    raceChoice: sheet.raceChoice,
+  };
+
+  const link: Doc = {};
+  if ('raceId' in fields) link.raceId = fields.raceId;
+  if ('raceChoice' in fields) link.raceChoice = fields.raceChoice;
+  if ('classId' in fields) link.classId = fields.classId;
+  const nextRace =
+    'raceId' in link ? String(link.raceId ?? '') : String(sheet.raceId ?? '');
+  const nextClass =
+    'classId' in link
+      ? String(link.classId ?? '')
+      : String(sheet.classId ?? '');
+  const raceChanged = nextRace !== String(sheet.raceId ?? '');
+  const classChanged = nextClass !== String(sheet.classId ?? '');
+
+  if (Object.keys(link).length > 0) {
+    try {
+      await prepareSheetLinksWrite(stored, link);
+    } catch (error) {
+      if (error instanceof PlayerSheetError) {
+        throw new CreationError(
+          error.message,
+          error.name === 'UniqueConflictError' ? 409 : 400
+        );
+      }
+      throw error;
+    }
+    Object.assign(update, link);
+    if ('classId' in link && link.classId === null) unset.class = '';
+    // Sem raça, o texto da raça também sai.
+    if ('raceId' in link && link.raceId === null) unset.race = '';
+    // O nível 1 da raça e da classe é o único que existe: nada de talento.
+    update.talents = [];
+    update.talentMilestones = [];
+  }
+
+  // Magias: truques e preparadas juntos em `spellRefs`, dentro dos limites.
+  const castingIn = isRecord(fields.playerSpellcasting)
+    ? fields.playerSpellcasting
+    : null;
+  let nextRefs: { spellId: string; prepared: boolean }[] | null = null;
+  if (castingIn && Array.isArray(castingIn.spellRefs)) {
+    nextRefs = (castingIn.spellRefs as unknown[]).flatMap((ref) => {
+      const spellId = isRecord(ref) ? String(ref.spellId ?? '') : '';
+      return OBJECT_ID.test(spellId) ? [{ spellId, prepared: true }] : [];
+    });
+  }
+  if (classChanged) nextRefs = [];
+  if (nextRefs) {
+    try {
+      await assertSpellLimits({
+        classId: nextClass || null,
+        level: 1,
+        nextRefs,
+        storedRefs: sheet.playerSpellcasting?.spellRefs,
+      });
+    } catch (error) {
+      if (error instanceof PlayerSheetError) {
+        throw new CreationError(error.message, 400);
+      }
+      throw error;
+    }
+    update['playerSpellcasting.spellRefs'] = nextRefs;
+  }
+
+  // ── O que é estado da criação ──
+  const incoming = isRecord(body?.creation) ? body.creation : {};
+  // `creation` é lido para validar, mas gravado por caminho ponto
+  // (`creation.method`, `creation.base`…): nunca o objeto inteiro de um
+  // instantâneo, que desfaria uma rolagem ou outro passo concorrente.
+  const creation: ICreationState = { ...(sheet.creation ?? {}) };
+
+  if (raceChanged) {
+    creation.racialPicks = [];
+    update['creation.racialPicks'] = [];
+  }
+  if (classChanged) {
+    creation.featureChoices = [];
+    update['creation.featureChoices'] = [];
+    update['proficiencies.skills'] = [];
+  }
+
+  if ('method' in incoming) {
+    const method = incoming.method as AttributeMethod | undefined;
+    if (method && !['pointBuy', 'standardArray', 'roll'].includes(method)) {
+      throw new CreationError('Método de atributos inválido.');
+    }
+    if (creation.rollId && method !== 'roll') {
+      throw new CreationError(
+        'Os atributos já foram rolados: a rolagem trava os outros métodos.',
+        409
+      );
+    }
+    if (method === 'roll' && !creation.rollId) {
+      throw new CreationError('Role os atributos para usar a rolagem.', 409);
+    }
+    if (method !== creation.method) {
+      creation.method = method;
+      creation.base = {};
+      if (method) update['creation.method'] = method;
+      else unset['creation.method'] = '';
+      update['creation.base'] = {};
+    }
+  }
+
+  if ('base' in incoming) {
+    const base: Base = {};
+    const raw = isRecord(incoming.base) ? incoming.base : {};
+    for (const key of ATTRIBUTES) {
+      if (raw[key] !== undefined && raw[key] !== null) {
+        base[key] = Number(raw[key]);
+      }
+    }
+    const check = checkBase(
+      creation.method,
+      base,
+      creation.method === 'roll' ? await rollSumsOf(sheet._id) : undefined
+    );
+    if (!creation.method) {
+      throw new CreationError('Escolha o método de atributos primeiro.');
+    }
+    if (!check.ok)
+      throw new CreationError(check.message ?? 'Atributos inválidos.');
+    creation.base = base;
+    update['creation.base'] = base;
+  }
+
+  if ('racialPicks' in incoming || raceChanged) {
+    if ('racialPicks' in incoming) {
+      creation.racialPicks = Array.isArray(incoming.racialPicks)
+        ? incoming.racialPicks.map(String)
+        : [];
+      update['creation.racialPicks'] = creation.racialPicks;
+    }
+    const race = OBJECT_ID.test(nextRace)
+      ? (await getRaceCatalog({ _id: nextRace }))[0]
+      : undefined;
+    const choice = (update.raceChoice ?? sheet.raceChoice) as Doc | undefined;
+    const spec = raceBonus(
+      race,
+      race
+        ? effectiveSubrace(
+            race,
+            typeof choice?.subrace === 'string' ? choice.subrace : undefined
+          )
+        : undefined
+    );
+    const check = checkRacialPicks(spec, creation.racialPicks ?? []);
+    if (!check.ok) {
+      throw new CreationError(check.message ?? 'Bônus de atributo inválido.');
+    }
+  }
+
+  if ('featureChoices' in incoming) {
+    const info = await loadClassInfo(nextClass);
+    const picks = Array.isArray(incoming.featureChoices)
+      ? incoming.featureChoices.map(String)
+      : [];
+    const grants = info?.featureChoices ?? [];
+    if (picks.length > grants.length) {
+      throw new CreationError('Escolhas de característica demais.');
+    }
+    picks.forEach((pick, i) => {
+      if (pick && !grants[i]?.options.includes(pick)) {
+        throw new CreationError(`Opção inválida: "${pick}".`);
+      }
+    });
+    creation.featureChoices = picks;
+    update['creation.featureChoices'] = picks;
+  }
+
+  if ('extraLanguage' in incoming) {
+    const lang = String(incoming.extraLanguage ?? '')
+      .trim()
+      .slice(0, 40);
+    if (lang) {
+      creation.extraLanguage = lang;
+      update['creation.extraLanguage'] = lang;
+    } else {
+      delete creation.extraLanguage;
+      unset['creation.extraLanguage'] = '';
+    }
+  }
+
+  if (Array.isArray(body?.skills)) {
+    const info = await loadClassInfo(nextClass);
+    if (!info) throw new CreationError('Escolha a classe antes das perícias.');
+    const wanted = [...new Set(body.skills.map(String))];
+    // Sem lista na classe a escolha é livre: limita quantidade e tamanho.
+    if (wanted.length > MAX_FREE_SKILLS || wanted.some((w) => w.length > 40)) {
+      throw new CreationError('Perícias demais ou com nome longo demais.');
+    }
+    const allowed = info.skills.list;
+    const canonical = wanted.map((w) => {
+      if (allowed.length === 0) return w;
+      const hit = allowed.find((a) => asciiFold(a) === asciiFold(w));
+      if (!hit)
+        throw new CreationError(`"${w}" não é uma perícia desta classe.`);
+      return hit;
+    });
+    if (info.skills.n !== null && canonical.length > info.skills.n) {
+      throw new CreationError(`Esta classe escolhe ${info.skills.n} perícias.`);
+    }
+    update['proficiencies.skills'] = canonical.map((name) => ({
+      name,
+      proficient: true,
+    }));
+  }
+
+  // O nome define o slug (que não é a chave da tag do fórum, o `_id` é).
+  if (typeof update.name === 'string' && sheet.status !== 'approved') {
+    const slug = await uniqueSlug(update.name as string, sheet._id);
+    if (slug && slug !== sheet.slug) update.slug = slug;
+  }
+
+  if (sheet.status === 'blank') update.status = 'draft';
+
+  const $set: Doc = { ...update };
+  const $unset: Doc = { ...unset };
+  if (Object.keys($set).length === 0 && Object.keys($unset).length === 0) {
+    return getCreation(id, actor);
+  }
+  const written = await PlayerModel.updateOne(writeFilter(id, actor), {
+    ...(Object.keys($set).length ? { $set } : {}),
+    ...(Object.keys($unset).length ? { $unset } : {}),
+  });
+  if (written.matchedCount === 0) {
+    throw new CreationError(
+      'A ficha mudou de estado enquanto você editava.',
+      409
+    );
+  }
+
+  if (update.classId || update.raceId) {
+    await guardUniqueAfterWrite(id, prev, update).catch((error) => {
+      if (error instanceof PlayerSheetError) {
+        throw new CreationError(
+          error.message,
+          error.name === 'UniqueConflictError' ? 409 : 400
+        );
+      }
+      throw error;
+    });
+  }
+
+  await recompute(id);
+  return getCreation(id, actor);
+}
+
+// ── Rolagens (definitivas) ───────────────────────────────
+
+let rollIndexReady: Promise<unknown> | null = null;
+
+/**
+ * Garante o índice único (ficha, tipo, classe) antes do primeiro sorteio. O
+ * índice antigo (ficha, tipo) impediria um segundo gil, de outra classe, então
+ * é descartado se ainda existir.
+ */
+function ensureRollIndex() {
+  rollIndexReady ??= (async () => {
+    await CreationRollModel.collection
+      .dropIndex('playerId_1_kind_1')
+      .catch(() => undefined);
+    await CreationRollModel.init();
+  })().catch((error) => {
+    // Falha passageira (rede, Atlas): a próxima rolagem tenta de novo, em vez
+    // de herdar a promessa rejeitada até o processo reiniciar.
+    rollIndexReady = null;
+    throw error;
+  });
+  return rollIndexReady;
+}
+
+async function recordRoll(
+  sheet: ISheet,
+  kind: 'attributes' | 'gil',
+  build: () => { sets: number[][]; sums: number[]; formula?: string },
+  actor: IActor,
+  classSlug?: string
+) {
+  const where = {
+    playerId: sheet._id,
+    kind,
+    ...(classSlug ? { classSlug } : { classSlug: { $exists: false } }),
+  };
+  const existing = await CreationRollModel.findOne(where).lean();
+  if (existing) return { ...rollView(existing), alreadyRolled: true };
+
+  await ensureRollIndex();
+  try {
+    const created = await CreationRollModel.create({
+      rollId: `rol-${randomUUID().slice(0, 8)}`,
+      playerId: sheet._id,
+      kind,
+      ...(classSlug ? { classSlug } : {}),
+      ...build(),
+      byUsername: actor.username,
+      byForumUserId: actor.forumUserId,
+      at: new Date(),
+    });
+    return { ...rollView(created), alreadyRolled: false };
+  } catch (error) {
+    if ((error as { code?: number }).code === 11000) {
+      const winner = await CreationRollModel.findOne(where).lean();
+      if (winner) return { ...rollView(winner), alreadyRolled: true };
+    }
+    throw error;
+  }
+}
+
+/** 6×4d6 no servidor, uma vez só. Recarregar devolve a mesma rolagem. */
+export async function rollAttributes(id: string, actor: IActor) {
+  const sheet = await loadSheet(id);
+  assertWritable(actor, sheet);
+  const result = await recordRoll(
+    sheet,
+    'attributes',
+    () => rollAttributeSets(randomUnit),
+    actor
+  );
+  // Rolagem nova, ou rolagem que ficou sem o vínculo na ficha (a gravação do
+  // vínculo falhou depois do sorteio): religa o método e o `rollId`. A base já
+  // atribuída não se apaga numa rolagem que já existia.
+  const relink = !result.alreadyRolled || !sheet.creation?.rollId;
+  if (relink) {
+    await PlayerModel.updateOne(writeFilter(id, actor), {
+      $set: {
+        'creation.method': 'roll',
+        'creation.rollId': result.rollId,
+        ...(result.alreadyRolled ? {} : { 'creation.base': {} }),
+        ...(sheet.status === 'blank' ? { status: 'draft' } : {}),
+      },
+    });
+  }
+  return result;
+}
+
+/**
+ * O gil inicial da classe, rolado no servidor, uma vez só POR CLASSE. Trocar de
+ * classe pede outra rolagem e guarda a anterior; voltar a uma classe já rolada
+ * reaproveita a rolagem dela.
+ */
+export async function rollStartingGil(id: string, actor: IActor) {
+  const sheet = await loadSheet(id);
+  assertWritable(actor, sheet);
+  const info = await loadClassInfo(sheet.classId);
+  if (!info) throw new CreationError('Escolha a classe antes do gil.', 409);
+  const formula = parseGilFormula(info.startingGil);
+  if (!formula) {
+    throw new CreationError('Esta classe não tem fórmula de gil inicial.', 409);
+  }
+  const result = await recordRoll(
+    sheet,
+    'gil',
+    () => {
+      const r = rollGil(formula, randomUnit);
+      return { sets: [r.dice], sums: [r.total], formula: info.startingGil };
+    },
+    actor,
+    info.slug
+  );
+  // Sempre alinha a ficha com a rolagem DESTA classe (também religa uma
+  // rolagem que ficou sem a gravação).
+  await PlayerModel.updateOne(writeFilter(id, actor), {
+    $set: {
+      'equipment.gil': result.sums[0],
+      'creation.startingGil': result.sums[0],
+      ...(sheet.status === 'blank' ? { status: 'draft' } : {}),
+    },
+  });
+  return result;
+}
+
+// ── Enviar, aprovar, devolver ────────────────────────────
+
+const pushReview = (entry: IReviewEntry) => ({
+  $push: { review: entry },
+});
+
+const REASON_RETURN = 'Ficha devolvida';
+
+/**
+ * Enviar: de rascunho ou devolvida. Reenviar uma ficha já enviada não repete
+ * a entrada de revisão nem o evento. A mudança de estado é uma escrita só,
+ * com o estado de origem no filtro: duas requisições simultâneas não duplicam.
+ */
+export async function submitSheet(id: string, actor: IActor) {
+  const sheet = await loadSheet(id);
+  assertWritable(actor, sheet);
+  const issues = await evaluateSheet(sheet);
+  if (issues.some((i) => i.kind === 'required')) {
+    throw new CreationError('Ainda falta o que é obrigatório.', 422, issues);
+  }
+  if (sheet.status === 'submitted') {
+    return { status: 'submitted' as const, issues };
+  }
+  const at = new Date().toISOString();
+  const moved = await PlayerModel.updateOne(
+    { _id: id, status: { $in: ['blank', 'draft', 'returned'] as const } },
+    {
+      $set: { status: 'submitted', 'creation.submittedAt': at },
+      ...pushReview({ kind: 'submit', by: actor.username, at }),
+    }
+  );
+  if (moved.matchedCount === 0) {
+    const now = await loadSheet(id);
+    if (now.status === 'submitted') {
+      return { status: 'submitted' as const, issues };
+    }
+    throw new CreationError('A ficha mudou de estado.', 409);
+  }
+  await record(sheet, 'submit', 'Ficha enviada para aprovação', actor);
+  return { status: 'submitted' as const, issues };
+}
+
+export async function approveSheet(id: string, actor: IActor) {
+  assertAdmin(actor);
+  const sheet = await loadSheet(id);
+  assertInCreation(sheet);
+  if (sheet.status === 'approved') {
+    throw new CreationError('A ficha já foi aprovada.', 409);
+  }
+  const issues = await evaluateSheet(sheet);
+  if (issues.some((i) => i.kind === 'required')) {
+    throw new CreationError('Ainda falta o que é obrigatório.', 422, issues);
+  }
+  const at = new Date().toISOString();
+  const moved = await PlayerModel.updateOne(
+    {
+      _id: id,
+      status: { $in: ['blank', 'draft', 'submitted', 'returned'] as const },
+    },
+    {
+      $set: { status: 'approved' },
+      ...pushReview({ kind: 'approve', by: actor.username, at }),
+    }
+  );
+  if (moved.matchedCount === 0) {
+    throw new CreationError('A ficha já foi aprovada.', 409);
+  }
+  await record(sheet, 'approve', 'Ficha aprovada', actor);
+  return { status: 'approved' as const };
+}
+
+export async function returnSheet(
+  id: string,
+  body: { notes?: unknown; steps?: unknown },
+  actor: IActor
+) {
+  assertAdmin(actor);
+  const sheet = await loadSheet(id);
+  assertInCreation(sheet);
+  const notes = typeof body.notes === 'string' ? body.notes.trim() : '';
+  if (!notes) {
+    throw new CreationError('Escreva as observações para a dona da ficha.');
+  }
+  if (sheet.status !== 'submitted') {
+    throw new CreationError('Só uma ficha enviada pode ser devolvida.', 409);
+  }
+  const steps = (Array.isArray(body.steps) ? body.steps : [])
+    .map(String)
+    .filter((s): s is CreationStep => STEPS.includes(s as CreationStep));
+  const at = new Date().toISOString();
+  const moved = await PlayerModel.updateOne(
+    { _id: id, status: 'submitted' },
+    {
+      $set: { status: 'returned' },
+      ...pushReview({
+        kind: 'return',
+        notes: notes.slice(0, 4000),
+        steps,
+        by: actor.username,
+        at,
+      }),
+    }
+  );
+  if (moved.matchedCount === 0) {
+    throw new CreationError('A ficha mudou de estado.', 409);
+  }
+  // As observações ficam só em `review` (que a leitura pública não entrega); o
+  // histórico de eventos não as repete.
+  await record(sheet, 'return', REASON_RETURN, actor);
+  return { status: 'returned' as const };
+}

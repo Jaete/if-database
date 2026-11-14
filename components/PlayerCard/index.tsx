@@ -13,6 +13,13 @@ interface IProps {
   onEditInNewTab?: (player: IPlayer) => void;
 }
 
+const STATUS_LABEL: Record<string, string> = {
+  blank: 'rascunho em branco',
+  draft: 'rascunho',
+  submitted: 'aguardando aprovação',
+  returned: 'devolvida',
+};
+
 // IPlayer estende ICitizen, então o card é o mesmo; o que muda é o subtítulo,
 // que aqui mostra de quem é o personagem.
 const PlayerCard = ({
@@ -22,13 +29,23 @@ const PlayerCard = ({
   onDelete,
   onEditInNewTab,
 }: IProps) => {
-  const subtitle = [player.race, player.class, player.ownerUsername]
+  const subtitle = [
+    player.race,
+    player.class,
+    player.ownerUsername,
+    // Ficha antiga não tem `status`; as outras mostram onde estão.
+    player.status && player.status !== 'approved'
+      ? STATUS_LABEL[player.status]
+      : undefined,
+  ]
     .filter(Boolean)
     .join(' · ');
 
   return (
     <CitizenCard
-      citizen={player}
+      citizen={
+        { ...player, name: player.name || 'Ficha em criação' } as IPlayer
+      }
       subtitle={subtitle}
       menuItems={[
         {

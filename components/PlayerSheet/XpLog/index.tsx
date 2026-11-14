@@ -11,6 +11,10 @@ const KIND_LABEL: Record<string, string> = {
   reopen: 'reabertura',
   seal: 'selo',
   edit: 'edição',
+  create: 'criação',
+  submit: 'envio',
+  approve: 'aprovação',
+  return: 'devolução',
 };
 
 const when = (iso: string) =>
@@ -84,7 +88,7 @@ const XpLog = () => {
               <span className={handles.sheetXpLogTag}>
                 {reached || KIND_LABEL[e.kind]}
               </span>
-            ) : access.isAdmin && e.kind === 'grant' && !e.reversed ? (
+            ) : access.isStaff && e.kind === 'grant' && !e.reversed ? (
               <span className={handles.sheetXpLogAct}>
                 <button
                   type="button"

@@ -42,6 +42,8 @@ export async function getRaceOptions() {
  * Derivado, como `getUniqueClassHolders`: apagar o personagem ou trocar de
  * raça libera a vaga sozinho. Só jogadores têm `raceId`.
  */
+const unsent = (status?: string) => status === 'blank' || status === 'draft';
+
 export async function getUniqueRaceHolders(): Promise<
   Map<string, { id: string; name: string; slug: string }>
 > {
@@ -55,15 +57,24 @@ export async function getUniqueRaceHolders(): Promise<
   const found = await PlayerModel.find({
     raceId: { $in: unique.map((r) => String(r._id)) },
   })
-    .select('_id name slug raceId')
-    .lean<{ _id: unknown; name?: string; slug?: string; raceId?: unknown }[]>();
+    .select('_id name slug raceId status')
+    .lean<
+      {
+        _id: unknown;
+        name?: string;
+        slug?: string;
+        raceId?: unknown;
+        status?: string;
+      }[]
+    >();
   for (const doc of found) {
     const key = String(doc.raceId);
     if (!holders.has(key)) {
       holders.set(key, {
         id: String(doc._id),
-        name: String(doc.name ?? ''),
-        slug: String(doc.slug ?? ''),
+        // Rascunho não enviado não mostra nome nem endereço da ficha.
+        name: unsent(doc.status) ? '' : String(doc.name ?? ''),
+        slug: unsent(doc.status) ? '' : String(doc.slug ?? ''),
       });
     }
   }
@@ -107,9 +118,11 @@ const CATALOG_FIELDS = [
   'unique',
   'images',
   'abilityScoreIncrease',
+  'abilityBonusOverride',
   'speed',
   'size',
   'languages',
+  'languagesOverride',
   'traits',
   'baseOnlyTraits',
   'choiceRules',
@@ -117,6 +130,8 @@ const CATALOG_FIELDS = [
   'subraces.slug',
   'subraces.group',
   'subraces.abilityScoreIncrease',
+  'subraces.abilityBonusOverride',
+  'subraces.languagesOverride',
   'subraces.speed',
   'subraces.size',
   'subraces.languages',

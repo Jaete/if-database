@@ -13,6 +13,7 @@ import type {
 import type ICharacterClass from '../db/classes/class.d';
 import type { IClassLevel } from '../db/classes/class.d';
 import { archetypePickOf, featureKey } from '../db/l10n/classes';
+import { OWN_SHEET_MESSAGE, sheetFlags } from '../lib/sheetAccess';
 import { modifierOf, type AttributeKey } from '../lib/stats';
 import { archetypeFeatureOpen } from '../lib/archetypeFeatureLevel';
 import { earnedLevel, xpToNext, MAX_LEVEL } from '../lib/xp';
@@ -67,8 +68,11 @@ export class LevelUpError extends Error {
 export interface IActor {
   username: string;
   forumUserId: number;
-  isAdmin: boolean;
+  /** Poder de staff NESTA ficha (nunca na própria). Ver lib/sheetAccess.ts. */
+  isStaff: boolean;
   isOwner: boolean;
+  /** Tem papel de staff, mesmo sendo a dona: só para a mensagem de recusa. */
+  hasStaffRole?: boolean;
 }
 
 type Doc = Record<string, unknown>;
@@ -89,10 +93,18 @@ interface IPlayerDoc extends Doc {
   updatedAt?: Date;
 }
 
-async function loadPlayer(id: string): Promise<IPlayerDoc> {
+async function loadPlayer(
+  id: string,
+  options: { allowCreation?: boolean } = {}
+): Promise<IPlayerDoc> {
   if (!OBJECT_ID.test(id)) throw new LevelUpError('Ficha não encontrada.', 404);
   const player = await PlayerModel.findById(id).lean<IPlayerDoc>();
   if (!player) throw new LevelUpError('Ficha não encontrada.', 404);
+  // Uma ficha ainda em criação não sobe de nível: sem `status` é ficha antiga.
+  const status = (player as { status?: string }).status;
+  if (!options.allowCreation && status && status !== 'approved') {
+    throw new LevelUpError('A ficha ainda está em criação.', 409);
+  }
   return player;
 }
 
@@ -113,37 +125,42 @@ const levelOf = (p: IPlayerDoc) =>
   Math.max(1, Math.floor(Number(p.level) || 1));
 const poolOf = (p: IPlayerDoc) => Number(p.experience?.current) || 0;
 
-/** O acesso de quem está vendo: dono da ficha e/ou admin. */
+/** O acesso de quem está vendo: dono da ficha OU staff (nunca os dois). */
 export async function getAccess(
   playerId: string,
   session: { forumUserId: number; role: string } | null
 ) {
   if (!session || !OBJECT_ID.test(playerId)) {
-    return { isAdmin: false, isOwner: false };
+    return { isStaff: false, isOwner: false, hasStaffRole: false };
   }
   const player = await PlayerModel.findById(playerId)
     .select('ownerForumUserId')
     .lean<{ ownerForumUserId?: number }>();
-  return {
-    isAdmin: session.role === 'admin',
-    isOwner:
-      !!player &&
-      typeof player.ownerForumUserId === 'number' &&
-      player.ownerForumUserId === session.forumUserId,
-  };
+  const isOwner =
+    !!player &&
+    typeof player.ownerForumUserId === 'number' &&
+    player.ownerForumUserId === session.forumUserId;
+  // O dono vence o papel: quem é dono da ficha é só jogador nela.
+  return sheetFlags(session.role, isOwner);
 }
 
 function assertLevelPermission(actor: IActor) {
-  if (!actor.isAdmin && !actor.isOwner) {
+  if (!actor.isStaff && !actor.isOwner) {
     throw new LevelUpError(
-      'Só o dono da ficha ou um admin pode subir de nível.',
+      'Só o dono da ficha ou a staff pode subir de nível.',
       403
     );
   }
 }
 function assertAdmin(actor: IActor) {
-  if (!actor.isAdmin)
-    throw new LevelUpError('Só um admin pode fazer isto.', 403);
+  if (!actor.isStaff) {
+    throw new LevelUpError(
+      actor.isOwner && actor.hasStaffRole
+        ? OWN_SHEET_MESSAGE
+        : 'Só a staff pode fazer isto.',
+      403
+    );
+  }
 }
 
 // ── XP ───────────────────────────────────────────────────
@@ -245,7 +262,7 @@ export async function grantXp(
         : []
     );
 
-  const player = await loadPlayer(playerId);
+  const player = await loadPlayer(playerId, { allowCreation: true });
 
   let reversalOf: Types.ObjectId | undefined;
   if (input.reversalOf) {
@@ -799,7 +816,7 @@ export type CanonResult = { choices: ISealChoices } | { error: string };
 export function canonicalizeChoices(
   plan: ILevelPlan,
   raw: unknown,
-  actor: Pick<IActor, 'isAdmin'>
+  actor: Pick<IActor, 'isStaff'>
 ): CanonResult {
   if (!isRecord(raw)) return { error: 'Escolhas inválidas.' };
   const c = raw;
@@ -964,10 +981,10 @@ export function canonicalizeChoices(
       plan.attributes.con.total +
         (milestone?.use === 'attribute' ? (milestone.points.con ?? 0) : 0)
     );
-    const max = actor.isAdmin ? 100_000 : Math.max(1, 12 + conMod);
+    const max = actor.isStaff ? 100_000 : Math.max(1, 12 + conMod);
     if (hp.mode !== 'manual' || !Number.isInteger(v) || v < 1 || v > max) {
       return bad(
-        actor.isAdmin
+        actor.isStaff
           ? 'Informe a vida ganha neste nível.'
           : `Informe a vida ganha neste nível (de 1 a ${max}).`
       );
@@ -1531,7 +1548,7 @@ export async function markSeen(
 ) {
   assertLevelPermission(actor);
   if (!actor.isOwner) return { cleared: 0 };
-  const player = await loadPlayer(playerId);
+  const player = await loadPlayer(playerId, { allowCreation: true });
   const novelties = asArray<INovelty>(player.novelties);
   const kept = novelties.filter((n) => n.section !== section);
   if (kept.length === novelties.length) return { cleared: 0 };

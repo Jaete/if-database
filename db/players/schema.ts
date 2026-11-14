@@ -12,14 +12,23 @@ import {
   recountClassPlayersSafely,
 } from './classPlayerCount';
 
+// Nome, raça, gênero e classe são obrigatórios na ficha pronta; numa ficha em
+// criação (`blank`, `draft`, `submitted`, `returned`) a dona os preenche aos
+// poucos e a conferência passa para o envio (lib/creation.ts). Documento sem
+// `status` é ficha antiga e continua exigindo tudo. Em update por query o `this`
+// não é o documento: sem `status` visível, vale o caso rigoroso.
+function requiredWhenApproved(this: { status?: string } | undefined) {
+  return !this?.status || this.status === 'approved';
+}
+
 const PlayerSchema = new Schema<IPlayer>(
   {
     // ── Identidade ──
     slug: { type: String, required: true, unique: true },
-    name: { type: String, required: true },
-    race: { type: String, required: true },
-    gender: { type: String, required: true },
-    class: { type: String, required: true },
+    name: { type: String, required: requiredWhenApproved },
+    race: { type: String, required: requiredWhenApproved },
+    gender: { type: String, required: requiredWhenApproved },
+    class: { type: String, required: requiredWhenApproved },
     age: { type: String },
     height: { type: String },
     family: { type: String },
@@ -166,6 +175,18 @@ const PlayerSchema = new Schema<IPlayer>(
     // O que o jogador fez com cada marco geral: `[{ level, use }]`, com `use`
     // 'attribute' ou 'talent'. Só a escolha; os marcos vêm da classe.
     talentMilestones: { type: Schema.Types.Mixed },
+
+    // ── Criação da ficha ──
+    // `status` conduz a ficha da criação à aprovação; ausente = ficha antiga.
+    // `creation` e `review` são Mixed pelo mesmo motivo do arquétipo, e só
+    // services/creation.service.ts escreve neles.
+    status: {
+      type: String,
+      enum: ['blank', 'draft', 'submitted', 'returned', 'approved'],
+      index: true,
+    },
+    creation: { type: Schema.Types.Mixed },
+    review: { type: Schema.Types.Mixed },
 
     // ── Subida de nível ──
     // O que o dono escolheu e selou em cada nível (`ILevelLock`), as

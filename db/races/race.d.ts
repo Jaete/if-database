@@ -51,6 +51,8 @@ export interface IRaceProfile {
 
   /** "Incremento no Valor de Habilidade" / "Aumento no Valor de Atributo". */
   abilityScoreIncrease?: string;
+  /** Correção da staff: `CON+2, FOR+1, LIVRE+1`. Vale no lugar do texto. */
+  abilityBonusOverride?: string;
   age?: string;
   /** "Tendência". */
   alignment?: string;
@@ -58,6 +60,8 @@ export interface IRaceProfile {
   /** "Deslocamento". */
   speed?: string;
   languages?: string;
+  /** Idiomas separados por vírgula; vale no lugar da leitura de `languages`. */
+  languagesOverride?: string;
 
   traits: IRaceTrait[];
   /** Texto solto que não pertence a nenhum campo — introduções de seção. */
@@ -145,6 +149,8 @@ export type IRaceCatalogEntry = Pick<
   | 'unique'
   | 'images'
   | 'abilityScoreIncrease'
+  | 'abilityBonusOverride'
+  | 'languagesOverride'
   | 'speed'
   | 'size'
   | 'languages'

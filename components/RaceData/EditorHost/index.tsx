@@ -10,7 +10,7 @@ import SummaryEditor from '../SummaryEditor';
 import SubraceEditor from '../SubraceEditor';
 import TextEditor from '../TextEditor';
 import TraitEditor from '../TraitEditor';
-import { LORE_FIELDS, TRAIT_FIELDS, paragraphs } from '../fields';
+import { EDITOR_TRAIT_FIELDS, LORE_FIELDS, paragraphs } from '../fields';
 import { plural } from '@/lib/plural';
 import type { IRemoval } from '../useRaceEditor';
 import type { TraitScope } from '../types';
@@ -69,7 +69,7 @@ const EditorHost = ({
     return data.replaceSub(next as unknown as typeof sub, message);
   };
 
-  const traitNames = TRAIT_FIELDS.map((f) => f.name);
+  const traitNames = EDITOR_TRAIT_FIELDS.map((f) => f.name);
   const loreNames = LORE_FIELDS.map((f) => f.name);
 
   if (!editing) return null;
@@ -99,9 +99,12 @@ const EditorHost = ({
       return (
         <TextEditor
           title="Traços da raça"
-          fields={TRAIT_FIELDS.map((f) => ({
+          fields={EDITOR_TRAIT_FIELDS.map((f) => ({
             ...f,
-            placeholder: 'Frase inteira, como no tópico',
+            placeholder:
+              'placeholder' in f
+                ? f.placeholder
+                : 'Frase inteira, como no tópico',
           }))}
           values={toValues(race, traitNames)}
           error={data.error}
@@ -245,7 +248,7 @@ const EditorHost = ({
         <TextEditor
           title={`Traços de ${sub.name}`}
           lead="Preencha só o que esta sub-raça muda. Campo vazio herda o da raça."
-          fields={TRAIT_FIELDS}
+          fields={EDITOR_TRAIT_FIELDS}
           values={toValues(sub, traitNames)}
           inheritFrom={toValues(race, traitNames)}
           error={data.error}

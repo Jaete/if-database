@@ -277,6 +277,14 @@ const CharacterClassSchema = new Schema<ICharacterClass>(
     hitDie: String,
     hpAtFirstLevel: String,
     hpPerLevel: String,
+    // "4d6 × 10", "1d100", "2d100 + 50": o gil inicial rolado na criação.
+    startingGil: String,
+    // Atributo de conjuração ('str'|'dex'|'con'|'int'|'wis'|'cha'): dele saem
+    // a CD das magias e o bônus de ataque mágico.
+    spellcastingAbility: {
+      type: String,
+      enum: ['str', 'dex', 'con', 'int', 'wis', 'cha'],
+    },
 
     proficiencies: {
       armor: String,

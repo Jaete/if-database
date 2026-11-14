@@ -1,0 +1,261 @@
+[
+  {
+    "name": "Anões",
+    "slug": "anoes",
+    "unique": false,
+    "abilityScoreIncrease": "Seu valor de Constituição aumenta em +2 e sua força aumenta em 1. (validos para as sub-raças)",
+    "languages": "Você pode falar, ler e escrever Comum e Anão.",
+    "subraces": [
+      {
+        "name": "Fornbardun",
+        "slug": "fornbardun",
+        "abilityScoreIncrease": null,
+        "languages": null
+      },
+      {
+        "name": "Skaldurun",
+        "slug": "skaldurun",
+        "abilityScoreIncrease": null,
+        "languages": null
+      }
+    ]
+  },
+  {
+    "name": "Centauros",
+    "slug": "centauros",
+    "unique": false,
+    "abilityScoreIncrease": "Seu valor de Força aumenta em +2, e seu valor de Sabedoria aumenta em +1.",
+    "languages": null,
+    "subraces": []
+  },
+  {
+    "name": "Draconatos",
+    "slug": "draconatos",
+    "unique": false,
+    "abilityScoreIncrease": "Seu valor de Força aumenta em +2, e seu valor de Carisma aumenta em +1.",
+    "languages": null,
+    "subraces": [
+      {
+        "name": "Infantaria",
+        "slug": "infantaria",
+        "abilityScoreIncrease": null,
+        "languages": null
+      },
+      {
+        "name": "Ancião",
+        "slug": "anciao",
+        "abilityScoreIncrease": null,
+        "languages": null
+      }
+    ]
+  },
+  {
+    "name": "Elfo Estelar",
+    "slug": "elfo-estelar",
+    "unique": true,
+    "abilityScoreIncrease": "Seu valor de Sabedoria aumenta em +2, e seu valor de Carisma aumenta em +1.",
+    "languages": null,
+    "subraces": []
+  },
+  {
+    "name": "Elfos",
+    "slug": "elfos",
+    "unique": false,
+    "abilityScoreIncrease": "Sua Destreza aumenta em 2.",
+    "languages": null,
+    "subraces": [
+      {
+        "name": "Elfos comuns",
+        "slug": "elfos-comuns",
+        "abilityScoreIncrease": "Sua Sabedoria aumenta em 1.",
+        "languages": null
+      },
+      {
+        "name": "Drows",
+        "slug": "drows",
+        "abilityScoreIncrease": "Sua Inteligência aumenta em 1.",
+        "languages": null
+      },
+      {
+        "name": "Aerinthalas",
+        "slug": "aerinthalas",
+        "abilityScoreIncrease": "Sua Força aumenta em 1.",
+        "languages": null
+      }
+    ]
+  },
+  {
+    "name": "Fadas",
+    "slug": "fadas",
+    "unique": false,
+    "abilityScoreIncrease": "Seu valor de Destreza aumenta em +2, e seu valor de Carisma aumenta em +1.",
+    "languages": null,
+    "subraces": [
+      {
+        "name": "Pixies",
+        "slug": "pixies",
+        "abilityScoreIncrease": null,
+        "languages": null
+      },
+      {
+        "name": "Leprechauns",
+        "slug": "leprechauns",
+        "abilityScoreIncrease": null,
+        "languages": null
+      }
+    ]
+  },
+  {
+    "name": "Humanos",
+    "slug": "humanos",
+    "unique": false,
+    "abilityScoreIncrease": "Dois de seus valores de habilidade aumentam em 1.",
+    "languages": null,
+    "subraces": [
+      {
+        "name": "Humanos comuns",
+        "slug": "humanos-comuns",
+        "abilityScoreIncrease": null,
+        "languages": null
+      },
+      {
+        "name": "Nórdicos",
+        "slug": "nordicos",
+        "abilityScoreIncrease": null,
+        "languages": null
+      }
+    ]
+  },
+  {
+    "name": "Lapinara",
+    "slug": "lapinara",
+    "unique": false,
+    "abilityScoreIncrease": "As Lapinaras possuem um bonus de +2 em dex e +1 no modificador de todos os testes que envolvam agilidade/velocidade",
+    "languages": null,
+    "subraces": [
+      {
+        "name": "Velóridas",
+        "slug": "veloridas",
+        "abilityScoreIncrease": null,
+        "languages": null
+      },
+      {
+        "name": "Fúriarres",
+        "slug": "furiarres",
+        "abilityScoreIncrease": null,
+        "languages": null
+      }
+    ]
+  },
+  {
+    "name": "Mestiços",
+    "slug": "mesticos",
+    "unique": false,
+    "abilityScoreIncrease": null,
+    "languages": null,
+    "subraces": [],
+    "choiceRules": [
+      {
+        "kind": "hybridHeritage"
+      },
+      {
+        "kind": "dominantBlood"
+      }
+    ]
+  },
+  {
+    "name": "Moogles",
+    "slug": "moogles",
+    "unique": false,
+    "abilityScoreIncrease": "Seu valor de Destreza aumenta em +2, e seu valor de Carisma aumenta em +1.",
+    "languages": null,
+    "subraces": []
+  },
+  {
+    "name": "Ninfas",
+    "slug": "ninfas",
+    "unique": false,
+    "abilityScoreIncrease": "Seu valor de Sabedoria aumenta em +2, e seu valor de Carisma aumenta em +1.",
+    "languages": null,
+    "subraces": [
+      {
+        "name": "Driades",
+        "slug": "driades",
+        "abilityScoreIncrease": null,
+        "languages": null
+      },
+      {
+        "name": "Naiades",
+        "slug": "naiades",
+        "abilityScoreIncrease": null,
+        "languages": null
+      }
+    ]
+  },
+  {
+    "name": "Orcs",
+    "slug": "orcs",
+    "unique": false,
+    "abilityScoreIncrease": "Seu valor de Força aumenta em +2, e seu valor de Constituição aumenta em +1.",
+    "languages": null,
+    "subraces": [
+      {
+        "name": "Lamashgar",
+        "slug": "lamashgar",
+        "abilityScoreIncrease": null,
+        "languages": null
+      },
+      {
+        "name": "Rokhanar",
+        "slug": "rokhanar",
+        "abilityScoreIncrease": null,
+        "languages": null
+      }
+    ]
+  },
+  {
+    "name": "Yokais",
+    "slug": "yokais",
+    "unique": false,
+    "abilityScoreIncrease": "escolha dois valores de habilidade e adicione 1 ponto em cada",
+    "languages": null,
+    "subraces": [
+      {
+        "name": "Yokai Caninos",
+        "slug": "yokai-caninos",
+        "abilityScoreIncrease": "Seu valor de Destreza aumenta em +1.",
+        "languages": null
+      },
+      {
+        "name": "Yokai Felinos",
+        "slug": "yokai-felinos",
+        "abilityScoreIncrease": "Seu valor de Destreza aumenta em +1.",
+        "languages": null
+      },
+      {
+        "name": "Yokai Equinos",
+        "slug": "yokai-equinos",
+        "abilityScoreIncrease": "Seu valor de Força aumenta em +1.",
+        "languages": null
+      },
+      {
+        "name": "Yokai Bovinos",
+        "slug": "yokai-bovinos",
+        "abilityScoreIncrease": "Seu valor de Constituição aumenta em +1.",
+        "languages": null
+      },
+      {
+        "name": "Nagascale",
+        "slug": "nagascale",
+        "abilityScoreIncrease": "Seu valor de Constituição aumenta em +1",
+        "languages": null
+      },
+      {
+        "name": "Aquavista",
+        "slug": "aquavista",
+        "abilityScoreIncrease": "Seu valor de Sabedoria aumenta em +1",
+        "languages": null
+      }
+    ]
+  }
+]

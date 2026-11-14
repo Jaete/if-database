@@ -40,7 +40,7 @@ export async function POST(
     const { id } = await params;
     await connectDB();
     const actor = await resolveActor(id);
-    if (!actor?.isAdmin) {
+    if (!actor?.isStaff) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 403 });
     }
     const body = await request.json().catch(() => ({}));

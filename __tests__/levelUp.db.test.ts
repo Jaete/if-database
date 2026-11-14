@@ -43,19 +43,19 @@ const OWNER = 987654321;
 const admin = {
   username: 'admin-teste',
   forumUserId: 1,
-  isAdmin: true,
+  isStaff: true,
   isOwner: false,
 };
 const owner = {
   username: 'dono-teste',
   forumUserId: OWNER,
-  isAdmin: false,
+  isStaff: false,
   isOwner: true,
 };
 const stranger = {
   username: 'outro',
   forumUserId: 2,
-  isAdmin: false,
+  isStaff: false,
   isOwner: false,
 };
 

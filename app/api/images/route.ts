@@ -1,11 +1,22 @@
 import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { getAuthorizedSession } from '@/services/auth.service';
+import { getEmbedSession } from '@/services/embedAuth.service';
 import {
   ImageUploadError,
   MAX_INPUT_BYTES,
   createImage,
 } from '@/services/image.service';
+
+const isSameOriginRequest = (request: Request) => {
+  const origin = request.headers.get('origin');
+  if (!origin) return false;
+  try {
+    return new URL(origin).origin === new URL(request.url).origin;
+  } catch {
+    return false;
+  }
+};
 
 // sharp é nativo: só roda no Node, nunca no edge.
 export const runtime = 'nodejs';
@@ -42,9 +53,12 @@ async function readLimited(request: Request): Promise<Uint8Array | null> {
 }
 
 // Qualquer usuário logado envia: jogador também precisa da imagem da própria
-// ficha. Anônimo não.
+// ficha. Anônimo não. Dentro do iframe do fórum só existe a sessão do embed
+// (cookie `SameSite=None`, ambiente): por isso ela exige também `Origin` da
+// própria aplicação, como todas as escritas do embed.
 export async function POST(request: Request) {
-  const session = await getAuthorizedSession();
+  const embed = isSameOriginRequest(request) ? await getEmbedSession() : null;
+  const session = (await getAuthorizedSession()) ?? embed;
   if (!session) return fail('Entre para enviar imagens.', 401);
 
   // Content-Length ausente ou falso não pode liberar a leitura: o corpo é

@@ -55,7 +55,7 @@ export async function getUniqueClassHolders(): Promise<
       }
     )
       .find({ classId: { $in: ids } })
-      .select('_id name slug classId')
+      .select('_id name slug classId status')
       .lean();
 
     for (const doc of found) {
@@ -66,8 +66,13 @@ export async function getUniqueClassHolders(): Promise<
       if (!holders.has(key)) {
         holders.set(key, {
           id: String(doc._id),
-          name: String(doc.name ?? ''),
-          slug: String(doc.slug ?? ''),
+          // Rascunho não enviado não mostra nome nem endereço da ficha.
+          name: ['blank', 'draft'].includes(String(doc.status))
+            ? ''
+            : String(doc.name ?? ''),
+          slug: ['blank', 'draft'].includes(String(doc.status))
+            ? ''
+            : String(doc.slug ?? ''),
         });
       }
     }

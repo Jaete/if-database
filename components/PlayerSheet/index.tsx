@@ -8,10 +8,15 @@ import { useSheetEditing } from './useSheetEditing';
 import { EditingProvider } from './EditingContext';
 import { CatalogLayerProvider } from './CatalogLayerContext';
 import { LevelUpProvider } from './LevelUpContext';
+import { CreationProvider } from './CreationContext';
+import { useCreationState } from './useCreationState';
 import { useLevelUpState } from './useLevelUpState';
 import { useSheetSounds } from './useSheetSounds';
 import { useSheetSoundEvents } from './useSheetSoundEvents';
 import LevelUpLayerHost from './LevelUpLayerHost';
+import CreationLayerHost from './CreationLayerHost';
+import CreationFrame from './CreationFrame';
+import CreationBar from './CreationBar';
 import type { IEventView } from '@/services/levelUp.service';
 import CatalogLayerHost from './CatalogLayerHost';
 import SaveBar from './SaveBar';
@@ -85,13 +90,25 @@ const PlayerSheet = ({
     cancel,
   } = useSheetEditing(initialPlayer, forumOrigin);
 
-  const canEdit = permission === 'granted';
   const levelUp = useLevelUpState({
     player,
     identified,
     initialHistory: history,
     onPlayer: replacePlayer,
   });
+  // Editar livre = papel de staff E não ser a dona (o dono vence o papel): na
+  // própria ficha a pessoa vê a experiência de jogadora. O servidor confere de
+  // novo a cada escrita.
+  const canEdit = permission === 'granted' && levelUp.access.isStaff;
+  const creation = useCreationState({
+    player,
+    identified,
+    access: levelUp.access,
+    forumOrigin,
+  });
+  // Em criação e ainda não enviada, a página só mandou o dono e o estado: o
+  // que a ficha mostra é a moldura "Ficha em criação" (ver CreationFrame).
+  const unsent = player.status === 'blank' || player.status === 'draft';
 
   const {
     uid,
@@ -249,88 +266,105 @@ const PlayerSheet = ({
     >
       <LevelUpProvider value={levelUp}>
         <CatalogLayerProvider>
-          <div className={handles.playerSheetStage}>
-            <article
-              ref={sheetRef}
-              className={handles.playerSheet}
-              data-view={view}
-              // Lido pelo EmbedCloseBridge: com alteração não salva, o Esc não
-              // fecha o modal do fórum e não joga a edição fora.
-              data-unsaved={isDirty || undefined}
-              aria-label={`Ficha de ${player.name}`}
-            >
-              {canEdit && (
-                <button
-                  type="button"
-                  className={`${handles.sheetEditToggle}${
-                    isEditing
-                      ? ` ${applyModifiers(handles.sheetEditToggle, 'editing')}`
-                      : ''
-                  }`}
-                  onClick={() =>
-                    isEditing ? sounds.discard() : setIsEditing(true)
-                  }
-                  aria-pressed={isEditing}
+          <CreationProvider value={creation}>
+            {unsent ? (
+              <div className={handles.playerSheetStage}>
+                <article
+                  className={handles.playerSheet}
+                  aria-label="Ficha em criação"
                 >
-                  {isEditing ? 'Concluir edição' : 'Editar ficha'}
-                </button>
-              )}
-              <Header player={player} onOpenScreen={openScreen} />
-              <NarrationStyle player={player} />
-              <div className={handles.playerSheetBody}>
-                <CommandMenu
-                  player={player}
-                  uid={uid}
-                  panelId={panelId}
-                  items={menu}
-                  active={active}
-                  cursorAt={cursorAt}
-                  menuRef={menuRef}
-                  cursorRef={cursorRef}
-                  registerItem={registerItem}
-                  onClick={handleMenuClick}
-                  onHover={handleMenuHover}
-                  onKeyDown={handleMenuKeyDown}
-                />
-                <div
-                  ref={panelRef}
-                  className={handles.playerSheetPanel}
-                  onKeyDown={handlePanelKeyDown}
-                >
-                  {transition !== 'none' && (
-                    <div
-                      key={`wipe-${screenSeq}`}
-                      className={handles.playerSheetWipe}
-                      aria-hidden="true"
-                    />
-                  )}
-                  <Screen
-                    key={screenSeq}
-                    id={panelId}
-                    labelledBy={tabId(uid, current.id)}
-                    title={screen.title}
-                    sub={screen.sub}
-                    transition={transition}
-                    onBack={backToMenu}
-                  >
-                    {screen.body}
-                  </Screen>
-                </div>
+                  <CreationFrame />
+                  <CatalogLayerHost />
+                  <CreationLayerHost />
+                </article>
               </div>
-              <Hints message={status || message} />
-              <CatalogLayerHost />
-              <LevelUpLayerHost />
-              <SaveBar
-                visible={isDirty}
-                summary={summary}
-                count={dirtyCount}
-                isSaving={isSaving}
-                error={saveError}
-                onSave={save}
-                onDiscard={sounds.discard}
-              />
-            </article>
-          </div>
+            ) : (
+              <div className={handles.playerSheetStage}>
+                <article
+                  ref={sheetRef}
+                  className={handles.playerSheet}
+                  data-view={view}
+                  // Lido pelo EmbedCloseBridge: com alteração não salva, o Esc não
+                  // fecha o modal do fórum e não joga a edição fora.
+                  data-unsaved={isDirty || undefined}
+                  aria-label={`Ficha de ${player.name}`}
+                >
+                  {canEdit && (
+                    <button
+                      type="button"
+                      className={`${handles.sheetEditToggle}${
+                        isEditing
+                          ? ` ${applyModifiers(handles.sheetEditToggle, 'editing')}`
+                          : ''
+                      }`}
+                      onClick={() =>
+                        isEditing ? sounds.discard() : setIsEditing(true)
+                      }
+                      aria-pressed={isEditing}
+                    >
+                      {isEditing ? 'Concluir edição' : 'Editar ficha'}
+                    </button>
+                  )}
+                  <CreationBar />
+                  <Header player={player} onOpenScreen={openScreen} />
+                  <NarrationStyle player={player} />
+                  <div className={handles.playerSheetBody}>
+                    <CommandMenu
+                      player={player}
+                      uid={uid}
+                      panelId={panelId}
+                      items={menu}
+                      active={active}
+                      cursorAt={cursorAt}
+                      menuRef={menuRef}
+                      cursorRef={cursorRef}
+                      registerItem={registerItem}
+                      onClick={handleMenuClick}
+                      onHover={handleMenuHover}
+                      onKeyDown={handleMenuKeyDown}
+                    />
+                    <div
+                      ref={panelRef}
+                      className={handles.playerSheetPanel}
+                      onKeyDown={handlePanelKeyDown}
+                    >
+                      {transition !== 'none' && (
+                        <div
+                          key={`wipe-${screenSeq}`}
+                          className={handles.playerSheetWipe}
+                          aria-hidden="true"
+                        />
+                      )}
+                      <Screen
+                        key={screenSeq}
+                        id={panelId}
+                        labelledBy={tabId(uid, current.id)}
+                        title={screen.title}
+                        sub={screen.sub}
+                        transition={transition}
+                        onBack={backToMenu}
+                      >
+                        {screen.body}
+                      </Screen>
+                    </div>
+                  </div>
+                  <Hints message={status || message} />
+                  <CatalogLayerHost />
+                  <LevelUpLayerHost />
+                  <CreationLayerHost />
+                  <SaveBar
+                    visible={isDirty}
+                    summary={summary}
+                    count={dirtyCount}
+                    isSaving={isSaving}
+                    error={saveError}
+                    onSave={save}
+                    onDiscard={sounds.discard}
+                  />
+                </article>
+              </div>
+            )}
+          </CreationProvider>
         </CatalogLayerProvider>
       </LevelUpProvider>
     </EditingProvider>

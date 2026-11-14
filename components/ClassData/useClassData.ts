@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useState } from 'react';
+import { attributeKeyOf } from '@/lib/stats';
 import type ICharacterClass from '@/db/classes/class.d';
 import type {
   CatalogKind,
@@ -201,6 +202,10 @@ export function useClassData(initial: ICharacterClass) {
         hitDie: values.hitDie || undefined,
         hpAtFirstLevel: values.hpAtFirstLevel || undefined,
         hpPerLevel: values.hpPerLevel || undefined,
+        // Texto vazio apaga: `null`, e não `undefined`, que o JSON descartaria.
+        startingGil: (values.startingGil?.trim() || null) as string | undefined,
+        spellcastingAbility: (attributeKeyOf(values.spellcastingAbility) ??
+          null) as ICharacterClass['spellcastingAbility'],
         proficiencies,
         // Um item por linha, a mesma notação de lista usada nas descrições.
         startingEquipment: values.startingEquipment

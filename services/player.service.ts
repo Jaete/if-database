@@ -7,6 +7,9 @@ import {
   PLAYER_PUBLIC_FIELDS,
   type IPublicPlayer,
 } from '../db/players/publicFields';
+import type { AttributeKey } from '../lib/stats';
+import { castingNumbers } from '../lib/creation';
+import { ATTRIBUTE_LABELS } from '../lib/levelUp';
 import { createEntityService } from './createEntityService';
 import { resolveSpellRefs } from './spellLink.service';
 import {
@@ -49,6 +52,10 @@ const PROGRESSION_FIELDS = [
   'levelLocks',
   'featureChoices',
   'novelties',
+  // A criação (estado, rolagens e revisão) só muda por services/creation.service.ts.
+  'status',
+  'creation',
+  'review',
 ] as const;
 
 function stripProgression<T extends object>(data: T): T {
@@ -61,7 +68,10 @@ function stripProgression<T extends object>(data: T): T {
 const LINK_FIELDS =
   '_id slug class race raceId raceChoice classId level talents playerSpellcasting';
 
-export async function createPlayer(data: IPlayer) {
+export async function createPlayer(incoming: IPlayer) {
+  // Ficha de jogador nasce pelo app já pronta; o estado de criação só nasce em
+  // `createBlankSheet`.
+  const data = stripProgression(incoming) as IPlayer;
   const body = data as unknown as Record<string, unknown>;
   await prepareSheetLinksCreate(body);
   const result = await service.create(data);
@@ -127,7 +137,9 @@ async function loadClass(classId: unknown) {
   const { default: CharacterClassModel } =
     await import('../db/classes/classes');
   return CharacterClassModel.findById(id)
-    .select('slug name talents levels features archetypes talentLevels')
+    .select(
+      'slug name talents levels features archetypes talentLevels spellcastingAbility'
+    )
     .lean<
       Pick<
         ICharacterClass,
@@ -138,8 +150,36 @@ async function loadClass(classId: unknown) {
         | 'features'
         | 'archetypes'
         | 'talentLevels'
+        | 'spellcastingAbility'
       >
     >();
+}
+
+/**
+ * A CD das magias e o ataque mágico de uma ficha ligada a uma classe com
+ * atributo de conjuração: 8 + proficiência + modificador, e proficiência +
+ * modificador. Substitui o que foi digitado à mão.
+ *
+ * Decisão da mesa: as CDs que alguns textos de magia trazem ficam SUPERADAS
+ * pela CD da classe, a ser revisto quando as magias forem revistas.
+ */
+function withClassDC(
+  casting: IPublicPlayer['playerSpellcasting'],
+  ability: AttributeKey | undefined,
+  player: IPublicPlayer
+): IPublicPlayer['playerSpellcasting'] {
+  if (!casting || !ability) return casting;
+  const total =
+    player.playerStats?.[ability]?.total ??
+    (Number(player.stats?.[ability]) || undefined);
+  if (typeof total !== 'number') return casting;
+  const nums = castingNumbers(total, Number(player.proficiencyBonus) || 2);
+  return {
+    ...casting,
+    ability: ATTRIBUTE_LABELS[ability][1],
+    saveDC: nums.saveDC,
+    attackBonus: nums.attackBonus,
+  };
 }
 
 /**
@@ -188,9 +228,13 @@ async function resolveLinks<T extends IPublicPlayer | null>(
   // ficha continua sendo o que alguém digitou. Nos dois casos as magias ligadas
   // ao grimório são materializadas por último, já dentro dos círculos certos.
   const casting = await getClassCasting(player.classId, player.level, klass);
-  const spellcasting = casting
-    ? applyClassCasting(player.playerSpellcasting, casting)
-    : player.playerSpellcasting;
+  const spellcasting = withClassDC(
+    casting
+      ? applyClassCasting(player.playerSpellcasting, casting)
+      : player.playerSpellcasting,
+    klass?.spellcastingAbility,
+    player
+  );
 
   return {
     ...player,

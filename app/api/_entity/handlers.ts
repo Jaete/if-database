@@ -44,6 +44,19 @@ interface IOptions<T> {
    * mensagem para responder 400, ou null para seguir como falha interna.
    */
   clientError?: (error: unknown) => string | null;
+  /**
+   * Redige o que a leitura PÚBLICA devolve (GET de lista e de item). Recebe se
+   * quem lê é a staff do app (admin ou editor).
+   */
+  redact?: (doc: Record<string, unknown>, isStaff: boolean) => unknown;
+  /**
+   * Barra a escrita (PUT e DELETE por slug) por uma regra da entidade: recebe o
+   * slug e a sessão; devolver uma mensagem recusa com 403.
+   */
+  guardWrite?: (
+    slug: string,
+    session: { username: string; forumUserId?: number }
+  ) => Promise<string | null>;
   /** Criação própria no lugar de `service.create` (a ficha do jogador). */
   create?: (
     body: Record<string, unknown>
@@ -61,6 +74,24 @@ function serverError(error: unknown) {
   return NextResponse.json({ error: message }, { status: 500 });
 }
 
+async function isStaffReader() {
+  const session = await getAuthorizedSession();
+  return !!session && session.role !== 'viewer';
+}
+
+async function barWrite(slug: string, guard?: IOptions<unknown>['guardWrite']) {
+  if (!guard) return null;
+  const session = await getAuthorizedSession();
+  if (!session) return null;
+  const message = await guard(slug, session);
+  return message
+    ? NextResponse.json({ error: message }, { status: 403 })
+    : null;
+}
+
+const plain = (doc: unknown): Record<string, unknown> =>
+  JSON.parse(JSON.stringify(doc));
+
 // Escrita exige sessão com papel de edição. Leitura é aberta, como sempre foi.
 async function denyIfNotEditor() {
   const session = await getAuthorizedSession();
@@ -77,12 +108,18 @@ export function createCollectionHandlers<T>({
   validate,
   create,
   clientError,
+  redact,
 }: IOptions<T>) {
   return {
     async GET() {
       try {
         await connectDB();
-        return NextResponse.json(await service.getAll());
+        const all = await service.getAll();
+        if (!redact) return NextResponse.json(all);
+        const staff = await isStaffReader();
+        return NextResponse.json(
+          (all as unknown[]).map((doc) => redact(plain(doc), staff))
+        );
       } catch (error) {
         return serverError(error);
       }
@@ -127,6 +164,8 @@ export function createSlugHandlers<T>({
   validate,
   update,
   clientError,
+  redact,
+  guardWrite,
 }: IOptions<T>) {
   const notFound = () =>
     NextResponse.json({ error: notFoundLabel }, { status: 404 });
@@ -138,7 +177,11 @@ export function createSlugHandlers<T>({
         const { slug } = await params;
         const result = await service.getBySlug(slug);
         if (!result.success) return notFound();
-        return NextResponse.json(result.data);
+        return NextResponse.json(
+          redact
+            ? redact(plain(result.data), await isStaffReader())
+            : result.data
+        );
       } catch (error) {
         return serverError(error);
       }
@@ -151,6 +194,8 @@ export function createSlugHandlers<T>({
 
         await connectDB();
         const { slug } = await params;
+        const barred = await barWrite(slug, guardWrite);
+        if (barred) return barred;
         const body = stripUnsafeKeys(await request.json());
 
         const refused = await validate?.(body, { slug });
@@ -182,6 +227,8 @@ export function createSlugHandlers<T>({
 
         await connectDB();
         const { slug } = await params;
+        const barred = await barWrite(slug, guardWrite);
+        if (barred) return barred;
         const result = await service.remove(slug);
         if (!result.success) return notFound();
         return NextResponse.json({ success: true });

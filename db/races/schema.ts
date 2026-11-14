@@ -57,11 +57,16 @@ const profileFields = {
   behavior: String,
   physical: String,
   abilityScoreIncrease: String,
+  // Correção da staff para a leitura do texto acima: `CON+2, FOR+1, LIVRE+1`.
+  // Vazio = vale o texto (ver lib/raceRules.ts).
+  abilityBonusOverride: String,
   age: String,
   alignment: String,
   size: String,
   speed: String,
   languages: String,
+  // Lista separada por vírgula que vale no lugar da leitura do texto de idiomas.
+  languagesOverride: String,
   traits: { type: [TraitSchema], default: [] },
   notes: { type: [String], default: undefined },
 };

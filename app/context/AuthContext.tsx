@@ -14,6 +14,8 @@ interface IUser {
   provider: string;
   // Só contas do fórum têm avatar, e ele vem do banco a cada verify.
   avatarUrl?: string;
+  // Conta do fórum ligada; serve para reconhecer as fichas que são suas.
+  forumUserId?: number;
 }
 
 interface IAuthContext {

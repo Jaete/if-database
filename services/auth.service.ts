@@ -120,17 +120,19 @@ export async function getAuthorizedSession(): Promise<{
   role: string;
   provider: string;
   avatarUrl?: string;
+  forumUserId?: number;
 } | null> {
   const session = await getSessionFromCookie();
   if (!session) return null;
 
   await connectDB();
   const user = await User.findOne({ username: session.username })
-    .select('role provider avatarUrl')
+    .select('role provider avatarUrl forumUserId')
     .lean<{
       role: string;
       provider?: string;
       avatarUrl?: string;
+      forumUserId?: number;
     } | null>();
   if (!user) return null;
 
@@ -142,6 +144,7 @@ export async function getAuthorizedSession(): Promise<{
     role: user.role,
     provider: user.provider ?? 'local',
     avatarUrl: user.avatarUrl,
+    forumUserId: user.forumUserId,
   };
 }
 

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { isSameOrigin } from '@/lib/embedRequest';
+import { getAccess } from '@/services/levelUp.service';
+import { OWN_SHEET_EDIT_MESSAGE } from '@/lib/sheetAccess';
 import { getEmbedSession } from '@/services/embedAuth.service';
 import { pickWritablePlayerFields } from '@/db/players/publicFields';
 import { updatePlayerById, getPlayerById } from '@/services/player.service';
@@ -96,11 +98,22 @@ export async function PUT(
     }
 
     const session = await getEmbedSession();
-    if (!session || session.role !== 'admin') {
-      return NextResponse.json({ error: 'Não autorizado' }, { status: 403 });
-    }
-
     const { id } = await params;
+    await connectDB();
+    // Poder de staff (admin ou editor) NESTA ficha: o dono vence o papel, então
+    // quem é dono da própria ficha não a edita livremente (lib/sheetAccess.ts).
+    const access = await getAccess(id, session);
+    if (!access.isStaff) {
+      return NextResponse.json(
+        {
+          error:
+            access.isOwner && access.hasStaffRole
+              ? OWN_SHEET_EDIT_MESSAGE
+              : 'Não autorizado',
+        },
+        { status: 403 }
+      );
+    }
     const body = await request.json();
     const data = pickWritablePlayerFields(body?.fields);
 

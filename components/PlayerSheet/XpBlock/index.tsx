@@ -122,7 +122,7 @@ const XpBlock = ({ ownerName, onOpenScreen }: IProps) => {
         >
           Diário de experiência
         </button>
-        {access.isAdmin && (
+        {access.isStaff && (
           <button
             type="button"
             className={handles.sheetXpGrant}
@@ -160,7 +160,7 @@ const XpBlock = ({ ownerName, onOpenScreen }: IProps) => {
           </span>
         </button>
       )}
-      {!ready && access.isAdmin && pending > 0 && (
+      {!ready && access.isStaff && pending > 0 && (
         <div className={handles.sheetXpActions}>
           <span className={handles.sheetPendingHint}>
             <i />

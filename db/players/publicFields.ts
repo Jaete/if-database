@@ -5,6 +5,8 @@ import type IPlayer from './player';
 // schema fields stay private until added here on purpose.
 export const PLAYER_PUBLIC_FIELDS = [
   '_id',
+  // Em que ponto da criação a ficha está; ausente = ficha antiga, já aceita.
+  'status',
   'name',
   'race',
   'gender',
@@ -87,6 +89,7 @@ export const PLAYER_WRITABLE_FIELDS = PLAYER_PUBLIC_FIELDS.filter(
       'forumTopicUrl',
       'importedAt',
       'updatedAt',
+      'status',
       // A XP só entra por "Conceder XP" e a subida só por selo: nunca por
       // edição de campo.
       'experience',

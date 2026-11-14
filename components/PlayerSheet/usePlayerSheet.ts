@@ -126,7 +126,7 @@ export const usePlayerSheet = (player: IPublicPlayer, editable = false) => {
     if (item.disabled) {
       setMessage(
         item.disabledReason ??
-          `${player.name.split(' ')[0]} não conjura magias.`
+          `${(player.name ?? '').split(' ')[0] || 'Este personagem'} não conjura magias.`
       );
       return;
     }
