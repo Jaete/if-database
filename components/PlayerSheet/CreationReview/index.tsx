@@ -261,6 +261,15 @@ const CreationReview = () => {
             <LevelUpButton onClick={() => setReturning(true)}>
               Devolver com observações
             </LevelUpButton>
+            {(creation.status === 'submitted' ||
+              creation.status === 'returned') && (
+              <LevelUpButton
+                disabled={required.length > 0}
+                onClick={creation.startAdjust}
+              >
+                Aprovar com ajustes
+              </LevelUpButton>
+            )}
             <LevelUpButton
               variant="primary"
               size="lg"

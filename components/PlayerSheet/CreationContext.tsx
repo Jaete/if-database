@@ -40,6 +40,10 @@ export interface ICreation {
   openRite: () => void;
   openWizard: (step?: WizardStep) => void;
   openReview: () => void;
+  /** "Aprovar com ajustes": a staff edita a ficha e salvar a aprova. */
+  adjusting: boolean;
+  startAdjust: () => void;
+  cancelAdjust: () => void;
   close: () => void;
   /** Salva um passo (debounce); o servidor devolve o rascunho refeito. */
   patch: (body: IDraftBody) => void;
@@ -73,6 +77,9 @@ const CreationContext = createContext<ICreation>({
   openRite: () => {},
   openWizard: () => {},
   openReview: () => {},
+  adjusting: false,
+  startAdjust: () => {},
+  cancelAdjust: () => {},
   close: () => {},
   patch: () => {},
   saving: false,

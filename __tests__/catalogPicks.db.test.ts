@@ -341,6 +341,56 @@ async function main() {
       );
     });
 
+    await test('free text is not repeated across levels (case and spaces ignored)', async () => {
+      const id = await make('bardo', 10, {
+        catalogPicks: [
+          {
+            catalog: 'performances-versateis-avancadas',
+            item: 'Outro tipo de Atuação: Dança',
+            level: 6,
+          },
+        ],
+      });
+      const plan = await svc.getLevelPlan(id, owner);
+      const cat = plan.catalogPicks.find(
+        (c) => c.slug === 'performances-versateis-avancadas'
+      )!;
+      assert.equal(cat.need, 1);
+      assert.deepEqual(cat.taken, ['Outro tipo de Atuação: Dança']);
+      const base = auto(plan, { 'performances-versateis-avancadas': 0 });
+      for (const again of [' dança ', 'DANÇA', 'D a n ç a']) {
+        await reject(
+          () =>
+            svc.sealLevel(
+              id,
+              {
+                ...base,
+                catalogPicks: [
+                  {
+                    catalog: cat.slug,
+                    item: `Outro tipo de Atuação: ${again}`,
+                  },
+                ],
+              },
+              owner
+            ),
+          400,
+          again
+        );
+      }
+      await svc.sealLevel(
+        id,
+        {
+          ...base,
+          catalogPicks: [
+            { catalog: cat.slug, item: 'Outro tipo de Atuação: Canto' },
+          ],
+        },
+        owner
+      );
+      assert.equal((await fresh(id)).catalogPicks.length, 2);
+    });
+
     await test('Monge: Habilidades de Fúria exige o monge selvagem; Blitz começa no 7', async () => {
       const wild = await make('monge', 5, {
         archetype: { slug: 'monge-selvagem', features: [] },

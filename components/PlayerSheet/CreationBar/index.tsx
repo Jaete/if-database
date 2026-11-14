@@ -15,6 +15,23 @@ const CreationBar = () => {
   const handles = useCssHandles(CreationViewHandles);
   const creation = useCreation();
   const { status, data } = creation;
+  if (creation.adjusting) {
+    return (
+      <div className={handles.crBar} role="status">
+        <span className={handles.crBarText}>
+          <b>Ajustes do narrador · ao salvar, a ficha é aprovada</b>
+          <small>
+            Edite o que quiser e use &ldquo;Salvar e aprovar&rdquo;.
+          </small>
+        </span>
+        <span className={handles.crBarActs}>
+          <LevelUpButton variant="secondary" onClick={creation.cancelAdjust}>
+            Cancelar
+          </LevelUpButton>
+        </span>
+      </div>
+    );
+  }
   if (status !== 'submitted' && status !== 'returned') return null;
 
   const returned = status === 'returned';

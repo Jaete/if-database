@@ -135,6 +135,8 @@ export interface IPlanCatalog {
   requiresArchetype?: string;
   /** A lista aceita um item de texto livre com este rótulo. */
   freeTextLabel?: string;
+  /** O que a ficha já escolheu nesta lista (os de texto livre não se repetem). */
+  taken: string[];
 }
 
 export interface ILevelPlan {

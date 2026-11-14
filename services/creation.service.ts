@@ -56,7 +56,9 @@ import type ITalentDoc from '../db/talents/talent.d';
 import { GENERAL_TALENT_FIELDS, generalTalentOption } from './talentCatalog';
 import { requiredLevel } from '../lib/talentPrerequisite';
 import { getRaceCatalog } from './race.service';
-import { getPlayerById } from './player.service';
+import { getPlayerById, updatePlayerById } from './player.service';
+import { normalizeSpellDC, normalizeStats } from './sheetEdit';
+import { pickWritablePlayerFields } from '../db/players/publicFields';
 import { getClassCasting } from './classSpells.service';
 import {
   PlayerSheetError,
@@ -417,7 +419,12 @@ export async function evaluateSheet(sheet: ISheet, ctx?: ICreationContext) {
     });
   }
   // O gil, quando a classe tem fórmula, vale o da rolagem gravada PARA ELA.
-  if (context.klass && parseGilFormula(context.klass.startingGil)) {
+  // Depois da aprovação o gil é da ficha: a staff pode ter dado mais.
+  if (
+    sheet.status !== 'approved' &&
+    context.klass &&
+    parseGilFormula(context.klass.startingGil)
+  ) {
     const roll = await CreationRollModel.findOne({
       playerId: sheet._id,
       kind: 'gil',
@@ -1394,33 +1401,182 @@ export async function submitSheet(id: string, actor: IActor) {
   return { status: 'submitted' as const, issues };
 }
 
-export async function approveSheet(id: string, actor: IActor) {
+/** Os rótulos dos campos da ficha, para o histórico (nunca os valores). */
+const FIELD_LABELS: Record<string, string> = {
+  name: 'Nome',
+  race: 'Raça',
+  gender: 'Gênero',
+  class: 'Classe',
+  classId: 'Classe',
+  raceId: 'Raça',
+  raceChoice: 'Escolha de raça',
+  age: 'Idade',
+  height: 'Altura',
+  family: 'Família',
+  kingdom: 'Reino',
+  clan: 'Clã',
+  deity: 'Divindade',
+  subtitle: 'Epíteto',
+  image: 'Retrato',
+  size: 'Tamanho',
+  type: 'Tipo',
+  alignment: 'Tendência',
+  chi: 'Ki',
+  proficiencyBonus: 'Proficiência',
+  combat: 'Combate',
+  stats: 'Atributos',
+  playerStats: 'Atributos',
+  proficiencies: 'Perícias e proficiências',
+  defenses: 'Defesas',
+  senses: 'Sentidos',
+  languages: 'Idiomas',
+  abilities: 'Habilidades',
+  traits: 'Traços',
+  actions: 'Ações',
+  bonusActions: 'Ações bônus',
+  reactions: 'Reações',
+  legendaryActions: 'Ações lendárias',
+  playerSpellcasting: 'Magias',
+  archetype: 'Arquétipo',
+  talents: 'Talentos',
+  talentMilestones: 'Marcos de talento',
+  equipment: 'Equipamento e gil',
+  professions: 'Profissões',
+  appearance: 'Aparência',
+  backstory: 'História',
+  narrationStyle: 'Narração',
+};
+
+/**
+ * Aprova a ficha. Sem `edits` é a aprovação simples. Com `edits.fields` é a
+ * "aprovação com ajustes": o narrador edita a ficha (as mesmas regras da edição
+ * da staff numa ficha aprovada) e ela já sai aprovada, numa escrita só, com o
+ * estado de origem no filtro (enviada ou devolvida). Os campos editados valem
+ * como estão: nada é recalculado depois (o recompute da criação só roda em
+ * rascunho, e a ficha aprovada o recusa).
+ */
+export async function approveSheet(
+  id: string,
+  actor: IActor,
+  edits?: { fields?: unknown; updatedAt?: unknown }
+) {
   assertAdmin(actor);
   const sheet = await loadSheet(id);
   assertInCreation(sheet);
   if (sheet.status === 'approved') {
     throw new CreationError('A ficha já foi aprovada.', 409);
   }
+  const adjusting = !!edits && edits.fields !== undefined;
+  if (
+    adjusting &&
+    sheet.status !== 'submitted' &&
+    sheet.status !== 'returned'
+  ) {
+    throw new CreationError(
+      'Só uma ficha enviada ou devolvida pode ser aprovada com ajustes.',
+      409
+    );
+  }
   const issues = await evaluateSheet(sheet);
   if (issues.some((i) => i.kind === 'required')) {
     throw new CreationError('Ainda falta o que é obrigatório.', 422, issues);
   }
   const at = new Date().toISOString();
-  const moved = await PlayerModel.updateOne(
-    {
-      _id: id,
-      status: { $in: ['blank', 'draft', 'submitted', 'returned'] as const },
-    },
-    {
-      $set: { status: 'approved' },
-      ...pushReview({ kind: 'approve', by: actor.username, at }),
+
+  if (!adjusting) {
+    const moved = await PlayerModel.updateOne(
+      {
+        _id: id,
+        status: { $in: ['blank', 'draft', 'submitted', 'returned'] as const },
+      },
+      {
+        $set: { status: 'approved' },
+        ...pushReview({ kind: 'approve', by: actor.username, at }),
+      }
+    );
+    if (moved.matchedCount === 0) {
+      throw new CreationError('A ficha já foi aprovada.', 409);
     }
-  );
-  if (moved.matchedCount === 0) {
-    throw new CreationError('A ficha já foi aprovada.', 409);
+    await record(sheet, 'approve', 'Ficha aprovada', actor);
+    return { status: 'approved' as const };
   }
-  await record(sheet, 'approve', 'Ficha aprovada', actor);
-  return { status: 'approved' as const };
+
+  const data = pickWritablePlayerFields(edits.fields);
+  normalizeStats(data);
+  if (Object.keys(data).length === 0) {
+    throw new CreationError('Nada para ajustar: aprove sem ajustes.');
+  }
+  const current = await getPlayerById(id);
+  if (!current) throw new CreationError('Ficha não encontrada.', 404);
+  // Edição concorrente: a ficha mudou desde que o narrador a abriu.
+  if (edits.updatedAt) {
+    const storedAt = current.updatedAt
+      ? new Date(current.updatedAt).getTime()
+      : 0;
+    if (storedAt && storedAt !== new Date(String(edits.updatedAt)).getTime()) {
+      throw new CreationError('Esta ficha foi alterada em outro lugar.', 409);
+    }
+  }
+  normalizeSpellDC(data, current as unknown as Doc);
+
+  // Os rótulos do que mudou (nunca os valores).
+  const labels = [
+    ...new Set(
+      Object.keys(data)
+        .filter(
+          (key) =>
+            JSON.stringify((current as unknown as Doc)[key] ?? null) !==
+            JSON.stringify(data[key] ?? null)
+        )
+        .map((key) => FIELD_LABELS[key] ?? key)
+    ),
+  ];
+  const entry: IReviewEntry = {
+    kind: 'approve',
+    notes: `Aprovada com ajustes: ${labels.join(', ') || 'sem alteração de campo'}`,
+    by: actor.username,
+    at,
+  };
+  let updated;
+  try {
+    updated = await updatePlayerById(id, data, {
+      where: {
+        status: { $in: ['submitted', 'returned'] },
+        // Se foi dado, a ficha tem de estar como o narrador a abriu.
+        ...(edits.updatedAt
+          ? { updatedAt: new Date(String(edits.updatedAt)) }
+          : {}),
+      },
+      set: { status: 'approved' },
+      push: { review: entry },
+      // Perdida a corrida da raça/classe única, a ficha volta ao que era.
+      revert: {
+        set: { status: sheet.status },
+        pull: { review: { kind: 'approve', at: entry.at } },
+      },
+    });
+  } catch (error) {
+    if (error instanceof PlayerSheetError) {
+      throw new CreationError(
+        error.message,
+        error.name === 'UniqueConflictError' ? 409 : 400
+      );
+    }
+    throw error;
+  }
+  if (!updated) {
+    throw new CreationError(
+      'A ficha mudou de estado enquanto você editava.',
+      409
+    );
+  }
+  await record(
+    sheet,
+    'approve',
+    `Aprovada com ajustes: ${labels.join(', ') || 'sem alteração de campo'}`,
+    actor
+  );
+  return { status: 'approved' as const, adjusted: labels };
 }
 
 export async function returnSheet(

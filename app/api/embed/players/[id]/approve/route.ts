@@ -9,7 +9,16 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  return creationRoute(request, params, { write: true }, (id, actor) =>
-    approveSheet(id, actor)
-  );
+  // Corpo `{ fields, updatedAt }` = aprovação com ajustes (o narrador edita e
+  // aprova numa escrita só); sem `fields`, a aprovação simples.
+  return creationRoute(request, params, { write: true }, async (id, actor) => {
+    const body = await request.json().catch(() => ({}));
+    return approveSheet(
+      id,
+      actor,
+      body && typeof body === 'object' && 'fields' in body
+        ? { fields: body.fields, updatedAt: body.updatedAt }
+        : undefined
+    );
+  });
 }

@@ -12,6 +12,8 @@ interface IProps {
   error?: string;
   onSave: () => void;
   onDiscard: () => void;
+  /** O rótulo do botão primário ("Salvar e aprovar" nos ajustes do narrador). */
+  saveLabel?: string;
 }
 
 const SaveBar = ({
@@ -22,6 +24,7 @@ const SaveBar = ({
   error,
   onSave,
   onDiscard,
+  saveLabel = 'Salvar alterações',
 }: IProps) => {
   const handles = useCssHandles(SaveBarHandles);
 
@@ -56,7 +59,7 @@ const SaveBar = ({
           onClick={onSave}
           disabled={isSaving}
         >
-          {isSaving ? 'Salvando...' : 'Salvar alterações'}
+          {isSaving ? 'Salvando...' : saveLabel}
         </button>
       </div>
     </div>

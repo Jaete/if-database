@@ -374,9 +374,24 @@ export async function updatePlayer(slug: string, incoming: Partial<IPlayer>) {
 // enquanto `updatePlayer` é chaveado por slug. Mesma guarda de 24 hex de
 // getPlayerById, e `$set` explícito: um update doc sem `$set` substituiria o
 // subdocumento inteiro, então gravar `combat.ac` apagaria `combat.hp`.
+/**
+ * `options` serve a aprovação com ajustes: o filtro extra (o estado de origem),
+ * o que gravar junto (o novo `status`) e o que acrescentar ao histórico de
+ * revisão, tudo NA MESMA escrita dos campos. Sem match (o estado mudou), devolve
+ * `null`.
+ */
+export interface IUpdateByIdOptions {
+  where?: Record<string, unknown>;
+  set?: Record<string, unknown>;
+  push?: Record<string, unknown>;
+  /** O que desfazer, além dos vínculos, se a guarda da raça/classe única perder. */
+  revert?: { set?: Record<string, unknown>; pull?: Record<string, unknown> };
+}
+
 export async function updatePlayerById(
   id: string,
-  incoming: Record<string, unknown>
+  incoming: Record<string, unknown>,
+  options: IUpdateByIdOptions = {}
 ) {
   if (!/^[0-9a-f]{24}$/i.test(id)) return null;
   const updateData = stripProgression(incoming);
@@ -440,15 +455,18 @@ export async function updatePlayerById(
         : clean;
   }
 
-  const player = await PlayerModel.findByIdAndUpdate(
-    id,
-    { $set: updateData },
+  const player = await PlayerModel.findOneAndUpdate(
+    { _id: id, ...(options.where ?? {}) },
+    {
+      $set: { ...updateData, ...(options.set ?? {}) },
+      ...(options.push ? { $push: options.push } : {}),
+    },
     { returnDocument: 'after', runValidators: true }
   )
     .select(PLAYER_PUBLIC_FIELDS.join(' '))
     .lean<IPublicPlayer>();
   if (player && (updateData.classId || updateData.raceId)) {
-    await guardUniqueAfterWrite(id, prevLinks, updateData);
+    await guardUniqueAfterWrite(id, prevLinks, updateData, options.revert);
   }
   return resolveLinks(player);
 }

@@ -599,7 +599,10 @@ interface IPrevLinks {
 export async function guardUniqueAfterWrite(
   id: string,
   prev: IPrevLinks | null,
-  next: { classId?: unknown; raceId?: unknown }
+  next: { classId?: unknown; raceId?: unknown },
+  // Escritas que mudaram mais que os vínculos (a aprovação com ajustes)
+  // desfazem também o estado e a entrada de revisão.
+  extra?: { set?: Record<string, unknown>; pull?: Record<string, unknown> }
 ): Promise<void> {
   const [{ default: PlayerModel }, { default: CitizenModel }] =
     await Promise.all([
@@ -608,8 +611,15 @@ export async function guardUniqueAfterWrite(
     ]);
 
   const revert = async (set: Record<string, unknown>) => {
-    if (prev) await PlayerModel.updateOne({ _id: id }, { $set: set });
-    else await PlayerModel.deleteOne({ _id: id });
+    if (prev) {
+      await PlayerModel.updateOne(
+        { _id: id },
+        {
+          $set: { ...set, ...(extra?.set ?? {}) },
+          ...(extra?.pull ? { $pull: extra.pull } : {}),
+        }
+      );
+    } else await PlayerModel.deleteOne({ _id: id });
   };
 
   const classId = next.classId ? String(next.classId) : '';

@@ -655,6 +655,9 @@ async function buildPlanFor(
       // Lista esgotada não trava o selo; com texto livre, sempre há como escolher.
       need: catalog.freeTextLabel ? due : Math.min(due, options.length),
       options,
+      taken: snap.catalogPicks
+        .filter((p) => p.catalog === catalog.slug)
+        .map((p) => p.item),
       ...(catalog.requiresArchetype
         ? { requiresArchetype: catalog.requiresArchetype }
         : {}),
@@ -1021,6 +1024,16 @@ export function canonicalizeChoices(
       return bad(`Escolha ${cat.need} em "${cat.name}".`);
     }
     const seen = new Set<string>();
+    // O texto livre não se repete entre níveis: compara sem caixa nem espaços.
+    const squash = (t: string) => t.toLowerCase().replace(/\s+/g, '');
+    const prefix = cat.freeTextLabel ? `${cat.freeTextLabel}: ` : null;
+    const takenFree = new Set(
+      prefix
+        ? cat.taken
+            .filter((t) => t.startsWith(prefix))
+            .map((t) => squash(t.slice(prefix.length)))
+        : []
+    );
     for (const p of mine) {
       const item = typeof p.item === 'string' ? p.item.trim() : '';
       const free =
@@ -1031,12 +1044,17 @@ export function canonicalizeChoices(
         free !== null
           ? free.length > 0 && free.length <= FREE_TEXT_MAX
           : cat.options.some((o) => o.name === item);
-      if (!ok || seen.has(item)) {
+      const key = free !== null ? `free:${squash(free)}` : item;
+      if (
+        !ok ||
+        seen.has(key) ||
+        (free !== null && takenFree.has(squash(free)))
+      ) {
         return bad(
-          `"${cat.name}": escolha inválida${item ? ` ("${item}")` : ''}.`
+          `"${cat.name}": escolha inválida ou repetida${item ? ` ("${item}")` : ''}.`
         );
       }
-      seen.add(item);
+      seen.add(key);
       catalogPicks.push({ catalog: cat.slug, item });
     }
   }

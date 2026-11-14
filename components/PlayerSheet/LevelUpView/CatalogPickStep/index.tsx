@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useCssHandles } from '@/hooks/useCssHandles';
 import { sheetSounds } from '@/lib/sheetSounds';
 import { FREE_TEXT_MAX } from '@/lib/catalogPicks';
@@ -25,6 +25,7 @@ const CatalogPickStep = ({ plan, draft, patch, slug }: IProps) => {
   const cat = plan.catalogPicks.find((c) => c.slug === slug);
   const [hover, setHover] = useState<string | null>(null);
   const [free, setFree] = useState('');
+  const chipsRef = useRef<HTMLSpanElement>(null);
   if (!cat) return null;
 
   const picks = draft.catalogPicks[slug] ?? [];
@@ -35,6 +36,22 @@ const CatalogPickStep = ({ plan, draft, patch, slug }: IProps) => {
   const freePicks = label
     ? picks.filter((p) => p.startsWith(`${label}: `))
     : [];
+  // Enter ou "Usar este": acrescenta. Com a lista cheia o campo desliga, então
+  // o foco vai para o chip recém-criado (onde dá para desfazer).
+  const add = () => {
+    const text = free.trim();
+    if (!label || !text || full) return;
+    set([...picks, `${label}: ${text}`]);
+    setFree('');
+    sheetSounds.play('pick');
+    if (picks.length + 1 >= cat.need) {
+      window.setTimeout(() => {
+        const chips =
+          chipsRef.current?.querySelectorAll<HTMLElement>('[data-chip]');
+        chips?.[chips.length - 1]?.focus();
+      }, 0);
+    }
+  };
   const focus =
     cat.options.find((o) => o.name === hover) ??
     cat.options.find((o) => o.name === picks[picks.length - 1]) ??
@@ -84,37 +101,48 @@ const CatalogPickStep = ({ plan, draft, patch, slug }: IProps) => {
           })}
         </div>
         {label && (
-          <div className={handles.luNote}>
-            <label>
-              {label}:{' '}
+          <div className={handles.luFreeRow}>
+            <label className={handles.luFreeLabel}>
+              <span>{label}</span>
               <input
+                className={handles.luFreeInput}
                 value={free}
                 maxLength={FREE_TEXT_MAX}
+                disabled={full}
+                placeholder={full ? 'Tudo escolhido' : 'Escreva e tecle Enter'}
                 onChange={(e) => setFree(e.target.value)}
-                aria-label={label}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    add();
+                  }
+                }}
               />
-            </label>{' '}
+            </label>
             <button
               type="button"
+              className={handles.luFreeAdd}
               disabled={!free.trim() || full}
-              onClick={() => {
-                set([...picks, `${label}: ${free.trim()}`]);
-                setFree('');
-                sheetSounds.play('pick');
-              }}
+              onClick={add}
             >
               Usar este
             </button>
-            {freePicks.map((p) => (
-              <button
-                key={p}
-                type="button"
-                onClick={() => set(picks.filter((x) => x !== p))}
-                aria-label={`Remover ${p}`}
-              >
-                {p} ×
-              </button>
-            ))}
+            {freePicks.length > 0 && (
+              <span ref={chipsRef} className={handles.luFreeChips}>
+                {freePicks.map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    data-chip
+                    className={handles.luFreeChip}
+                    onClick={() => set(picks.filter((x) => x !== p))}
+                    aria-label={`Remover ${p}`}
+                  >
+                    {p.slice(label.length + 2)} ×
+                  </button>
+                ))}
+              </span>
+            )}
           </div>
         )}
       </div>

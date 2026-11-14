@@ -62,7 +62,11 @@ async function main() {
     if (write) {
       await PlayerModel.updateOne(
         { _id: sheet._id, 'combat.speed.walk': { $exists: false } },
-        { $set: { 'combat.speed': speed } }
+        {
+          $set: Object.fromEntries(
+            Object.entries(speed).map(([k, v]) => [`combat.speed.${k}`, v])
+          ),
+        }
       );
     }
   }

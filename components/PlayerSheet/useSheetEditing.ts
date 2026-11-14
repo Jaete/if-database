@@ -328,6 +328,13 @@ export const useSheetEditing = (
     setPlayer(next);
   }, []);
 
+  /** Descarta só o rascunho e segue editando (os ajustes do narrador). */
+  const resetDraft = useCallback(() => {
+    setDraft({});
+    setStatus('');
+    setError('');
+  }, []);
+
   const cancel = useCallback(() => {
     setDraft({});
     setIsEditing(false);
@@ -357,60 +364,90 @@ export const useSheetEditing = (
     });
   }, []);
 
-  const save = useCallback(async () => {
-    if (!isDirty || isSaving) return;
-    setIsSaving(true);
-    setError('');
-
-    // O rascunho é por caminho, mas a rota grava subárvores inteiras: monta o
-    // corpo só com as raízes tocadas, cada uma completa.
-    let fields: Record<string, unknown> = {};
-    for (const [path, next] of Object.entries(draft)) {
-      const root = path.split('.')[0];
-      if (!(root in fields)) {
-        fields[root] = readPath(player, root);
-      }
-      fields = writePath(fields, path, next);
-    }
-
-    try {
-      const res = await fetch(`/api/embed/players/${player._id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fields, updatedAt: player.updatedAt }),
-      });
-
-      if (res.status === 403) {
-        setPermission('none');
-        setError('Você não tem mais permissão para editar esta ficha.');
-        return;
-      }
-      if (!res.ok) {
-        const body = await res.json().catch(() => null);
-        setError(body?.error ?? 'Não foi possível salvar.');
-        return;
-      }
-
-      setPlayer(await res.json());
-      setDraft({});
+  /**
+   * `approve`: "Aprovar com ajustes". Salvar vira aprovar (a rota de aprovação
+   * grava os campos e muda o estado numa escrita só). Quem sabe se há ajuste
+   * em curso é a criação (`adjusting`), a única fonte dessa verdade.
+   */
+  const save = useCallback(
+    async (options: { approve?: boolean } = {}) => {
+      const approveMode = !!options.approve;
+      if (!isDirty || isSaving) return;
+      setIsSaving(true);
       setError('');
-      setStatus('Alterações salvas.');
-      // A mesma ficha pode estar aberta duas vezes no fórum: no post e no
-      // modal de visualização ampliada. Avisar o fórum é o que permite à cópia
-      // do post recarregar quando o modal fecha, em vez de mostrar a versão
-      // de antes da edição.
-      if (window.parent !== window && forumOrigin) {
-        window.parent.postMessage(
-          { source: MSG_SOURCE, type: 'sheet:saved', id: player._id },
-          forumOrigin
-        );
+
+      // O rascunho é por caminho, mas a rota grava subárvores inteiras: monta o
+      // corpo só com as raízes tocadas, cada uma completa.
+      let fields: Record<string, unknown> = {};
+      for (const [path, next] of Object.entries(draft)) {
+        const root = path.split('.')[0];
+        if (!(root in fields)) {
+          fields[root] = readPath(player, root);
+        }
+        fields = writePath(fields, path, next);
       }
-    } catch {
-      setError('Não foi possível salvar. Verifique a conexão.');
-    } finally {
-      setIsSaving(false);
-    }
-  }, [draft, forumOrigin, isDirty, isSaving, player]);
+
+      try {
+        const res = await fetch(
+          `/api/embed/players/${player._id}${approveMode ? '/approve' : ''}`,
+          {
+            method: approveMode ? 'POST' : 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ fields, updatedAt: player.updatedAt }),
+          }
+        );
+
+        if (res.status === 403) {
+          setPermission('none');
+          setError('Você não tem mais permissão para editar esta ficha.');
+          return;
+        }
+        if (!res.ok) {
+          const body = await res.json().catch(() => null);
+          const message = body?.error ?? 'Não foi possível salvar.';
+          // A ficha mudou de estado ou de conteúdo: segue nos ajustes, com o
+          // erro à vista, e dá para tentar de novo ou cancelar e reabrir a revisão.
+          setError(
+            approveMode && res.status === 409
+              ? `${message} Cancele os ajustes e reabra a revisão.`
+              : message
+          );
+          return;
+        }
+
+        if (approveMode) {
+          // Aprovada: todos passam a ver a ficha como ela ficou.
+          if (window.parent !== window && forumOrigin) {
+            window.parent.postMessage(
+              { source: MSG_SOURCE, type: 'sheet:saved', id: player._id },
+              forumOrigin
+            );
+          }
+          window.location.reload();
+          return;
+        }
+        setPlayer(await res.json());
+        setDraft({});
+        setError('');
+        setStatus('Alterações salvas.');
+        // A mesma ficha pode estar aberta duas vezes no fórum: no post e no
+        // modal de visualização ampliada. Avisar o fórum é o que permite à cópia
+        // do post recarregar quando o modal fecha, em vez de mostrar a versão
+        // de antes da edição.
+        if (window.parent !== window && forumOrigin) {
+          window.parent.postMessage(
+            { source: MSG_SOURCE, type: 'sheet:saved', id: player._id },
+            forumOrigin
+          );
+        }
+      } catch {
+        setError('Não foi possível salvar. Verifique a conexão.');
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [draft, forumOrigin, isDirty, isSaving, player]
+  );
 
   return {
     player,
@@ -419,6 +456,7 @@ export const useSheetEditing = (
     permission,
     isEditing,
     setIsEditing,
+    resetDraft,
     isDirty,
     dirtyCount: Object.keys(draft).length,
     dirtyPaths: Object.keys(draft),

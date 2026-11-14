@@ -72,6 +72,7 @@ const PlayerSheet = ({
     permission,
     isEditing,
     setIsEditing,
+    resetDraft,
     isDirty,
     dirtyCount,
     isSaving,
@@ -101,15 +102,29 @@ const PlayerSheet = ({
   // novo a cada escrita.
   // Em criação (blank, draft, submitted, returned) o editar livre não existe:
   // o assistente e a revisão fazem esse papel. É coisa de ficha aprovada.
-  const inCreation = !!player.status && player.status !== 'approved';
-  const canEdit =
-    permission === 'granted' && levelUp.access.isStaff && !inCreation;
   const creation = useCreationState({
     player,
     identified,
     access: levelUp.access,
     forumOrigin,
   });
+  const inCreation = !!player.status && player.status !== 'approved';
+  // Só a staff, na ficha dos outros, e em criação só nos ajustes do narrador.
+  const canEdit =
+    permission === 'granted' &&
+    levelUp.access.isStaff &&
+    (!inCreation || creation.adjusting);
+  // "Aprovar com ajustes": abre a edição normal; salvar vira aprovar.
+  const startAdjust = () => {
+    setIsEditing(true);
+    creation.startAdjust();
+  };
+  const cancelAdjust = () => {
+    cancel();
+    creation.cancelAdjust();
+  };
+  const creationValue = { ...creation, startAdjust, cancelAdjust };
+
   // Em criação e ainda não enviada, a página só mandou o dono e o estado: o
   // que a ficha mostra é a moldura "Ficha em criação" (ver CreationFrame).
   const unsent = player.status === 'blank' || player.status === 'draft';
@@ -270,7 +285,7 @@ const PlayerSheet = ({
     >
       <LevelUpProvider value={levelUp}>
         <CatalogLayerProvider>
-          <CreationProvider value={creation}>
+          <CreationProvider value={creationValue}>
             {unsent ? (
               <div className={handles.playerSheetStage}>
                 <article
@@ -293,7 +308,7 @@ const PlayerSheet = ({
                   data-unsaved={isDirty || undefined}
                   aria-label={`Ficha de ${player.name}`}
                 >
-                  {canEdit && (
+                  {canEdit && !creation.adjusting && (
                     <button
                       type="button"
                       className={`${handles.sheetEditToggle}${
@@ -362,8 +377,13 @@ const PlayerSheet = ({
                     count={dirtyCount}
                     isSaving={isSaving}
                     error={saveError}
-                    onSave={save}
-                    onDiscard={sounds.discard}
+                    onSave={() => void save({ approve: creation.adjusting })}
+                    // Nos ajustes do narrador, descartar só limpa o rascunho: a
+                    // edição segue aberta e o caminho de volta é o "Cancelar".
+                    onDiscard={creation.adjusting ? resetDraft : sounds.discard}
+                    saveLabel={
+                      creation.adjusting ? 'Salvar e aprovar' : undefined
+                    }
                   />
                 </article>
               </div>

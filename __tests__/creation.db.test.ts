@@ -51,6 +51,7 @@ async function main() {
   const { default: Event } = await import('../db/playerProgress/playerEvents');
   const { default: Roll } = await import('../db/playerProgress/creationRolls');
   const svc = await import('../services/creation.service');
+  const { getPlayerById } = await import('../services/player.service');
   const { CreationError } = svc;
 
   const cleanup = async () => {
@@ -1492,6 +1493,209 @@ async function main() {
     const d = await blank();
     await svc.saveDraft(d, { fields: mixed('elfos') }, ownerActor);
     assert.deepEqual((await raw(d)).combat.speed, { walk: 9 });
+  });
+
+  // ── Aprovar com ajustes ──
+  const submittedSheet = async () => {
+    const { id } = await complete();
+    await svc.rollStartingGil(id, ownerActor);
+    await svc.submitSheet(id, ownerActor);
+    return id;
+  };
+  const otherStaff = {
+    username: 'narrador',
+    forumUserId: 999010,
+    isOwner: false,
+    isStaff: true,
+    hasStaffRole: true,
+  };
+
+  await test('approve with adjustments: extra gil, skill and free-text item persist, labels (not values) in history', async () => {
+    const id = await submittedSheet();
+    const before = await raw(id);
+    const fields = {
+      equipment: {
+        ...before.equipment,
+        gil: 4321,
+        backpack: 'Corda + Lâmina Lendária do Reino',
+      },
+      proficiencies: {
+        ...before.proficiencies,
+        skills: [
+          ...before.proficiencies.skills,
+          { name: 'Ofício (ferreiro)', proficient: true, value: 2 },
+        ],
+      },
+    };
+    const res = await svc.approveSheet(id, otherStaff, { fields });
+    assert.equal(res.status, 'approved');
+    const s = await raw(id);
+    assert.equal(s.status, 'approved');
+    assert.equal(s.equipment.gil, 4321);
+    assert.equal(s.equipment.backpack, 'Corda + Lâmina Lendária do Reino');
+    assert.ok(
+      s.proficiencies.skills.some(
+        (k: { name: string }) => k.name === 'Ofício (ferreiro)'
+      )
+    );
+    // Os derivados que a staff não tocou seguem como estavam.
+    assert.deepEqual(s.playerStats, before.playerStats);
+    assert.equal(s.combat.hp.value, before.combat.hp.value);
+    assert.deepEqual(s.languages, before.languages);
+    const last = s.review.at(-1);
+    assert.equal(last.kind, 'approve');
+    assert.match(last.notes, /Aprovada com ajustes/);
+    assert.match(last.notes, /Equipamento e gil/);
+    assert.match(last.notes, /Perícias/);
+    assert.ok(!/4321|Lâmina/.test(last.notes), 'só rótulos, nunca valores');
+    const ev = (await Event.find({ playerId: id, kind: 'approve' }).lean())[0];
+    assert.match(ev.reason, /Aprovada com ajustes: .*Equipamento e gil/);
+    assert.ok(!/4321|Lâmina/.test(ev.reason));
+  });
+
+  await test('after the adjusted approval nothing re-derives over the staff extras', async () => {
+    const id = await submittedSheet();
+    const before = await raw(id);
+    await svc.approveSheet(id, otherStaff, {
+      fields: { equipment: { ...before.equipment, gil: 5555 } },
+    });
+    // O rascunho e as rolagens recusam ficha aprovada: o recompute não roda.
+    await refuses(
+      () => svc.saveDraft(id, { fields: { subtitle: 'x' } }, otherStaff),
+      409
+    );
+    await refuses(() => svc.rollStartingGil(id, otherStaff), 409);
+    const view = await svc.getCreation(id, otherStaff);
+    assert.ok(
+      !view.issues.some((i) => /não confere/.test(i.message)),
+      'o gil de staff não vira pendência'
+    );
+    assert.equal((await raw(id)).equipment.gil, 5555);
+    const read = await getPlayerById(id);
+    assert.equal(read?.equipment?.gil, 5555);
+  });
+
+  await test('adjusted approval: owner and non-staff are refused, only submitted/returned allowed', async () => {
+    const id = await submittedSheet();
+    const fields = { subtitle: 'Ajuste' };
+    const own = await refuses(
+      () =>
+        svc.approveSheet(id, { ...ownerActor, hasStaffRole: true }, { fields }),
+      403
+    );
+    assert.match(own.message, /Outro membro da staff/);
+    await refuses(() => svc.approveSheet(id, stranger, { fields }), 403);
+    assert.equal((await raw(id)).status, 'submitted');
+    const draftId = await blank();
+    await Player.updateOne({ _id: draftId }, { $set: { status: 'draft' } });
+    await refuses(() => svc.approveSheet(draftId, otherStaff, { fields }), 409);
+    await refuses(() => svc.approveSheet(id, otherStaff, { fields: {} }), 400);
+    // Devolvida também vale.
+    await svc.returnSheet(id, { notes: 'Ajuste.' }, otherStaff);
+    assert.equal(
+      (await svc.approveSheet(id, otherStaff, { fields })).status,
+      'approved'
+    );
+  });
+
+  await test('adjusted approval: required issues still block, and nothing is written', async () => {
+    const id = await blank();
+    await svc.saveDraft(id, { fields: { name: 'Zz Incompleta' } }, ownerActor);
+    await Player.updateOne({ _id: id }, { $set: { status: 'submitted' } });
+    const err = await refuses(
+      () => svc.approveSheet(id, otherStaff, { fields: { subtitle: 'x' } }),
+      422
+    );
+    assert.ok(err.issues?.some((i) => i.kind === 'required'));
+    const s = await raw(id);
+    assert.equal(s.status, 'submitted');
+    assert.equal(s.subtitle, undefined);
+  });
+
+  await test('adjusted approval: updatedAt in the filter, and a lost unique-race reverts status and review', async () => {
+    // Um dono antigo da raça única de outros testes não pode atrapalhar.
+    await Player.deleteMany({ raceId: estelar._id, description: MARK });
+    // updatedAt velho: o filtro não casa (409), nada muda.
+    const stale = await submittedSheet();
+    await refuses(
+      () =>
+        svc.approveSheet(stale, otherStaff, {
+          fields: { subtitle: 'x' },
+          updatedAt: new Date(2000, 1, 1).toISOString(),
+        }),
+      409
+    );
+    assert.equal((await raw(stale)).status, 'submitted');
+
+    const id = await submittedSheet();
+    const before = await raw(id);
+    // Perde a corrida da raça única: a guarda de depois da escrita vê duas fichas.
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    const real = Player.countDocuments.bind(Player) as any;
+    (Player as any).countDocuments = (filter: any, ...rest: unknown[]) =>
+      filter && 'raceId' in filter ? Promise.resolve(2) : real(filter, ...rest);
+    try {
+      await refuses(
+        () =>
+          svc.approveSheet(id, otherStaff, {
+            fields: { raceId: String(estelar._id), raceChoice: {} },
+          }),
+        409
+      );
+    } finally {
+      (Player as any).countDocuments = real;
+    }
+    /* eslint-enable @typescript-eslint/no-explicit-any */
+    const s = await raw(id);
+    assert.equal(s.status, 'submitted', 'a ficha segue enviada, não aprovada');
+    assert.equal(String(s.raceId), String(before.raceId), 'a raça voltou');
+    assert.equal(
+      s.review.filter((r: { kind: string }) => r.kind === 'approve').length,
+      0
+    );
+    assert.equal(
+      await Event.countDocuments({ playerId: id, kind: 'approve' }),
+      0
+    );
+  });
+
+  await test('adjusted approval: the status filter is in the write (state changed meanwhile -> 409)', async () => {
+    const id = await submittedSheet();
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    const real = Player.findOneAndUpdate.bind(Player) as any;
+    let first = true;
+    (Player as any).findOneAndUpdate = (filter: any, ...rest: unknown[]) => {
+      if (!first) return real(filter, ...rest);
+      first = false;
+      // Outro admin devolve a ficha entre a leitura e a escrita.
+      return {
+        select: (fieldsList: string) => ({
+          lean: async () => {
+            await Player.updateOne({ _id: id }, { $set: { status: 'draft' } });
+            return real(filter, ...rest)
+              .select(fieldsList)
+              .lean();
+          },
+        }),
+      };
+    };
+    try {
+      await refuses(
+        () =>
+          svc.approveSheet(id, otherStaff, { fields: { subtitle: 'Corrida' } }),
+        409
+      );
+    } finally {
+      (Player as any).findOneAndUpdate = real;
+    }
+    /* eslint-enable @typescript-eslint/no-explicit-any */
+    const s = await raw(id);
+    assert.equal(s.status, 'draft');
+    assert.equal(s.subtitle, undefined);
+    assert.equal(
+      s.review.filter((r: { kind: string }) => r.kind === 'approve').length,
+      0
+    );
   });
 
   await cleanup();

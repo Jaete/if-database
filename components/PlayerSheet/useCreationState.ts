@@ -144,6 +144,7 @@ export const useCreationState = (args: {
   const [loaded, setLoaded] = useState(false);
   const [view, setView] = useState<CreationView>('sheet');
   const [step, setStep] = useState<WizardStep>('identidade');
+  const [adjusting, setAdjusting] = useState(false);
   const [saving, setSaving] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -378,6 +379,15 @@ export const useCreationState = (args: {
         setView('wizard');
       },
       openReview: () => setView('review'),
+      adjusting,
+      startAdjust: () => {
+        setAdjusting(true);
+        setView('sheet');
+      },
+      cancelAdjust: () => {
+        setAdjusting(false);
+        setView('review');
+      },
       close: () => {
         void flush();
         setView('sheet');
@@ -415,6 +425,7 @@ export const useCreationState = (args: {
       data,
       view,
       step,
+      adjusting,
       patch,
       saving,
       unsaved,

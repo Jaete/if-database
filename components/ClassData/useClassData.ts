@@ -22,23 +22,25 @@ import {
   parseSlotCell,
 } from '@/db/l10n/classes';
 
-/**
- * O próximo nível a criar: um acima do maior que existe.
- *
- * Pelo maior, e não pelo tamanho da lista, porque uma tabela importada pela
- * metade pode ter buracos — e aí `levels.length + 1` cairia em cima de um
- * nível que já existe.
- */
 /** Os campos de lista de escolha do modal; vazio = sem correção. */
 function catalogPickFields(values: Record<string, string>) {
-  const pickable = (values.pickable ?? '').trim().toLowerCase();
+  const raw = (values.pickable ?? '').trim().toLowerCase();
+  const pickable =
+    raw === ''
+      ? undefined
+      : ['sim', 's'].includes(raw)
+        ? true
+        : ['não', 'nao', 'n'].includes(raw)
+          ? false
+          : null;
   const levels = (values.pickLevels ?? '')
     .split(/[,\s]+/)
     .map(Number)
     .filter((n) => Number.isInteger(n) && n >= 1 && n <= 20);
   const per = Math.floor(Number(values.picksPerLevel));
   return {
-    pickable: pickable.startsWith('s') ? true : pickable ? false : undefined,
+    pickable: pickable === null ? undefined : pickable,
+    invalidPickable: pickable === null,
     pickLevels: levels.length > 0 ? levels : undefined,
     picksPerLevel: per > 1 ? per : undefined,
     requiresArchetype: values.requiresArchetype?.trim() || undefined,
@@ -46,6 +48,13 @@ function catalogPickFields(values: Record<string, string>) {
   };
 }
 
+/**
+ * O próximo nível a criar: um acima do maior que existe.
+ *
+ * Pelo maior, e não pelo tamanho da lista, porque uma tabela importada pela
+ * metade pode ter buracos — e aí `levels.length + 1` cairia em cima de um
+ * nível que já existe.
+ */
 export function nextLevelNumber(levels: IClassLevel[] | undefined): number {
   return (levels ?? []).reduce((max, l) => Math.max(max, l.level), 0) + 1;
 }
@@ -346,6 +355,15 @@ export function useClassData(initial: ICharacterClass) {
     (index: number, values: Record<string, string>) => {
       const catalogs = [...(characterClass.catalogs ?? [])];
       const current = catalogs[index];
+      const picks = catalogPickFields(values);
+      if (picks.invalidPickable) {
+        setError(
+          '"É lista de escolha?" aceita só "sim" ou "não" (vazio = pelo texto).'
+        );
+        return Promise.resolve(false);
+      }
+      const { invalidPickable, ...pickFields } = picks;
+      void invalidPickable;
       const next: IClassCatalog = {
         name: values.name,
         slug: classSlug(values.name),
@@ -356,7 +374,7 @@ export function useClassData(initial: ICharacterClass) {
         // O que o modal não mexe (a tabela de relação) segue como estava.
         ...(current?.groupA ? { groupA: current.groupA } : {}),
         ...(current?.groupB ? { groupB: current.groupB } : {}),
-        ...catalogPickFields(values),
+        ...pickFields,
       };
       if (index < 0) catalogs.push(next);
       else catalogs[index] = next;
