@@ -10,7 +10,8 @@ import type {
 } from '@/db/citizens/citizen.d';
 import { splitList } from '@/lib/listValues';
 import SKILLS, { findSkill } from '@/db/l10n/skills';
-import { modifierOf, skillValue } from '@/lib/stats';
+import { modifierOf } from '@/lib/stats';
+import { proficiencyLevel, skillTotal } from '@/lib/skills';
 
 export type FormDataType = Partial<ICitizen> & {
   // Campos de jogador. Ficam aqui, e não num tipo separado, porque o mesmo
@@ -30,6 +31,8 @@ export type FormDataType = Partial<ICitizen> & {
     name: string;
     value: number;
     proficient?: boolean;
+    // De onde vem a proficiência (ver lib/skills.ts): o formulário a preserva.
+    proficiencySources?: { source: string; label?: string; grant?: string }[];
     bonus?: number;
   }>;
   spellSlots: Array<{ level: number; slotsTotal: number; slotsUsed: number }>;
@@ -562,9 +565,9 @@ export const useCitizenEditForm = ({
       ...skill,
       proficient,
       bonus,
-      value: skillValue(
+      value: skillTotal(
         attributeModifier(skill.attribute),
-        proficient,
+        proficiencyLevel(stored ?? { proficient }),
         formData.proficiencyBonus ?? 0,
         bonus
       ),
@@ -590,6 +593,12 @@ export const useCitizenEditForm = ({
         const proficient = isTarget
           ? (patch.proficient ?? stored?.proficient ?? false)
           : (stored?.proficient ?? false);
+        // Mexer na caixa de proficiência zera as fontes (vira uma só, de ficha);
+        // as outras perícias mantêm as suas, com a especialização.
+        const sources =
+          isTarget && patch.proficient !== undefined
+            ? undefined
+            : stored?.proficiencySources;
         const bonus = isTarget
           ? (patch.bonus ?? stored?.bonus ?? 0)
           : (stored?.bonus ?? 0);
@@ -608,10 +617,11 @@ export const useCitizenEditForm = ({
         return {
           name: skill.name,
           proficient,
+          ...(sources ? { proficiencySources: sources } : {}),
           bonus,
-          value: skillValue(
+          value: skillTotal(
             modifier,
-            proficient,
+            proficiencyLevel({ proficient, proficiencySources: sources }),
             prev.proficiencyBonus ?? 0,
             bonus
           ),

@@ -11,6 +11,7 @@ import type { IRaceCatalogEntry } from '../db/races/race.d';
 import type { ICreationState, IReviewEntry } from '../db/players/player.d';
 import type { PlayerEventKind } from '../db/playerProgress/playerProgress';
 import { stripUnsafeKeys } from '../lib/sanitize';
+import { MAX_PROFICIENCY, setStaffLevel, skillTotal } from '../lib/skills';
 import { OWN_SHEET_MESSAGE } from '../lib/sheetAccess';
 import { isImageUrl, isUploadedImageUrl } from '../lib/imageUrl';
 import { modifierOf, type AttributeKey } from '../lib/stats';
@@ -19,9 +20,12 @@ import { parseHitDie } from '../lib/levelUp';
 import {
   ATTRIBUTES,
   SKILL_ATTR,
+  SKILL_NAMES,
   attributeTotals,
   checkGrantPicks,
   emptyGrantPicks,
+  skillSources,
+  skillSourcesIssue,
   type ICreationGrantPicks,
   castingNumbers,
   checkBase,
@@ -57,7 +61,7 @@ import { GENERAL_TALENT_FIELDS, generalTalentOption } from './talentCatalog';
 import { requiredLevel } from '../lib/talentPrerequisite';
 import { getRaceCatalog } from './race.service';
 import { getPlayerById, updatePlayerById } from './player.service';
-import { normalizeSpellDC, normalizeStats } from './sheetEdit';
+import { normalizeSkills, normalizeSpellDC, normalizeStats } from './sheetEdit';
 import { pickWritablePlayerFields } from '../db/players/publicFields';
 import { getClassCasting } from './classSpells.service';
 import {
@@ -398,6 +402,14 @@ export async function evaluateSheet(sheet: ISheet, ctx?: ICreationContext) {
     },
   };
   const issues = creationIssues(input);
+  // Fontes de proficiência: sem repetir na mesma lista e no máximo duas
+  // aplicações por perícia (o servidor já recusa ao salvar; aqui é o envio).
+  const skillIssue = skillSourcesIssue(
+    skillSources(classSkillsOf(sheet), g.entries, g.picks)
+  );
+  if (skillIssue) {
+    issues.push({ step: 'pericias', kind: 'required', message: skillIssue });
+  }
   if (
     context.race &&
     Object.keys(
@@ -511,25 +523,27 @@ async function recompute(id: string) {
     }));
     // As perícias da ficha: as da classe mais as concedidas pela raça (a
     // perícia versátil entra aqui também), sem repetir.
-    const racialPicks = grantsOf(ctx, sheet).picks;
-    const racial = [
-      ...racialPicks.skills,
-      ...racialPicks.versatile
-        .filter((v) => v.kind === 'skill' && v.value)
-        .map((v) => v.value),
-    ];
-    const seen = new Set<string>();
-    const all = [
-      ...classSkillsOf(sheet).map((name) => ({ name, race: false })),
-      ...racial.map((name) => ({ name, race: true })),
-    ].filter((s) => (seen.has(s.name) ? false : (seen.add(s.name), true)));
-    set['proficiencies.skills'] = all.map((s) => {
-      const attr = SKILL_ATTR[s.name];
+    const g = grantsOf(ctx, sheet);
+    const sourceMap = skillSources(classSkillsOf(sheet), g.entries, g.picks);
+    // O ajuste do narrador vem por último, sem restrição de fonte: leva a
+    // perícia direto ao nível dele (o teto é 2). Ele pode inclusive tirar a
+    // fonte da classe ou da raça.
+    // A decisão é definitiva: vale também depois que a dona troca classe, raça
+    // ou escolhas, e a remoção fica marcada (`staffOverride`, sem fontes).
+    const overridden = new Set<string>();
+    for (const { name, level } of creation.staffSkills ?? []) {
+      sourceMap.set(name, setStaffLevel(sourceMap.get(name) ?? [], level));
+      overridden.add(name);
+    }
+    set['proficiencies.skills'] = [...sourceMap].map(([name, sources]) => {
+      const attr = SKILL_ATTR[name];
+      const level = Math.min(MAX_PROFICIENCY, sources.length);
       return {
-        name: s.name,
-        proficient: true,
-        value: (attr ? totals[attr].mod : 0) + pb,
-        ...(s.race ? { source: 'race' } : {}),
+        name,
+        proficient: level > 0,
+        proficiencySources: sources.slice(0, MAX_PROFICIENCY),
+        value: skillTotal(attr ? totals[attr].mod : 0, level, pb),
+        ...(overridden.has(name) ? { staffOverride: true } : {}),
       };
     });
     set.featureChoices = (creation.featureChoices ?? [])
@@ -809,6 +823,8 @@ export interface IDraftBody {
   fields?: Doc;
   creation?: Partial<ICreationState>;
   skills?: string[];
+  /** Só a staff: o nível de cada perícia, direto (ver `ICreationState.staffSkills`). */
+  staffSkills?: { name: string; level: number }[];
   /** As escolhas das concessões da raça. */
   grants?: Partial<ICreationGrantPicks>;
 }
@@ -1099,10 +1115,37 @@ export async function saveDraft(id: string, body: IDraftBody, actor: IActor) {
     }
   }
 
+  // ── Ajuste do narrador nas perícias ──
+  if (body?.staffSkills !== undefined) {
+    // Só a staff NESTA ficha (a dona nunca é staff na própria): a jogadora não
+    // aplica especialização direto, só pelas fontes.
+    if (!actor.isStaff) {
+      throw new CreationError(
+        'Só a staff aplica proficiência direto, fora das fontes.',
+        403
+      );
+    }
+    if (!Array.isArray(body.staffSkills) || body.staffSkills.length > 40) {
+      throw new CreationError('Ajuste de perícias inválido.');
+    }
+    const byName = new Map<string, 0 | 1 | 2>();
+    for (const item of body.staffSkills) {
+      const name = String((item as { name?: unknown })?.name ?? '');
+      const level = Number((item as { level?: unknown })?.level);
+      if (!SKILL_NAMES.includes(name) || ![0, 1, 2].includes(level)) {
+        throw new CreationError(`Perícia ou nível inválido: "${name}".`);
+      }
+      byName.set(name, level as 0 | 1 | 2);
+    }
+    const list = [...byName].map(([name, level]) => ({ name, level }));
+    creation.staffSkills = list;
+    update['creation.staffSkills'] = list;
+  }
+
   if (Array.isArray(body?.skills)) {
     const info = await loadClassInfo(nextClass);
     if (!info) throw new CreationError('Escolha a classe antes das perícias.');
-    const wanted = [...new Set(body.skills.map(String))];
+    const wanted = body.skills.map(String);
     // Sem lista na classe a escolha é livre: limita quantidade e tamanho.
     if (wanted.length > MAX_FREE_SKILLS || wanted.some((w) => w.length > 40)) {
       throw new CreationError('Perícias demais ou com nome longo demais.');
@@ -1118,16 +1161,16 @@ export async function saveDraft(id: string, body: IDraftBody, actor: IActor) {
     if (info.skills.n !== null && canonical.length > info.skills.n) {
       throw new CreationError(`Esta classe escolhe ${info.skills.n} perícias.`);
     }
-    const racialTaken = [
-      ...(creation.grants?.skills ?? []),
-      ...(creation.grants?.versatile ?? [])
-        .filter((v) => v.kind === 'skill')
-        .map((v) => v.value),
-    ];
-    const dup = canonical.find((c) => racialTaken.includes(c));
-    if (dup) {
-      throw new CreationError(`"${dup}" já foi escolhida como perícia racial.`);
-    }
+    // A mesma perícia duas vezes na MESMA lista é erro; já com a de outra fonte
+    // (a raça), vira especialização, até duas aplicações.
+    const { race: raceNow, sub: subNow } = await raceInfo();
+    const issue = skillSourcesIssue(
+      skillSources(canonical, racialGrants(raceNow, subNow), {
+        ...emptyGrantPicks(),
+        ...(creation.grants ?? {}),
+      })
+    );
+    if (issue) throw new CreationError(issue);
     creation.classSkills = canonical;
     update['creation.classSkills'] = canonical;
   }
@@ -1146,7 +1189,7 @@ export async function saveDraft(id: string, body: IDraftBody, actor: IActor) {
         )
         .filter(Boolean);
     const next = { ...emptyGrantPicks(), ...(creation.grants ?? {}) };
-    if ('skills' in g) next.skills = [...new Set(strings(g.skills, 40))];
+    if ('skills' in g) next.skills = strings(g.skills, 40);
     if ('talents' in g) next.talents = [...new Set(strings(g.talents, 80))];
     if ('languages' in g) next.languages = strings(g.languages, 40);
     if ('versatile' in g) {
@@ -1165,7 +1208,8 @@ export async function saveDraft(id: string, body: IDraftBody, actor: IActor) {
       totals,
       next,
       creation.classSkills ?? [],
-      locked
+      locked,
+      racialGrants(race, sub)
     );
     if (!check.ok) {
       throw new CreationError(check.message ?? 'Escolha racial inválida.');
@@ -1503,6 +1547,7 @@ export async function approveSheet(
 
   const data = pickWritablePlayerFields(edits.fields);
   normalizeStats(data);
+  normalizeSkills(data);
   if (Object.keys(data).length === 0) {
     throw new CreationError('Nada para ajustar: aprove sem ajustes.');
   }

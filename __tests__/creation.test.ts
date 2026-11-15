@@ -498,8 +498,8 @@ test('creation grants: picks are counted, deduplicated and bounded', () => {
   assert.equal(checkGrantPicks(totals, ok, ['Atletismo']).complete, true);
   assert.equal(
     checkGrantPicks(totals, { ...ok, skills: ['Atletismo'] }, ['Atletismo']).ok,
-    false,
-    'duplicates a class pick'
+    true,
+    'a class pick plus a racial one = expertise'
   );
   assert.equal(
     checkGrantPicks(totals, { ...ok, skills: ['Ofício'] }, []).ok,
@@ -518,8 +518,8 @@ test('creation grants: picks are counted, deduplicated and bounded', () => {
       { ...ok, versatile: [{ kind: 'skill', value: 'Furtividade' }] },
       []
     ).ok,
-    false,
-    'versatile skill repeats the racial one'
+    true,
+    'the two racial grants on one skill = expertise'
   );
   assert.equal(
     checkGrantPicks(

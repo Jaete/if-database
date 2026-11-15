@@ -9,6 +9,8 @@ const SkillsPanelHandles = [
   'sheetSkillGroupMod',
   'sheetSkill',
   'sheetSkillPip',
+  'sheetSkillExp',
+  'sheetSkillSrc',
   'sheetSkillBonus',
   'sheetBonusPop',
   'sheetBonusRemove',

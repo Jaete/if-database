@@ -5,7 +5,14 @@ import { useState } from 'react';
 import type { IPublicPlayer } from '@/db/players/publicFields';
 import type { IBonus, ISavingThrow, ISkill } from '@/db/creatures/creatures';
 import { useCssHandles } from '@/hooks/useCssHandles';
-import { formatModifier, skillValue } from '@/lib/stats';
+import { formatModifier } from '@/lib/stats';
+import {
+  proficiencyLevel,
+  setStaffLevel,
+  skillTotal,
+  sourceCaption,
+  sourcesOf,
+} from '@/lib/skills';
 import Block from '../Block';
 import Field from '../Field';
 import {
@@ -30,6 +37,12 @@ interface IProps {
 
 const SAVES_PATH = 'proficiencies.savingThrows';
 const SKILLS_PATH = 'proficiencies.skills';
+
+const LEVEL_TEXT = {
+  0: 'sem proficiência',
+  1: 'proficiente',
+  2: 'especialização',
+} as const;
 
 const SkillsPanel = ({ player }: IProps) => {
   const handles = useCssHandles(SkillsPanelHandles);
@@ -61,38 +74,51 @@ const SkillsPanel = ({ player }: IProps) => {
   const recalc = (
     mod: number | undefined,
     entry: ISkill | undefined,
-    proficient: boolean,
+    level: number,
     bonus: number
   ) => {
-    if (mod !== undefined) return skillValue(mod, proficient, pb, bonus);
-    const wasProficient = !!entry?.proficient;
+    if (mod !== undefined) return skillTotal(mod, level, pb, bonus);
     return (
       (entry?.value ?? 0) -
       (entry?.bonus ?? 0) -
-      (wasProficient ? pb : 0) +
+      pb * proficiencyLevel(entry) +
       bonus +
-      (proficient ? pb : 0)
+      pb * level
     );
   };
 
-  /** Regrava uma perícia mantendo `bonus` como a soma de `bonuses`. */
+  /**
+   * Regrava uma perícia mantendo `bonus` como a soma de `bonuses`. `level` leva
+   * a proficiência direto a 0, 1 ou 2 (especialização): o narrador não tem
+   * restrição de fonte, e o que passa do que as fontes dão entra como
+   * "Narrador" (ver lib/skills.ts).
+   */
   const writeSkill = (
     name: string,
     mod: number | undefined,
-    change: { proficient?: boolean; bonuses?: IBonus[] }
+    change: { level?: 0 | 1 | 2; bonuses?: IBonus[] }
   ) => {
     const at = skillData.findIndex((s) => sameName(s.name, name));
     const entry = at >= 0 ? skillData[at] : undefined;
-    const proficient = change.proficient ?? !!entry?.proficient;
+    const sources =
+      change.level === undefined
+        ? sourcesOf(entry)
+        : setStaffLevel(sourcesOf(entry), change.level);
+    const level = Math.min(2, sources.length);
     const bonuses = change.bonuses ?? readBonuses(entry);
     const bonus = sumBonuses(bonuses);
     const next: ISkill = {
       ...entry,
       name: entry?.name ?? name,
-      proficient,
+      proficient: level > 0,
+      ...(change.level !== undefined || entry?.proficiencySources
+        ? { proficiencySources: sources }
+        : {}),
+      // Decisão da staff: definitiva, e a remoção também fica marcada.
+      ...(change.level !== undefined ? { staffOverride: true } : {}),
       bonuses,
       bonus,
-      value: recalc(mod, entry, proficient, bonus),
+      value: recalc(mod, entry, level, bonus),
     };
     setField(
       SKILLS_PATH,
@@ -102,10 +128,8 @@ const SkillsPanel = ({ player }: IProps) => {
     );
   };
 
-  const toggleSkill = (name: string, mod: number | undefined) => {
-    const entry = skillData.find((s) => sameName(s.name, name));
-    writeSkill(name, mod, { proficient: !entry?.proficient });
-  };
+  const setLevel = (name: string, mod: number | undefined, level: 0 | 1 | 2) =>
+    writeSkill(name, mod, { level });
 
   const changeBonuses = (
     name: string,
@@ -133,79 +157,105 @@ const SkillsPanel = ({ player }: IProps) => {
   const renderSkill = (
     name: string,
     value: number | undefined,
-    proficient: boolean,
+    entry: ISkill | undefined,
     bonuses: IBonus[],
     mod?: number
-  ) => (
-    <div
-      key={name}
-      className={`${handles.sheetSkill}${
-        proficient ? ` ${handles.sheetSkill}--prof` : ''
-      }`}
-    >
-      {editable ? (
-        <button
-          type="button"
-          className={`${handles.sheetSkillPip} ${handles.sheetSkillPip}--button`}
-          onClick={() => toggleSkill(name, mod)}
-          aria-pressed={proficient}
-          aria-label={`${name}: ${proficient ? 'remover' : 'marcar'} proficiência`}
-        />
-      ) : (
-        <span className={handles.sheetSkillPip} aria-hidden="true" />
-      )}
-      <span>
-        {name}
-        {proficient && (
-          <span className={handles.sheetSrOnly}> (proficiente)</span>
-        )}
-        {bonuses.map((b, i) => (
-          <span
-            key={`${b.source ?? ''}:${i}`}
-            className={handles.sheetSkillBonus}
-            // O popover é CSS puro; `title` cobre quem não usa ponteiro.
-            title={b.source || undefined}
-            tabIndex={b.source ? 0 : undefined}
-          >
-            {formatModifier(b.value)}
-            {b.source && (
-              <span className={handles.sheetBonusPop} role="tooltip">
-                {b.source}
-              </span>
-            )}
-            {editable && (
-              <button
-                type="button"
-                className={handles.sheetBonusRemove}
-                onClick={() =>
-                  changeBonuses(
-                    name,
-                    mod,
-                    bonuses.filter((_, at) => at !== i)
-                  )
-                }
-                aria-label={`${name}: remover bônus ${formatModifier(b.value)}`}
-              >
-                &times;
-              </button>
-            )}
-          </span>
-        ))}
-        {editable && (
+  ) => {
+    const level = proficiencyLevel(entry);
+    const proficient = level > 0;
+    const caption = sourceCaption(sourcesOf(entry));
+    return (
+      <div
+        key={name}
+        className={`${handles.sheetSkill}${
+          proficient ? ` ${handles.sheetSkill}--prof` : ''
+        }`}
+      >
+        {editable ? (
           <button
             type="button"
-            className={handles.sheetBonusAdd}
-            onClick={() => setBonusFor({ name, mod })}
-          >
-            + Bônus
-          </button>
+            className={`${handles.sheetSkillPip} ${handles.sheetSkillPip}--button`}
+            data-level={level}
+            onClick={() => setLevel(name, mod, ((level + 1) % 3) as 0 | 1 | 2)}
+            aria-label={`${name}: ${LEVEL_TEXT[level]}. Clique para ${LEVEL_TEXT[((level + 1) % 3) as 0 | 1 | 2]}`}
+            title={`${name}: ${LEVEL_TEXT[level]}. Clique para ${LEVEL_TEXT[((level + 1) % 3) as 0 | 1 | 2]}`}
+          />
+        ) : (
+          <span
+            className={handles.sheetSkillPip}
+            data-level={level}
+            aria-hidden="true"
+          />
         )}
-      </span>
-      <span className={handles.sheetSkillValue}>
-        {value !== undefined ? formatModifier(value) : DASH}
-      </span>
-    </div>
-  );
+        <span>
+          {name}
+          {level === 2 && (
+            <span
+              className={handles.sheetSkillExp}
+              title={caption ? `Especialização: ${caption}` : 'Especialização'}
+            >
+              Esp.
+            </span>
+          )}
+          {proficient && (
+            <span className={handles.sheetSrOnly}>
+              {level === 2
+                ? ' (especialização, bônus em dobro)'
+                : ' (proficiente)'}
+              {caption ? `, fontes: ${caption}` : ''}
+            </span>
+          )}
+          {proficient && caption && (
+            <small className={handles.sheetSkillSrc}>{caption}</small>
+          )}
+          {bonuses.map((b, i) => (
+            <span
+              key={`${b.source ?? ''}:${i}`}
+              className={handles.sheetSkillBonus}
+              // O popover é CSS puro; `title` cobre quem não usa ponteiro.
+              title={b.source || undefined}
+              tabIndex={b.source ? 0 : undefined}
+            >
+              {formatModifier(b.value)}
+              {b.source && (
+                <span className={handles.sheetBonusPop} role="tooltip">
+                  {b.source}
+                </span>
+              )}
+              {editable && (
+                <button
+                  type="button"
+                  className={handles.sheetBonusRemove}
+                  onClick={() =>
+                    changeBonuses(
+                      name,
+                      mod,
+                      bonuses.filter((_, at) => at !== i)
+                    )
+                  }
+                  aria-label={`${name}: remover bônus ${formatModifier(b.value)}`}
+                >
+                  &times;
+                </button>
+              )}
+            </span>
+          ))}
+          {editable && (
+            <button
+              type="button"
+              className={handles.sheetBonusAdd}
+              onClick={() => setBonusFor({ name, mod })}
+            >
+              + Bônus
+            </button>
+          )}
+        </span>
+        <span className={handles.sheetSkillValue}>
+          {value !== undefined ? formatModifier(value) : DASH}
+        </span>
+      </div>
+    );
+  };
 
   return (
     <>
@@ -275,14 +325,18 @@ const SkillsPanel = ({ player }: IProps) => {
                 </div>
                 {group.skills.map((name) => {
                   const entry = skillData.find((s) => sameName(s.name, name));
-                  const proficient = !!entry?.proficient;
                   const bonuses = readBonuses(entry);
                   const value =
                     entry?.value ??
                     (mod !== undefined
-                      ? skillValue(mod, proficient, pb, sumBonuses(bonuses))
+                      ? skillTotal(
+                          mod,
+                          proficiencyLevel(entry),
+                          pb,
+                          sumBonuses(bonuses)
+                        )
                       : undefined);
-                  return renderSkill(name, value, proficient, bonuses, mod);
+                  return renderSkill(name, value, entry, bonuses, mod);
                 })}
               </div>
             );
@@ -293,7 +347,7 @@ const SkillsPanel = ({ player }: IProps) => {
                 <span className={handles.sheetSkillGroupName}>Outras</span>
               </div>
               {extra.map((s) =>
-                renderSkill(s.name!, s.value, !!s.proficient, readBonuses(s))
+                renderSkill(s.name!, s.value, s, readBonuses(s))
               )}
             </div>
           )}

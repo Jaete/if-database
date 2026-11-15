@@ -70,6 +70,9 @@ function applyBody(data: CreationPayload, body: IDraftBody): CreationPayload {
   }
   Object.assign(creation, body.creation ?? {});
   if (body.skills) creation.classSkills = body.skills;
+  if (body.staffSkills) {
+    creation.staffSkills = body.staffSkills as typeof creation.staffSkills;
+  }
   if (body.grants) {
     creation.grants = {
       ...((creation.grants as object) ?? {}),
@@ -88,6 +91,9 @@ const mergeBodies = (a: IDraftBody, b: IDraftBody): IDraftBody => ({
   creation: { ...a.creation, ...b.creation },
   ...((b.skills ?? a.skills) ? { skills: b.skills ?? a.skills } : {}),
   ...(a.grants || b.grants ? { grants: { ...a.grants, ...b.grants } } : {}),
+  ...((b.staffSkills ?? a.staffSkills)
+    ? { staffSkills: b.staffSkills ?? a.staffSkills }
+    : {}),
 });
 
 // ── Cópia local do que ainda não chegou ao servidor ──────────

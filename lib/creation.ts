@@ -4,7 +4,9 @@
 // Sem banco, sem React.
 
 import { modifierOf, spellSaveDC, type AttributeKey } from './stats';
+import { sourcesIssue, type ISkillSource } from './skills';
 import {
+  type IGrantEntry,
   type IGrantTotals,
   checkRacialPicks,
   effectiveSubrace,
@@ -587,11 +589,71 @@ const MAX_FREE_TEXT = 60;
  * (`complete` diz se cobre tudo). Talentos, que dependem do catálogo, o
  * servidor confere à parte.
  */
+/**
+ * As fontes de proficiência de cada perícia: as escolhas da classe e CADA
+ * concessão da raça como fonte própria ("Versatilidade Adaptativa" e "Variedade
+ * Genética" são fontes diferentes). A mesma perícia por duas fontes vira
+ * especialização; repetir dentro da MESMA fonte é erro.
+ */
+export function skillSources(
+  classSkills: readonly string[],
+  entries: readonly IGrantEntry[],
+  picks: Pick<ICreationGrantPicks, 'skills' | 'versatile'>
+): Map<string, ISkillSource[]> {
+  const map = new Map<string, ISkillSource[]>();
+  const add = (name: string, source: ISkillSource) =>
+    map.set(name, [...(map.get(name) ?? []), source]);
+  for (const name of classSkills) add(name, { source: 'class' });
+
+  let skillAt = 0;
+  let versatileAt = 0;
+  entries.forEach((entry, i) => {
+    const source = (kind: string): ISkillSource => ({
+      source: 'race',
+      grant: `${kind}:${i}`,
+      label: entry.label ?? 'raça',
+    });
+    if (entry.kind === 'skills') {
+      for (const name of picks.skills.slice(skillAt, skillAt + entry.n)) {
+        add(name, source('skills'));
+      }
+      skillAt += entry.n;
+    } else if (entry.kind === 'versatile') {
+      for (const pick of picks.versatile.slice(
+        versatileAt,
+        versatileAt + entry.n
+      )) {
+        if (pick.kind === 'skill' && pick.value) {
+          add(pick.value, source('versatile'));
+        }
+      }
+      versatileAt += entry.n;
+    }
+  });
+  return map;
+}
+
+/** A primeira mensagem de erro das fontes (repetida na lista ou acima do teto). */
+export function skillSourcesIssue(map: Map<string, ISkillSource[]>) {
+  for (const [name, sources] of map) {
+    const issue = sourcesIssue(name, sources);
+    if (issue) return issue;
+  }
+  return null;
+}
+
+/**
+ * Confere as escolhas contra o que a raça concede: contagem, perícias das 18,
+ * textos curtos e as fontes de proficiência (ver `skillSources`). Rascunho
+ * parcial vale (`complete` diz se cobre tudo). Talentos, que dependem do
+ * catálogo, o servidor confere à parte.
+ */
 export function checkGrantPicks(
   totals: IGrantTotals,
   picks: ICreationGrantPicks,
   classSkills: readonly string[],
-  lockedLanguages: readonly string[] = []
+  lockedLanguages: readonly string[] = [],
+  entries?: readonly IGrantEntry[]
 ): { ok: boolean; complete: boolean; message?: string } {
   const bad = (message: string) => ({ ok: false, complete: false, message });
   if (picks.skills.length > totals.skills)
@@ -603,26 +665,34 @@ export function checkGrantPicks(
   if (picks.versatile.length > totals.versatile)
     return bad('Escolhas versáteis demais.');
 
-  const taken = new Set(classSkills.map(fold));
-  const claim = (name: string) => {
-    if (!SKILL_NAMES.includes(name)) return `"${name}" não é uma das perícias.`;
-    if (taken.has(fold(name))) return `"${name}" já foi escolhida.`;
-    taken.add(fold(name));
-    return null;
-  };
   for (const name of picks.skills) {
-    const err = claim(name);
-    if (err) return bad(err);
+    if (!SKILL_NAMES.includes(name))
+      return bad(`"${name}" não é uma das perícias.`);
   }
   for (const v of picks.versatile) {
     if (!VERSATILE_KINDS.includes(v.kind))
       return bad('Tipo de escolha inválido.');
     if (v.value.length > MAX_FREE_TEXT) return bad('Texto longo demais.');
-    if (v.kind === 'skill' && v.value) {
-      const err = claim(v.value);
-      if (err) return bad(err);
+    if (v.kind === 'skill' && v.value && !SKILL_NAMES.includes(v.value)) {
+      return bad(`"${v.value}" não é uma das perícias.`);
     }
   }
+  const sourceIssue = skillSourcesIssue(
+    skillSources(
+      classSkills,
+      entries ??
+        (
+          [
+            ['skills', totals.skills],
+            ['versatile', totals.versatile],
+          ] as const
+        )
+          .filter(([, n]) => n > 0)
+          .map(([kind, n]) => ({ kind, n })),
+      picks
+    )
+  );
+  if (sourceIssue) return bad(sourceIssue);
   const langs = new Set(lockedLanguages.map(fold));
   const allLangs = [
     ...picks.languages,

@@ -3,7 +3,14 @@
 import { useId } from 'react';
 import { useCssHandles } from '@/hooks/useCssHandles';
 import { sheetSounds } from '@/lib/sheetSounds';
-import { SKILL_ATTR } from '@/lib/creation';
+import { SKILL_ATTR, skillSources } from '@/lib/creation';
+import {
+  CAP_MESSAGE,
+  proficiencyLevel,
+  sourceCaption,
+  sourcesOf,
+} from '@/lib/skills';
+import type { ISkill } from '@/db/creatures/creatures.d';
 import LevelUpDetail from '../../LevelUpDetail';
 import LevelUpPill from '../../LevelUpPill';
 import LevelUpViewHandles from '../../LevelUpView/handles';
@@ -35,7 +42,7 @@ const COMMON_LANGUAGES = [
 const SkillsStep = () => {
   const lu = useCssHandles(LevelUpViewHandles);
   const handles = useCssHandles(CreationViewHandles);
-  const { creation, data, d } = useStep();
+  const { creation, data, player, d } = useStep();
   const listId = useId();
   const k = d.klass;
 
@@ -50,12 +57,39 @@ const SkillsStep = () => {
   }
   const chosen = d.classSkills;
   const g = d.grants;
-  const racialSkills = [
-    ...g.skills,
-    ...g.versatile
-      .filter((v) => v.kind === 'skill' && v.value)
-      .map((v) => v.value),
-  ];
+  // Quantas fontes já dão cada perícia: duas = especialização, o teto.
+  const sourceMap = skillSources(chosen, d.grantEntries, g);
+  const count = (name: string) => sourceMap.get(name)?.length ?? 0;
+  const becomes = (name: string, on: boolean) =>
+    !on && count(name) === 1 ? ' · vira especialização' : '';
+  const capped = (name: string, on: boolean) => !on && count(name) >= 2;
+  // O que a ficha tem agora (resolvido pelo servidor) e o ajuste do narrador.
+  const finalSkills = ((player.proficiencies?.skills ?? []) as ISkill[])
+    .map((k) => ({ ...k, level: proficiencyLevel(k) }))
+    .filter((k) => k.level > 0);
+  const staffList = data.creation.staffSkills ?? [];
+  const staffLevelOf = (name: string): 0 | 1 | 2 =>
+    staffList.find((s) => s.name === name)?.level ??
+    proficiencyLevel(
+      (player.proficiencies?.skills as ISkill[] | undefined)?.find(
+        (k) => k.name === name
+      )
+    );
+  const LEVEL_TEXT = {
+    0: 'sem proficiência',
+    1: 'proficiente',
+    2: 'especialização',
+  } as const;
+  const next = (level: 0 | 1 | 2) => ((level + 1) % 3) as 0 | 1 | 2;
+  const setStaffLevel = (name: string, level: 0 | 1 | 2) => {
+    creation.patch({
+      staffSkills: [
+        ...staffList.filter((s) => s.name !== name),
+        { name, level },
+      ],
+    });
+    sheetSounds.play('pick');
+  };
   const list =
     k.skills.list.length > 0 ? k.skills.list : Object.keys(SKILL_ATTR);
   const n = k.skills.n;
@@ -94,14 +128,64 @@ const SkillsStep = () => {
                 type="button"
                 className={handles.crSkill}
                 aria-pressed={on}
-                disabled={(!on && full) || racialSkills.includes(name)}
+                disabled={(!on && full) || capped(name, on)}
+                title={capped(name, on) ? CAP_MESSAGE(name) : undefined}
                 onClick={() => toggle(name)}
               >
                 {name}
+                {becomes(name, on)}
               </button>
             );
           })}
         </div>
+        {/* O resultado: o que a ficha terá, com as fontes (Narrador incluso). */}
+        {finalSkills.length > 0 && (
+          <ul className={handles.crSpellList} aria-label="Perícias da ficha">
+            {finalSkills.map((k) => (
+              <li key={k.name} className={handles.crSpellItem}>
+                <span>
+                  {k.name}
+                  {k.level === 2 && ' · Esp.'}
+                </span>
+                <small>{sourceCaption(sourcesOf(k))}</small>
+              </li>
+            ))}
+          </ul>
+        )}
+        {creation.isStaff && (
+          <>
+            <div className={lu.luPaneHead}>
+              <h3>Ajuste do narrador</h3>
+              <p>
+                Só a staff: leve qualquer perícia direto a nenhuma, proficiente
+                ou especialização, venha a proficiência de onde vier. O que
+                passa das fontes entra como &ldquo;Narrador&rdquo;.
+              </p>
+            </div>
+            <div className={handles.crPicks}>
+              {Object.keys(SKILL_ATTR).map((name) => {
+                const level = staffLevelOf(name);
+                return (
+                  <div key={name} className={handles.crPickRow}>
+                    <span>{name}</span>
+                    <button
+                      type="button"
+                      className={handles.crLevelPip}
+                      data-level={level}
+                      disabled={!creation.canEdit}
+                      aria-label={`${name}: ${LEVEL_TEXT[level]}. Clique para ${LEVEL_TEXT[next(level)]}`}
+                      title={`${name}: ${LEVEL_TEXT[level]}. Clique para ${LEVEL_TEXT[next(level)]}`}
+                      onClick={() => setStaffLevel(name, next(level))}
+                    >
+                      <span aria-hidden="true" />
+                      {LEVEL_TEXT[level]}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
         {d.grantTotals.skills > 0 && (
           <>
             <div className={lu.luPaneHead}>
@@ -126,8 +210,7 @@ const SkillsStep = () => {
                 const on = g.skills.includes(name);
                 const blocked =
                   (!on && g.skills.length >= d.grantTotals.skills) ||
-                  chosen.includes(name) ||
-                  (racialSkills.includes(name) && !on);
+                  capped(name, on);
                 return (
                   <button
                     key={name}
@@ -135,6 +218,7 @@ const SkillsStep = () => {
                     className={handles.crSkill}
                     aria-pressed={on}
                     disabled={!creation.canEdit || blocked}
+                    title={capped(name, on) ? CAP_MESSAGE(name) : undefined}
                     onClick={() => {
                       creation.patch({
                         grants: {
@@ -214,12 +298,17 @@ const SkillsStep = () => {
                         aria-pressed={pick.value === name}
                         disabled={
                           !creation.canEdit ||
-                          chosen.includes(name) ||
-                          (racialSkills.includes(name) && pick.value !== name)
+                          (pick.value !== name && count(name) >= 2)
+                        }
+                        title={
+                          pick.value !== name && count(name) >= 2
+                            ? CAP_MESSAGE(name)
+                            : undefined
                         }
                         onClick={() => write({ kind: 'skill', value: name })}
                       >
                         {name}
+                        {becomes(name, pick.value === name)}
                       </button>
                     ))}
                   </div>

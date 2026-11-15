@@ -7,7 +7,11 @@ import { getEmbedSession } from '@/services/embedAuth.service';
 import { pickWritablePlayerFields } from '@/db/players/publicFields';
 import { updatePlayerById, getPlayerById } from '@/services/player.service';
 import { PlayerSheetError } from '@/services/playerSheetLinks.service';
-import { normalizeSpellDC, normalizeStats } from '@/services/sheetEdit';
+import {
+  normalizeSkills,
+  normalizeSpellDC,
+  normalizeStats,
+} from '@/services/sheetEdit';
 
 /**
  * Escrita da ficha embutida, chaveada por `_id` — é o que a tag [ficha] do
@@ -55,6 +59,7 @@ export async function PUT(
     const data = pickWritablePlayerFields(body?.fields);
 
     normalizeStats(data);
+    normalizeSkills(data);
 
     if (Object.keys(data).length === 0) {
       return NextResponse.json({ error: 'Nada para salvar' }, { status: 400 });

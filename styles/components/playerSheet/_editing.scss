@@ -265,6 +265,8 @@
     border-color 0.15s ease,
     box-shadow 0.15s ease;
 
+  @include focus-ring;
+
   &::after {
     content: '';
     position: absolute;

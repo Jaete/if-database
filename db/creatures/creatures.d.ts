@@ -58,6 +58,19 @@ export interface ISkill {
   // (o drawer do fórum), mas recalculado pelo formulário a cada edição.
   value?: number;
   proficient?: boolean;
+  // De onde vem a proficiência (classe, cada concessão da raça, o narrador).
+  // Duas fontes = especialização (o bônus de proficiência vale duas vezes); o
+  // teto é duas. Ausente nos documentos antigos, que só têm `proficient`
+  // (uma fonte, de origem desconhecida). Ver lib/skills.ts.
+  proficiencySources?: { source: string; label?: string; grant?: string }[];
+  // A staff mexeu no nível desta perícia: a decisão é definitiva e nenhum
+  // recálculo a partir da classe ou da raça a desfaz (também marca a remoção:
+  // `proficient: false` com este campo é "a staff zerou").
+  staffOverride?: boolean;
+  // A staff mexeu no nível desta perícia: a decisão é definitiva e nenhum
+  // recálculo a partir da classe ou da raça a desfaz (também marca a remoção:
+  // `proficient: false` com este campo é "a staff zerou").
+  staffOverride?: boolean;
   // Total dos bônus extras da perícia. Continua sendo um número só porque o
   // formulário completo do app o edita assim, e os documentos antigos só têm
   // isto — mas quando `bonuses` existe, este campo é a SOMA daquela lista e é

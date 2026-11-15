@@ -27,6 +27,12 @@ export interface ICreationState {
   startingGil?: number;
   /** As perícias da CLASSE escolhidas; as raciais ficam em `grants`. */
   classSkills?: string[];
+  /**
+   * Ajuste do narrador nas perícias (só a staff escreve): leva a perícia direto
+   * ao nível 0, 1 ou 2, venha a proficiência de onde vier. O que passa das
+   * fontes da classe e da raça entra como fonte `staff`.
+   */
+  staffSkills?: { name: string; level: 0 | 1 | 2 }[];
   /** O que a dona escolheu nas concessões da raça ("Concede na criação"). */
   grants?: Partial<ICreationGrantPicks>;
   /** Idioma extra escolhido (recomendado, não obrigatório). */

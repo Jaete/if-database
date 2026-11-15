@@ -1,3 +1,4 @@
+import { normalizeStaffSkills } from '../lib/skills';
 import { attributeKeyOf, modifierOf, spellSaveDC } from '../lib/stats';
 
 /**
@@ -66,4 +67,19 @@ export function normalizeSpellDC(
     ...casting,
     saveDC: spellSaveDC(modifier, proficiency),
   };
+}
+
+/**
+ * As perícias que a staff mandou: sem restrição de fonte (ela pode dar a
+ * especialização direto ou tirar a proficiência da classe). O único teto é o
+ * nível 2, o mais alto que existe; `proficient` acompanha as fontes.
+ */
+export function normalizeSkills(data: Record<string, unknown>) {
+  const prof = data.proficiencies;
+  if (!prof || typeof prof !== 'object') return;
+  const skills = (prof as Record<string, unknown>).skills;
+  if (!Array.isArray(skills)) return;
+  (prof as Record<string, unknown>).skills = normalizeStaffSkills(
+    skills.filter((s) => s && typeof s === 'object')
+  );
 }

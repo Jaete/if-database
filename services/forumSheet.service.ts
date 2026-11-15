@@ -156,6 +156,61 @@ export function extractPostBody(html: string): string {
   return rest;
 }
 
+// Blocos de publicidade do Forumeiros entram no meio do tópico como se fossem
+// mensagens (`postbody` com um <script> e nada mais).
+const AD_MARKERS = /slmadshb|taboola|google_ads|akcelo-wrapper/i;
+
+function isAdBody(body: string): boolean {
+  const hasContent = /<table|<li\b|<img/i.test(body);
+  if (hasContent) return false;
+  if (AD_MARKERS.test(body)) return true;
+  const text = body
+    .replace(/<script[\s\S]*?<\/script>/gi, '')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;|\s+/g, ' ')
+    .trim();
+  return text.length < 3;
+}
+
+/**
+ * Recorta o corpo de TODAS as mensagens do tópico, na ordem em que aparecem.
+ * Mesma contagem de <div> de `extractPostBody`; os blocos de publicidade ficam
+ * de fora. Devolve lista vazia (e não lança) quando não há mensagem alguma.
+ */
+export function extractPostBodies(html: string): string[] {
+  const bodies: string[] = [];
+  const tag = /<div\b[^>]*>|<\/div>/gi;
+  let from = 0;
+
+  for (;;) {
+    const postIndex = html.indexOf('class="postbody"', from);
+    if (postIndex === -1) break;
+    from = postIndex + 1;
+
+    const fromPost = html.slice(postIndex);
+    const contentIndex = fromPost.search(/<div[^>]*class="content[^"]*"/i);
+    if (contentIndex === -1) continue;
+
+    const rest = fromPost.slice(contentIndex);
+    tag.lastIndex = 0;
+    let depth = 0;
+    let end = rest.length;
+    let match: RegExpExecArray | null;
+    while ((match = tag.exec(rest)) !== null) {
+      depth += match[0].startsWith('</') ? -1 : 1;
+      if (depth === 0) {
+        end = match.index;
+        break;
+      }
+    }
+
+    const body = rest.slice(0, end);
+    if (!isAdBody(body)) bodies.push(body);
+  }
+
+  return bodies;
+}
+
 function decodeEntities(text: string): string {
   return text
     .replace(/&nbsp;|&#8195;|&#8194;|&ensp;|&emsp;/g, ' ')

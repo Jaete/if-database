@@ -33,6 +33,7 @@ const CreationViewHandles = [
   'crPicks',
   'crPickRow',
   'crPickBtn',
+  'crLevelPip',
   'crSummary',
   'crSummaryRow',
   'crSkills',

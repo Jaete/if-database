@@ -19,6 +19,7 @@ import {
   FREE_TEXT_MAX,
   type ICatalogPick,
 } from '../lib/catalogPicks';
+import { shiftSkills } from '../lib/skills';
 import { modifierOf, type AttributeKey } from '../lib/stats';
 import { archetypeFeatureOpen } from '../lib/archetypeFeatureLevel';
 import { earnedLevel, xpToNext, MAX_LEVEL } from '../lib/xp';
@@ -349,6 +350,8 @@ interface ISnapshot {
   spellRefs: { spellId: string; prepared?: boolean }[];
   featureChoices: IFeatureChoiceRecord[];
   catalogPicks: ICatalogPick[];
+  /** As perícias gravadas (`proficiencies.skills`): o bônus de proficiência as move. */
+  skills: Doc[];
   levelLocks: ILevelLock[];
   novelties: INovelty[];
 }
@@ -384,6 +387,9 @@ function snapshotOf(p: IPlayerDoc): ISnapshot {
     ),
     featureChoices: asArray<IFeatureChoiceRecord>(p.featureChoices),
     catalogPicks: asArray<ICatalogPick>(p.catalogPicks),
+    skills: asArray<Doc>(
+      isRecord(p.proficiencies) ? (p.proficiencies as Doc).skills : []
+    ),
     levelLocks: asArray<ILevelLock>(p.levelLocks),
     novelties: asArray<INovelty>(p.novelties),
   };
@@ -1129,6 +1135,7 @@ function undoLock(snap: ISnapshot, lock: ILevelLock): ISnapshot {
     ),
     featureChoices: snap.featureChoices.filter((f) => f.level !== lock.level),
     catalogPicks: snap.catalogPicks.filter((p) => p.level !== lock.level),
+    skills: [...snap.skills],
     levelLocks: snap.levelLocks.filter((l) => l.level !== lock.level),
     playerStats: { ...snap.playerStats },
     archetype: snap.archetype ? { ...snap.archetype } : null,
@@ -1159,6 +1166,13 @@ function undoLock(snap: ISnapshot, lock: ILevelLock): ISnapshot {
       next.archetype.slug = lock.undo.archetypeSlugBefore;
   }
   if (lock.undo.proficiencyBefore !== undefined) {
+    if (snap.proficiencyBonus !== undefined) {
+      next.skills = shiftSkills(
+        next.skills,
+        snap.proficiencyBonus,
+        lock.undo.proficiencyBefore
+      );
+    }
     next.proficiencyBonus = lock.undo.proficiencyBefore;
   }
   return next;
@@ -1185,6 +1199,7 @@ function applyChoices(
     spellRefs: [...snap.spellRefs],
     featureChoices: [...snap.featureChoices],
     catalogPicks: [...snap.catalogPicks],
+    skills: [...snap.skills],
     archetype: snap.archetype ? { ...snap.archetype } : null,
   };
   const names: string[] = [];
@@ -1320,8 +1335,17 @@ function applyChoices(
   novel('hp', 'status', 'vida');
   novel('lvl', 'status', `nível ${level}`);
 
-  if (typeof row.proficiencyBonus === 'number')
+  if (typeof row.proficiencyBonus === 'number') {
+    // As perícias proficientes sobem junto, e a especialização em dobro.
+    if (snap.proficiencyBonus !== undefined) {
+      next.skills = shiftSkills(
+        next.skills,
+        snap.proficiencyBonus,
+        row.proficiencyBonus
+      );
+    }
     next.proficiencyBonus = row.proficiencyBonus;
+  }
   next.level = level;
 
   return {
@@ -1362,6 +1386,7 @@ function fieldsOf(snap: ISnapshot, extra: Doc = {}): Doc {
     'playerSpellcasting.spellRefs': snap.spellRefs,
     featureChoices: snap.featureChoices,
     catalogPicks: snap.catalogPicks,
+    ...(snap.skills.length > 0 ? { 'proficiencies.skills': snap.skills } : {}),
     levelLocks: snap.levelLocks,
     novelties: snap.novelties,
     ...extra,

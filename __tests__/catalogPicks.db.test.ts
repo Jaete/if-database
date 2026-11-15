@@ -504,6 +504,121 @@ async function main() {
       assert.equal(((await fresh(id)).catalogPicks ?? []).length, 0);
     });
 
+    await test('level-up PB change shifts skills (expertise x2, legacy x1, bonuses kept); reopen undoes it; old docs read fine', async () => {
+      const klass = (await Cls.findOne({ slug: 'espadachim' })
+        .select('levels')
+        .lean()) as unknown as {
+        levels: { level: number; proficiencyBonus?: number }[];
+      };
+      const pbAt = (l: number) =>
+        klass.levels.find((r) => r.level === l)!.proficiencyBonus!;
+      const target = [3, 4, 5, 6, 7, 8, 9].find((l) => pbAt(l) > pbAt(l - 1))!;
+      const from = pbAt(target - 1);
+      const to = pbAt(target);
+      const skills = [
+        {
+          name: 'Persuasão',
+          proficient: true,
+          proficiencySources: [
+            { source: 'class' },
+            { source: 'race', label: 'x' },
+          ],
+          value: 7,
+          bonus: 1,
+          bonuses: [{ value: 1, source: 'narrador' }],
+        },
+        { name: 'Atletismo', proficient: true, value: 4 },
+        { name: 'Furtividade', value: 1 },
+      ];
+      const id = await make('espadachim', target, {
+        proficiencyBonus: from,
+        proficiencies: { skills },
+      });
+      // Documento antigo (só `proficient: true`) lê normalmente.
+      const read = await getPlayerById(id);
+      assert.equal(
+        (read?.proficiencies?.skills as { name: string }[]).length,
+        3
+      );
+      const plan = await svc.getLevelPlan(id, owner);
+      await svc.sealLevel(id, auto(plan), owner);
+      const after = (await fresh(id)).proficiencies.skills as {
+        name: string;
+        value: number;
+        bonus?: number;
+      }[];
+      const by = (n: string) => after.find((k) => k.name === n)!;
+      assert.equal((await fresh(id)).proficiencyBonus, to);
+      assert.equal(by('Persuasão').value, 7 + 2 * (to - from));
+      assert.equal(by('Persuasão').bonus, 1, 'o bônus fixo segue por fora');
+      assert.equal(by('Atletismo').value, 4 + (to - from));
+      assert.equal(by('Furtividade').value, 1);
+      await svc.reopenLevel(id, target, 'teste', staff);
+      const back = (await fresh(id)).proficiencies.skills as {
+        name: string;
+        value: number;
+      }[];
+      assert.equal(back.find((k) => k.name === 'Persuasão')!.value, 7);
+      assert.equal(back.find((k) => k.name === 'Atletismo')!.value, 4);
+    });
+
+    await test('staff expertise survives a level-up with PB change (only the value moves)', async () => {
+      const klass = (await Cls.findOne({ slug: 'espadachim' })
+        .select('levels')
+        .lean()) as unknown as {
+        levels: { level: number; proficiencyBonus?: number }[];
+      };
+      const pbAt = (l: number) =>
+        klass.levels.find((r) => r.level === l)!.proficiencyBonus!;
+      const target = [3, 4, 5, 6, 7, 8, 9].find((l) => pbAt(l) > pbAt(l - 1))!;
+      const from = pbAt(target - 1);
+      const to = pbAt(target);
+      const staffEntry = {
+        name: 'Natureza',
+        proficient: true,
+        proficiencySources: [{ source: 'staff' }, { source: 'staff' }],
+        staffOverride: true,
+        value: 2 * from,
+      };
+      const zeroed = {
+        name: 'Persuasão',
+        proficient: false,
+        proficiencySources: [],
+        staffOverride: true,
+        value: 0,
+      };
+      const id = await make('espadachim', target, {
+        proficiencyBonus: from,
+        proficiencies: { skills: [staffEntry, zeroed] },
+      });
+      await svc.sealLevel(id, auto(await svc.getLevelPlan(id, owner)), owner);
+      const skills = (await fresh(id)).proficiencies.skills as {
+        name: string;
+        value: number;
+        proficiencySources: unknown[];
+        staffOverride?: boolean;
+        proficient: boolean;
+      }[];
+      const nat = skills.find((k) => k.name === 'Natureza')!;
+      assert.equal(nat.proficiencySources.length, 2, 'segue especialização');
+      assert.equal(nat.value, 2 * to);
+      assert.equal(nat.staffOverride, true);
+      const per = skills.find((k) => k.name === 'Persuasão')!;
+      assert.equal(per.proficient, false);
+      assert.equal(per.value, 0, 'zerada segue zerada');
+      await svc.reopenLevel(id, target, 'teste', staff);
+      const back = (await fresh(id)).proficiencies.skills as {
+        name: string;
+        value: number;
+        proficiencySources: unknown[];
+      }[];
+      assert.equal(back.find((k) => k.name === 'Natureza')!.value, 2 * from);
+      assert.equal(
+        back.find((k) => k.name === 'Natureza')!.proficiencySources.length,
+        2
+      );
+    });
+
     await test('generic writes cannot set catalogPicks', async () => {
       const id = await make('espadachim', 2);
       const plan = await svc.getLevelPlan(id, owner);

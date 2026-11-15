@@ -1320,10 +1320,10 @@ async function main() {
     assert.ok(req.some((m) => /talento racial/.test(m)));
     await refuses(() => svc.submitSheet(id, ownerActor), 422);
     // Validações do servidor.
+    // A perícia da classe também pela raça vira especialização (aceita).
     const dupe = info.skills.list[0];
-    await refuses(() =>
-      svc.saveDraft(id, { grants: { skills: [dupe] } }, ownerActor)
-    );
+    await svc.saveDraft(id, { grants: { skills: [dupe] } }, ownerActor);
+    await svc.saveDraft(id, { grants: { skills: [] } }, ownerActor);
     await refuses(() =>
       svc.saveDraft(id, { grants: { skills: ['Ofício'] } }, ownerActor)
     );
@@ -1377,10 +1377,14 @@ async function main() {
     const s = await raw(id);
     const skills = s.proficiencies.skills as {
       name: string;
-      source?: string;
+      proficiencySources?: { source: string }[];
     }[];
     assert.ok(
-      skills.some((x) => x.name === 'Furtividade' && x.source === 'race')
+      skills.some(
+        (x) =>
+          x.name === 'Furtividade' &&
+          x.proficiencySources?.[0]?.source === 'race'
+      )
     );
     assert.equal(skills.length, 3);
     assert.deepEqual(s.proficiencies.tools, ['Kit de herbalismo']);
@@ -1696,6 +1700,369 @@ async function main() {
       s.review.filter((r: { kind: string }) => r.kind === 'approve').length,
       0
     );
+  });
+
+  // ── Proficiência por fontes e especialização ──
+  const espadachim = await klass('espadachim');
+  const skillsOf = async (id: string) =>
+    (await raw(id)).proficiencies.skills as {
+      name: string;
+      proficient?: boolean;
+      value?: number;
+      proficiencySources?: { source: string; label?: string }[];
+    }[];
+
+  const swordHuman = async () => {
+    const id = await blank();
+    await svc.saveDraft(
+      id,
+      {
+        fields: {
+          name: 'Zz Espadachim',
+          raceId: String(humanos._id),
+          classId: String(espadachim._id),
+        },
+        creation: { method: 'standardArray' },
+      },
+      ownerActor
+    );
+    await svc.saveDraft(
+      id,
+      {
+        creation: {
+          base: { str: 8, dex: 12, con: 14, int: 10, wis: 13, cha: 15 },
+          racialPicks: ['dex', 'wis'],
+        },
+      },
+      ownerActor
+    );
+    return id;
+  };
+
+  await test('Humano comum Espadachim: class Persuasão + racial Persuasão = expertise (mod + 2·PB)', async () => {
+    const id = await swordHuman();
+    await svc.saveDraft(
+      id,
+      { skills: ['Persuasão', 'Atletismo', 'Furtividade'] },
+      ownerActor
+    );
+    await svc.saveDraft(id, { grants: { skills: ['Persuasão'] } }, ownerActor);
+    const s = await raw(id);
+    const persuasao = (await skillsOf(id)).find((k) => k.name === 'Persuasão')!;
+    assert.deepEqual(
+      persuasao.proficiencySources!.map((x) => x.source),
+      ['class', 'race']
+    );
+    assert.equal(persuasao.proficiencySources![1].label, 'Variedade Genética');
+    // CAR 15 (+2), PB 2: 2 + 2·2 = 6.
+    assert.equal(persuasao.value, 2 + 2 * s.proficiencyBonus);
+    const atletismo = (await skillsOf(id)).find((k) => k.name === 'Atletismo')!;
+    assert.equal(atletismo.proficiencySources!.length, 1);
+    assert.equal(atletismo.value, -1 + s.proficiencyBonus);
+  });
+  await test('skills: the class cannot repeat a skill in its own list; a third source is refused', async () => {
+    const id = await swordHuman();
+    const dup = await refuses(() =>
+      svc.saveDraft(
+        id,
+        { skills: ['Persuasão', 'Persuasão', 'Atletismo'] },
+        ownerActor
+      )
+    );
+    assert.equal(dup.message, 'Você já escolheu Persuasão nesta lista.');
+    await svc.saveDraft(
+      id,
+      { skills: ['Persuasão', 'Atletismo', 'Furtividade'] },
+      ownerActor
+    );
+    await svc.saveDraft(id, { grants: { skills: ['Persuasão'] } }, ownerActor);
+    const third = await refuses(() =>
+      svc.saveDraft(
+        id,
+        { grants: { versatile: [{ kind: 'skill', value: 'Persuasão' }] } },
+        ownerActor
+      )
+    );
+    assert.equal(
+      third.message,
+      'Proficiência em Persuasão já é especialização — não acumula mais.'
+    );
+    // A classe também não passa de duas fontes por baixo.
+    await svc.saveDraft(
+      id,
+      { grants: { versatile: [{ kind: 'skill', value: 'Atletismo' }] } },
+      ownerActor
+    );
+    const lvl = (await skillsOf(id)).find((k) => k.name === 'Atletismo')!;
+    assert.equal(lvl.proficiencySources!.length, 2);
+  });
+  await test('the two racial grants on one skill = expertise (different sources)', async () => {
+    const id = await swordHuman();
+    await svc.saveDraft(
+      id,
+      { skills: ['Persuasão', 'Atletismo', 'Furtividade'] },
+      ownerActor
+    );
+    await svc.saveDraft(
+      id,
+      {
+        grants: {
+          skills: ['Natureza'],
+          versatile: [{ kind: 'skill', value: 'Natureza' }],
+        },
+      },
+      ownerActor
+    );
+    const nat = (await skillsOf(id)).find((k) => k.name === 'Natureza')!;
+    assert.deepEqual(
+      nat.proficiencySources!.map((x) => x.label),
+      ['Versatilidade Adaptativa', 'Variedade Genética']
+    );
+  });
+
+  await test('staff sets expertise directly (no other source), removes a class proficiency, keeps flat bonuses', async () => {
+    const lv = await import('../services/levelUp.service');
+    void lv;
+    const { updatePlayerById } = await import('../services/player.service');
+    const { normalizeSkills } = await import('../services/sheetEdit');
+    const { id } = await complete();
+    await svc.submitSheet(id, ownerActor);
+    await svc.approveSheet(id, admin);
+    const before = await raw(id);
+    const pb = before.proficiencyBonus;
+    const edited = {
+      proficiencies: {
+        ...before.proficiencies,
+        skills: [
+          // Sem outra fonte: o narrador dá a especialização de uma vez (e mais, que é cortado em 2).
+          {
+            name: 'Furtividade',
+            proficient: true,
+            proficiencySources: [
+              { source: 'staff' },
+              { source: 'staff' },
+              { source: 'staff' },
+            ],
+            bonus: 2,
+            bonuses: [{ value: 2, source: 'Presente do reino' }],
+            value: 3 + 2 * pb + 2,
+          },
+          // Tira a proficiência da classe.
+          ...before.proficiencies.skills
+            .slice(1)
+            .map((k: Record<string, unknown>) => ({ ...k })),
+        ],
+      },
+    };
+    normalizeSkills(edited as never);
+    await updatePlayerById(id, edited as never);
+    const s = (await skillsOf(id)).find(
+      (k) => k.name === 'Furtividade'
+    )! as never as {
+      proficiencySources: unknown[];
+      bonus: number;
+      value: number;
+    };
+    assert.equal(s.proficiencySources.length, 2, 'o teto é o nível 2');
+    assert.equal(s.bonus, 2);
+    assert.equal(s.value, 3 + 2 * pb + 2, 'o bônus fixo soma por fora');
+    const gone = before.proficiencies.skills[0].name;
+    assert.ok(!(await skillsOf(id)).some((k) => k.name === gone));
+  });
+  await test('adjusted approval accepts staff expertise directly', async () => {
+    const id = await submittedSheet();
+    const before = await raw(id);
+    await svc.approveSheet(id, otherStaff, {
+      fields: {
+        proficiencies: {
+          ...before.proficiencies,
+          skills: [
+            ...before.proficiencies.skills,
+            {
+              name: 'Natureza',
+              proficient: true,
+              proficiencySources: [{ source: 'staff' }, { source: 'staff' }],
+              value: 9,
+            },
+          ],
+        },
+      },
+    });
+    const nat = (await skillsOf(id)).find((k) => k.name === 'Natureza')!;
+    assert.equal(nat.proficiencySources!.length, 2);
+    assert.equal(nat.value, 9);
+  });
+
+  await test('creation: staff applies expertise directly, outside any source; the player cannot', async () => {
+    const id = await swordHuman();
+    await svc.saveDraft(
+      id,
+      { skills: ['Persuasão', 'Atletismo', 'Furtividade'] },
+      ownerActor
+    );
+    // A jogadora (e a dona com papel de staff) não aplica direto.
+    await refuses(
+      () =>
+        svc.saveDraft(
+          id,
+          { staffSkills: [{ name: 'Natureza', level: 2 }] },
+          ownerActor
+        ),
+      403
+    );
+    await refuses(
+      () =>
+        svc.saveDraft(
+          id,
+          { staffSkills: [{ name: 'Natureza', level: 2 }] },
+          { ...ownerActor, hasStaffRole: true }
+        ),
+      403
+    );
+    // A staff: especialização numa perícia sem nenhuma fonte.
+    await svc.saveDraft(
+      id,
+      {
+        staffSkills: [
+          { name: 'Natureza', level: 2 },
+          // Sobe a da classe para 2 (classe + narrador) e tira outra da classe.
+          { name: 'Persuasão', level: 2 },
+          { name: 'Atletismo', level: 0 },
+        ],
+      },
+      admin
+    );
+    const s = await raw(id);
+    const by = (n: string) =>
+      (
+        s.proficiencies.skills as {
+          name: string;
+          value: number;
+          proficiencySources: { source: string }[];
+        }[]
+      ).find((k) => k.name === n);
+    assert.deepEqual(
+      by('Natureza')!.proficiencySources.map((x) => x.source),
+      ['staff', 'staff']
+    );
+    assert.equal(by('Natureza')!.value, 0 + 2 * s.proficiencyBonus); // INT 10 (+0)
+    assert.deepEqual(
+      by('Persuasão')!.proficiencySources.map((x) => x.source),
+      ['class', 'staff']
+    );
+    assert.equal(
+      (by('Atletismo') as { proficient?: boolean }).proficient,
+      false,
+      'a staff tirou a proficiência da classe'
+    );
+    assert.equal(
+      (by('Atletismo') as { staffOverride?: boolean }).staffOverride,
+      true,
+      'a remoção fica marcada'
+    );
+    assert.deepEqual(by('Atletismo')!.proficiencySources, []);
+    assert.equal(by('Furtividade')!.proficiencySources.length, 1);
+    // O ajuste não conta como pendência nem bloqueia o envio.
+    const view = await svc.getCreation(id, admin);
+    assert.ok(
+      !view.issues.some(
+        (i) =>
+          i.step === 'pericias' &&
+          i.kind === 'required' &&
+          /especializa/.test(i.message)
+      )
+    );
+    assert.deepEqual(view.creation.staffSkills!.map((x) => x.name).sort(), [
+      'Atletismo',
+      'Natureza',
+      'Persuasão',
+    ]);
+    // Nível inválido ou perícia fora das 18: recusado.
+    await refuses(() =>
+      svc.saveDraft(
+        id,
+        { staffSkills: [{ name: 'Natureza', level: 3 }] },
+        admin
+      )
+    );
+    await refuses(() =>
+      svc.saveDraft(
+        id,
+        { staffSkills: [{ name: 'Inventada', level: 1 }] },
+        admin
+      )
+    );
+    // A dona segue com a regra dela: a classe não repete na própria lista.
+    await refuses(() =>
+      svc.saveDraft(
+        id,
+        { skills: ['Persuasão', 'Persuasão', 'Atletismo'] },
+        ownerActor
+      )
+    );
+    // E o teto: por cima de duas fontes, o narrador fica em 2.
+    await svc.saveDraft(id, { grants: { skills: ['Persuasão'] } }, ownerActor);
+    const capped = (await raw(id)).proficiencies.skills.find(
+      (k: { name: string }) => k.name === 'Persuasão'
+    );
+    assert.equal(capped.proficiencySources.length, 2);
+  });
+
+  await test('staff zeroing is definitive: the player changes picks and class, the skill stays zero; staff expertise stays', async () => {
+    const id = await swordHuman();
+    await svc.saveDraft(
+      id,
+      { skills: ['Persuasão', 'Atletismo', 'Furtividade'] },
+      ownerActor
+    );
+    await svc.saveDraft(
+      id,
+      {
+        staffSkills: [
+          { name: 'Persuasão', level: 0 },
+          { name: 'Acrobacia', level: 2 },
+        ],
+      },
+      admin
+    );
+    const get = async (n: string) =>
+      (
+        (await raw(id)).proficiencies.skills as {
+          name: string;
+          proficient: boolean;
+          staffOverride?: boolean;
+          proficiencySources: unknown[];
+        }[]
+      ).find((k) => k.name === n);
+    assert.equal((await get('Persuasão'))!.proficient, false);
+    // A dona troca as escolhas e continua pedindo Persuasão: segue zerada.
+    await svc.saveDraft(
+      id,
+      { skills: ['Persuasão', 'Intimidação', 'Percepção'] },
+      ownerActor
+    );
+    assert.equal((await get('Persuasão'))!.proficient, false);
+    assert.equal((await get('Persuasão'))!.staffOverride, true);
+    assert.equal((await get('Intimidação'))!.proficiencySources.length, 1);
+    // Troca de classe (que zera as escolhas dela) e volta: o ajuste fica.
+    const cav = await klass('cavaleiro');
+    await svc.saveDraft(
+      id,
+      { fields: { classId: String(cav._id) } },
+      ownerActor
+    );
+    await svc.saveDraft(id, { skills: ['Persuasão', 'Atletismo'] }, ownerActor);
+    assert.equal(
+      (await get('Persuasão'))!.proficient,
+      false,
+      'a classe nova dá Persuasão, a staff zerou'
+    );
+    assert.equal(
+      (await get('Acrobacia'))!.proficiencySources.length,
+      2,
+      'a especialização da staff fica'
+    );
+    assert.equal((await raw(id)).creation.staffSkills.length, 2);
   });
 
   await cleanup();
