@@ -10,6 +10,8 @@ import {
 import type { AttributeKey } from '../lib/stats';
 import { castingNumbers } from '../lib/creation';
 import { ATTRIBUTE_LABELS } from '../lib/levelUp';
+import type { IAuditActor } from '../db/sheetAudit/sheetAudit.d';
+import { rawSheet, recordAudit } from './sheetAudit';
 import { createEntityService } from './createEntityService';
 import { resolveSpellRefs } from './spellLink.service';
 import {
@@ -70,7 +72,7 @@ function stripProgression<T extends object>(data: T): T {
 const LINK_FIELDS =
   '_id slug class race raceId raceChoice classId level talents playerSpellcasting';
 
-export async function createPlayer(incoming: IPlayer) {
+export async function createPlayer(incoming: IPlayer, actor?: IAuditActor) {
   // Ficha de jogador nasce pelo app já pronta; o estado de criação só nasce em
   // `createBlankSheet`.
   const data = stripProgression(incoming) as IPlayer;
@@ -80,6 +82,16 @@ export async function createPlayer(incoming: IPlayer) {
   const created = result.data as unknown as { _id?: unknown } | undefined;
   if (created?._id && (body.classId || body.raceId)) {
     await guardUniqueAfterWrite(String(created._id), null, body);
+  }
+  if (created?._id) {
+    await recordAudit(
+      created._id,
+      null,
+      () => rawSheet(created._id),
+      actor ?? SYSTEM,
+      'app-create',
+      { force: true }
+    );
   }
   return result;
 }
@@ -318,7 +330,32 @@ function mergeSpellcastingForWrite(
   };
 }
 
-export async function updatePlayer(slug: string, incoming: Partial<IPlayer>) {
+const SYSTEM: IAuditActor = { username: 'sistema' };
+
+/** Edição do app, por slug: audita o que mudou (quem, antes → depois). */
+export async function updatePlayer(
+  slug: string,
+  incoming: Partial<IPlayer>,
+  actor?: IAuditActor
+) {
+  const found = await PlayerModel.findOne({ slug })
+    .select('_id')
+    .lean<{ _id: unknown }>();
+  const before = found ? await rawSheet(found._id) : null;
+  const result = await updatePlayerWrite(slug, incoming);
+  if (found && result.success) {
+    await recordAudit(
+      found._id,
+      before,
+      () => rawSheet(found._id),
+      actor ?? SYSTEM,
+      'app-edit'
+    );
+  }
+  return result;
+}
+
+async function updatePlayerWrite(slug: string, incoming: Partial<IPlayer>) {
   const updateData = stripProgression(incoming);
   // O editor do app lê a ficha crua e não vê as características da classe, mas
   // a limpeza vale pelos dois caminhos de escrita: uma entrada de classe que
@@ -471,6 +508,31 @@ export async function updatePlayerById(
   return resolveLinks(player);
 }
 
-export async function deletePlayer(slug: string) {
-  return service.remove(slug);
+/** Exclusão: a ficha inteira fica guardada na auditoria antes de sumir. */
+export async function deletePlayer(slug: string, actor?: IAuditActor) {
+  const found = await PlayerModel.findOne({ slug })
+    .select('_id')
+    .lean<{ _id: unknown }>();
+  const snapshot = found ? await rawSheet(found._id) : null;
+  const result = await service.remove(slug);
+  if (found && snapshot && result.success) {
+    const isDraft = ['blank', 'draft'].includes(String(snapshot.status ?? ''));
+    await recordAudit(
+      found._id,
+      snapshot,
+      null,
+      actor ?? SYSTEM,
+      'app-delete',
+      {
+        snapshot: JSON.parse(JSON.stringify(snapshot)),
+        force: true,
+        // Rascunho: só o fato, os valores ficam no snapshot privado.
+        factOnly: isDraft,
+        reason: isDraft
+          ? 'Ficha excluída'
+          : `Ficha excluída: ${String(snapshot.name ?? snapshot.slug ?? '')}`,
+      }
+    );
+  }
+  return result;
 }

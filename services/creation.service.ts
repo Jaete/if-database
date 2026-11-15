@@ -71,7 +71,8 @@ import {
   prepareSheetLinksWrite,
   type IStoredSheetLinks,
 } from './playerSheetLinks.service';
-import type { IActor } from './levelUp.service';
+import { auditActor, type IActor } from './levelUp.service';
+import { rawSheet, recordAudit } from './sheetAudit';
 
 /**
  * Criação da ficha: a staff abre uma ficha vazia para uma conta do fórum, a dona
@@ -684,6 +685,14 @@ export async function createBlankSheet(
     `Ficha vazia criada para ${owner.username}`,
     { username: staff.username, forumUserId: staff.forumUserId ?? 0 }
   );
+  await recordAudit(
+    created._id,
+    null,
+    () => rawSheet(created._id),
+    { username: staff.username, forumUserId: staff.forumUserId, isStaff: true },
+    'app-create',
+    { force: true, reason: `Ficha vazia criada para ${owner.username}` }
+  );
   return { id: String(created._id), ownerUsername: owner.username };
 }
 
@@ -1276,6 +1285,17 @@ export async function saveDraft(id: string, body: IDraftBody, actor: IActor) {
   }
 
   await recompute(id);
+  // Salvamentos seguidos do mesmo autor viram uma entrada (janela de 10 min).
+  await recordAudit(
+    id,
+    sheet,
+    () => rawSheet(id),
+    auditActor(actor),
+    'creation-draft',
+    {
+      group: true,
+    }
+  );
   return getCreation(id, actor);
 }
 
@@ -1364,6 +1384,26 @@ export async function rollAttributes(id: string, actor: IActor) {
       },
     });
   }
+  if (!result.alreadyRolled) {
+    await recordAudit(
+      id,
+      sheet,
+      () => rawSheet(id),
+      auditActor(actor),
+      'creation-roll',
+      {
+        extra: [
+          {
+            path: 'roll.attributes',
+            label: 'Rolagem de atributos (6 × 4d6)',
+            before: null,
+            after: { totals: result.sums, rollId: result.rollId },
+          },
+        ],
+        force: true,
+      }
+    );
+  }
   return result;
 }
 
@@ -1400,6 +1440,30 @@ export async function rollStartingGil(id: string, actor: IActor) {
       ...(sheet.status === 'blank' ? { status: 'draft' } : {}),
     },
   });
+  if (!result.alreadyRolled) {
+    await recordAudit(
+      id,
+      sheet,
+      () => rawSheet(id),
+      auditActor(actor),
+      'creation-roll',
+      {
+        extra: [
+          {
+            path: 'roll.gil',
+            label: `Gil inicial rolado (${result.formula ?? ''})`,
+            before: null,
+            after: {
+              dice: result.sets[0],
+              total: result.sums[0],
+              rollId: result.rollId,
+            },
+          },
+        ],
+        force: true,
+      }
+    );
+  }
   return result;
 }
 
@@ -1442,6 +1506,16 @@ export async function submitSheet(id: string, actor: IActor) {
     throw new CreationError('A ficha mudou de estado.', 409);
   }
   await record(sheet, 'submit', 'Ficha enviada para aprovação', actor);
+  await recordAudit(
+    id,
+    sheet,
+    () => rawSheet(id),
+    auditActor(actor),
+    'submit',
+    {
+      force: true,
+    }
+  );
   return { status: 'submitted' as const, issues };
 }
 
@@ -1542,6 +1616,16 @@ export async function approveSheet(
       throw new CreationError('A ficha já foi aprovada.', 409);
     }
     await record(sheet, 'approve', 'Ficha aprovada', actor);
+    await recordAudit(
+      id,
+      sheet,
+      () => rawSheet(id),
+      auditActor(actor),
+      'approve',
+      {
+        force: true,
+      }
+    );
     return { status: 'approved' as const };
   }
 
@@ -1621,6 +1705,16 @@ export async function approveSheet(
     `Aprovada com ajustes: ${labels.join(', ') || 'sem alteração de campo'}`,
     actor
   );
+  // A auditoria guarda o antes e o depois de cada campo (o histórico amigável
+  // só os rótulos).
+  await recordAudit(
+    id,
+    sheet,
+    () => rawSheet(id),
+    auditActor(actor),
+    'approve-adjust',
+    { reason: 'Aprovada com ajustes', force: true }
+  );
   return { status: 'approved' as const, adjusted: labels };
 }
 
@@ -1662,5 +1756,15 @@ export async function returnSheet(
   // As observações ficam só em `review` (que a leitura pública não entrega); o
   // histórico de eventos não as repete.
   await record(sheet, 'return', REASON_RETURN, actor);
+  await recordAudit(
+    id,
+    sheet,
+    () => rawSheet(id),
+    auditActor(actor),
+    'return',
+    {
+      force: true,
+    }
+  );
   return { status: 'returned' as const };
 }

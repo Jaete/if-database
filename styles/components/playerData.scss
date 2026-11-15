@@ -11,3 +11,17 @@
     color: $color-accent-hover;
   }
 }
+
+.playerAudit {
+  margin-block: $spacing-3;
+}
+
+.playerAuditToggle {
+  cursor: pointer;
+  @include cinzel-sm($color-accent, $font-weight-semibold, 1.5);
+  @include focus-ring();
+
+  &:hover {
+    color: $color-accent-hover;
+  }
+}

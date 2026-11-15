@@ -10,6 +10,7 @@ import { connectDB } from '../../lib/db';
 import Player from '../../db/players/players';
 import Event from '../../db/playerProgress/playerEvents';
 import Roll from '../../db/playerProgress/creationRolls';
+import Audit from '../../db/sheetAudit/sheetAudits';
 
 const MARK = 'zz-creation-test';
 
@@ -38,6 +39,7 @@ if (process.env.ALLOW_DB_TESTS !== '1') {
   for (const p of found) {
     await Event.deleteMany({ playerId: p._id });
     await Roll.deleteMany({ playerId: p._id });
+    await Audit.deleteMany({ playerId: p._id });
   }
   const res = await Player.deleteMany({
     _id: { $in: found.map((p) => p._id) },

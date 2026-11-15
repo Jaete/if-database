@@ -1,4 +1,8 @@
-import { OWN_SHEET_EDIT_MESSAGE, SELF_OWNER_MESSAGE } from '@/lib/sheetAccess';
+import {
+  isSheetStaff,
+  OWN_SHEET_EDIT_MESSAGE,
+  SELF_OWNER_MESSAGE,
+} from '@/lib/sheetAccess';
 import PlayerModel from '@/db/players/players';
 import { redactPlayer } from '@/db/players/redact';
 import type IPlayer from '@/db/players/player';
@@ -6,9 +10,23 @@ import { createEntityService } from '@/services/createEntityService';
 import { createSlugHandlers } from '@/app/api/_entity/handlers';
 import { uniqueClassConflict } from '@/services/class.service';
 import { uniqueRaceConflict } from '@/services/race.service';
-import { updatePlayer } from '@/services/player.service';
 import { getAuthorizedSession } from '@/services/auth.service';
+import { deletePlayer, updatePlayer } from '@/services/player.service';
 import { PlayerSheetError } from '@/services/playerSheetLinks.service';
+
+// Quem escreve pelo app, para a auditoria (a conta de staff da sessão).
+async function appActor() {
+  const session = await getAuthorizedSession();
+  return session
+    ? {
+        username: session.username,
+        forumUserId: session.forumUserId,
+        role: session.role,
+        isStaff: isSheetStaff(session.role, false),
+        isOwner: false,
+      }
+    : undefined;
+}
 
 // Classe ou raça única: a lista do seletor já esconde o que está tomado, mas a
 // regra só é regra aqui. (`updatePlayer` repete a conferência da raça ao gravar,
@@ -54,7 +72,9 @@ const handlers = createSlugHandlers({
   },
   // Passa pela limpeza e pela conferência do serviço: sem isso, o editor
   // gravaria raça, talentos e habilidades derivadas sem nenhuma validação.
-  update: (slug, body) => updatePlayer(slug, body as Partial<IPlayer>),
+  update: async (slug, body) =>
+    updatePlayer(slug, body as Partial<IPlayer>, await appActor()),
+  remove: async (slug) => deletePlayer(slug, await appActor()),
   clientError: (error) =>
     error instanceof PlayerSheetError ? error.message : null,
   createErrorLabel: 'Falha ao criar jogador',

@@ -1,3 +1,4 @@
+import AuditLog from '../../AuditLog';
 import type { IPublicPlayer } from '@/db/players/publicFields';
 import { useCssHandles } from '@/hooks/useCssHandles';
 import Block from '../Block';
@@ -95,6 +96,8 @@ const ChroniclePanel = ({ player }: IProps) => {
           <LevelMarks />
         </Block>
       </div>
+
+      <AuditLog playerId={String(player._id)} />
 
       {hasRegistry && (
         <div className={handles.sheetRegistry}>

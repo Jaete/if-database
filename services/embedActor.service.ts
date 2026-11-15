@@ -9,6 +9,7 @@ export async function resolveActor(playerId: string): Promise<IActor | null> {
   return {
     username: session.username,
     forumUserId: session.forumUserId,
+    role: session.role,
     ...access,
   };
 }

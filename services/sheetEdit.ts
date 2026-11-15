@@ -1,4 +1,9 @@
 import { normalizeStaffSkills } from '../lib/skills';
+import { pickWritablePlayerFields } from '../db/players/publicFields';
+import type { IAuditActor } from '../db/sheetAudit/sheetAudit.d';
+import { getPlayerById, updatePlayerById } from './player.service';
+import { PlayerSheetError } from './playerSheetLinks.service';
+import { rawSheet, recordAudit } from './sheetAudit';
 import { attributeKeyOf, modifierOf, spellSaveDC } from '../lib/stats';
 
 /**
@@ -82,4 +87,74 @@ export function normalizeSkills(data: Record<string, unknown>) {
   (prof as Record<string, unknown>).skills = normalizeStaffSkills(
     skills.filter((s) => s && typeof s === 'object')
   );
+}
+
+export class SheetEditError extends Error {
+  status: number;
+  constructor(message: string, status = 400) {
+    super(message);
+    this.name = 'SheetEditError';
+    this.status = status;
+  }
+}
+
+/**
+ * A edição livre da ficha pela staff (o PUT do embed): grava os campos
+ * graváveis, confere raça, classe, magias e talentos, e audita o antes → depois.
+ * A permissão (staff, nunca a dona) é conferida por quem chama.
+ */
+export async function staffEditSheet(
+  id: string,
+  body: { fields?: unknown; updatedAt?: unknown },
+  actor: IAuditActor
+) {
+  const data = pickWritablePlayerFields(body?.fields);
+  normalizeStats(data);
+  normalizeSkills(data);
+  if (Object.keys(data).length === 0) {
+    throw new SheetEditError('Nada para salvar', 400);
+  }
+  const current = await getPlayerById(id);
+  if (!current) throw new SheetEditError('Ficha não encontrada', 404);
+
+  // Em criação a edição livre não existe (o assistente e a revisão a
+  // substituem); ela é para ficha aprovada ou antiga.
+  if (current.status && current.status !== 'approved') {
+    throw new SheetEditError(
+      'A ficha ainda está em criação: use o assistente ou a revisão.',
+      409
+    );
+  }
+
+  // Edição concorrente: o cliente manda o `updatedAt` que carregou; se o
+  // documento já mudou desde então, recusa em vez de sobrescrever em silêncio.
+  if (body?.updatedAt) {
+    const storedAt = current.updatedAt
+      ? new Date(current.updatedAt).getTime()
+      : 0;
+    if (storedAt && storedAt !== new Date(String(body.updatedAt)).getTime()) {
+      throw new SheetEditError('Esta ficha foi alterada em outro lugar.', 409);
+    }
+  }
+
+  normalizeSpellDC(data, current as unknown as Record<string, unknown>);
+
+  // Raça e talentos recusados com a mensagem de quem os conferiu (400): é o
+  // cliente que mandou uma escolha inválida.
+  const before = await rawSheet(id);
+  let updated;
+  try {
+    updated = await updatePlayerById(id, data);
+  } catch (error) {
+    if (error instanceof PlayerSheetError) {
+      throw new SheetEditError(
+        error.message,
+        error.name === 'UniqueConflictError' ? 409 : 400
+      );
+    }
+    throw error;
+  }
+  if (!updated) throw new SheetEditError('Ficha não encontrada', 404);
+  await recordAudit(id, before, () => rawSheet(id), actor, 'embed-edit');
+  return updated;
 }

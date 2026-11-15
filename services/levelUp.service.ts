@@ -19,6 +19,7 @@ import {
   FREE_TEXT_MAX,
   type ICatalogPick,
 } from '../lib/catalogPicks';
+import { rawSheet, recordAudit } from './sheetAudit';
 import { shiftSkills } from '../lib/skills';
 import { modifierOf, type AttributeKey } from '../lib/stats';
 import { archetypeFeatureOpen } from '../lib/archetypeFeatureLevel';
@@ -62,6 +63,15 @@ import { assertSpellLimits } from './playerSheetLinks.service';
  * Sem 'use server': exporta classe de erro e tipos, e só roda no servidor.
  */
 
+/** O ator da auditoria. */
+export const auditActor = (actor: IActor) => ({
+  username: actor.username,
+  forumUserId: actor.forumUserId,
+  role: actor.role,
+  isOwner: actor.isOwner,
+  isStaff: actor.isStaff,
+});
+
 export class LevelUpError extends Error {
   status: number;
   constructor(message: string, status = 400) {
@@ -79,6 +89,8 @@ export interface IActor {
   isOwner: boolean;
   /** Tem papel de staff, mesmo sendo a dona: só para a mensagem de recusa. */
   hasStaffRole?: boolean;
+  /** O papel da conta (admin, editor…), para a auditoria. */
+  role?: string;
 }
 
 type Doc = Record<string, unknown>;
@@ -1419,6 +1431,9 @@ async function withEvent<T>(
   write: () => Promise<T | null>,
   after?: (result: T) => Partial<IPlayerEvent>
 ): Promise<T> {
+  // A auditoria de campo: a ficha crua antes e depois, gravada só se a escrita
+  // deu certo (ver services/sheetAudit.ts).
+  const auditBefore = await rawSheet(playerId);
   const event = await PlayerEventModel.create({
     playerId,
     kind,
@@ -1439,6 +1454,23 @@ async function withEvent<T>(
         { $set: after(result) }
       );
     }
+    await recordAudit(
+      playerId,
+      auditBefore,
+      () => rawSheet(playerId),
+      auditActor(actor),
+      kind === 'seal'
+        ? 'level-up'
+        : kind === 'reopen'
+          ? 'reopen'
+          : kind === 'edit'
+            ? 'edit-level'
+            : 'xp',
+      {
+        reason: data.reason,
+        force: kind === 'grant' || kind === 'correction' || kind === 'edit',
+      }
+    );
     return result;
   } catch (error) {
     await PlayerEventModel.deleteOne({ _id: event._id });

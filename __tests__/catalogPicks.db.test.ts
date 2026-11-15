@@ -45,6 +45,7 @@ async function main() {
   const { default: Cls } = await import('../db/classes/classes');
   const { default: Event } = await import('../db/playerProgress/playerEvents');
   const { default: HpRoll } = await import('../db/playerProgress/hpRolls');
+  const { default: Audit } = await import('../db/sheetAudit/sheetAudits');
   const svc = await import('../services/levelUp.service');
   const { getPlayerById, updatePlayerById } =
     await import('../services/player.service');
@@ -58,6 +59,7 @@ async function main() {
     for (const p of ps) {
       await Event.deleteMany({ playerId: p._id });
       await HpRoll.deleteMany({ playerId: p._id });
+      await Audit.deleteMany({ playerId: p._id });
     }
     await Player.deleteMany({ slug: /^zz-cat-/ });
   };
@@ -616,6 +618,53 @@ async function main() {
       assert.equal(
         back.find((k) => k.name === 'Natureza')!.proficiencySources.length,
         2
+      );
+    });
+
+    await test('audit: xp, level-up, reopen and edit-level each leave an entry with the diff', async () => {
+      const id = await make('espadachim', 2);
+      await Player.updateOne(
+        { _id: id },
+        { $set: { 'experience.current': 0 } }
+      );
+      await svc.grantXp(
+        id,
+        { amount: 600, reason: 'Sessão', lines: [{ line: 'x', value: 600 }] },
+        staff
+      );
+      const plan = await svc.getLevelPlan(id, owner);
+      await svc.sealLevel(id, auto(plan), owner);
+      await svc.editSealedLevel(
+        id,
+        2,
+        auto(await svc.getSealedPlan(id, 2, staff)),
+        'ajuste',
+        staff
+      );
+      await svc.reopenLevel(id, 2, 'teste', staff);
+      const list = (await Audit.find({ playerId: id })
+        .sort({ at: 1 })
+        .lean()) as unknown as {
+        via: string;
+        reason?: string;
+        changes: { path: string; before?: unknown; after?: unknown }[];
+        actor: { username: string; isOwner: boolean };
+      }[];
+      const vias = list.map((e) => e.via);
+      for (const v of ['xp', 'level-up', 'edit-level', 'reopen'])
+        assert.ok(vias.includes(v), `faltou ${v}: ${vias}`);
+      const xp = list.find((e) => e.via === 'xp')!;
+      assert.ok(xp.changes.some((c) => c.path.startsWith('experience')));
+      assert.equal(xp.reason, 'Sessão');
+      const up = list.find((e) => e.via === 'level-up')!;
+      assert.equal(up.actor.isOwner, true);
+      const lvl = up.changes.find((c) => c.path === 'level')!;
+      assert.equal(lvl.before, 1);
+      assert.equal(lvl.after, 2);
+      assert.ok(up.changes.some((c) => c.path.startsWith('catalogPicks')));
+      assert.ok(
+        !up.changes.some((c) => c.path === 'levelLocks'),
+        'selos internos não são campos'
       );
     });
 

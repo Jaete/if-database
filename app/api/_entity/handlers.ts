@@ -57,6 +57,8 @@ interface IOptions<T> {
     slug: string,
     session: { username: string; forumUserId?: number }
   ) => Promise<string | null>;
+  /** Exclusão própria no lugar de `service.remove` (a ficha guarda um snapshot). */
+  remove?: (slug: string) => ReturnType<IEntityService<T>['remove']>;
   /** Criação própria no lugar de `service.create` (a ficha do jogador). */
   create?: (
     body: Record<string, unknown>
@@ -166,6 +168,7 @@ export function createSlugHandlers<T>({
   clientError,
   redact,
   guardWrite,
+  remove,
 }: IOptions<T>) {
   const notFound = () =>
     NextResponse.json({ error: notFoundLabel }, { status: 404 });
@@ -229,7 +232,7 @@ export function createSlugHandlers<T>({
         const { slug } = await params;
         const barred = await barWrite(slug, guardWrite);
         if (barred) return barred;
-        const result = await service.remove(slug);
+        const result = await (remove ? remove(slug) : service.remove(slug));
         if (!result.success) return notFound();
         return NextResponse.json({ success: true });
       } catch (error) {

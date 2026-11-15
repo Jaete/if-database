@@ -1,3 +1,7 @@
-const PlayerDataHandles = ['playerOwnerLink'] as const;
+const PlayerDataHandles = [
+  'playerOwnerLink',
+  'playerAudit',
+  'playerAuditToggle',
+] as const;
 
 export default PlayerDataHandles;

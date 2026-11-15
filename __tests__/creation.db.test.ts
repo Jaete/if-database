@@ -50,6 +50,7 @@ async function main() {
   const { default: User } = await import('../db/users/users');
   const { default: Event } = await import('../db/playerProgress/playerEvents');
   const { default: Roll } = await import('../db/playerProgress/creationRolls');
+  const { default: Audit } = await import('../db/sheetAudit/sheetAudits');
   const svc = await import('../services/creation.service');
   const { getPlayerById } = await import('../services/player.service');
   const { CreationError } = svc;
@@ -59,6 +60,7 @@ async function main() {
     for (const p of ps) {
       await Event.deleteMany({ playerId: p._id });
       await Roll.deleteMany({ playerId: p._id });
+      await Audit.deleteMany({ playerId: p._id });
     }
     await Player.deleteMany({ description: MARK });
   };
@@ -2063,6 +2065,162 @@ async function main() {
       'a especialização da staff fica'
     );
     assert.equal((await raw(id)).creation.staffSkills.length, 2);
+  });
+
+  await test('audit: every creation path leaves an entry with the right diff (drafts grouped; review notes never)', async () => {
+    const id = await blank();
+    const entries = async () =>
+      (await Audit.find({ playerId: id })
+        .sort({ at: 1 })
+        .lean()) as unknown as {
+        via: string;
+        changes: {
+          path: string;
+          label: string;
+          before?: unknown;
+          after?: unknown;
+        }[];
+      }[];
+    // Criada vazia.
+    assert.equal((await entries())[0].via, 'app-create');
+    // Salvamentos seguidos do mesmo autor: uma entrada só, com o primeiro antes.
+    await svc.saveDraft(id, { fields: { name: 'Zz Audit' } }, ownerActor);
+    await svc.saveDraft(
+      id,
+      { fields: { name: 'Zz Audit 2', subtitle: 'frase' } },
+      ownerActor
+    );
+    let list = await entries();
+    const drafts = list.filter((e) => e.via === 'creation-draft');
+    assert.equal(drafts.length, 1);
+    const name = drafts[0].changes.find((c) => c.path === 'name')!;
+    assert.equal(name.before ?? null, null);
+    assert.equal(name.after, 'Zz Audit 2');
+    assert.ok(drafts[0].changes.some((c) => c.path === 'subtitle'));
+    assert.ok(
+      !drafts[0].changes.some((c) => /^creation/.test(c.path)),
+      'creation não é registrada'
+    );
+    // Rolagens.
+    await svc.rollAttributes(id, ownerActor);
+    await svc.rollAttributes(id, ownerActor); // repetida: sem novo registro
+    list = await entries();
+    assert.equal(list.filter((e) => e.via === 'creation-roll').length, 1);
+    const roll = list.find((e) => e.via === 'creation-roll')!;
+    assert.ok(roll.changes.some((c) => c.path === 'roll.attributes'));
+    // Envio, devolução e aprovação (a ficha completa vem de `complete`).
+    const { id: full } = await complete();
+    await svc.rollStartingGil(full, ownerActor);
+    await svc.submitSheet(full, ownerActor);
+    await svc.returnSheet(full, { notes: 'Observação RESERVADA' }, admin);
+    await svc.submitSheet(full, ownerActor);
+    await svc.approveSheet(full, admin);
+    const fullList = (await Audit.find({ playerId: full })
+      .sort({ at: 1 })
+      .lean()) as unknown as typeof list;
+    const vias = fullList.map((e) => e.via);
+    for (const v of [
+      'app-create',
+      'creation-draft',
+      'creation-roll',
+      'submit',
+      'return',
+      'approve',
+    ]) {
+      assert.ok(vias.includes(v), `faltou ${v}: ${vias.join(',')}`);
+    }
+    const submit = fullList.find((e) => e.via === 'submit')!;
+    assert.ok(
+      submit.changes.some((c) => c.path === 'status' && c.after === 'submitted')
+    );
+    const ret = fullList.find((e) => e.via === 'return')!;
+    assert.ok(
+      ret.changes.some(
+        (c) => c.path === 'review' && c.label === 'Observações enviadas'
+      )
+    );
+    assert.ok(!JSON.stringify(fullList).includes('RESERVADA'));
+    const gil = fullList.find(
+      (e) =>
+        e.via === 'creation-roll' &&
+        e.changes.some((c) => c.path === 'roll.gil')
+    );
+    assert.ok(gil, 'o gil rolado também');
+    assert.ok(
+      fullList
+        .find((e) => e.via === 'approve')!
+        .changes.some((c) => c.path === 'status' && c.after === 'approved')
+    );
+  });
+  await test('audit: approve with adjustments records the full before → after of each field (not only labels)', async () => {
+    const id = await submittedSheet();
+    const before = await raw(id);
+    await svc.approveSheet(id, otherStaff, {
+      fields: {
+        equipment: {
+          ...before.equipment,
+          gil: 8888,
+          backpack: 'Item raro de lore',
+        },
+      },
+    });
+    const list = (await Audit.find({
+      playerId: id,
+      via: 'approve-adjust',
+    }).lean()) as unknown as {
+      changes: { path: string; before?: unknown; after?: unknown }[];
+      actor: { username: string; isStaff: boolean };
+    }[];
+    assert.equal(list.length, 1);
+    const gil = list[0].changes.find((c) => c.path === 'equipment.gil')!;
+    assert.equal(gil.before, before.equipment.gil);
+    assert.equal(gil.after, 8888);
+    assert.equal(
+      list[0].changes.find((c) => c.path === 'equipment.backpack')!.after,
+      'Item raro de lore'
+    );
+    assert.ok(
+      list[0].changes.some((c) => c.path === 'status' && c.after === 'approved')
+    );
+    assert.equal(list[0].actor.username, 'narrador');
+    assert.equal(list[0].actor.isStaff, true);
+  });
+  await test('audit: the staff skill override is audited (a removal too)', async () => {
+    const id = await swordHuman();
+    await svc.saveDraft(
+      id,
+      { skills: ['Persuasão', 'Atletismo', 'Furtividade'] },
+      ownerActor
+    );
+    await svc.saveDraft(
+      id,
+      {
+        staffSkills: [
+          { name: 'Persuasão', level: 0 },
+          { name: 'Natureza', level: 2 },
+        ],
+      },
+      admin
+    );
+    const list = (await Audit.find({
+      playerId: id,
+      via: 'creation-draft',
+      'actor.username': 'admin-teste',
+    }).lean()) as unknown as {
+      changes: { path: string; before?: any; after?: any }[]; // eslint-disable-line @typescript-eslint/no-explicit-any
+    }[];
+    assert.equal(list.length, 1);
+    const paths = list[0].changes.map((c) => c.path);
+    assert.ok(
+      paths.includes('proficiencies.skills[Persuasão]'),
+      paths.join(',')
+    );
+    assert.ok(paths.includes('proficiencies.skills[Natureza]'));
+    const removed = list[0].changes.find(
+      (c) => c.path === 'proficiencies.skills[Persuasão]'
+    )!;
+    assert.equal(removed.after.staffOverride, true);
+    assert.equal(removed.after.proficient, false);
   });
 
   await cleanup();
